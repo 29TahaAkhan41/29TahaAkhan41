@@ -31,6 +31,7 @@ import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import com.tahaakhan.spellmod.registry.ModBlocks;
 import com.tahaakhan.spellmod.registry.ModItems;
@@ -439,16 +440,25 @@ public final class ManaGameTests {
     private static void wizardHouseInVillagePools(GameTestHelper helper) {
         Registry<StructureTemplatePool> pools = helper.getLevel().registryAccess().lookupOrThrow(Registries.TEMPLATE_POOL);
         for (String type : VillageAdditions.VILLAGE_TYPES) {
+            // Each kind of village has its own variant of the house in its pool...
             StructureTemplatePool pool = pools.getValue(VillageAdditions.housePool(type));
-            helper.assertTrue(pool != null && VillageAdditions.contains(pool), "wizard house should be in the " + type + " village house pool");
+            helper.assertTrue(pool != null, type + " village house pool should exist");
+            List<Identifier> houses = pool.getTemplates().stream()
+                    .filter(entry -> entry.getFirst() instanceof UniqueVillageHouseElement)
+                    .map(entry -> ((UniqueVillageHouseElement) entry.getFirst()).templateId())
+                    .toList();
+            helper.assertValueEqual(houses, List.of(VillageAdditions.wizardHouse(type)), "wizard houses in the " + type + " village pool");
+
+            // ...and its structure file loads, with the loot chest in it.
+            StructureTemplate template = helper.getLevel().getStructureTemplateManager().get(VillageAdditions.wizardHouse(type)).orElse(null);
+            helper.assertTrue(template != null, type + " wizard house structure file should load");
+            helper.assertValueEqual(template.getSize(), new Vec3i(7, 11, 7), type + " wizard house size");
+            helper.assertValueEqual(template.filterBlocks(BlockPos.ZERO, new StructurePlaceSettings(), Blocks.CHEST).size(), 1, "chests in the " + type + " wizard house");
         }
-        StructureTemplate template = helper.getLevel().getStructureTemplateManager().get(VillageAdditions.WIZARD_HOUSE).orElse(null);
-        helper.assertTrue(template != null, "wizard house structure file should load");
-        helper.assertValueEqual(template.getSize(), new Vec3i(7, 11, 7), "wizard house size");
 
         // Villages are saved with the world, so the house piece must survive being written and read back.
         RegistryOps<Tag> ops = RegistryOps.create(NbtOps.INSTANCE, helper.getLevel().registryAccess());
-        Tag saved = StructurePoolElement.CODEC.encodeStart(ops, new UniqueVillageHouseElement(VillageAdditions.WIZARD_HOUSE)).getOrThrow();
+        Tag saved = StructurePoolElement.CODEC.encodeStart(ops, new UniqueVillageHouseElement(VillageAdditions.wizardHouse("plains"))).getOrThrow();
         StructurePoolElement loaded = StructurePoolElement.CODEC.parse(ops, saved).getOrThrow();
         helper.assertTrue(loaded instanceof UniqueVillageHouseElement, "saved wizard house should load as the same kind of piece, got " + loaded);
         helper.succeed();
@@ -504,7 +514,8 @@ public final class ManaGameTests {
 
             List<StructurePiece> wizardHouses = start.getPieces().stream()
                     .filter(piece -> piece instanceof PoolElementStructurePiece pooled
-                            && pooled.getElement().toString().contains(VillageAdditions.WIZARD_HOUSE.toString()))
+                            && pooled.getElement() instanceof UniqueVillageHouseElement house
+                            && house.templateId().equals(VillageAdditions.wizardHouse("plains")))
                     .toList();
             houses += wizardHouses.size();
             if (wizardHouses.isEmpty()) {

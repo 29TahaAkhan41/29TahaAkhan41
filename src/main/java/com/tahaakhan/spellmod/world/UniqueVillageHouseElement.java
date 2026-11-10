@@ -62,6 +62,10 @@ public class UniqueVillageHouseElement extends LegacySinglePoolElement {
         return super.place(templateManager, level, structureManager, generator, position, referencePos, rotation, chunkBox, random, liquidSettings, keepJigsaws);
     }
 
+    public Identifier templateId() {
+        return this.template.left().orElseThrow();
+    }
+
     /** Whether this piece is the one of its kind that actually gets built in the given village. */
     public static boolean isBuilt(StructureStart village, PoolElementStructurePiece piece) {
         for (StructurePiece other : village.getPieces()) {

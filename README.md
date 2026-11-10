@@ -79,8 +79,20 @@ Büyüler **Büyü Kitabı** okunarak öğrenilir (sağ tık; kitap harcanır, b
 
 ### Kitaplar nereden çıkar
 
-Köylere (ova, çöl, savan, karlı, tayga) yeni bir **büyücü evi** eklenir: taş tuğladan, mor camlı,
-sivri çatılı küçük bir kule; içinde kürsü, kitaplıklar, kazan ve bir sandık vardır.
+Köylere yeni bir **büyücü evi** eklenir: sivri çatılı küçük bir kule; içinde kürsü, kitaplıklar,
+kazan ve bir sandık vardır. Mor camları, ruh feneri ve çatısındaki ametist ucu her yerde aynıdır;
+yapı malzemesi köyün türüne göre değişir:
+
+| Köy    | Duvar            | Köşe direkleri        | Taban halkası        | Çatı               |
+|--------|------------------|-----------------------|----------------------|--------------------|
+| Ova    | Meşe tahtası     | Meşe kütüğü           | Kırıktaş             | Koyu meşe tahtası  |
+| Çöl    | Düz kumtaşı      | Kesme kumtaşı         | Kumtaşı              | Terakota           |
+| Savan  | Akasya tahtası   | Akasya kütüğü         | Sarı terakota        | Turuncu terakota   |
+| Karlı  | Ladin tahtası    | Soyulmuş ladin kütüğü | Soyulmuş ladin kütüğü | Kar bloğu          |
+| Tayga  | Ladin tahtası    | Ladin kütüğü          | Yosunlu kırıktaş     | Kırıktaş           |
+
+Yapı dosyaları `tools/make_wizard_houses.py` ile üretilir; malzemeleri değiştirmek için oradaki
+tabloyu düzenleyip betiği çalıştırmak yeterlidir.
 
 - Bir köyde **en fazla bir** büyücü evi kurulur ve sandığından **tek bir** Büyü Kitabı çıkar
   (yanında kitap, kâğıt, ametist, lapis gibi ufak ganimetler). Kitaptaki büyü rastgeledir;
