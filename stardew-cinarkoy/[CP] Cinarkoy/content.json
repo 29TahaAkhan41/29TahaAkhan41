@@ -52,6 +52,43 @@
                     }
                 }
             ]
+        },
+
+        // 5) Otobus duragina, ciftlik cikisinin hemen onune tabela koy (yuruyerek gidis)
+        {
+            "Action": "EditMap",
+            "Target": "Maps/BusStop",
+            "FromFile": "assets/Tabela.tmx",
+            "ToArea": { "X": 14, "Y": 23, "Width": 1, "Height": 1 },
+            "PatchMode": "Overlay"
+        },
+        {
+            "Action": "EditMap",
+            "Target": "Maps/BusStop",
+            "MapTiles": [
+                {
+                    "Position": { "X": 14, "Y": 23 },
+                    "Layer": "Buildings",
+                    "SetProperties": {
+                        "Action": "Warp 4 14 {{ModId}}_Koy"
+                    }
+                }
+            ]
+        },
+
+        // 6) Koydeki tabelaya tiklaninca otobus duragina don
+        {
+            "Action": "EditMap",
+            "Target": "Maps/{{ModId}}_Koy",
+            "MapTiles": [
+                {
+                    "Position": { "X": 6, "Y": 13 },
+                    "Layer": "Buildings",
+                    "SetProperties": {
+                        "Action": "Warp 12 24 BusStop"
+                    }
+                }
+            ]
         }
     ]
 }

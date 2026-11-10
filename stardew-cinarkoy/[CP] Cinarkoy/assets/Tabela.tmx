@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
+ <tileset firstgid="1" name="cinarkoy_tiles" tilewidth="16" tileheight="16" tilecount="24" columns="8">
+  <image source="cinarkoy_tiles.png" width="128" height="48"/>
+ </tileset>
+ <layer id="1" name="Buildings" width="1" height="1">
+  <data encoding="csv">
+17
+</data>
+ </layer>
+</map>

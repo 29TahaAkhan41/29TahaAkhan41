@@ -4,6 +4,7 @@
 Çıktılar ([CP] Cinarkoy/assets/ içine):
   cinarkoy_tiles.png  - 16x16 karolardan oluşan özgün karo seti
   Cinarkoy.tmx        - Tiled haritası (Back / Buildings / Front katmanları)
+  Tabela.tmx          - Otobüs durağına bindirilen 1x1'lik tabela yaması
 Ayrıca stardew-cinarkoy/onizleme.png olarak haritanın önizlemesini çizer.
 
 Haritayı Tiled ile elle düzenlemeye başladıktan sonra bu betiği tekrar
@@ -22,8 +23,9 @@ G, Y = 40, 30   # harita genişliği / yüksekliği (karo)
 
 # Karo indeksleri (karo setindeki sıra)
 (CIM, CICEK, TOPRAK, SU, TAS, DUVAR, CATI, KAPI,
- PENCERE, CIT, GOVDE, YAPRAK, CALI, VAGON, KUYU, CATI_UST) = range(16)
-KARO_SAYISI = 16
+ PENCERE, CIT, GOVDE, YAPRAK, CALI, VAGON, KUYU, CATI_UST, TABELA) = range(17)
+KARO_SAYISI = 17
+SATIR = (KARO_SAYISI + SUTUN - 1) // SUTUN
 
 rng = random.Random(2941)
 
@@ -162,6 +164,16 @@ def karo_kuyu():
     return im
 
 
+def karo_tabela():
+    im = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([7, 8, 8, 15], fill=(112, 76, 44, 255))
+    d.rectangle([1, 1, 14, 8], fill=(214, 170, 104, 255), outline=(90, 58, 30, 255))
+    d.polygon([(10, 3), (12, 5), (10, 7)], fill=(90, 58, 30, 255))
+    d.line([(4, 5), (10, 5)], fill=(90, 58, 30, 255))
+    return im
+
+
 def karo_seti():
     karolar = [None] * KARO_SAYISI
     karolar[CIM] = karo_cim()
@@ -180,8 +192,8 @@ def karo_seti():
     karolar[VAGON] = karo_vagon()
     karolar[KUYU] = karo_kuyu()
     karolar[CATI_UST] = karo_cati(ust=True)
-    satir = (KARO_SAYISI + SUTUN - 1) // SUTUN
-    sayfa = Image.new("RGBA", (SUTUN * T, satir * T), (0, 0, 0, 0))
+    karolar[TABELA] = karo_tabela()
+    sayfa = Image.new("RGBA", (SUTUN * T, SATIR * T), (0, 0, 0, 0))
     for i, k in enumerate(karolar):
         sayfa.paste(k, ((i % SUTUN) * T, (i // SUTUN) * T))
     return sayfa, karolar
@@ -196,6 +208,8 @@ front = [[BOS] * G for _ in range(Y)]
 # Vagonun durduğu karo ve oyuncunun köye vardığı karo (content.json ile aynı olmalı)
 VAGON_KARO = (4, 13)
 VARIS_KARO = (4, 14)
+# Otobüs durağına dönüş tabelası (content.json ile aynı olmalı)
+TABELA_KARO = (6, 13)
 
 
 def dikdortgen(katman, x0, y0, x1, y1, karo):
@@ -261,6 +275,8 @@ for y in range(20, 26):
 # Vagon durağı
 buildings[VAGON_KARO[1]][VAGON_KARO[0]] = VAGON
 
+buildings[TABELA_KARO[1]][TABELA_KARO[0]] = TABELA
+
 # Sınır: haritanın kenarı çalıyla kapalı
 for x in range(G):
     buildings[0][x] = CALI
@@ -297,6 +313,31 @@ def ozellik(karo, **ozellikler):
     return f'  <tile id="{karo}">\n   <properties>{ic}\n   </properties>\n  </tile>\n'
 
 
+def tileset(karo_ozellikleri=""):
+    return (
+        f' <tileset firstgid="1" name="cinarkoy_tiles" tilewidth="{T}" tileheight="{T}" '
+        f'tilecount="{SATIR * SUTUN}" columns="{SUTUN}">\n'
+        f'  <image source="cinarkoy_tiles.png" width="{SUTUN * T}" height="{SATIR * T}"/>\n'
+        f'{karo_ozellikleri}'
+        ' </tileset>\n'
+    )
+
+
+def tabela_yamasi_yaz():
+    """Vanilla haritaya bindirilen 1x1'lik yama: yalnızca tabela karosu."""
+    tmx = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" '
+        f'width="1" height="1" tilewidth="{T}" tileheight="{T}" infinite="0" '
+        'nextlayerid="2" nextobjectid="1">\n'
+        f'{tileset()}'
+        ' <layer id="1" name="Buildings" width="1" height="1">\n'
+        f'  <data encoding="csv">\n{TABELA + 1}\n</data>\n </layer>\n'
+        '</map>\n'
+    )
+    (ASSETS / "Tabela.tmx").write_text(tmx, encoding="utf-8")
+
+
 def tmx_yaz():
     karo_ozellikleri = (
         ozellik(CIM, Type="Grass")
@@ -318,11 +359,7 @@ def tmx_yaz():
         ' <properties>\n'
         '  <property name="Outdoors" value="T"/>\n'
         ' </properties>\n'
-        f' <tileset firstgid="1" name="cinarkoy_tiles" tilewidth="{T}" tileheight="{T}" '
-        f'tilecount="{KARO_SAYISI}" columns="{SUTUN}">\n'
-        f'  <image source="cinarkoy_tiles.png" width="{SUTUN * T}" height="{KARO_SAYISI // SUTUN * T}"/>\n'
-        f'{karo_ozellikleri}'
-        ' </tileset>\n'
+        f'{tileset(karo_ozellikleri)}'
         f'{katmanlar}'
         '</map>\n'
     )
@@ -344,5 +381,6 @@ if __name__ == "__main__":
     sayfa, karolar = karo_seti()
     sayfa.save(ASSETS / "cinarkoy_tiles.png")
     tmx_yaz()
+    tabela_yamasi_yaz()
     onizleme(karolar)
     print(f"Tamam: {G}x{Y} harita, {dikilen} ağaç")
