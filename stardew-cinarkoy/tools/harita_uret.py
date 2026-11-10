@@ -272,7 +272,8 @@ yol(18, 19, 18, 21)                   # gri-mavi evin kapısı -> yol
 yol(42, 19, 43, 21)                   # konağın kapısı -> yol
 # Güney sırası: kapı güneyde, patika evin yanından dolanır
 yol(27, 24, 28, 40)
-yol(20, 39, 28, 40)
+yol(10, 39, 28, 40)
+yol(10, 38, 11, 38)                   # kulübenin kapısı
 yol(38, 24, 39, 40)
 yol(38, 38, 45, 39)
 yol(29, 39, 37, 40)                   # krem evin önü, iki patikayı birleştirir
@@ -280,6 +281,15 @@ yol(29, 39, 37, 40)                   # krem evin önü, iki patikayı birleşti
 zemini_dose()
 for (kx0, ky0, kx1, ky1), (hx, hy), boya in EVLER:
     ev(kx0, ky0, kx1, ky1, hx, hy, boya)
+
+# Sıfırdan çizilmiş kulübe (tools/ev_ciz.py üretir): üst 2 sıra Front, gerisi Buildings
+KULUBE0, KULUBE_G, KULUBE_Y = 7000, 8, 7
+KULUBE_PNG = Image.open(ASSETS / "cinarkoy_kulube.png").convert("RGBA")
+KULUBE = (7, 31)
+for ky in range(KULUBE_Y):
+    for kx in range(KULUBE_G):
+        if KULUBE_PNG.crop((kx * 16, ky * 16, kx * 16 + 16, ky * 16 + 16)).getbbox():
+            harita["Front" if ky < 2 else "Buildings"][KULUBE[1] + ky][KULUBE[0] + kx] = KULUBE0 + ky * KULUBE_G + kx
 
 # Vagon: Town'daki ray + vagon + kol
 damga(town, 105, 77, 105, 80, VAGON[0], VAGON[1], lambda ad, gid: gid not in CIMEN and ad != "Paths")
@@ -359,9 +369,15 @@ def ozel_set_yaz():
             ' </tileset>')
 
 
+KULUBE_SET = (f'<tileset firstgid="{KULUBE0}" name="cinarkoy_kulube" tilewidth="16" tileheight="16" '
+              f'tilecount="{KULUBE_G * KULUBE_Y}" columns="{KULUBE_G}">\n'
+              f'  <image source="cinarkoy_kulube.png" width="{KULUBE_G * 16}" height="{KULUBE_Y * 16}"/>\n'
+              ' </tileset>')
+
+
 def yaz():
     ASSETS.mkdir(parents=True, exist_ok=True)
-    koy = tmx(G, Y, [set_xml(town, s) for s in SETLER] + [ozel_set_yaz()], [(ad, harita[ad]) for ad in KATMANLAR],
+    koy = tmx(G, Y, [set_xml(town, s) for s in SETLER] + [ozel_set_yaz(), KULUBE_SET], [(ad, harita[ad]) for ad in KATMANLAR],
               ' <properties>\n  <property name="Outdoors" type="string" value="T"/>\n </properties>\n')
     (ASSETS / "Cinarkoy.tmx").write_text(koy, encoding="utf-8")
     # Otobüs durağı yaması: 1x2, üstte tabela levhası (Front), altta direk (Buildings)
@@ -377,6 +393,7 @@ def onizleme():
         sayfalar.append((int(ts.get("firstgid")), int(ts.get("columns")),
                          Image.open(MAPS / f"{s}.png").convert("RGBA")))
     sayfalar.append((OZEL0, OZEL_SUTUN, Image.open(ASSETS / "spring_cinarkoy_evler.png").convert("RGBA")))
+    sayfalar.append((KULUBE0, KULUBE_G, KULUBE_PNG))
     im = Image.new("RGBA", (G * 16, Y * 16), (0, 0, 0, 255))
     for ad in KATMANLAR:
         if ad == "Paths":

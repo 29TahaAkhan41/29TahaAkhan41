@@ -36,6 +36,8 @@ Dönüş için köydeki tabelaya (otobüs durağına) ya da vagona tıkla.
 | `[CP] Cinarkoy/assets/Tabela.tmx` | Otobüs durağına bindirilen tabela yaması |
 | `[CP] Cinarkoy/assets/<mevsim>_cinarkoy_evler.png` | Yeniden boyanmış ev karoları (depoda yok, betik üretir) |
 | `[CP] Cinarkoy/i18n/` | Çeviriler (`default.json` İngilizce, `tr.json` Türkçe) |
+| `[CP] Cinarkoy/assets/cinarkoy_kulube.png` | Sıfırdan çizilmiş özgün taş kulübe |
+| `tools/ev_ciz.py` | Kulübeyi piksel piksel çizen betik |
 | `tools/harita_uret.py` | Haritayı oyunun kendi karolarından üreten betik |
 
 ## Haritayı düzenlemek
