@@ -1,0 +1,15 @@
+{
+  "itemGroup.spellmod": "Spell Mod",
+  "item.spellmod.wand": "Magic Wand",
+  "item.spellmod.mana_crystal": "Mana Crystal",
+  "spell.spellmod.fireball": "Fireball",
+  "spell.spellmod.heal": "Heal",
+  "spell.spellmod.blink": "Blink",
+  "spell.spellmod.lightning": "Lightning",
+  "message.spellmod.selected": "Spell: %s (%s mana)",
+  "message.spellmod.no_mana": "Not enough mana! (%s needed)",
+  "message.spellmod.failed": "The spell fizzles...",
+  "tooltip.spellmod.spell": "Spell: %s (%s mana)",
+  "tooltip.spellmod.wand_hint": "Right click: cast - Sneak + right click: change spell",
+  "tooltip.spellmod.mana_crystal": "Restores %s mana"
+}

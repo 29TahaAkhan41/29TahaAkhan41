@@ -1,0 +1,15 @@
+{
+  "itemGroup.spellmod": "Büyü Modu",
+  "item.spellmod.wand": "Sihirli Asa",
+  "item.spellmod.mana_crystal": "Mana Kristali",
+  "spell.spellmod.fireball": "Ateş Topu",
+  "spell.spellmod.heal": "İyileştirme",
+  "spell.spellmod.blink": "Işınlanma",
+  "spell.spellmod.lightning": "Yıldırım",
+  "message.spellmod.selected": "Büyü: %s (%s mana)",
+  "message.spellmod.no_mana": "Yeterli mana yok! (%s gerekli)",
+  "message.spellmod.failed": "Büyü sönüp gitti...",
+  "tooltip.spellmod.spell": "Büyü: %s (%s mana)",
+  "tooltip.spellmod.wand_hint": "Sağ tık: büyü yap - Eğil + sağ tık: büyü değiştir",
+  "tooltip.spellmod.mana_crystal": "%s mana yeniler"
+}
