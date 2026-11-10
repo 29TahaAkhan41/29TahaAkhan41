@@ -13,5 +13,7 @@
   "message.spellmod.first_raw_mana": "Bloktan tuhaf bir şey düştü... işlenmemiş mana.",
   "message.spellmod.overflow": "Vücudun henüz bu kadar manayı taşıyamıyor!",
   "message.spellmod.stage_up": "Vücudun manaya alıştı. Yeni aşama: %s",
-  "message.spellmod.status": "Aşama: %s | Mana: %s/%s | Mana tecrübesi: %s | Ham mana bulma şansı: %%%s"
+  "message.spellmod.status": "Aşama: %s | Mana: %s/%s | Mana tecrübesi: %s | Ham mana bulma şansı: %%%s",
+  "item.spellmod.mana_capsule": "Mana Kapsülü",
+  "block.spellmod.mana_table": "Mana Masası"
 }

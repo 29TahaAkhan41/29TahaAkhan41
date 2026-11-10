@@ -18,6 +18,8 @@ public final class ModCreativeTabs {
                     .displayItems((parameters, output) -> {
                         output.accept(ModItems.RAW_MANA.get());
                         output.accept(ModItems.REFINED_MANA.get());
+                        output.accept(ModItems.MANA_CAPSULE.get());
+                        output.accept(ModItems.MANA_TABLE.get());
                     })
                     .build());
 

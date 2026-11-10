@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "spellmod:block/mana_table"
+    }
+  }
+}

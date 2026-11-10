@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:glass",
+    "E": "minecraft:ender_eye",
+    "C": "spellmod:mana_capsule",
+    "O": "minecraft:obsidian"
+  },
+  "pattern": [
+    "EGE",
+    " C ",
+    "OOO"
+  ],
+  "result": {
+    "count": 1,
+    "id": "spellmod:mana_table"
+  }
+}

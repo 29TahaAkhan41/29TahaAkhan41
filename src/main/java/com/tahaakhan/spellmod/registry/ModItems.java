@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.ItemLore;
@@ -22,6 +23,13 @@ public final class ModItems {
     /** Made from raw mana; can be absorbed by the player. */
     public static final DeferredItem<RefinedManaItem> REFINED_MANA = ITEMS.registerItem("refined_mana", RefinedManaItem::new,
             props -> props.rarity(Rarity.RARE).component(DataComponents.LORE, lore("tooltip.spellmod.refined_mana")));
+
+    /** Crafted around raw mana; the heart of the mana table. */
+    public static final DeferredItem<Item> MANA_CAPSULE = ITEMS.registerSimpleItem("mana_capsule",
+            props -> props.rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<BlockItem> MANA_TABLE = ITEMS.registerSimpleBlockItem(ModBlocks.MANA_TABLE,
+            props -> props.rarity(Rarity.RARE));
 
     private ModItems() {}
 

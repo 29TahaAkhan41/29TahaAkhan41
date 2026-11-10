@@ -6,8 +6,10 @@ import com.tahaakhan.spellmod.mana.Mana;
 import com.tahaakhan.spellmod.mana.ManaData;
 import com.tahaakhan.spellmod.mana.ManaEvents;
 import com.tahaakhan.spellmod.mana.ManaStage;
+import com.tahaakhan.spellmod.registry.ModBlocks;
 import com.tahaakhan.spellmod.registry.ModItems;
 import io.netty.channel.embedded.EmbeddedChannel;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
@@ -25,7 +27,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -48,6 +55,8 @@ public final class ManaGameTests {
         TEST_FUNCTIONS.register("first_absorption_awakens_and_hurts", () -> ManaGameTests::firstAbsorptionAwakensAndHurts);
         TEST_FUNCTIONS.register("body_gets_used_to_mana", () -> ManaGameTests::bodyGetsUsedToMana);
         TEST_FUNCTIONS.register("stages_follow_capacity", () -> ManaGameTests::stagesFollowCapacity);
+        TEST_FUNCTIONS.register("capsule_and_table_recipes", () -> ManaGameTests::capsuleAndTableRecipes);
+        TEST_FUNCTIONS.register("mana_table_block", () -> ManaGameTests::manaTableBlock);
     }
 
     private ManaGameTests() {}
@@ -155,6 +164,58 @@ public final class ManaGameTests {
         helper.assertValueEqual(ManaStage.forCapacity(50), ManaStage.ADEPT, "stage at 50");
         helper.assertValueEqual(ManaStage.forCapacity(100), ManaStage.MAGE, "stage at 100");
         helper.assertValueEqual(ManaStage.forCapacity(200), ManaStage.ARCHMAGE, "stage at 200");
+        helper.succeed();
+    }
+
+    private static void capsuleAndTableRecipes(GameTestHelper helper) {
+        ItemStack glass = new ItemStack(Items.GLASS);
+        ItemStack eye = new ItemStack(Items.ENDER_EYE);
+        ItemStack obsidian = new ItemStack(Items.OBSIDIAN);
+        ItemStack rawMana = new ItemStack(ModItems.RAW_MANA.get());
+        ItemStack capsule = new ItemStack(ModItems.MANA_CAPSULE.get());
+        ItemStack none = ItemStack.EMPTY;
+
+        helper.assertTrue(craft(helper,
+                glass, eye, glass,
+                eye, rawMana, eye,
+                glass, eye, glass).is(ModItems.MANA_CAPSULE.get()), "capsule recipe should give a mana capsule");
+        helper.assertTrue(craft(helper,
+                eye, glass, eye,
+                none, capsule, none,
+                obsidian, obsidian, obsidian).is(ModItems.MANA_TABLE.get()), "table recipe should give a mana table");
+        // Wrong layouts give nothing from this mod.
+        helper.assertFalse(craft(helper,
+                eye, glass, eye,
+                glass, rawMana, glass,
+                eye, glass, eye).is(ModItems.MANA_CAPSULE.get()), "glass and eyes swapped should not give a capsule");
+        helper.assertFalse(craft(helper,
+                eye, glass, eye,
+                none, rawMana, none,
+                obsidian, obsidian, obsidian).is(ModItems.MANA_TABLE.get()), "raw mana instead of a capsule should not give a table");
+        helper.succeed();
+    }
+
+    private static ItemStack craft(GameTestHelper helper, ItemStack... grid) {
+        CraftingInput input = CraftingInput.of(3, 3, List.of(grid));
+        return helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(recipe -> recipe.value().assemble(input))
+                .orElse(ItemStack.EMPTY);
+    }
+
+    private static void manaTableBlock(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(0, 2, 0);
+        helper.setBlock(pos, ModBlocks.MANA_TABLE.get());
+        BlockState state = helper.getBlockState(pos);
+        int light = state.getLightEmission(helper.getLevel(), helper.absolutePos(pos));
+        helper.assertTrue(light >= 10, "the table should glow, light was " + light);
+        helper.assertTrue(state.requiresCorrectToolForDrops(), "the table needs a pickaxe");
+        helper.assertTrue(state.is(BlockTags.MINEABLE_WITH_PICKAXE), "the table should be mineable with a pickaxe");
+
+        // Breaking it with a pickaxe gives the table back.
+        List<ItemStack> drops = Block.getDrops(state, helper.getLevel(), helper.absolutePos(pos), null, null, new ItemStack(Items.DIAMOND_PICKAXE));
+        helper.assertValueEqual(drops.size(), 1, "number of drops");
+        helper.assertTrue(drops.getFirst().is(ModItems.MANA_TABLE.get()), "the table should drop itself");
+        helper.setBlock(pos, Blocks.AIR);
         helper.succeed();
     }
 

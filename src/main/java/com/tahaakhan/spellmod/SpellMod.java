@@ -2,6 +2,7 @@ package com.tahaakhan.spellmod;
 
 import com.tahaakhan.spellmod.gametest.ManaGameTests;
 import com.tahaakhan.spellmod.registry.ModAttachments;
+import com.tahaakhan.spellmod.registry.ModBlocks;
 import com.tahaakhan.spellmod.registry.ModCreativeTabs;
 import com.tahaakhan.spellmod.registry.ModItems;
 import net.minecraft.resources.Identifier;
@@ -14,6 +15,7 @@ public class SpellMod {
 
     public SpellMod(IEventBus modEventBus) {
         ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
+        ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModCreativeTabs.CREATIVE_TABS.register(modEventBus);
         ManaGameTests.register(modEventBus);

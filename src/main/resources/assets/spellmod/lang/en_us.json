@@ -13,5 +13,7 @@
   "message.spellmod.first_raw_mana": "Something strange fell out of the block... raw mana.",
   "message.spellmod.overflow": "Your body cannot hold this much mana yet!",
   "message.spellmod.stage_up": "Your body has grown used to mana. New stage: %s",
-  "message.spellmod.status": "Stage: %s | Mana: %s/%s | Mana experience: %s | Chance to find raw mana: %s%%"
+  "message.spellmod.status": "Stage: %s | Mana: %s/%s | Mana experience: %s | Chance to find raw mana: %s%%",
+  "item.spellmod.mana_capsule": "Mana Capsule",
+  "block.spellmod.mana_table": "Mana Table"
 }
