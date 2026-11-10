@@ -80,8 +80,11 @@ Gerekenler: **JDK 25** (Minecraft 26.3 bunu şart koşuyor). Gradle, wrapper ile
 ./gradlew runClient          # modla birlikte oyunu aç
 ./gradlew runServer          # sunucu aç
 ./gradlew runGameTestServer  # otomatik oyun içi testleri çalıştır
-./gradlew build              # build/libs/spellmod-<sürüm>.jar üret
+./gradlew build              # build/libs/spellmod-<sürüm>.jar üret ve indir/ klasörüne kopyala
 ```
+
+Hazır `.jar` dosyası `indir/` klasöründedir; her `./gradlew build` onu günceller. Modda değişiklik
+yapınca build alıp `indir/` klasörünü de commit et.
 
 ### Kod yapısı
 

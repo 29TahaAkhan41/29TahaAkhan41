@@ -62,3 +62,10 @@ neoForge.ideSyncTask generateModMetadata
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
+
+// Keeps the downloadable jar in indir/ up to date: every build replaces it with the fresh one.
+var updateDownloadJar = tasks.register('updateDownloadJar', Sync) {
+    from tasks.named('jar')
+    into layout.projectDirectory.dir('indir')
+}
+tasks.named('build') { finalizedBy updateDownloadJar }
