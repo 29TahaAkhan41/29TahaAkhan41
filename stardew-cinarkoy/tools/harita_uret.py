@@ -1,386 +1,315 @@
 #!/usr/bin/env python3
-"""Çınarköy başlangıç haritasını ve karo setini üretir.
+"""Çınarköy haritasını oyunun kendi karolarıyla üretir.
 
-Çıktılar ([CP] Cinarkoy/assets/ içine):
-  cinarkoy_tiles.png  - 16x16 karolardan oluşan özgün karo seti
-  Cinarkoy.tmx        - Tiled haritası (Back / Buildings / Front katmanları)
-  Tabela.tmx          - Otobüs durağına bindirilen 1x1'lik tabela yaması
-Ayrıca stardew-cinarkoy/onizleme.png olarak haritanın önizlemesini çizer.
+Kullanım:
+    python3 tools/harita_uret.py "<oyun klasörü>/Content (unpacked)/Maps"
+
+Oyunun açılmış (StardewXnbHack) Maps klasörünü okur: evleri, ağaçları, vagonu
+ve tabelayı Town.tmx / BusStop.tmx içinden kopyalar, zemini (çimen + toprak yol)
+oyunun kenar karolarıyla döşer. Oyunun görselleri moda KOPYALANMAZ; harita
+karo setlerine yalnızca adlarıyla başvurur.
+
+Çıktılar:
+    [CP] Cinarkoy/assets/Cinarkoy.tmx   köy haritası
+    [CP] Cinarkoy/assets/Tabela.tmx     otobüs durağına bindirilen tabela yaması
+    onizleme.png                         haritanın önizlemesi
 
 Haritayı Tiled ile elle düzenlemeye başladıktan sonra bu betiği tekrar
 çalıştırma: Cinarkoy.tmx dosyasının üzerine yazar.
 """
+import copy
 import random
+import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 KOK = Path(__file__).resolve().parent.parent
 ASSETS = KOK / "[CP] Cinarkoy" / "assets"
-T = 16          # karo boyutu (piksel)
-SUTUN = 8       # karo setindeki sütun sayısı
-G, Y = 40, 30   # harita genişliği / yüksekliği (karo)
-
-# Karo indeksleri (karo setindeki sıra)
-(CIM, CICEK, TOPRAK, SU, TAS, DUVAR, CATI, KAPI,
- PENCERE, CIT, GOVDE, YAPRAK, CALI, VAGON, KUYU, CATI_UST, TABELA) = range(17)
-KARO_SAYISI = 17
-SATIR = (KARO_SAYISI + SUTUN - 1) // SUTUN
-
+G, Y = 60, 50                     # harita boyutu (karo)
 rng = random.Random(2941)
 
-
-def benekli(taban, benekler, adet):
-    """Düz renkli zemine rastgele benek atılmış 16x16 karo."""
-    im = Image.new("RGBA", (T, T), taban)
-    px = im.load()
-    for _ in range(adet):
-        px[rng.randrange(T), rng.randrange(T)] = rng.choice(benekler)
-    return im
-
-
-def karo_cim():
-    return benekli((106, 168, 79, 255), [(92, 150, 68, 255), (124, 186, 92, 255)], 40)
-
-
-def karo_cicek():
-    im = karo_cim()
-    d = ImageDraw.Draw(im)
-    for cx, cy, renk in [(4, 5, (250, 220, 90, 255)), (11, 10, (240, 130, 170, 255))]:
-        d.point([(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)], fill=renk)
-        d.point((cx, cy), fill=(255, 255, 255, 255))
-    return im
-
-
-def karo_toprak():
-    return benekli((196, 160, 106, 255), [(178, 142, 92, 255), (210, 176, 124, 255)], 35)
-
-
-def karo_su():
-    im = Image.new("RGBA", (T, T), (72, 140, 210, 255))
-    d = ImageDraw.Draw(im)
-    for y0, x0 in [(3, 2), (8, 9), (13, 4)]:
-        d.line([(x0, y0), (x0 + 4, y0)], fill=(140, 195, 240, 255))
-    return im
-
-
-def karo_tas():
-    im = Image.new("RGBA", (T, T), (150, 150, 158, 255))
-    d = ImageDraw.Draw(im)
-    for y0 in (0, 8):
-        d.line([(0, y0), (15, y0)], fill=(112, 112, 122, 255))
-    for x0, y0 in [(0, 0), (8, 0), (4, 8), (12, 8)]:
-        d.line([(x0, y0), (x0, y0 + 8)], fill=(112, 112, 122, 255))
-    return im
-
-
-def karo_duvar():
-    im = Image.new("RGBA", (T, T), (222, 196, 150, 255))
-    d = ImageDraw.Draw(im)
-    for y0 in (3, 7, 11, 15):
-        d.line([(0, y0), (15, y0)], fill=(190, 160, 116, 255))
-    return im
-
-
-def karo_cati(ust=False):
-    im = Image.new("RGBA", (T, T), (168, 68, 56, 255))
-    d = ImageDraw.Draw(im)
-    for y0 in (3, 7, 11, 15):
-        d.line([(0, y0), (15, y0)], fill=(126, 44, 38, 255))
-    for i, y0 in enumerate((0, 4, 8, 12)):
-        for x0 in range(4 if i % 2 else 0, T, 8):
-            d.line([(x0, y0), (x0, y0 + 3)], fill=(126, 44, 38, 255))
-    if ust:
-        d.rectangle([0, 0, 15, 2], fill=(96, 34, 30, 255))
-    return im
-
-
-def karo_kapi():
-    im = karo_duvar()
-    d = ImageDraw.Draw(im)
-    d.rectangle([3, 1, 12, 15], fill=(110, 72, 40, 255), outline=(70, 44, 24, 255))
-    d.point((10, 9), fill=(240, 210, 90, 255))
-    return im
-
-
-def karo_pencere():
-    im = karo_duvar()
-    d = ImageDraw.Draw(im)
-    d.rectangle([3, 3, 12, 11], fill=(150, 205, 235, 255), outline=(90, 60, 36, 255))
-    d.line([(8, 3), (8, 11)], fill=(90, 60, 36, 255))
-    d.line([(3, 7), (12, 7)], fill=(90, 60, 36, 255))
-    return im
-
-
-def karo_cit():
-    im = karo_cim()
-    d = ImageDraw.Draw(im)
-    d.rectangle([0, 6, 15, 7], fill=(150, 104, 60, 255))
-    d.rectangle([0, 11, 15, 12], fill=(150, 104, 60, 255))
-    for x0 in (2, 10):
-        d.rectangle([x0, 3, x0 + 2, 15], fill=(120, 80, 44, 255))
-    return im
-
-
-def karo_govde():
-    im = karo_cim()
-    d = ImageDraw.Draw(im)
-    d.rectangle([5, 0, 10, 13], fill=(112, 76, 44, 255), outline=(78, 50, 28, 255))
-    d.ellipse([2, 11, 13, 15], fill=(84, 138, 62, 255))
-    return im
-
-
-def karo_yaprak():
-    im = Image.new("RGBA", (T, T), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.ellipse([0, 1, 15, 15], fill=(52, 122, 60, 255), outline=(34, 90, 44, 255))
-    d.ellipse([3, 3, 9, 8], fill=(78, 150, 78, 255))
-    return im
-
-
-def karo_cali():
-    im = karo_cim()
-    d = ImageDraw.Draw(im)
-    d.ellipse([0, 2, 15, 15], fill=(60, 128, 64, 255), outline=(38, 94, 46, 255))
-    d.ellipse([3, 4, 8, 8], fill=(88, 158, 86, 255))
-    return im
-
-
-def karo_vagon():
-    im = karo_toprak()
-    d = ImageDraw.Draw(im)
-    d.rectangle([1, 4, 14, 11], fill=(120, 122, 130, 255), outline=(60, 62, 70, 255))
-    d.rectangle([3, 6, 12, 8], fill=(60, 44, 34, 255))
-    for cx in (4, 11):
-        d.ellipse([cx - 2, 11, cx + 2, 15], fill=(50, 50, 56, 255))
-    return im
-
-
-def karo_kuyu():
-    im = karo_tas()
-    d = ImageDraw.Draw(im)
-    d.ellipse([1, 3, 14, 15], fill=(120, 120, 130, 255), outline=(70, 70, 80, 255))
-    d.ellipse([4, 6, 11, 12], fill=(56, 110, 180, 255))
-    return im
-
-
-def karo_tabela():
-    im = Image.new("RGBA", (T, T), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.rectangle([7, 8, 8, 15], fill=(112, 76, 44, 255))
-    d.rectangle([1, 1, 14, 8], fill=(214, 170, 104, 255), outline=(90, 58, 30, 255))
-    d.polygon([(10, 3), (12, 5), (10, 7)], fill=(90, 58, 30, 255))
-    d.line([(4, 5), (10, 5)], fill=(90, 58, 30, 255))
-    return im
-
-
-def karo_seti():
-    karolar = [None] * KARO_SAYISI
-    karolar[CIM] = karo_cim()
-    karolar[CICEK] = karo_cicek()
-    karolar[TOPRAK] = karo_toprak()
-    karolar[SU] = karo_su()
-    karolar[TAS] = karo_tas()
-    karolar[DUVAR] = karo_duvar()
-    karolar[CATI] = karo_cati()
-    karolar[KAPI] = karo_kapi()
-    karolar[PENCERE] = karo_pencere()
-    karolar[CIT] = karo_cit()
-    karolar[GOVDE] = karo_govde()
-    karolar[YAPRAK] = karo_yaprak()
-    karolar[CALI] = karo_cali()
-    karolar[VAGON] = karo_vagon()
-    karolar[KUYU] = karo_kuyu()
-    karolar[CATI_UST] = karo_cati(ust=True)
-    karolar[TABELA] = karo_tabela()
-    sayfa = Image.new("RGBA", (SUTUN * T, SATIR * T), (0, 0, 0, 0))
-    for i, k in enumerate(karolar):
-        sayfa.paste(k, ((i % SUTUN) * T, (i // SUTUN) * T))
-    return sayfa, karolar
-
-
-# ---------------------------------------------------------------- harita ---
-BOS = -1
-back = [[CIM] * G for _ in range(Y)]
-buildings = [[BOS] * G for _ in range(Y)]
-front = [[BOS] * G for _ in range(Y)]
-
-# Vagonun durduğu karo ve oyuncunun köye vardığı karo (content.json ile aynı olmalı)
-VAGON_KARO = (4, 13)
-VARIS_KARO = (4, 14)
-# Otobüs durağına dönüş tabelası (content.json ile aynı olmalı)
-TABELA_KARO = (6, 13)
-
-
-def dikdortgen(katman, x0, y0, x1, y1, karo):
-    for y in range(y0, y1 + 1):
-        for x in range(x0, x1 + 1):
-            katman[y][x] = karo
-
-
-def ev(x0, y0, genislik=5):
-    """Üst sol köşesi (x0, y0) olan ev: 2 sıra çatı + 2 sıra duvar."""
-    x1 = x0 + genislik - 1
-    dikdortgen(buildings, x0, y0, x1, y0, CATI_UST)
-    dikdortgen(buildings, x0, y0 + 1, x1, y0 + 1, CATI)
-    dikdortgen(buildings, x0, y0 + 2, x1, y0 + 3, DUVAR)
-    buildings[y0 + 2][x0 + 1] = PENCERE
-    buildings[y0 + 2][x1 - 1] = PENCERE
-    kapi_x = x0 + genislik // 2
-    buildings[y0 + 3][kapi_x] = KAPI
-    return kapi_x, y0 + 4      # kapının önündeki karo
-
-
-def agac(x, y):
-    buildings[y][x] = GOVDE
-    front[y - 1][x] = YAPRAK
-
-
-# Çiçekler
-for _ in range(90):
-    back[rng.randrange(1, Y - 1)][rng.randrange(1, G - 1)] = CICEK
-
-# Yollar: doğu-batı ana yol, kuzey-güney ara yol, ortada taş meydan
-dikdortgen(back, 2, 14, G - 3, 15, TOPRAK)
-dikdortgen(back, 19, 3, 20, Y - 4, TOPRAK)
-dikdortgen(back, 15, 11, 24, 18, TAS)
-buildings[13][17] = KUYU
-
-# Gölet
-dikdortgen(back, 29, 20, 35, 25, SU)
-for x, y in [(29, 20), (35, 20), (29, 25), (35, 25)]:
-    back[y][x] = CIM
-
-# Evler ve kapı önü patikaları (patika en yakın yola kadar iner/çıkar)
-for x0, y0 in [(5, 6), (11, 6), (25, 6), (32, 6)]:
-    kx, ky = ev(x0, y0)
-    dikdortgen(back, kx, ky, kx, 13, TOPRAK)
-for x0, y0 in [(6, 19), (22, 21)]:
-    kx, ky = ev(x0, y0)
-    dikdortgen(back, kx, 16, kx, y0 - 1, TOPRAK)
-    # Güneydeki evlerin kapısı güneye bakıyor; yola çıkmak için evin yanından dolan
-    dikdortgen(back, kx, ky, x0 + 5, ky, TOPRAK)
-    dikdortgen(back, x0 + 5, y0 - 1, x0 + 5, ky, TOPRAK)
-    dikdortgen(back, kx, y0 - 1, x0 + 5, y0 - 1, TOPRAK)
-
-# Çitle çevrili bahçe (güney kenarında giriş boşluğu var)
-for x in range(12, 18):
-    buildings[20][x] = CIT
-    if x not in (14, 15):
-        buildings[25][x] = CIT
-for y in range(20, 26):
-    buildings[y][12] = CIT
-    buildings[y][17] = CIT
-
-# Vagon durağı
-buildings[VAGON_KARO[1]][VAGON_KARO[0]] = VAGON
-
-buildings[TABELA_KARO[1]][TABELA_KARO[0]] = TABELA
-
-# Sınır: haritanın kenarı çalıyla kapalı
-for x in range(G):
-    buildings[0][x] = CALI
-    buildings[Y - 1][x] = CALI
-for y in range(Y):
-    buildings[y][0] = CALI
-    buildings[y][G - 1] = CALI
-
-# Ağaçlar: yalnızca boş çimenlere
-adaylar = [(x, y) for y in range(3, Y - 2) for x in range(2, G - 2)]
-rng.shuffle(adaylar)
-dikilen = 0
-for x, y in adaylar:
-    if dikilen >= 26:
-        break
-    cevre_bos = all(
-        buildings[yy][xx] == BOS and front[yy][xx] == BOS and back[yy][xx] in (CIM, CICEK)
-        for yy in (y - 1, y, y + 1) for xx in (x - 1, x, x + 1)
-    )
-    if cevre_bos and (x, y) != VARIS_KARO:
-        agac(x, y)
-        dikilen += 1
-
-assert buildings[VARIS_KARO[1]][VARIS_KARO[0]] == BOS, "Varış karosu dolu!"
-
-
-# ---------------------------------------------------------------- çıktı ----
-def csv(katman):
-    return ",\n".join(",".join(str(k + 1) for k in satir) for satir in katman)
-
-
-def ozellik(karo, **ozellikler):
-    ic = "".join(f'\n    <property name="{ad}" value="{deger}"/>' for ad, deger in ozellikler.items())
-    return f'  <tile id="{karo}">\n   <properties>{ic}\n   </properties>\n  </tile>\n'
-
-
-def tileset(karo_ozellikleri=""):
-    return (
-        f' <tileset firstgid="1" name="cinarkoy_tiles" tilewidth="{T}" tileheight="{T}" '
-        f'tilecount="{SATIR * SUTUN}" columns="{SUTUN}">\n'
-        f'  <image source="cinarkoy_tiles.png" width="{SUTUN * T}" height="{SATIR * T}"/>\n'
-        f'{karo_ozellikleri}'
-        ' </tileset>\n'
-    )
-
-
-def tabela_yamasi_yaz():
-    """Vanilla haritaya bindirilen 1x1'lik yama: yalnızca tabela karosu."""
-    tmx = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" '
-        f'width="1" height="1" tilewidth="{T}" tileheight="{T}" infinite="0" '
-        'nextlayerid="2" nextobjectid="1">\n'
-        f'{tileset()}'
-        ' <layer id="1" name="Buildings" width="1" height="1">\n'
-        f'  <data encoding="csv">\n{TABELA + 1}\n</data>\n </layer>\n'
-        '</map>\n'
-    )
-    (ASSETS / "Tabela.tmx").write_text(tmx, encoding="utf-8")
-
-
-def tmx_yaz():
-    karo_ozellikleri = (
-        ozellik(CIM, Type="Grass")
-        + ozellik(CICEK, Type="Grass")
-        + ozellik(TOPRAK, Type="Dirt")
-        + ozellik(SU, Water="T", Passable="F")
-        + ozellik(TAS, Type="Stone")
-    )
-    katmanlar = "".join(
-        f' <layer id="{i}" name="{ad}" width="{G}" height="{Y}">\n'
-        f'  <data encoding="csv">\n{csv(veri)}\n</data>\n </layer>\n'
-        for i, (ad, veri) in enumerate([("Back", back), ("Buildings", buildings), ("Front", front)], 1)
-    )
-    tmx = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        f'<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" '
-        f'width="{G}" height="{Y}" tilewidth="{T}" tileheight="{T}" infinite="0" '
-        f'nextlayerid="4" nextobjectid="1">\n'
-        ' <properties>\n'
-        '  <property name="Outdoors" value="T"/>\n'
-        ' </properties>\n'
-        f'{tileset(karo_ozellikleri)}'
-        f'{katmanlar}'
-        '</map>\n'
-    )
-    (ASSETS / "Cinarkoy.tmx").write_text(tmx, encoding="utf-8")
-
-
-def onizleme(karolar):
-    im = Image.new("RGBA", (G * T, Y * T))
-    for katman in (back, buildings, front):
+# content.json ile aynı olmalı
+VAGON = (6, 18)                   # ray parçasının üst karosu
+TABELA = (10, 21)                 # tabela direği (Buildings)
+VARIS_VAGON = (6, 22)
+VARIS_TABELA = (10, 22)
+
+
+# ------------------------------------------------------------ TMX okuma ---
+class Harita:
+    def __init__(self, yol):
+        self.kok = ET.parse(yol).getroot()
+        self.g = int(self.kok.get("width"))
+        self.y = int(self.kok.get("height"))
+        self.setler = {ts.find("image").get("source"): ts for ts in self.kok.findall("tileset")}
+        self.katman = {}
+        for l in self.kok.findall("layer"):
+            v = [int(x) for x in l.find("data").text.replace("\n", "").split(",") if x.strip()]
+            self.katman[l.get("name")] = [v[i * self.g:(i + 1) * self.g] for i in range(self.y)]
+
+    def ilk(self, kaynak):
+        return int(self.setler[kaynak].get("firstgid"))
+
+
+if len(sys.argv) != 2:
+    sys.exit(__doc__)
+MAPS = Path(sys.argv[1])
+town = Harita(MAPS / "Town.tmx")
+bus = Harita(MAPS / "BusStop.tmx")
+
+# Town.tmx'teki karo seti sırası ve numaraları aynen kullanılır
+KATMANLAR = ["Back", "Back2", "Back3", "Buildings", "Buildings2", "Paths", "Front", "AlwaysFront"]
+SETLER = ["spring_outdoorsTileSheet", "paths", "spring_town", "spring_Shadows"]
+assert town.ilk("spring_outdoorsTileSheet") == 1 and bus.ilk("spring_outdoorsTileSheet") == 1
+KASABA0 = town.ilk("spring_town")
+KASABA1 = KASABA0 + int(town.setler["spring_town"].get("tilecount"))
+GOLGE0 = town.ilk("spring_Shadows")
+GOLGE1 = GOLGE0 + int(town.setler["spring_Shadows"].get("tilecount"))
+
+harita = {ad: [[0] * G for _ in range(Y)] for ad in KATMANLAR}
+
+
+def dolu(x, y, katmanlar=("Buildings", "Buildings2", "Front", "AlwaysFront")):
+    return any(harita[k][y][x] for k in katmanlar)
+
+
+# ---------------------------------------------------------------- zemin ---
+# Köşe tabanlı döşeme: her karonun 4 köşesi (sol üst, sağ üst, sol alt, sağ alt)
+# toprak (d) ya da çimen (g). Karo numaraları spring_outdoorsTileSheet içinden.
+KENAR = {
+    "dddg": 179, "ddgd": 253, "ddgg": 252, "dgdd": 178, "dgdg": 229, "dggg": 254,
+    "gddd": 203, "gdgd": 226, "gdgg": 251, "ggdd": 202, "ggdg": 204, "gggd": 201,
+}
+CIMEN = [176] * 46 + [327, 327, 353, 152, 153]
+TOPRAK = [228] * 40 + [227] * 6 + [561, 590, 208, 154]
+
+toprak = [[False] * (G + 1) for _ in range(Y + 1)]     # köşe ızgarası
+
+
+def yol(x0, y0, x1, y1):
+    """(x0,y0)-(x1,y1) karolarını (dahil) toprak yap."""
+    for y in range(y0, y1 + 2):
+        for x in range(x0, x1 + 2):
+            toprak[y][x] = True
+
+
+def zemini_dose():
+    # Çapraz köşe karosu yok: öyle hücreleri tamamen toprak yap
+    degisti = True
+    while degisti:
+        degisti = False
         for y in range(Y):
             for x in range(G):
-                if katman[y][x] != BOS:
-                    im.alpha_composite(karolar[katman[y][x]], (x * T, y * T))
-    im.resize((G * T * 2, Y * T * 2), Image.NEAREST).save(KOK / "onizleme.png")
+                k = (toprak[y][x], toprak[y][x + 1], toprak[y + 1][x], toprak[y + 1][x + 1])
+                if k in ((True, False, False, True), (False, True, True, False)):
+                    toprak[y][x] = toprak[y][x + 1] = toprak[y + 1][x] = toprak[y + 1][x + 1] = True
+                    degisti = True
+    for y in range(Y):
+        for x in range(G):
+            k = "".join("d" if t else "g" for t in
+                        (toprak[y][x], toprak[y][x + 1], toprak[y + 1][x], toprak[y + 1][x + 1]))
+            harita["Back"][y][x] = (rng.choice(TOPRAK) if k == "dddd"
+                                    else rng.choice(CIMEN) if k == "gggg" else KENAR[k])
+
+
+# ---------------------------------------------------------------- damga ---
+def damga(kaynak, kx0, ky0, kx1, ky1, hx, hy, filtre):
+    """Kaynak haritanın (kx0,ky0)-(kx1,ky1) bölgesini (hx,hy)'ye kopyalar.
+    filtre(katman, gid) True dönen karolar alınır."""
+    for ad in KATMANLAR:
+        if ad not in kaynak.katman:
+            continue
+        for y in range(ky0, ky1 + 1):
+            for x in range(kx0, kx1 + 1):
+                gid = kaynak.katman[ad][y][x]
+                if gid and filtre(ad, gid):
+                    harita[ad][hy + y - ky0][hx + x - kx0] = gid
+
+
+# Evlerin yanındaki tahta çitin karoları: Town'da yalnızca çit olan hücrelerden öğrenilir
+CIT_ORNEK = [(52, 55), (52, 56), (53, 55), (53, 56), (5, 76), (5, 77), (16, 76), (16, 77),
+             (6, 87), (6, 88), (7, 87), (7, 88), (55, 74), (55, 75), (67, 74), (67, 75),
+             (55, 77), (55, 78), (55, 79)]
+CIT = {town.katman[ad][y][x] for x, y in CIT_ORNEK
+       for ad in ("Buildings", "Buildings2", "Front", "AlwaysFront")} - {0}
+
+
+def ev_filtresi(ad, gid):
+    if ad in ("Back", "Paths") or gid in CIT:
+        return False
+    return KASABA0 <= gid < KASABA1 or (ad.startswith("Back") and GOLGE0 <= gid < GOLGE1)
+
+
+def ev(kx0, ky0, kx1, ky1, hx, hy):
+    damga(town, kx0, ky0, kx1, ky1, hx, hy, ev_filtresi)
+
+
+# --------------------------------------------------------------- ağaçlar ---
+def agac_ogren(govde, sutun0, genislik, tac_satir, govdeler):
+    """Town.tmx'te bu ağacın en eksiksiz örneğini bulup katman düzenini öğrenir.
+    Dönen: [(katman, dx, dy, gid)], (0,0) = kök karosu."""
+    gidler = {r * 25 + sutun0 + c + 1 for r in range(tac_satir) for c in range(genislik)} | set(govdeler)
+    yari = genislik // 2
+    en_iyi = []
+    for y in range(8, town.y):
+        for x in range(yari, town.g - yari):
+            if town.katman["Buildings"][y][x] != govde:
+                continue
+            bulunan = []
+            for ad in ("Buildings", "Buildings2", "Front", "AlwaysFront"):
+                for dy in range(-(tac_satir + 2), 1):
+                    for dx in range(-yari, yari + 1):
+                        gid = town.katman[ad][y + dy][x + dx]
+                        if gid in gidler:
+                            bulunan.append((ad, dx, dy, gid))
+            if len(bulunan) > len(en_iyi):
+                en_iyi = bulunan
+    assert en_iyi, f"ağaç bulunamadı: {govde}"
+    return en_iyi
+
+
+MESE = agac_ogren(127, 0, 3, 4, [102, 127])
+MESE2 = agac_ogren(130, 3, 3, 4, [105, 130])
+PEMBE = agac_ogren(144, 17, 5, 4, [119, 120, 144, 145, 169, 170])
+
+
+def agac(tur, x, y, zorla=False):
+    """Kökü (x,y)'de olan ağaç diker; yer doluysa dikmez."""
+    hucreler = [(ad, x + dx, y + dy, gid) for ad, dx, dy, gid in tur]
+    if any(not (0 <= cx < G and 0 <= cy < Y) for _, cx, cy, _ in hucreler):
+        return False
+    if not zorla:
+        if any(dolu(cx, cy) for _, cx, cy, _ in hucreler):
+            return False
+        if any(harita["Back"][cy][cx] not in CIMEN for ad, cx, cy, _ in hucreler if ad.startswith("Buildings")):
+            return False
+    for ad, cx, cy, gid in hucreler:
+        harita[ad][cy][cx] = gid
+    return True
+
+
+# ------------------------------------------------------------- yerleşim ---
+# Ana yol (doğu-batı) ve ortadaki meydan
+yol(4, 22, 55, 23)
+yol(26, 19, 36, 21)
+
+# Kuzey sırası: kapılar güneye, ana yola bakar
+EVLER = [
+    # (Town'daki bölge)        (köydeki sol üst)  kapı önü patikası
+    ((52, 53, 62, 63), (13, 8)),      # gri-mavi ev
+    ((56, 73, 64, 88), (40, 4)),      # büyük konak
+    ((7, 74, 15, 88), (18, 27)),      # mavi ev
+    ((19, 79, 26, 88), (41, 28)),     # turuncu ev
+]
+yol(18, 19, 18, 21)                   # gri-mavi evin kapısı -> yol
+yol(42, 19, 43, 21)                   # konağın kapısı -> yol
+# Güney sırası: kapı güneyde, patika evin yanından dolanır
+yol(27, 24, 28, 40)
+yol(20, 39, 28, 40)
+yol(38, 24, 39, 40)
+yol(38, 38, 45, 39)
+
+zemini_dose()
+for (kx0, ky0, kx1, ky1), (hx, hy) in EVLER:
+    ev(kx0, ky0, kx1, ky1, hx, hy)
+
+# Vagon: Town'daki ray + vagon + kol
+damga(town, 105, 77, 105, 80, VAGON[0], VAGON[1], lambda ad, gid: gid not in CIMEN and ad != "Paths")
+damga(town, 106, 79, 107, 79, VAGON[0] + 1, VAGON[1] + 2, lambda ad, gid: ad not in ("Back", "Paths"))
+VAGON_TIK = [(VAGON[0], y) for y in range(VAGON[1], VAGON[1] + 4) if harita["Buildings"][y][VAGON[0]]]
+
+# Tabela: BusStop'taki yön tabelası
+TABELA_UST = bus.katman["Front"][21][21]
+TABELA_ALT = bus.katman["Buildings"][22][21]
+harita["Front"][TABELA[1] - 1][TABELA[0]] = TABELA_UST
+harita["Buildings"][TABELA[1]][TABELA[0]] = TABELA_ALT
+
+# Meydanın kuzeyinde kiraz ağacı
+agac(PEMBE, 31, 16)
+
+# Kenar: haritayı çevreleyen ağaç şeridi (taçlar üst üste binmeden)
+for x in range(1, G - 1, 3):
+    agac(rng.choice((MESE, MESE2)), x, 5)
+    agac(rng.choice((MESE, MESE2)), x, Y - 1)
+for y in range(9, Y - 4, 4):
+    agac(rng.choice((MESE, MESE2)), 1, y)
+    agac(rng.choice((MESE, MESE2)), G - 2, y)
+
+# İçeride serpiştirilmiş ağaçlar
+dikilen, deneme = 0, 0
+while dikilen < 14 and deneme < 4000:
+    deneme += 1
+    x, y = rng.randrange(5, G - 5), rng.randrange(12, Y - 7)
+    cevre_bos = all(not dolu(cx, cy) and harita["Back"][cy][cx] in CIMEN
+                    for cy in range(y - 6, y + 2) for cx in range(x - 2, x + 3))
+    if cevre_bos and agac(rng.choice((MESE, MESE2)), x, y):
+        dikilen += 1
+
+for vx, vy in (VARIS_VAGON, VARIS_TABELA):
+    assert not dolu(vx, vy, ("Buildings", "Buildings2")), "Varış karosu dolu!"
+
+
+# ---------------------------------------------------------------- çıktı ---
+def set_xml(kaynak_harita, kaynak):
+    ts = copy.deepcopy(kaynak_harita.setler[kaynak])
+    ts.find("image").set("source", kaynak + ".png")
+    ts.tail = "\n "
+    return ET.tostring(ts, encoding="unicode").rstrip()
+
+
+def katman_xml(i, ad, veri, g, y):
+    csv = ",\n".join(",".join(map(str, satir)) for satir in veri)
+    return f' <layer id="{i}" name="{ad}" width="{g}" height="{y}">\n  <data encoding="csv">\n{csv}\n</data>\n </layer>\n'
+
+
+def tmx(g, y, setler, katmanlar, ozellikler=""):
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            f'<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" '
+            f'width="{g}" height="{y}" tilewidth="16" tileheight="16" infinite="0" '
+            f'nextlayerid="{len(katmanlar) + 1}" nextobjectid="1">\n'
+            + ozellikler
+            + "".join(" " + s + "\n" for s in setler)
+            + "".join(katman_xml(i, ad, veri, g, y) for i, (ad, veri) in enumerate(katmanlar, 1))
+            + "</map>\n")
+
+
+def yaz():
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    koy = tmx(G, Y, [set_xml(town, s) for s in SETLER], [(ad, harita[ad]) for ad in KATMANLAR],
+              ' <properties>\n  <property name="Outdoors" type="string" value="T"/>\n </properties>\n')
+    (ASSETS / "Cinarkoy.tmx").write_text(koy, encoding="utf-8")
+    # Otobüs durağı yaması: 1x2, üstte tabela levhası (Front), altta direk (Buildings)
+    yama = tmx(1, 2, [set_xml(bus, "spring_outdoorsTileSheet")],
+               [("Buildings", [[0], [TABELA_ALT]]), ("Front", [[TABELA_UST], [0]])])
+    (ASSETS / "Tabela.tmx").write_text(yama, encoding="utf-8")
+
+
+def onizleme():
+    sayfalar = []
+    for s in SETLER:
+        ts = town.setler[s]
+        sayfalar.append((int(ts.get("firstgid")), int(ts.get("columns")),
+                         Image.open(MAPS / f"{s}.png").convert("RGBA")))
+    im = Image.new("RGBA", (G * 16, Y * 16), (0, 0, 0, 255))
+    for ad in KATMANLAR:
+        if ad == "Paths":
+            continue
+        for y in range(Y):
+            for x in range(G):
+                gid = harita[ad][y][x]
+                if not gid:
+                    continue
+                ilk, sutun, sayfa = [s for s in sayfalar if s[0] <= gid][-1]
+                i = gid - ilk
+                kx, ky = (i % sutun) * 16, (i // sutun) * 16
+                im.alpha_composite(sayfa.crop((kx, ky, kx + 16, ky + 16)), (x * 16, y * 16))
+    im.resize((G * 32, Y * 32), Image.NEAREST).save(KOK / "onizleme.png")
 
 
 if __name__ == "__main__":
-    ASSETS.mkdir(parents=True, exist_ok=True)
-    sayfa, karolar = karo_seti()
-    sayfa.save(ASSETS / "cinarkoy_tiles.png")
-    tmx_yaz()
-    tabela_yamasi_yaz()
-    onizleme(karolar)
-    print(f"Tamam: {G}x{Y} harita, {dikilen} ağaç")
+    yaz()
+    onizleme()
+    print(f"Tamam: {G}x{Y} harita, {dikilen} iç ağaç")
+    print("Vagon tıklama karoları (Buildings):", VAGON_TIK)
