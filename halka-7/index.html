@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Halka-7: Geçiş Kontrolü</title>
+<style>
+:root{
+  --bg:#0b1020; --panel:#141b33; --panel2:#1b2444; --line:#2c3966;
+  --ink:#dfe7ff; --dim:#8a97c4; --accent:#3fd6c6; --ok:#4fcf7a; --no:#ef5b6b; --warn:#f2b54a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:ui-monospace,"Cascadia Mono","Consolas","Menlo",monospace;font-size:14px;
+  background-image:radial-gradient(circle at 20% 10%,#1a2550 0,transparent 40%),radial-gradient(circle at 90% 90%,#12304a 0,transparent 35%)}
+button{font:inherit;cursor:pointer}
+#app{max-width:1180px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:100%}
+header{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px}
+header h1{font-size:15px;margin:0;letter-spacing:2px;color:var(--accent);flex:1 1 auto}
+.stat{color:var(--dim);white-space:nowrap}
+.stat b{color:var(--ink);font-size:15px}
+#clockbar{height:4px;background:var(--line);border-radius:2px;flex:1 1 100%;overflow:hidden}
+#clockfill{height:100%;width:0;background:var(--accent);transition:width 1s linear}
+main{display:grid;grid-template-columns:230px 1fr 270px;gap:10px;flex:1}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
+.panel h2{font-size:12px;letter-spacing:2px;color:var(--dim);margin:0 0 8px;text-transform:uppercase}
+#booth{display:flex;flex-direction:column;align-items:center;gap:8px}
+#window{width:200px;height:240px;border:3px solid var(--line);border-radius:6px;overflow:hidden;background:#060912;position:relative}
+#visitor{width:200px;height:240px;display:block;transition:transform .45s ease,opacity .45s ease}
+#visitor.out{transform:translateX(-110%);opacity:0}
+#visitor.in{transform:translateX(110%);opacity:0;transition:none}
+#speech{min-height:74px;width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;line-height:1.4}
+#speech .who{color:var(--accent);font-size:12px;display:block;margin-bottom:2px}
+#counter{color:var(--dim);font-size:12px;text-align:center}
+#deskwrap{display:flex;flex-direction:column;gap:10px;min-width:0}
+#desk{position:relative;flex:1;min-height:440px;border-radius:8px;border:1px solid var(--line);overflow:hidden;touch-action:none;
+  background:repeating-linear-gradient(90deg,#2a2033 0 38px,#2e2438 38px 76px)}
+#desk .hint{position:absolute;inset:auto 0 8px 0;text-align:center;color:#ffffff40;font-size:12px;pointer-events:none}
+.doc{position:absolute;width:232px;border-radius:6px;padding:10px;color:#1c2030;box-shadow:0 6px 16px #0009;cursor:grab;user-select:none;touch-action:none;
+  font-size:12.5px;line-height:1.5;border:1px solid #0003}
+.doc.drag{cursor:grabbing;box-shadow:0 14px 28px #000c}
+.doc h3{margin:0 0 6px;font-size:12px;letter-spacing:1.5px;border-bottom:2px solid #0004;padding-bottom:4px;display:flex;justify-content:space-between}
+.doc .row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted #0003}
+.doc .row span:first-child{opacity:.65;flex:none}
+.doc .row span:last-child{font-weight:700;text-align:right}
+.doc.id{background:#e9e2cf}
+.doc.id .top{display:flex;gap:8px}
+.doc.id canvas{width:70px;height:84px;border:1px solid #0006;flex:none;background:#bbb}
+.doc.id .top div{flex:1;min-width:0}
+.doc.permit{background:#cfe3ea}
+.doc.health{background:#d5ead0}
+.doc.work{background:#ecd3c6}
+.doc .seal{margin-top:6px;font-size:10px;opacity:.6;text-align:center;letter-spacing:1px}
+#actions{display:flex;gap:10px}
+#actions button{flex:1;padding:14px 8px;font-size:16px;font-weight:700;letter-spacing:2px;border-radius:8px;border:2px solid;background:transparent;transition:background .15s,transform .05s}
+#actions button:active{transform:translateY(2px)}
+#actions button:disabled{opacity:.35;cursor:default}
+#ok{color:var(--ok);border-color:var(--ok)} #ok:hover:not(:disabled){background:#4fcf7a22}
+#no{color:var(--no);border-color:var(--no)} #no:hover:not(:disabled){background:#ef5b6b22}
+#rules{overflow:auto;max-height:calc(100vh - 110px)}
+#rules ol{margin:0 0 10px;padding-left:30px}
+#rules li{margin-bottom:5px;line-height:1.35}
+#rules li.new{color:var(--warn)}
+#rules .box{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 9px;margin-bottom:8px;line-height:1.5}
+#rules .box b{color:var(--accent);display:block;font-size:11px;letter-spacing:1.5px}
+#rules .q{color:var(--no)}
+#toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-20px);max-width:min(480px,92vw);padding:12px 16px;border-radius:8px;
+  background:#2a1220;border:2px solid var(--no);color:#ffd9de;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:30;line-height:1.4}
+#toast.good{background:#10281c;border-color:var(--ok);color:#d5ffe3}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#stamp{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%) rotate(-12deg) scale(2);font-size:38px;font-weight:900;letter-spacing:4px;
+  padding:6px 18px;border:5px solid;border-radius:8px;opacity:0;pointer-events:none;z-index:999;transition:opacity .12s,transform .12s}
+#stamp.show{opacity:.92;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}
+#stamp.ok{color:var(--ok)} #stamp.no{color:var(--no)}
+#screen{position:fixed;inset:0;background:#070a15f2;display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;overflow:auto}
+#screen.hide{display:none}
+#card{max-width:560px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;line-height:1.55;margin:auto}
+#card h2{margin:0 0 4px;color:var(--accent);letter-spacing:3px;font-size:22px}
+#card h3{margin:14px 0 4px;font-size:12px;letter-spacing:2px;color:var(--dim)}
+#card p{margin:8px 0}
+#card ul{margin:6px 0;padding-left:20px}
+#card table{width:100%;border-collapse:collapse;margin:8px 0}
+#card td{padding:3px 0;border-bottom:1px dotted var(--line)}
+#card td:last-child{text-align:right;font-weight:700}
+#card tr.total td{border-top:2px solid var(--line);border-bottom:none;font-size:16px;padding-top:8px}
+.pos{color:var(--ok)} .neg{color:var(--no)} .warn{color:var(--warn)}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.btns button{flex:1;padding:12px;border-radius:8px;border:2px solid var(--accent);background:#3fd6c61a;color:var(--accent);font-weight:700;letter-spacing:1px}
+.btns button.sec{border-color:var(--line);color:var(--dim);background:transparent}
+.btns button:hover{background:#3fd6c633}
+@media (max-width:900px){
+  main{grid-template-columns:1fr}
+  #booth{flex-direction:row;align-items:stretch;flex-wrap:wrap}
+  #booth h2{display:none}
+  #window,#visitor{width:120px;height:144px}
+  #speech{flex:1;width:auto;min-width:150px}
+  #counter{flex:1 1 100%}
+  #rules{max-height:none;order:3}
+  #desk{min-height:400px}
+  #actions{position:sticky;bottom:6px;z-index:20;background:var(--bg);padding:6px;border-radius:10px}
+}
+@media (max-width:520px){
+  .doc{width:176px;font-size:11px;padding:7px}
+  .doc h3{font-size:10.5px;letter-spacing:.5px}
+  .doc.id canvas{width:50px;height:60px}
+  .doc .seal{font-size:8.5px;letter-spacing:.3px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>HALKA-7 · GEÇİŞ KONTROLÜ</h1>
+    <span class="stat">Gün <b id="hDay">1</b>/7</span>
+    <span class="stat">Tarih <b id="hDate"></b></span>
+    <span class="stat">Saat <b id="hClock">08:00</b></span>
+    <span class="stat">Kredi <b id="hCred">0</b></span>
+    <div id="clockbar"><div id="clockfill"></div></div>
+  </header>
+  <main>
+    <section id="booth" class="panel">
+      <h2>Kabin penceresi</h2>
+      <div id="window"><canvas id="visitor" width="200" height="240"></canvas></div>
+      <div id="speech"></div>
+      <div id="counter"></div>
+    </section>
+    <section id="deskwrap">
+      <div id="desk"><div class="hint">Belgeleri sürükleyip karşılaştır</div><div id="stamp"></div></div>
+      <div id="actions">
+        <button id="ok" disabled>✔ ONAYLA</button>
+        <button id="no" disabled>✖ REDDET</button>
+      </div>
+    </section>
+    <aside id="rules" class="panel"></aside>
+  </main>
+</div>
+<div id="toast"></div>
+<div id="screen"><div id="card"></div></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- Sabitler ---------- */
+const SHIFT_SECONDS = 180, PAY = 6, FINE = 6, FREE_MISTAKES = 2, LAST_DAY = 7, TICKET = 120;
+const EXPENSES = [['Kabin kirası', 15], ['Oksijen aboneliği', 8], ['Yemek', 7]];
+const STATION = 'Halka-7';
+const PLANETS = ['Mars Kolonisi', 'Europa', 'Titan Limanı', 'Ceres', 'Ganymede', 'Yeni Anadolu', 'Vesta'];
+const FAKE_PLANETS = ['Marz Kolonisi', 'Evropa', 'Tytan Limanı', 'Seres', 'Ganimet', 'Yeni Anatolya', 'Nibiru'];
+const QUARANTINE = {3: 'Ceres', 4: 'Ceres', 5: 'Titan Limanı', 6: 'Europa', 7: 'Vesta'};
+const VACCINES = ['Vakum Humması', 'Lunar Grip', 'Toz Ciğeri', 'Halka Sıtması'];
+const REQ_VACCINE = 'Kızıl Spor';
+const EMPLOYERS = ['Halka Madencilik', 'Yörünge Lojistik', 'Derin Tank Tarım', 'Kuşak Onarım A.Ş.', 'İstasyon Belediyesi'];
+const SPECIES = {
+  'İnsan':  {first: ['Deniz','Aras','Elif','Kaan','Mira','Toprak','Selin','Baran','Ada','Emre','Lale','Ozan'],
+             last: ['Yıldız','Demirkol','Aksoy','Karaca','Tunalı','Ermiş','Soylu','Göktürk','Bozkurt','Altun'],
+             skin: ['#f1c9a5','#d9a074','#a86f48','#6e4a2f'], hair: ['#2b1b10','#7a4a1e','#d8b25a','#8d8d8d','#b03a2e']},
+  'Velari': {first: ['Ilu','Sevra','Naeli','Orin','Thael','Vessa','Aluun','Miro'],
+             last: ['Vaal','Shenn','Oru-Kai','Lethis','Nummar','Aveth','Soolin'],
+             skin: ['#7fc4e8','#5aa0d6','#9ad8e0'], hair: ['#1d3b6e','#ffffff','#e36bd0','#f0d040']},
+  'Korun':  {first: ['Grak','Borda','Tukk','Mogra','Harn','Dreba','Krol','Zunda'],
+             last: ['Tar-Dun','Okkur','Bragg','Moldar','Kezzin','Hurgat','Dovrak'],
+             skin: ['#8bc77a','#5e9e55','#b5c95e'], hair: ['#2f5a1e','#e0a020','#7a2f2f','#222222']},
+  'Zeth':   {first: ['Xi','Qol','Zae','Yx','Phi','Uul','Tze','Ix'],
+             last: ['Qarix','Zolph','Xenth','Yvaar','Phoxil','Uzzet','Tixal'],
+             skin: ['#b28ad6','#8a5fc0','#d3a0d8'], hair: ['#3a1d5e','#f0e0ff','#30c0a0','#ff8040']}
+};
+const CLOTH = ['#34507a','#6b3d3d','#3d6b4c','#5a4a78','#77683a','#444c5c'];
+
+/* ---------- Yardımcılar ---------- */
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const pickOther = (a, x) => { let y; do { y = pick(a); } while (y === x); return y; };
+const chance = p => Math.random() < p;
+const pad = n => String(n).padStart(2, '0');
+const BASE = Date.UTC(2291, 2, 11);
+const dateAt = off => new Date(BASE + off * 864e5);
+const fmt = d => `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- Durum ---------- */
+const S = {day: 1, credits: 20, bribes: 0, mercy: 0, phase: 'menu',
+           timeLeft: SHIFT_SECONDS, correct: 0, mistakes: 0, fines: 0, bribeCash: 0, served: 0,
+           traveler: null, busy: false, wanted: [], timer: null, z: 10};
+
+const save = () => { try { localStorage.setItem('halka7', JSON.stringify({day: S.day, credits: S.credits, bribes: S.bribes, mercy: S.mercy})); } catch (e) {} };
+const load = () => { try { return JSON.parse(localStorage.getItem('halka7')); } catch (e) { return null; } };
+const wipe = () => { try { localStorage.removeItem('halka7'); } catch (e) {} };
+
+/* ---------- Kurallar ---------- */
+function rulesFor(day) {
+  const r = [
+    [1, 'Herkes geçerli bir <b>Kimlik Kartı</b> göstermelidir.'],
+    [1, 'Kimlikteki fotoğraf, penceredeki kişiyle <b>aynı</b> olmalıdır.'],
+    [1, 'Süresi dolmuş belge kabul edilmez (bugünün tarihine bak).'],
+    [2, `${STATION} sakini olmayanlar <b>Geçiş İzni</b> göstermelidir.`],
+    [2, 'Tüm belgelerde <b>ad</b> ve <b>kimlik no</b> birbirini tutmalıdır.'],
+    [3, 'Kimlik yalnızca <b>tanınan gezegenlerden</b> kabul edilir (listeye bak).'],
+    [3, '<b>Karantina</b> altındaki gezegenden gelen herkes reddedilir.'],
+    [4, 'Herkes geçerli bir <b>Sağlık Sertifikası</b> göstermelidir.'],
+    [4, `Sertifikada <b>${REQ_VACCINE}</b> aşısı bulunmalıdır.`],
+    [5, 'Amacı "Çalışma" olanlar geçerli bir <b>Çalışma İzni</b> göstermelidir.'],
+    [6, '<b>Arananlar listesindeki</b> kişiler reddedilir.'],
+    [7, 'Ziyaretçilerin kalış süresi <b>en fazla 14 gün</b> olabilir.']
+  ];
+  return r.filter(x => x[0] <= day);
+}
+
+function renderRules() {
+  const d = S.day;
+  let h = '<h2>Kural defteri</h2>';
+  h += `<div class="box"><b>BUGÜN</b>${fmt(dateAt(d))}</div>`;
+  if (d >= 3) {
+    h += `<div class="box"><b>TANINAN GEZEGENLER</b>${PLANETS.join(', ')}<br><span style="color:var(--dim)">Sakinler: ${STATION}</span></div>`;
+    h += `<div class="box"><b>KARANTİNA</b><span class="q">${QUARANTINE[d]}</span></div>`;
+  }
+  if (d >= 6) h += `<div class="box"><b>ARANANLAR</b><span class="q">${S.wanted.join('<br>')}</span></div>`;
+  h += '<ol>' + rulesFor(d).map(r => `<li class="${r[0] === d && d > 1 ? 'new' : ''}">${r[1]}</li>`).join('') + '</ol>';
+  $('rules').innerHTML = h;
+}
+
+/* ---------- Yüz çizimi ---------- */
+function randFace(species) {
+  const sp = SPECIES[species];
+  return {species, skin: pick(sp.skin), hair: rnd(5), hairColor: pick(sp.hair), head: rnd(3),
+          mouth: rnd(3), acc: rnd(3), cloth: pick(CLOTH)};
+}
+function differentFace(f) {
+  const sp = SPECIES[f.species];
+  return {...f, hair: (f.hair + 1 + rnd(4)) % 5, hairColor: pickOther(sp.hair, f.hairColor),
+          head: (f.head + 1 + rnd(2)) % 3, acc: (f.acc + 1 + rnd(2)) % 3, mouth: (f.mouth + 1) % 3};
+}
+function drawFace(cv, f) {
+  const c = cv.getContext('2d');
+  c.setTransform(cv.width / 100, 0, 0, cv.height / 120, 0, 0);
+  c.clearRect(0, 0, 100, 120);
+  c.fillStyle = '#1c2742'; c.fillRect(0, 0, 100, 120);
+  c.fillStyle = '#243154'; for (let y = 0; y < 120; y += 12) c.fillRect(0, y, 100, 1);
+  if (!f) return;
+  const rx = [24, 21, 28][f.head], ry = [28, 32, 26][f.head], cx = 50, cy = 52;
+  const ell = (x, y, a, b, col) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, a, b, 0, 0, 7); c.fill(); };
+  // uzun saç (arkada)
+  if (f.hair === 2) ell(cx, cy + 8, rx + 6, ry + 12, f.hairColor);
+  // omuzlar & boyun
+  ell(50, 128, 40, 30, f.cloth);
+  c.fillStyle = f.skin; c.fillRect(43, 76, 14, 18);
+  c.fillStyle = '#0003'; c.fillRect(43, 76, 14, 6);
+  // antenler
+  if (f.species === 'Velari') {
+    c.strokeStyle = f.skin; c.lineWidth = 2.5;
+    [-1, 1].forEach(s => { c.beginPath(); c.moveTo(cx + s * 8, cy - ry + 4); c.quadraticCurveTo(cx + s * 16, cy - ry - 14, cx + s * 20, cy - ry - 10); c.stroke();
+      ell(cx + s * 20, cy - ry - 10, 3, 3, f.hairColor); });
+  }
+  // kulak / yan çıkıntı
+  if (f.species === 'Korun') [-1, 1].forEach(s => { c.fillStyle = f.skin; c.beginPath(); c.moveTo(cx + s * (rx - 2), cy - 8); c.lineTo(cx + s * (rx + 12), cy - 18); c.lineTo(cx + s * (rx - 2), cy + 4); c.fill(); });
+  else [-1, 1].forEach(s => ell(cx + s * rx, cy + 2, 4, 6, f.skin));
+  // kafa
+  ell(cx, cy, rx, ry, f.skin);
+  // saç / sorguç
+  c.fillStyle = f.hairColor;
+  if (f.hair === 1 || f.hair === 2 || f.hair === 4) { c.save(); c.beginPath(); c.ellipse(cx, cy, rx + 1.5, ry + 1.5, 0, 0, 7); c.clip(); c.fillRect(0, 0, 100, cy - ry * .6); c.restore(); }
+  if (f.hair === 3) { c.beginPath(); c.moveTo(cx - 6, cy - ry + 8); c.lineTo(cx - 3, cy - ry - 12); c.lineTo(cx + 3, cy - ry - 12); c.lineTo(cx + 6, cy - ry + 8); c.fill(); }
+  if (f.hair === 4) ell(cx, cy - ry - 4, 9, 8, f.hairColor);
+  // gözler
+  const eye = (x, y, r) => { ell(x, y, r, r * .8, '#fff'); ell(x, y, r * .5, r * .5, '#111'); };
+  if (f.species === 'Zeth') eye(cx, cy - 4, 9);
+  else { eye(cx - 9, cy - 3, 4.5); eye(cx + 9, cy - 3, 4.5); if (f.species === 'Korun') eye(cx, cy - 12, 3); }
+  // aksesuar
+  c.strokeStyle = '#111'; c.lineWidth = 1.6;
+  if (f.acc === 1) {
+    if (f.species === 'Zeth') { c.beginPath(); c.arc(cx, cy - 4, 12, 0, 7); c.stroke(); }
+    else { c.strokeRect(cx - 16, cy - 8, 13, 10); c.strokeRect(cx + 3, cy - 8, 13, 10); c.beginPath(); c.moveTo(cx - 3, cy - 3); c.lineTo(cx + 3, cy - 3); c.stroke(); }
+  }
+  if (f.acc === 2) { c.strokeStyle = '#7a1f1f'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx + rx - 12, cy + 4); c.lineTo(cx + rx - 5, cy + 16); c.stroke(); }
+  // burun & ağız
+  c.strokeStyle = '#0006'; c.lineWidth = 1.5;
+  if (f.species === 'İnsan') { c.beginPath(); c.moveTo(cx, cy + 2); c.lineTo(cx - 2, cy + 9); c.lineTo(cx + 2, cy + 9); c.stroke(); }
+  c.strokeStyle = '#3a1616'; c.lineWidth = 2; c.beginPath();
+  if (f.mouth === 0) { c.moveTo(cx - 7, cy + 16); c.lineTo(cx + 7, cy + 16); }
+  if (f.mouth === 1) c.arc(cx, cy + 12, 8, .15 * Math.PI, .85 * Math.PI);
+  if (f.mouth === 2) c.arc(cx, cy + 22, 8, 1.2 * Math.PI, 1.8 * Math.PI);
+  c.stroke();
+}
+
+/* ---------- Yolcu üretimi ---------- */
+function makeName(species) { const sp = SPECIES[species]; return pick(sp.first) + ' ' + pick(sp.last); }
+function makeIdNo() { return String.fromCharCode(65 + rnd(26), 65 + rnd(26)) + '-' + (10000 + rnd(90000)); }
+const future = day => fmt(dateAt(day + 4 + rnd(400)));
+const past = day => fmt(dateAt(day - 1 - rnd(25)));
+
+const DEFECTS = {
+  id_expired:     {min: 1, reason: 'Kimlik kartının süresi dolmuştu.', apply: (t, d) => { t.docs.id.expiry = past(d); }},
+  photo:          {min: 1, reason: 'Kimlikteki fotoğraf yolcuya ait değildi.', apply: t => { t.docs.id.face = differentFace(t.face); }},
+  permit_missing: {min: 2, vis: 1, reason: 'Ziyaretçinin Geçiş İzni yoktu.', apply: t => { delete t.docs.permit; }},
+  permit_expired: {min: 2, vis: 1, reason: 'Geçiş İzninin süresi dolmuştu.', apply: (t, d) => { t.docs.permit.expiry = past(d); }},
+  permit_name:    {min: 2, vis: 1, reason: 'Geçiş İznindeki ad kimlikle uyuşmuyordu.', apply: t => { t.docs.permit.name = otherName(t); }},
+  permit_idno:    {min: 2, vis: 1, reason: 'Geçiş İznindeki kimlik no uyuşmuyordu.', apply: t => { t.docs.permit.idNo = tweakNo(t.idNo); }},
+  planet_fake:    {min: 3, vis: 1, reason: 'Kimlik tanınmayan bir gezegenden verilmişti (sahte).', apply: t => { t.docs.id.planet = pick(FAKE_PLANETS); }},
+  quarantine:     {min: 3, vis: 1, reason: 'Yolcu karantina altındaki gezegenden geliyordu.', apply: (t, d) => { t.docs.id.planet = QUARANTINE[d]; }},
+  health_missing: {min: 4, reason: 'Sağlık Sertifikası yoktu.', apply: t => { delete t.docs.health; }},
+  health_expired: {min: 4, reason: 'Sağlık Sertifikasının süresi dolmuştu.', apply: (t, d) => { t.docs.health.expiry = past(d); }},
+  health_vaccine: {min: 4, reason: `Sertifikada ${REQ_VACCINE} aşısı yoktu.`, apply: t => { t.docs.health.vaccines = t.docs.health.vaccines.filter(v => v !== REQ_VACCINE); }},
+  health_name:    {min: 4, reason: 'Sağlık Sertifikasındaki ad kimlikle uyuşmuyordu.', apply: t => { t.docs.health.name = otherName(t); }},
+  work_missing:   {min: 5, work: 1, reason: 'Çalışmaya geliyordu ama Çalışma İzni yoktu.', apply: t => { delete t.docs.work; }},
+  work_expired:   {min: 5, work: 1, reason: 'Çalışma İzninin süresi dolmuştu.', apply: (t, d) => { t.docs.work.expiry = past(d); }},
+  wanted:         {min: 6, reason: 'Yolcu arananlar listesindeydi.', apply: t => { const n = pick(S.wanted); t.name = n; Object.values(t.docs).forEach(x => x.name = n); }},
+  duration:       {min: 7, vis: 1, reason: 'Kalış süresi 14 günü aşıyordu.', apply: t => { t.duration = t.docs.permit.duration = 15 + rnd(30); }}
+};
+function otherName(t) {
+  const sp = SPECIES[t.species], [f, l] = t.name.split(' ');
+  return chance(.5) ? f + ' ' + pickOther(sp.last, l) : pickOther(sp.first, f) + ' ' + l;
+}
+function tweakNo(no) {
+  const i = 3 + rnd(5), d = String((+no[i] + 1 + rnd(8)) % 10);
+  return no.slice(0, i) + d + no.slice(i + 1);
+}
+
+function genTraveler(day, forceDefect, opts = {}) {
+  const species = pick(Object.keys(SPECIES));
+  const resident = opts.resident ?? chance(.2);
+  let purpose = resident ? 'Eve dönüş' : pick(['Ziyaret', 'Ziyaret', 'Transit', 'Ticaret', 'Çalışma', 'Çalışma']);
+  if (opts.purpose) purpose = opts.purpose;
+  const validPlanets = PLANETS.filter(p => p !== QUARANTINE[day]);
+  let name; do { name = makeName(species); } while (S.wanted.includes(name));
+  const t = {species, resident, purpose, name, idNo: makeIdNo(), duration: 1 + rnd(14), face: randFace(species), docs: {}, defect: null};
+  t.docs.id = {name, species, planet: resident ? STATION : pick(validPlanets), idNo: t.idNo, expiry: future(day), face: t.face};
+  if (!resident && day >= 2) t.docs.permit = {name, idNo: t.idNo, purpose, duration: t.duration, expiry: future(day)};
+  if (day >= 4) {
+    const v = [REQ_VACCINE, pick(VACCINES)]; if (chance(.5)) v.push(pickOther(VACCINES, v[1]));
+    t.docs.health = {name, vaccines: v.sort(() => Math.random() - .5), expiry: future(day)};
+  }
+  if (day >= 5 && purpose === 'Çalışma') t.docs.work = {name, employer: pick(EMPLOYERS), expiry: future(day)};
+
+  let key = forceDefect;
+  if (key === undefined && chance(.45)) {
+    const pool = Object.keys(DEFECTS).filter(k => {
+      const d = DEFECTS[k];
+      return d.min <= day && !(d.vis && resident) && !(d.work && purpose !== 'Çalışma');
+    });
+    // yeni günün kuralları daha sık çıksın
+    const fresh = pool.filter(k => DEFECTS[k].min === day);
+    key = fresh.length && chance(.4) ? pick(fresh) : pick(pool);
+  }
+  if (key) { DEFECTS[key].apply(t, day); t.defect = {key, reason: DEFECTS[key].reason}; }
+
+  const lines = {
+    'Eve dönüş': ['Evime dönüyorum, uzun bir vardiyaydı.', 'Burada yaşıyorum. Kabinim C halkasında.'],
+    'Ziyaret': [`Ziyarete geldim, ${t.duration} gün kalacağım.`, `Ailemi göreceğim. ${t.duration} gün sonra dönüyorum.`],
+    'Transit': [`Aktarma yapıyorum, ${t.duration} gün içinde ayrılırım.`, 'Sadece geçiyorum, memur bey.'],
+    'Ticaret': [`Mal satmaya geldim. ${t.duration} günlük işim var.`, 'Pazarda tezgâhım var, işim bitince giderim.'],
+    'Çalışma': [`İş için geldim. İlk etapta ${t.duration} gün.`, 'Vardiyam yarın başlıyor, lütfen acele edelim.']
+  };
+  t.line = pick(lines[purpose]);
+  return t;
+}
+
+/* Senaryolu yolcular: gün -> sıra -> üretici */
+const EVENTS = {
+  2: {2: () => Object.assign(genTraveler(2, 'permit_missing', {resident: false, purpose: 'Ziyaret'}), {event: 'mercy',
+        line: 'İznim yok, biliyorum... Kızım içeride, revirde yatıyor. Yalvarırım, bir kez olsun görmezden gelin.'})},
+  3: {3: () => Object.assign(genTraveler(3, 'id_expired'), {event: 'bribe', bribe: 15,
+        line: 'Kimliğin tarihi biraz geçmiş olabilir. Masana 15 kredi bıraksam, bunu konuşmamıza gerek kalır mı?'})},
+  5: {1: () => Object.assign(genTraveler(5, 'health_expired'), {event: 'mercy',
+        line: 'Sertifikam dün doldu. Alt halkalara ilaç taşıyorum, beklerlerse insanlar ölecek. Lütfen.'}),
+      4: () => Object.assign(genTraveler(5, 'work_missing', {resident: false, purpose: 'Çalışma'}), {event: 'bribe', bribe: 25,
+        line: 'Çalışma izni mi? Patron halledecekti... Bak, 25 kredi. Kimse bilmek zorunda değil.'})},
+  6: {2: () => Object.assign(genTraveler(6, 'wanted'), {event: 'bribe', bribe: 40,
+        line: 'Listede adımı gördün, değil mi? 40 kredi. Bugün beni hiç görmedin.'})}
+};
+
+/* ---------- Belge çizimi ---------- */
+const row = (k, v) => `<div class="row"><span>${k}</span><span>${esc(v)}</span></div>`;
+function docEl(type, d) {
+  const el = document.createElement('div');
+  el.className = 'doc ' + type;
+  if (type === 'id') {
+    el.innerHTML = `<h3><span>KİMLİK KARTI</span><span>◈</span></h3><div class="top"><canvas width="140" height="168"></canvas><div>` +
+      row('Ad', d.name) + row('Tür', d.species) + `</div></div>` + row('Gezegen', d.planet) + row('Kimlik no', d.idNo) + row('Geçerlilik', d.expiry) +
+      `<div class="seal">BİRLEŞİK YÖRÜNGE KAYIT DAİRESİ</div>`;
+    drawFace(el.querySelector('canvas'), d.face);
+  } else if (type === 'permit') {
+    el.innerHTML = `<h3><span>GEÇİŞ İZNİ</span><span>⬡</span></h3>` + row('Ad', d.name) + row('Kimlik no', d.idNo) + row('Amaç', d.purpose) +
+      row('Kalış süresi', d.duration + ' gün') + row('Geçerlilik', d.expiry) + `<div class="seal">${STATION.toUpperCase()} LİMAN İDARESİ</div>`;
+  } else if (type === 'health') {
+    el.innerHTML = `<h3><span>SAĞLIK SERTİFİKASI</span><span>✚</span></h3>` + row('Ad', d.name) + row('Aşılar', '') +
+      d.vaccines.map(v => `<div class="row"><span></span><span>• ${esc(v)}</span></div>`).join('') + row('Geçerlilik', d.expiry) +
+      `<div class="seal">YÖRÜNGE SAĞLIK KURULU</div>`;
+  } else {
+    el.innerHTML = `<h3><span>ÇALIŞMA İZNİ</span><span>⚙</span></h3>` + row('Ad', d.name) + row('İşveren', d.employer) + row('Geçerlilik', d.expiry) +
+      `<div class="seal">${STATION.toUpperCase()} ÇALIŞMA MÜDÜRLÜĞÜ</div>`;
+  }
+  makeDraggable(el);
+  return el;
+}
+function makeDraggable(el) {
+  let ox = 0, oy = 0, on = false;
+  el.addEventListener('pointerdown', e => {
+    on = true; el.setPointerCapture(e.pointerId); el.classList.add('drag'); el.style.zIndex = ++S.z;
+    ox = e.clientX - el.offsetLeft; oy = e.clientY - el.offsetTop;
+  });
+  el.addEventListener('pointermove', e => {
+    if (!on) return;
+    const desk = $('desk');
+    el.style.left = Math.max(-60, Math.min(desk.clientWidth - 60, e.clientX - ox)) + 'px';
+    el.style.top = Math.max(-10, Math.min(desk.clientHeight - 40, e.clientY - oy)) + 'px';
+  });
+  const up = () => { on = false; el.classList.remove('drag'); };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+}
+function clearDesk() { $('desk').querySelectorAll('.doc').forEach(d => d.remove()); }
+function layDocs(t) {
+  clearDesk();
+  const desk = $('desk'), types = ['id', 'permit', 'health', 'work'].filter(k => t.docs[k]);
+  const w = desk.clientWidth, narrow = w < 500;
+  types.forEach((k, i) => {
+    const el = docEl(k, t.docs[k]);
+    if (narrow) { el.style.left = (6 + (i % 2) * Math.max(20, w - 188)) + 'px'; el.style.top = (8 + Math.floor(i / 2) * 212) + 'px'; }
+    else { const cols = Math.max(2, Math.floor(w / 244)); el.style.left = (10 + (i % cols) * Math.min(244, (w - 242) / (cols - 1))) + 'px'; el.style.top = (12 + Math.floor(i / cols) * 226 + rnd(10)) + 'px'; }
+    el.style.zIndex = ++S.z;
+    desk.appendChild(el);
+  });
+}
+
+/* ---------- Oyun akışı ---------- */
+function hud() {
+  $('hDay').textContent = S.day; $('hDate').textContent = fmt(dateAt(S.day)); $('hCred').textContent = S.credits;
+  const p = 1 - S.timeLeft / SHIFT_SECONDS, mins = Math.round(p * 600);
+  $('hClock').textContent = pad(8 + Math.floor(mins / 60)) + ':' + pad(mins % 60);
+  $('clockfill').style.width = (p * 100) + '%';
+  $('counter').textContent = S.phase === 'play' ? `Doğru: ${S.correct} · Hata: ${S.mistakes}` + (S.timeLeft <= 0 ? ' · SON YOLCU' : '') : '';
+}
+function say(who, text) { $('speech').innerHTML = `<span class="who">${esc(who)}</span>${esc(text)}`; }
+let toastT;
+function toast(msg, good) {
+  const t = $('toast'); t.textContent = msg; t.className = 'show' + (good ? ' good' : '');
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = good ? 'good' : '', 3200);
+}
+function setButtons(on) { $('ok').disabled = $('no').disabled = !on; }
+
+function startDay() {
+  Object.assign(S, {phase: 'play', timeLeft: SHIFT_SECONDS, correct: 0, mistakes: 0, fines: 0, bribeCash: 0, served: 0, traveler: null, busy: false});
+  S.wanted = []; if (S.day >= 6) while (S.wanted.length < 3) { const n = makeName(pick(Object.keys(SPECIES))); if (!S.wanted.includes(n)) S.wanted.push(n); }
+  $('screen').classList.add('hide');
+  renderRules(); hud(); clearDesk();
+  clearInterval(S.timer);
+  S.timer = setInterval(() => {
+    if (S.phase !== 'play') return;
+    S.timeLeft = Math.max(0, S.timeLeft - 1); hud();
+    if (S.timeLeft <= 0 && !S.traveler && !S.busy) endDay();
+  }, 1000);
+  nextTraveler();
+}
+
+function nextTraveler() {
+  if (S.timeLeft <= 0) return endDay();
+  const ev = EVENTS[S.day] && EVENTS[S.day][S.served];
+  const t = ev ? ev() : genTraveler(S.day);
+  S.served++; S.traveler = t; S.busy = false;
+  const cv = $('visitor');
+  drawFace(cv, t.face);
+  cv.className = 'in'; void cv.offsetWidth; cv.className = '';
+  say('Yolcu', t.line);
+  layDocs(t); setButtons(true); hud();
+}
+
+function decide(approve) {
+  const t = S.traveler;
+  if (!t || S.busy || S.phase !== 'play') return;
+  S.busy = true; setButtons(false);
+  const st = $('stamp'); st.textContent = approve ? 'ONAYLANDI' : 'REDDEDİLDİ'; st.className = 'show ' + (approve ? 'ok' : 'no');
+  const valid = !t.defect, correct = approve === valid;
+  if (t.event === 'bribe' && approve) {
+    S.bribes++; S.bribeCash += t.bribe;
+    toast(`Zarfı çekmeceye attın: +${t.bribe} kredi. Umarım kimse görmemiştir.`, true);
+  } else if (correct) {
+    S.correct++;
+    if (t.event === 'bribe') toast('Rüşveti geri çevirdin. Kayıtlara temiz geçti.', true);
+  } else {
+    if (t.event === 'mercy' && approve) S.mercy++;
+    S.mistakes++;
+    const fined = S.mistakes > FREE_MISTAKES; if (fined) S.fines += FINE;
+    toast((fined ? `CEZA (−${FINE} kredi): ` : `İHTAR ${S.mistakes}/${FREE_MISTAKES}: `) + (t.defect ? t.defect.reason : 'Belgeleri kusursuzdu; geçerli bir yolcuyu reddettin.'));
+  }
+  say('Yolcu', approve ? pick(['Teşekkürler memur bey.', 'Sağ olun.', 'Nihayet.']) : pick(['Ama neden?!', 'Bu haksızlık...', 'Bunu şikâyet edeceğim.', '...Anladım.']));
+  $('visitor').className = 'out';
+  S.traveler = null; hud();
+  setTimeout(() => { st.className = ''; clearDesk(); if (S.phase === 'play') nextTraveler(); }, 950);
+}
+
+function show(html, buttons) {
+  $('card').innerHTML = html + '<div class="btns">' + buttons.map((b, i) => `<button data-i="${i}" class="${b[2] || ''}">${b[0]}</button>`).join('') + '</div>';
+  $('card').querySelectorAll('button').forEach(b => b.onclick = () => buttons[+b.dataset.i][1]());
+  $('screen').classList.remove('hide'); $('screen').scrollTop = 0;
+}
+
+function endDay() {
+  if (S.phase !== 'play') return;
+  S.phase = 'summary'; clearInterval(S.timer); setButtons(false); clearDesk(); drawFace($('visitor'), null); say('', 'Vardiya bitti.');
+  const wage = S.correct * PAY, exp = EXPENSES.reduce((a, e) => a + e[1], 0);
+  const before = S.credits;
+  S.credits = before + wage + S.bribeCash - S.fines - exp;
+  hud();
+  let h = `<h2>GÜN ${S.day} SONU</h2><table>
+    <tr><td>Devreden</td><td>${before}</td></tr>
+    <tr><td>Maaş (${S.correct} doğru işlem × ${PAY})</td><td class="pos">+${wage}</td></tr>` +
+    (S.bribeCash ? `<tr><td>Çekmecedeki zarf</td><td class="warn">+${S.bribeCash}</td></tr>` : '') +
+    (S.fines ? `<tr><td>Cezalar (${S.mistakes} hata)</td><td class="neg">−${S.fines}</td></tr>` : '') +
+    EXPENSES.map(e => `<tr><td>${e[0]}</td><td class="neg">−${e[1]}</td></tr>`).join('') +
+    `<tr class="total"><td>Bakiye</td><td class="${S.credits < 0 ? 'neg' : ''}">${S.credits}</td></tr></table>`;
+  if (S.credits < 0) return ending('debt', h);
+  if (S.bribes >= 2) return ending('fired', h);
+  if (S.day >= LAST_DAY) return ending(S.credits >= TICKET ? 'home' : 'stay', h);
+  if (S.bribes === 1 && S.bribeCash) h += `<p class="warn">Denetim kurulu kabinindeki kamera kayıtlarını istemiş. Bir zarf daha, sonun olur.</p>`;
+  h += `<p>Eve dönüş bileti: <b>${TICKET} kredi</b>. Kalan gün: ${LAST_DAY - S.day}.</p>`;
+  S.day++; save();
+  show(h, [['Sonraki gün ▸', dayIntro]]);
+}
+
+function ending(kind, h) {
+  S.phase = 'over'; wipe();
+  const mercy = S.mercy ? `<p>Kuralları çiğneyip içeri aldığın ${S.mercy} kişi seni hiç unutmadı.</p>` : '';
+  const T = {
+    debt: ['İFLAS', 'Kiranı ve oksijen faturanı ödeyemedin. İstasyon yönetimi kabinini boşalttı ve seni ilk kargo mekiğiyle alt halkalara gönderdi.'],
+    fired: ['GÖREVDEN ALINDIN', 'Denetim kurulu çekmecendeki zarfları buldu. Rozetin söküldü; artık pencerenin öbür tarafındasın.'],
+    home: ['EVE DÖNÜŞ', `Yedi gün dayandın ve ${TICKET} krediyi biriktirdin. Bileti alıp son mekiğe bindin. Halka-7 arkanda küçülürken, pencerende ilk kez kimsenin belgesi yok.`],
+    stay: ['BİR HAFTA DAHA', `Yedi günü çıkardın ama bilet için ${TICKET} kredi gerekiyordu. Yarın sabah yine o pencerenin arkasındasın.`]
+  }[kind];
+  show(h + `<h2 style="margin-top:14px" class="${kind === 'home' ? 'pos' : kind === 'stay' ? 'warn' : 'neg'}">${T[0]}</h2><p>${T[1]}</p>${mercy}`,
+       [['Yeniden başla', newGame]]);
+}
+
+function dayIntro() {
+  S.phase = 'intro'; S.timeLeft = SHIFT_SECONDS; hud(); renderRules();
+  const fresh = rulesFor(S.day).filter(r => r[0] === S.day);
+  let h = `<h2>GÜN ${S.day}</h2><p>${fmt(dateAt(S.day))} · Vardiya 08:00–18:00</p><h3>${S.day === 1 ? 'KURALLAR' : 'YENİ KURALLAR'}</h3><ul>` +
+    fresh.map(r => `<li>${r[1]}</li>`).join('') + '</ul>';
+  if (S.day >= 3) h += `<p>Bugünkü karantina: <b class="neg">${QUARANTINE[S.day]}</b></p>`;
+  h += `<p style="color:var(--dim)">Her doğru işlem ${PAY} kredi. İlk ${FREE_MISTAKES} hata ihtar, sonrakiler ${FINE} kredi ceza. Günlük giderin ${EXPENSES.reduce((a, e) => a + e[1], 0)} kredi.</p>`;
+  show(h, [['Vardiyaya başla ▸', startDay]]);
+}
+
+function newGame() { wipe(); Object.assign(S, {day: 1, credits: 20, bribes: 0, mercy: 0}); dayIntro(); }
+
+function menu() {
+  S.phase = 'menu'; hud(); renderRules(); drawFace($('visitor'), null);
+  const sv = load();
+  const h = `<h2>HALKA-7</h2><p style="color:var(--dim);margin-top:0">GEÇİŞ KONTROLÜ</p>
+    <p>Yıl 2291. Halka-7 yörünge istasyonunun yolcu kapısına memur olarak atandın. İçeri kimin gireceğine sen karar veriyorsun.</p>
+    <p>Yolcuların belgelerini <b>kural defteriyle</b> ve <b>birbiriyle</b> karşılaştır. Her şey tutuyorsa <b class="pos">ONAYLA</b>, tek bir tutarsızlık bile varsa <b class="neg">REDDET</b>.</p>
+    <p>Kira ve oksijen bedava değil. Yedi günün sonunda <b>${TICKET} kredi</b> biriktirirsen eve dönüş biletini alabilirsin.</p>
+    <p style="color:var(--dim)">Kısayollar: <b>A</b> onayla · <b>R</b> reddet. Belgeler sürüklenebilir.</p>`;
+  const b = [['Yeni oyun', newGame]];
+  if (sv && sv.day > 1) b.unshift([`Devam et (Gün ${sv.day})`, () => { Object.assign(S, sv); dayIntro(); }]), b[1][2] = 'sec';
+  show(h, b);
+}
+
+$('ok').onclick = () => decide(true);
+$('no').onclick = () => decide(false);
+document.addEventListener('keydown', e => {
+  if (S.phase !== 'play') return;
+  const k = e.key.toLowerCase();
+  if (k === 'a') decide(true); else if (k === 'r') decide(false);
+});
+window.halka7 = {S, decide, endDay};   // hata ayıklama / test
+menu();
+})();
+</script>
+</body>
+</html>
