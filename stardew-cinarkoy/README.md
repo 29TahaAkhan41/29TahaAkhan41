@@ -34,6 +34,7 @@ Dönüş için köydeki tabelaya (otobüs durağına) ya da vagona tıkla.
 | `[CP] Cinarkoy/content.json` | Konum kaydı, vagon durağı, harita yüklemesi |
 | `[CP] Cinarkoy/assets/Cinarkoy.tmx` | Köy haritası ([Tiled](https://www.mapeditor.org) ile düzenlenir) |
 | `[CP] Cinarkoy/assets/Tabela.tmx` | Otobüs durağına bindirilen tabela yaması |
+| `[CP] Cinarkoy/assets/<mevsim>_cinarkoy_evler.png` | Yeniden boyanmış ev karoları (depoda yok, betik üretir) |
 | `[CP] Cinarkoy/i18n/` | Çeviriler (`default.json` İngilizce, `tr.json` Türkçe) |
 | `tools/harita_uret.py` | Haritayı oyunun kendi karolarından üreten betik |
 
@@ -58,7 +59,12 @@ Katman adları oyun için anlamlıdır, değiştirme:
 Vagonun (6, 20), tabelanın (10, 21) ve varış karolarının (6, 22) / (10, 22) yerini
 değiştirirsen `content.json` içindeki koordinatları da güncelle.
 
-Haritayı baştan üretmek için:
+Köydeki üç ev (yeşil, krem, arduvaz çatılı) oyunun evlerinin yeniden boyanmış
+halidir. Bu karolar oyunun görsellerinden türediği için depoya konmaz
+(`.gitignore`); aşağıdaki betik onları senin oyun dosyalarından üretir. **Depoyu
+indirdiysen modu kullanmadan önce betiği bir kez çalıştırman gerekir.**
+
+Haritayı ve ev karolarını üretmek için:
 
 ```
 python3 tools/harita_uret.py "<oyun klasörü>/Content (unpacked)/Maps"

@@ -12,11 +12,13 @@ karo setlerine yalnızca adlarıyla başvurur.
 Çıktılar:
     [CP] Cinarkoy/assets/Cinarkoy.tmx   köy haritası
     [CP] Cinarkoy/assets/Tabela.tmx     otobüs durağına bindirilen tabela yaması
+    [CP] Cinarkoy/assets/<mevsim>_cinarkoy_evler.png   yeniden boyanmış ev karoları
     onizleme.png                         haritanın önizlemesi
 
 Haritayı Tiled ile elle düzenlemeye başladıktan sonra bu betiği tekrar
 çalıştırma: Cinarkoy.tmx dosyasının üzerine yazar.
 """
+import colorsys
 import copy
 import random
 import sys
@@ -142,8 +144,70 @@ def ev_filtresi(ad, gid):
     return KASABA0 <= gid < KASABA1 or (ad.startswith("Back") and GOLGE0 <= gid < GOLGE1)
 
 
-def ev(kx0, ky0, kx1, ky1, hx, hy):
-    damga(town, kx0, ky0, kx1, ky1, hx, hy, ev_filtresi)
+def ev(kx0, ky0, kx1, ky1, hx, hy, boya=None):
+    """Town'daki evi köye kopyalar. boya verilirse evin karoları yeniden boyanıp
+    modun kendi karo setine (cinarkoy_evler) eklenir ve ev o karolarla kurulur."""
+    if boya is None:
+        return damga(town, kx0, ky0, kx1, ky1, hx, hy, ev_filtresi)
+    for ad in KATMANLAR:
+        for y in range(ky0, ky1 + 1):
+            for x in range(kx0, kx1 + 1):
+                gid = town.katman[ad][y][x]
+                if not gid or not ev_filtresi(ad, gid):
+                    continue
+                if KASABA0 <= gid < KASABA1:
+                    anahtar = (boya, gid - KASABA0)
+                    if anahtar not in OZEL:
+                        OZEL[anahtar] = len(OZEL)
+                    gid = OZEL0 + OZEL[anahtar]
+                harita[ad][hy + y - ky0][hx + x - kx0] = gid
+
+
+# ------------------------------------------------------- yeniden boyama ---
+OZEL = {}                 # (boya işlevi, kasaba karo no) -> özel karo setindeki sıra
+OZEL0 = 6000              # özel karo setinin ilk numarası
+OZEL_SUTUN = 16
+MEVSIMLER = ["spring", "summer", "fall", "winter"]
+
+
+def _boya(kural):
+    """kural(h, s, v) -> (h, s, v) ya da None. h derece (0-360), s ve v 0-1."""
+    def uygula(karo):
+        px = karo.load()
+        for y in range(16):
+            for x in range(16):
+                r, g, b, a = px[x, y]
+                if a == 0:
+                    continue
+                h, sat, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+                yeni = kural(h * 360, sat, v)
+                if yeni:
+                    nr, ng, nb = colorsys.hsv_to_rgb(yeni[0] / 360, min(1, yeni[1]), min(1, yeni[2]))
+                    px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
+        return karo
+    return uygula
+
+
+def _yesil(h, s, v):          # mavi duvar -> yeşil, mor çatı -> kiremit
+    if 185 <= h <= 255 and s > 0.15:
+        return 105, s * 0.7, v * 0.95
+    if 255 < h <= 345 and s > 0.12:
+        return 14, s * 1.15, v * 1.05
+
+
+def _arduvaz(h, s, v):        # turuncu çatı -> mavi-gri arduvaz, duvar -> açık sarı
+    if (h <= 32 or h >= 350) and s > 0.50:
+        return 212, s * 0.55, v * 0.92
+    if 15 <= h <= 45 and s <= 0.50 and v > 0.35:
+        return 48, s * 1.1, v
+
+
+def _krem(h, s, v):           # soluk mavi duvar -> krem
+    if 185 <= h <= 245 and 0.06 < s < 0.34 and v > 0.40:
+        return 36, s * 1.5 + 0.06, v
+
+
+YESIL, ARDUVAZ, KREM = _boya(_yesil), _boya(_arduvaz), _boya(_krem)
 
 
 # --------------------------------------------------------------- ağaçlar ---
@@ -197,11 +261,12 @@ yol(26, 19, 36, 21)
 
 # Kuzey sırası: kapılar güneye, ana yola bakar
 EVLER = [
-    # (Town'daki bölge)        (köydeki sol üst)  kapı önü patikası
-    ((52, 53, 62, 63), (13, 8)),      # gri-mavi ev
-    ((56, 73, 64, 88), (40, 4)),      # büyük konak
-    ((7, 74, 15, 88), (18, 27)),      # mavi ev
-    ((19, 79, 26, 88), (41, 28)),     # turuncu ev
+    # (Town'daki bölge)   (köydeki sol üst)  boya
+    ((52, 53, 62, 63), (13, 8), None),       # gri-mavi ev (oyundaki haliyle)
+    ((56, 73, 64, 88), (40, 4), None),       # büyük konak (oyundaki haliyle)
+    ((7, 74, 15, 88), (18, 27), YESIL),      # yeşil ev, kiremit çatı
+    ((54, 53, 62, 63), (29, 28), KREM),      # krem ev
+    ((19, 79, 26, 88), (41, 28), ARDUVAZ),   # sarı ev, arduvaz çatı
 ]
 yol(18, 19, 18, 21)                   # gri-mavi evin kapısı -> yol
 yol(42, 19, 43, 21)                   # konağın kapısı -> yol
@@ -210,10 +275,11 @@ yol(27, 24, 28, 40)
 yol(20, 39, 28, 40)
 yol(38, 24, 39, 40)
 yol(38, 38, 45, 39)
+yol(29, 39, 37, 40)                   # krem evin önü, iki patikayı birleştirir
 
 zemini_dose()
-for (kx0, ky0, kx1, ky1), (hx, hy) in EVLER:
-    ev(kx0, ky0, kx1, ky1, hx, hy)
+for (kx0, ky0, kx1, ky1), (hx, hy), boya in EVLER:
+    ev(kx0, ky0, kx1, ky1, hx, hy, boya)
 
 # Vagon: Town'daki ray + vagon + kol
 damga(town, 105, 77, 105, 80, VAGON[0], VAGON[1], lambda ad, gid: gid not in CIMEN and ad != "Paths")
@@ -275,9 +341,27 @@ def tmx(g, y, setler, katmanlar, ozellikler=""):
             + "</map>\n")
 
 
+def ozel_set_yaz():
+    """Yeniden boyanmış ev karolarını dört mevsim için ayrı PNG olarak yazar."""
+    satir = (len(OZEL) + OZEL_SUTUN - 1) // OZEL_SUTUN
+    sutun = int(town.setler["spring_town"].get("columns"))
+    for mevsim in MEVSIMLER:
+        kasaba = Image.open(MAPS / f"{mevsim}_town.png").convert("RGBA")
+        sayfa = Image.new("RGBA", (OZEL_SUTUN * 16, satir * 16), (0, 0, 0, 0))
+        for (boya, no), sira in OZEL.items():
+            kx, ky = (no % sutun) * 16, (no // sutun) * 16
+            sayfa.paste(boya(kasaba.crop((kx, ky, kx + 16, ky + 16))),
+                        ((sira % OZEL_SUTUN) * 16, (sira // OZEL_SUTUN) * 16))
+        sayfa.save(ASSETS / f"{mevsim}_cinarkoy_evler.png")
+    return (f'<tileset firstgid="{OZEL0}" name="cinarkoy_evler" tilewidth="16" tileheight="16" '
+            f'tilecount="{satir * OZEL_SUTUN}" columns="{OZEL_SUTUN}">\n'
+            f'  <image source="spring_cinarkoy_evler.png" width="{OZEL_SUTUN * 16}" height="{satir * 16}"/>\n'
+            ' </tileset>')
+
+
 def yaz():
     ASSETS.mkdir(parents=True, exist_ok=True)
-    koy = tmx(G, Y, [set_xml(town, s) for s in SETLER], [(ad, harita[ad]) for ad in KATMANLAR],
+    koy = tmx(G, Y, [set_xml(town, s) for s in SETLER] + [ozel_set_yaz()], [(ad, harita[ad]) for ad in KATMANLAR],
               ' <properties>\n  <property name="Outdoors" type="string" value="T"/>\n </properties>\n')
     (ASSETS / "Cinarkoy.tmx").write_text(koy, encoding="utf-8")
     # Otobüs durağı yaması: 1x2, üstte tabela levhası (Front), altta direk (Buildings)
@@ -292,6 +376,7 @@ def onizleme():
         ts = town.setler[s]
         sayfalar.append((int(ts.get("firstgid")), int(ts.get("columns")),
                          Image.open(MAPS / f"{s}.png").convert("RGBA")))
+    sayfalar.append((OZEL0, OZEL_SUTUN, Image.open(ASSETS / "spring_cinarkoy_evler.png").convert("RGBA")))
     im = Image.new("RGBA", (G * 16, Y * 16), (0, 0, 0, 255))
     for ad in KATMANLAR:
         if ad == "Paths":
