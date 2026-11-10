@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "spellmod:item/wand"
+    "model": "spellmod:item/raw_mana"
   }
 }

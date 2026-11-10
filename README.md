@@ -1,27 +1,38 @@
 # Spell Mod (Büyü Modu)
 
-Minecraft **26.3** için **NeoForge** ile yazılmış, mana tabanlı bir büyü modu.
+Minecraft **26.3** için **NeoForge** ile yazılmış bir büyü modu. Oyuncu manaya hazır sahip olmaz;
+onu bulması, işlemesi, özümsemesi ve vücudunu ona alıştırması gerekir.
 
-## Özellikler
+## Mana sistemi
 
-- **Sihirli Asa** – sağ tık ile seçili büyüyü yapar, eğilerek (Shift) sağ tık ile büyü değiştirir.
-- **Mana** – her oyuncunun 100 manası vardır; saniyede 4 mana yenilenir, dünyayla birlikte kaydedilir.
-  Asa elindeyken ekranın sol üstünde mana barı ve seçili büyü görünür.
-- **Mana Kristali** – sağ tık ile kullanılır, anında 50 mana yeniler.
+1. **Ham mana bulmak** – Hayatta kalma modunda kırılan bloklardan düşük bir ihtimalle
+   **İşlenmemiş Mana** düşer. Başlangıçta şans %0,2'dir. Her buluş (+1) ve her özümseme (+2)
+   **mana tecrübesi** kazandırır; her tecrübe puanı şansı %0,04 artırır (en fazla %5).
+   Anında kırılan bloklar (çimen, çiçek, meşale...) mana vermez.
+2. **İşlemek** – İşlenmemiş mana tek başına işe yaramaz; bir masada **İşlenmiş Mana**'ya
+   dönüştürülmesi gerekir. *Masa henüz yapılmadı*; o yüzden İşlenmiş Mana şimdilik yalnızca
+   yaratıcı moddan veya `/give` ile alınabilir.
+3. **Özümsemek** – İşlenmiş Mana sağ tıkla özümsenir. Her özümseme 10 mana verir ve vücudun
+   **mana kapasitesini** 2 artırır (en fazla 200).
+4. **Alışmak** – Kapasiteye sığmayan mana boşa gider ve **zarar verir** (büyü hasarı; ağır
+   olursa Mide Bulantısı ve Zayıflık). Kapasite büyüdükçe aynı taşma daha az acıtır.
+   Yeni oyuncunun kapasitesi 0 olduğu için ilk özümsemeler can yakar.
 
-| Büyü        | Mana | Bekleme | Etki                                                        |
-|-------------|------|---------|-------------------------------------------------------------|
-| Ateş Topu   | 20   | 0,75 sn | Baktığın yöne bir ateş topu fırlatır                        |
-| İyileştirme | 30   | 2 sn    | 4 kalp iyileştirir + 5 sn Yenilenme                         |
-| Işınlanma   | 25   | 1,5 sn  | Baktığın yere (en fazla 16 blok) ışınlar                    |
-| Yıldırım    | 40   | 3 sn    | Baktığın bloğa/canlıya (en fazla 48 blok) yıldırım düşürür  |
+### Aşamalar
 
-Yaratıcı modda büyüler mana harcamaz.
+| Aşama      | Gereken kapasite |
+|------------|------------------|
+| Uyanmamış  | 0                |
+| Uyanmış    | 1                |
+| Çırak      | 20               |
+| Usta       | 50               |
+| Büyücü     | 100              |
+| Başbüyücü  | 200              |
 
-## Tarifler
+Uyandıktan sonra ekranın sol üstünde aşama ve mana barı görünür. `/mana` komutu aşamanı,
+mananı, tecrübeni ve ham mana bulma şansını gösterir. Mana verileri ölünce kaybolmaz.
 
-- **Sihirli Asa** (çalışma masası, çapraz): ametist parçası (sağ üst), elmas (orta), çubuk (sol alt)
-- **Mana Kristali ×2** (şekilsiz): ametist parçası + lapis lazuli + ışıktaşı tozu
+Bütün sayılar `mana/Mana.java` ve `mana/ManaStage.java` içinde sabit olarak durur.
 
 ## Geliştirme
 
@@ -34,22 +45,14 @@ Gerekenler: **JDK 25** (Minecraft 26.3 bunu şart koşuyor). Gradle, wrapper ile
 ./gradlew build              # build/libs/spellmod-<sürüm>.jar üret
 ```
 
-### Yeni büyü eklemek
-
-1. `spell/SpellEffects.java` içine büyünün etkisini yazan bir metot ekle
-   (`false` dönerse büyü başarısız sayılır ve mana harcanmaz).
-2. `spell/Spell.java` içindeki enum'a mana bedeli ve bekleme süresiyle yeni bir satır ekle.
-3. `assets/spellmod/lang/en_us.json` ve `tr_tr.json` dosyalarına `spell.spellmod.<isim>` çevirisini ekle.
-
 ### Kod yapısı
 
 ```
 src/main/java/com/tahaakhan/spellmod/
 ├── SpellMod.java        mod giriş noktası
-├── spell/               büyüler ve etkileri
-├── mana/                mana mantığı ve yenilenme
-├── item/                asa ve mana kristali
-├── registry/            eşya, veri bileşeni, attachment, yaratıcı sekme kayıtları
+├── mana/                mana kuralları, aşamalar, blok kırma olayı, /mana komutu
+├── item/                işlenmiş mana (özümseme)
+├── registry/            eşya, attachment, yaratıcı sekme kayıtları
 ├── client/              mana barı (HUD)
 └── gametest/            otomatik testler
 ```

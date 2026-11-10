@@ -14,10 +14,10 @@ public final class ModCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = CREATIVE_TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.spellmod"))
-                    .icon(() -> ModItems.WAND.get().getDefaultInstance())
+                    .icon(() -> ModItems.REFINED_MANA.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
-                        output.accept(ModItems.WAND.get());
-                        output.accept(ModItems.MANA_CRYSTAL.get());
+                        output.accept(ModItems.RAW_MANA.get());
+                        output.accept(ModItems.REFINED_MANA.get());
                     })
                     .build());
 

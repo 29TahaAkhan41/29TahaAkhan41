@@ -1,21 +1,31 @@
 package com.tahaakhan.spellmod.registry;
 
 import com.tahaakhan.spellmod.SpellMod;
-import com.tahaakhan.spellmod.item.ManaCrystalItem;
-import com.tahaakhan.spellmod.item.WandItem;
-import com.tahaakhan.spellmod.spell.Spell;
+import com.tahaakhan.spellmod.item.RefinedManaItem;
+import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.component.ItemLore;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(SpellMod.MODID);
 
-    public static final DeferredItem<WandItem> WAND = ITEMS.registerItem("wand", WandItem::new,
-            props -> props.stacksTo(1).rarity(Rarity.RARE).component(ModDataComponents.SELECTED_SPELL, Spell.FIREBALL));
+    /** Drops from broken blocks. Useless until it has been refined. */
+    public static final DeferredItem<Item> RAW_MANA = ITEMS.registerSimpleItem("raw_mana",
+            props -> props.rarity(Rarity.UNCOMMON).component(DataComponents.LORE, lore("tooltip.spellmod.raw_mana")));
 
-    public static final DeferredItem<ManaCrystalItem> MANA_CRYSTAL = ITEMS.registerItem("mana_crystal", ManaCrystalItem::new,
-            props -> props.rarity(Rarity.UNCOMMON));
+    /** Made from raw mana; can be absorbed by the player. */
+    public static final DeferredItem<RefinedManaItem> REFINED_MANA = ITEMS.registerItem("refined_mana", RefinedManaItem::new,
+            props -> props.rarity(Rarity.RARE).component(DataComponents.LORE, lore("tooltip.spellmod.refined_mana")));
 
     private ModItems() {}
+
+    private static ItemLore lore(String key) {
+        return new ItemLore(List.of(Component.translatable(key).withStyle(style -> style.withColor(ChatFormatting.GRAY).withItalic(false))));
+    }
 }
