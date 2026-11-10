@@ -3,6 +3,8 @@ package com.tahaakhan.spellmod.client;
 import com.tahaakhan.spellmod.SpellMod;
 import com.tahaakhan.spellmod.mana.Mana;
 import com.tahaakhan.spellmod.mana.ManaData;
+import com.tahaakhan.spellmod.spell.Spell;
+import com.tahaakhan.spellmod.spell.SpellCasting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -47,5 +49,19 @@ public final class ManaHud {
         int filled = Math.round(BAR_WIDTH * (data.mana() / (float) data.capacity()));
         graphics.fill(x, y, x + filled, y + BAR_HEIGHT, 0xFF3F7BFF);
         graphics.text(minecraft.font, Component.literal(data.mana() + " / " + data.capacity()), x + BAR_WIDTH + 5, y, 0xFFAEC6FF, true);
+
+        Spell spell = SpellCasting.selected(player);
+        if (spell != null) {
+            y += 11;
+            int power = SpellCasting.effectivePower(SpellCasting.get(player), data, spell);
+            if (power <= 0) {
+                graphics.text(minecraft.font, Component.translatable("hud.spellmod.spell_locked", spell.displayName(), spell.minStage().displayName()),
+                        x, y, 0xFF9A9A9A, true);
+            } else {
+                int cost = spell.manaCost(power);
+                graphics.text(minecraft.font, Component.translatable("hud.spellmod.spell", spell.displayName(), power, cost),
+                        x, y, data.mana() >= cost ? 0xFFFFFFFF : 0xFFFF6B6B, true);
+            }
+        }
     }
 }

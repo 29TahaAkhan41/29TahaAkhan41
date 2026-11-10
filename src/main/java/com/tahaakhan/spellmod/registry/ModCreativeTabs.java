@@ -1,6 +1,8 @@
 package com.tahaakhan.spellmod.registry;
 
 import com.tahaakhan.spellmod.SpellMod;
+import com.tahaakhan.spellmod.item.SpellBookItem;
+import com.tahaakhan.spellmod.spell.Spells;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -20,6 +22,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.REFINED_MANA.get());
                         output.accept(ModItems.MANA_CAPSULE.get());
                         output.accept(ModItems.MANA_TABLE.get());
+                        Spells.all().forEach(spell -> output.accept(SpellBookItem.of(spell)));
                     })
                     .build());
 

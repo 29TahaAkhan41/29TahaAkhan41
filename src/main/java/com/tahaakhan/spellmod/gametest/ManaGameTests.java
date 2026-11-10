@@ -8,6 +8,30 @@ import com.tahaakhan.spellmod.mana.ManaData;
 import com.tahaakhan.spellmod.mana.ManaEvents;
 import com.tahaakhan.spellmod.mana.ManaStage;
 import com.tahaakhan.spellmod.menu.ManaTableMenu;
+import com.tahaakhan.spellmod.item.SpellBookItem;
+import com.tahaakhan.spellmod.spell.Spell;
+import com.tahaakhan.spellmod.spell.SpellCasting;
+import com.tahaakhan.spellmod.spell.Spells;
+import com.tahaakhan.spellmod.world.UniqueVillageHouseElement;
+import com.tahaakhan.spellmod.world.VillageAdditions;
+import com.tahaakhan.spellmod.world.VillageBooks;
+import net.minecraft.core.Registry;
+import net.minecraft.core.SectionPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import com.tahaakhan.spellmod.registry.ModBlocks;
 import com.tahaakhan.spellmod.registry.ModItems;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -21,9 +45,12 @@ import net.minecraft.gametest.framework.FunctionGameTestInstance;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
@@ -64,6 +91,12 @@ public final class ManaGameTests {
         TEST_FUNCTIONS.register("table_refines_raw_mana", () -> ManaGameTests::tableRefinesRawMana);
         TEST_FUNCTIONS.register("table_can_destroy_mana", () -> ManaGameTests::tableCanDestroyMana);
         TEST_FUNCTIONS.register("table_needs_mana_and_fuel", () -> ManaGameTests::tableNeedsManaAndFuel);
+        TEST_FUNCTIONS.register("spell_book_teaches_spell", () -> ManaGameTests::spellBookTeachesSpell);
+        TEST_FUNCTIONS.register("spells_depend_on_stage_and_mana", () -> ManaGameTests::spellsDependOnStageAndMana);
+        TEST_FUNCTIONS.register("spell_selection_and_power", () -> ManaGameTests::spellSelectionAndPower);
+        TEST_FUNCTIONS.register("wizard_house_in_village_pools", () -> ManaGameTests::wizardHouseInVillagePools);
+        TEST_FUNCTIONS.register("one_book_per_village", () -> ManaGameTests::oneBookPerVillage);
+        TEST_FUNCTIONS.register("villages_generate_wizard_houses", () -> ManaGameTests::villagesGenerateWizardHouses);
     }
 
     private ManaGameTests() {}
@@ -313,6 +346,223 @@ public final class ManaGameTests {
         table.clearContent();
         helper.setBlock(new BlockPos(0, 2, 0), Blocks.AIR);
         finish(helper, player);
+    }
+
+    private static void spellBookTeachesSpell(GameTestHelper helper) {
+        ServerPlayer player = mockPlayer(helper);
+        helper.assertTrue(SpellCasting.get(player).known().isEmpty(), "new players know no spells");
+        helper.assertValueEqual(SpellCasting.castSelected(player), SpellCasting.CastResult.NO_SPELL, "casting without any spell");
+
+        // Reading a book teaches its spell, selects it and uses the book up.
+        player.setItemInHand(InteractionHand.MAIN_HAND, SpellBookItem.of(Spells.MANA_BOLT));
+        helper.assertTrue(player.getMainHandItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).consumesAction(), "reading should work");
+        helper.assertTrue(player.getMainHandItem().isEmpty(), "the book is used up");
+        helper.assertTrue(SpellCasting.get(player).knows(Spells.MANA_BOLT.id()), "the spell is learned");
+        helper.assertTrue(SpellCasting.selected(player) == Spells.MANA_BOLT, "the first spell is selected automatically");
+
+        // A second copy teaches nothing and is kept.
+        player.setItemInHand(InteractionHand.MAIN_HAND, SpellBookItem.of(Spells.MANA_BOLT));
+        helper.assertFalse(player.getMainHandItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).consumesAction(), "a known spell cannot be learned twice");
+        helper.assertValueEqual(player.getMainHandItem().getCount(), 1, "the duplicate book is kept");
+        helper.assertValueEqual(SpellCasting.get(player).known().size(), 1, "known spells");
+        finish(helper, player);
+    }
+
+    private static void spellsDependOnStageAndMana(GameTestHelper helper) {
+        ServerPlayer player = mockPlayer(helper);
+        Spell small = Spells.MANA_BOLT;
+        Spell big = Spells.MANA_BURST;
+        SpellCasting.learn(player, small);
+        SpellCasting.learn(player, big);
+
+        // Power available per stage: none below the spell's stage, 1 at it, one more per stage above.
+        helper.assertValueEqual(small.maxPower(ManaStage.UNAWAKENED), 0, "small spell, unawakened");
+        helper.assertValueEqual(small.maxPower(ManaStage.AWAKENED), 1, "small spell, awakened");
+        helper.assertValueEqual(small.maxPower(ManaStage.ARCHMAGE), 5, "small spell, archmage");
+        helper.assertValueEqual(big.maxPower(ManaStage.ADEPT), 0, "big spell, adept");
+        helper.assertValueEqual(big.maxPower(ManaStage.MAGE), 1, "big spell, mage");
+        helper.assertValueEqual(small.manaCost(3), small.baseManaCost() * 3, "more power costs more mana");
+
+        // Unawakened: nothing can be cast.
+        helper.assertValueEqual(SpellCasting.cast(player, small, 1), SpellCasting.CastResult.STAGE_TOO_LOW, "unawakened casting");
+
+        // Awakened with plenty of mana: the small spell works at power 1 only, the big one not at all.
+        Mana.set(player, new ManaData(19, 19, 0, 0));
+        helper.assertValueEqual(SpellCasting.cast(player, big, 1), SpellCasting.CastResult.STAGE_TOO_LOW, "big spell below its stage");
+        helper.assertValueEqual(SpellCasting.cast(player, small, 5), SpellCasting.CastResult.SUCCESS, "small spell at its stage");
+        helper.assertValueEqual(Mana.get(player).mana(), 19 - small.manaCost(1), "asking for more power than the stage allows casts at power 1");
+        helper.assertValueEqual(SpellCasting.cast(player, small, 1), SpellCasting.CastResult.ON_COOLDOWN, "casting again right away");
+        SpellCasting.clearCooldown(player);
+
+        // Archmage: the small spell can be cast with much more mana and power.
+        Mana.set(player, new ManaData(200, 200, 0, 0));
+        helper.assertValueEqual(SpellCasting.cast(player, small, 5), SpellCasting.CastResult.SUCCESS, "small spell at full power");
+        helper.assertValueEqual(Mana.get(player).mana(), 200 - small.manaCost(5), "full power costs five times the mana");
+        SpellCasting.clearCooldown(player);
+
+        // The big spell cannot be cast with less than its full cost, however high the stage.
+        Mana.set(player, new ManaData(big.baseManaCost() - 1, 200, 0, 0));
+        helper.assertValueEqual(SpellCasting.cast(player, big, 1), SpellCasting.CastResult.NOT_ENOUGH_MANA, "big spell with too little mana");
+        helper.assertValueEqual(Mana.get(player).mana(), big.baseManaCost() - 1, "no mana is spent on a failed cast");
+        Mana.set(player, new ManaData(big.baseManaCost(), 200, 0, 0));
+        helper.assertValueEqual(SpellCasting.cast(player, big, 1), SpellCasting.CastResult.SUCCESS, "big spell with exactly enough mana");
+        helper.assertValueEqual(Mana.get(player).mana(), 0, "mana after the big spell");
+        SpellCasting.clearCooldown(player);
+        finish(helper, player);
+    }
+
+    private static void spellSelectionAndPower(GameTestHelper helper) {
+        ServerPlayer player = mockPlayer(helper);
+        SpellCasting.learn(player, Spells.MANA_BOLT);
+        SpellCasting.learn(player, Spells.MANA_BURST);
+        Mana.set(player, new ManaData(100, 100, 0, 0)); // Mage
+
+        SpellCasting.selectNext(player);
+        helper.assertTrue(SpellCasting.selected(player) == Spells.MANA_BURST, "next spell");
+        SpellCasting.selectNext(player);
+        helper.assertTrue(SpellCasting.selected(player) == Spells.MANA_BOLT, "selection wraps around");
+
+        // Mana Bolt is an Awakened spell; a Mage is three stages above it, so power goes up to 4.
+        for (int i = 0; i < 10; i++) {
+            SpellCasting.changePower(player, 1);
+        }
+        helper.assertValueEqual(SpellCasting.get(player).power(), 4, "power is limited by stage");
+        SpellCasting.changePower(player, -1);
+        helper.assertValueEqual(SpellCasting.get(player).power(), 3, "power can be lowered");
+        for (int i = 0; i < 10; i++) {
+            SpellCasting.changePower(player, -1);
+        }
+        helper.assertValueEqual(SpellCasting.get(player).power(), 1, "power never goes below 1");
+        finish(helper, player);
+    }
+
+    private static void wizardHouseInVillagePools(GameTestHelper helper) {
+        Registry<StructureTemplatePool> pools = helper.getLevel().registryAccess().lookupOrThrow(Registries.TEMPLATE_POOL);
+        for (String type : VillageAdditions.VILLAGE_TYPES) {
+            StructureTemplatePool pool = pools.getValue(VillageAdditions.housePool(type));
+            helper.assertTrue(pool != null && VillageAdditions.contains(pool), "wizard house should be in the " + type + " village house pool");
+        }
+        StructureTemplate template = helper.getLevel().getStructureTemplateManager().get(VillageAdditions.WIZARD_HOUSE).orElse(null);
+        helper.assertTrue(template != null, "wizard house structure file should load");
+        helper.assertValueEqual(template.getSize(), new Vec3i(7, 11, 7), "wizard house size");
+
+        // Villages are saved with the world, so the house piece must survive being written and read back.
+        RegistryOps<Tag> ops = RegistryOps.create(NbtOps.INSTANCE, helper.getLevel().registryAccess());
+        Tag saved = StructurePoolElement.CODEC.encodeStart(ops, new UniqueVillageHouseElement(VillageAdditions.WIZARD_HOUSE)).getOrThrow();
+        StructurePoolElement loaded = StructurePoolElement.CODEC.parse(ops, saved).getOrThrow();
+        helper.assertTrue(loaded instanceof UniqueVillageHouseElement, "saved wizard house should load as the same kind of piece, got " + loaded);
+        helper.succeed();
+    }
+
+    private static void oneBookPerVillage(GameTestHelper helper) {
+        VillageBooks books = VillageBooks.get(helper.getLevel());
+        long village = ChunkPos.pack(123456, -654321);
+        helper.assertTrue(books.claim(village), "a village gives its book the first time");
+        helper.assertFalse(books.claim(village), "and never again");
+        helper.assertTrue(books.claim(village + 1), "another village still has its own book");
+
+        // A wizard chest outside any village (placed by hand) always holds a book.
+        BlockPos pos = new BlockPos(0, 2, 0);
+        for (int i = 0; i < 2; i++) {
+            helper.assertValueEqual(spellBooksIn(fillWizardChest(helper, helper.absolutePos(pos))), 1, "books in a hand-placed wizard chest");
+        }
+        helper.setBlock(pos, Blocks.AIR);
+        helper.succeed();
+    }
+
+    /**
+     * Generates real plains villages far away from the tests and checks that wizard houses
+     * show up in them, with a working chest, and that each village gives exactly one book.
+     */
+    private static void villagesGenerateWizardHouses(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Holder.Reference<Structure> village = level.registryAccess().lookupOrThrow(Registries.STRUCTURE)
+                .get(Identifier.withDefaultNamespace("village_plains")).orElseThrow();
+        ChunkGenerator generator = level.getChunkSource().getGenerator();
+        RandomState randomState = level.getChunkSource().randomState();
+        ChunkPos origin = ChunkPos.containing(helper.absolutePos(BlockPos.ZERO));
+
+        int villages = 8;
+        int withHouse = 0;
+        int houses = 0;
+        for (int i = 0; i < villages; i++) {
+            ChunkPos startChunk = new ChunkPos(origin.x() + 60 + i * 40, origin.z() + 60);
+            StructureStart start = village.value().generate(village, level.dimension(), level.registryAccess(), generator,
+                    generator.getBiomeSource(), randomState.createClimateSampler(SamplerContext.EMPTY_UNCACHED), randomState, level.getStructureTemplateManager(),
+                    level.getSeed() + i, startChunk, 0, level, biome -> true);
+            helper.assertTrue(start.isValid(), "village " + i + " should generate");
+
+            // Build it the way world generation does, including the bookkeeping that lets
+            // the game find out which village a block belongs to.
+            BoundingBox box = start.getBoundingBox();
+            ChunkPos min = new ChunkPos(SectionPos.blockToSectionCoord(box.minX()), SectionPos.blockToSectionCoord(box.minZ()));
+            ChunkPos max = new ChunkPos(SectionPos.blockToSectionCoord(box.maxX()), SectionPos.blockToSectionCoord(box.maxZ()));
+            level.getChunk(startChunk.x(), startChunk.z()).setStartForStructure(village.value(), start);
+            ChunkPos.rangeClosed(min, max).forEach(c -> level.getChunk(c.x(), c.z()).addReferenceForStructure(village.value(), startChunk.pack()));
+            ChunkPos.rangeClosed(min, max).forEach(c -> start.placeInChunk(level, level.structureManager(), generator, level.getRandom(),
+                    new BoundingBox(c.getMinBlockX(), level.getMinY(), c.getMinBlockZ(), c.getMaxBlockX(), level.getMaxY() + 1, c.getMaxBlockZ()), c));
+
+            List<StructurePiece> wizardHouses = start.getPieces().stream()
+                    .filter(piece -> piece instanceof PoolElementStructurePiece pooled
+                            && pooled.getElement().toString().contains(VillageAdditions.WIZARD_HOUSE.toString()))
+                    .toList();
+            houses += wizardHouses.size();
+            if (wizardHouses.isEmpty()) {
+                continue;
+            }
+            withHouse++;
+
+            // However many plots the layout gave to the wizard house, only one is built.
+            int chests = 0;
+            int books = 0;
+            for (StructurePiece house : wizardHouses) {
+                BoundingBox houseBox = house.getBoundingBox();
+                for (BlockPos pos : BlockPos.betweenClosed(houseBox.minX(), houseBox.minY(), houseBox.minZ(), houseBox.maxX(), houseBox.maxY(), houseBox.maxZ())) {
+                    if (level.getBlockEntity(pos) instanceof ChestBlockEntity chest && chest.getLootTable() != null
+                            && chest.getLootTable().identifier().equals(SpellMod.id("chests/wizard_house"))) {
+                        helper.assertTrue(UniqueVillageHouseElement.isBuilt(start, (PoolElementStructurePiece) house), "only the first wizard plot is built");
+                        chests++;
+                        chest.unpackLootTable(null);
+                        books += spellBooksIn(chest);
+                        // Refilling the chest later would not give this village a second book.
+                        helper.assertFalse(VillageBooks.claimBookAt(level, pos), "village " + i + " should have no second book");
+                    }
+                }
+            }
+            helper.assertValueEqual(chests, 1, "wizard houses built in village " + i + " (" + wizardHouses.size() + " plots)");
+            helper.assertValueEqual(books, 1, "spell books in village " + i);
+        }
+        SpellMod.LOGGER.info("Wizard house test: {} of {} villages had a wizard house ({} plots in total)", withHouse, villages, houses);
+        helper.assertTrue(withHouse > 0, "at least one of " + villages + " villages should have a wizard house");
+        helper.succeed();
+    }
+
+    private static ChestBlockEntity fillWizardChest(GameTestHelper helper, BlockPos absolutePos) {
+        ServerLevel level = helper.getLevel();
+        level.setBlockAndUpdate(absolutePos, Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = (ChestBlockEntity) level.getBlockEntity(absolutePos);
+        chest.setLootTable(ResourceKey.create(Registries.LOOT_TABLE, SpellMod.id("chests/wizard_house")), level.getRandom().nextLong());
+        chest.unpackLootTable(null);
+        return chest;
+    }
+
+    private static int spellBooksIn(ChestBlockEntity chest) {
+        int books = 0;
+        for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+            ItemStack stack = chest.getItem(slot);
+            if (stack.is(ModItems.SPELL_BOOK.get())) {
+                helper_assertSpell(stack);
+                books += stack.getCount();
+            }
+        }
+        chest.clearContent();
+        return books;
+    }
+
+    private static void helper_assertSpell(ItemStack book) {
+        if (SpellBookItem.getSpell(book) == null) {
+            throw new IllegalStateException("Spell book without a spell: " + book);
+        }
     }
 
     private static ManaTableBlockEntity placeTable(GameTestHelper helper, int rawMana, int eyes) {

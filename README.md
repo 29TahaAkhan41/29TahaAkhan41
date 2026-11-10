@@ -72,6 +72,44 @@ mananı, tecrübeni, ham mana bulma şansını, yatkınlığını, işleme süre
 
 Bütün sayılar `mana/Mana.java` ve `mana/ManaStage.java` içinde sabit olarak durur.
 
+## Büyüler
+
+Büyüler **Büyü Kitabı** okunarak öğrenilir (sağ tık; kitap harcanır, bilinen büyünün kitabı harcanmaz).
+Öğrenilen büyüler ölünce kaybolmaz.
+
+### Kitaplar nereden çıkar
+
+Köylere (ova, çöl, savan, karlı, tayga) yeni bir **büyücü evi** eklenir: taş tuğladan, mor camlı,
+sivri çatılı küçük bir kule; içinde kürsü, kitaplıklar, kazan ve bir sandık vardır.
+
+- Bir köyde **en fazla bir** büyücü evi kurulur ve sandığından **tek bir** Büyü Kitabı çıkar
+  (yanında kitap, kâğıt, ametist, lapis gibi ufak ganimetler). Kitaptaki büyü rastgeledir;
+  düşük aşama büyüleri daha sık çıkar.
+- Çoğu köyde çıkar ama her köyde olmayabilir. Köy yerleşimi evi birden fazla
+  arsaya seçerse yalnızca ilki kurulur, diğer arsalar boş kalır.
+- Yalnızca yeni oluşan köylerde çıkar; önceden keşfedilmiş köylere eklenmez.
+
+### Büyü kullanmak
+
+| Tuş (varsayılan) | İş |
+|---|---|
+| R | Seçili büyüyü yap |
+| G | Sonraki büyüye geç |
+| V / C | Büyü gücünü artır / azalt |
+
+Tuşlar Seçenekler > Kontroller > Büyü Modu altından değiştirilebilir.
+
+- Her büyünün bir **gereken aşaması** ve bir **taban mana bedeli** vardır. Aşaman yetmiyorsa büyüyü
+  hiç kullanamazsın; taban bedelden az manayla da kullanamazsın.
+- **Güç**: büyünün kendi aşamasında güç 1'dir; üstüne çıktığın her aşama için en fazla güç 1 artar.
+  Mana bedeli = taban bedel × güç; büyünün etkisi güçle birlikte artar. Yani düşük bir büyüyü yüksek
+  aşamada daha çok manayla çok daha güçlü kullanabilirsin, ama büyük bir büyüyü az manayla kullanamazsın.
+- Seçili büyü, güç ve mana bedeli mana barının altında görünür.
+
+Şu an oyunda yalnızca sistemi denemek için konmuş **iki geçici örnek büyü** vardır
+(Mana Oku – Uyanmış, 2 mana; Mana Patlaması – Büyücü, 60 mana). Gerçek büyüler `spell/Spells.java`
+içine eklenecek.
+
 ## Geliştirme
 
 Gerekenler: **JDK 25** (Minecraft 26.3 bunu şart koşuyor). Gradle, wrapper ile kendiliğinden iner.
@@ -94,8 +132,11 @@ src/main/java/com/tahaakhan/spellmod/
 ├── mana/                mana kuralları, aşamalar, blok kırma olayı, /mana komutu
 ├── block/               mana masası ve işleme mantığı
 ├── menu/                mana masası arayüzünün sunucu tarafı
+├── spell/               büyü tanımı, öğrenme ve kullanma kuralları
+├── network/             tuş basışlarını sunucuya taşıyan paket
+├── world/               köylerdeki büyücü evi ve köy başına tek kitap kuralı
 ├── item/                işlenmiş mana (özümseme)
 ├── registry/            eşya, attachment, yaratıcı sekme kayıtları
-├── client/              mana barı (HUD) ve mana masası ekranı
+├── client/              mana barı (HUD), mana masası ekranı ve büyü tuşları
 └── gametest/            otomatik testler
 ```

@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "spellmod:item/spell_book"
+  }
+}

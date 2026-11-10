@@ -2,6 +2,7 @@ package com.tahaakhan.spellmod.registry;
 
 import com.tahaakhan.spellmod.SpellMod;
 import com.tahaakhan.spellmod.item.RefinedManaItem;
+import com.tahaakhan.spellmod.item.SpellBookItem;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -30,6 +31,10 @@ public final class ModItems {
 
     public static final DeferredItem<BlockItem> MANA_TABLE = ITEMS.registerSimpleBlockItem(ModBlocks.MANA_TABLE,
             props -> props.rarity(Rarity.RARE));
+
+    /** Teaches the spell stored in its {@code spellmod:spell} component. */
+    public static final DeferredItem<SpellBookItem> SPELL_BOOK = ITEMS.registerItem("spell_book", SpellBookItem::new,
+            props -> props.stacksTo(1).rarity(Rarity.EPIC).component(DataComponents.LORE, lore("tooltip.spellmod.spell_book")));
 
     private ModItems() {}
 
