@@ -2,9 +2,11 @@ package com.tahaakhan.spellmod;
 
 import com.tahaakhan.spellmod.gametest.ManaGameTests;
 import com.tahaakhan.spellmod.registry.ModAttachments;
+import com.tahaakhan.spellmod.registry.ModBlockEntities;
 import com.tahaakhan.spellmod.registry.ModBlocks;
 import com.tahaakhan.spellmod.registry.ModCreativeTabs;
 import com.tahaakhan.spellmod.registry.ModItems;
+import com.tahaakhan.spellmod.registry.ModMenus;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -17,6 +19,8 @@ public class SpellMod {
         ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
+        ModBlockEntities.BLOCK_ENTITY_TYPES.register(modEventBus);
+        ModMenus.MENUS.register(modEventBus);
         ModCreativeTabs.CREATIVE_TABS.register(modEventBus);
         ManaGameTests.register(modEventBus);
     }

@@ -10,8 +10,7 @@ onu bulması, işlemesi, özümsemesi ve vücudunu ona alıştırması gerekir.
    **mana tecrübesi** kazandırır; her tecrübe puanı şansı %0,04 artırır (en fazla %5).
    Anında kırılan bloklar (çimen, çiçek, meşale...) mana vermez.
 2. **İşlemek** – İşlenmemiş mana tek başına işe yaramaz; **Mana Masası**'nda **İşlenmiş Mana**'ya
-   dönüştürülmesi gerekir. Masa yapılıp yerleştirilebiliyor ama *işleme henüz eklenmedi*; o yüzden
-   İşlenmiş Mana şimdilik yalnızca yaratıcı moddan veya `/give` ile alınabilir.
+   dönüştürülmesi gerekir (aşağıya bak).
 3. **Özümsemek** – İşlenmiş Mana sağ tıkla özümsenir. Her özümseme 10 mana verir ve vücudun
    **mana kapasitesini** 2 artırır (en fazla 200).
 4. **Alışmak** – Kapasiteye sığmayan mana boşa gider ve **zarar verir** (büyü hasarı; ağır
@@ -37,7 +36,25 @@ Obsidyen   Obsidyen     Obsidyen
 ```
 
 Mana Masası ışık saçar (seviye 12), üstündeki mana girdabı ve yanlarındaki cam şerit hareketlidir,
-kazmayla kırılır ve kendisini düşürür.
+kazmayla kırılır, kendisini ve içindekileri düşürür.
+
+### Mana Masası'nda işleme
+
+Masaya sağ tıklayınca mavi arayüz açılır: solda üstte **ham mana**, altta **yakıt (ender gözü)**,
+sağda **çıkış** yuvası; ortada süre, kayıp riski, ilerleme çubuğu ve **İşle** butonu vardır.
+
+- **İşle** butonuna basınca masa yuvadaki ham manaları tek tek işler; her parça **1 ender gözü** harcar.
+  Ham mana, yakıt veya çıkışta yer bitince durur. Parça işlenmeye başladıktan sonra geri alınamaz.
+- **Süre**, butona basan oyuncunun o güne kadar işlediği ham mana sayısına bağlıdır: ilk parça
+  **10 dakika** sürer, işlenen her parça bir sonrakini %10 hızlandırır ve süre en az **1 saniyeye**
+  kadar iner (yaklaşık 60 parça sonra).
+- **Kayıp riski**: parça bitince mana yok olabilir (ender gözü de gider). Risk, oyuncunun
+  **mana yatkınlığına** bağlıdır: yatkınlık %0 iken risk **%75**, %100 iken **%5**.
+- **Mana yatkınlığı** = (mana tecrübesi × 0,5 + mana kapasitesi × 0,25), en fazla %100.
+  Yani hem manayı tanıdıkça (bulmak, işlemek, özümsemek) hem de vücut alıştıkça artar.
+- Her işlenen parça +1 mana tecrübesi kazandırır.
+- Huni desteği: üstten ham mana, yanlardan ender gözü girer; alttan işlenmiş mana çıkar.
+- Oyuncu oyundan çıkarsa masa, o oyuncunun son parçasındaki süre ve riskle devam eder.
 
 ### Aşamalar
 
@@ -51,7 +68,7 @@ kazmayla kırılır ve kendisini düşürür.
 | Başbüyücü  | 200              |
 
 Uyandıktan sonra ekranın sol üstünde aşama ve mana barı görünür. `/mana` komutu aşamanı,
-mananı, tecrübeni ve ham mana bulma şansını gösterir. Mana verileri ölünce kaybolmaz.
+mananı, tecrübeni, ham mana bulma şansını, yatkınlığını, işleme süreni ve kayıp riskini gösterir. Mana verileri ölünce kaybolmaz.
 
 Bütün sayılar `mana/Mana.java` ve `mana/ManaStage.java` içinde sabit olarak durur.
 
@@ -72,9 +89,10 @@ Gerekenler: **JDK 25** (Minecraft 26.3 bunu şart koşuyor). Gradle, wrapper ile
 src/main/java/com/tahaakhan/spellmod/
 ├── SpellMod.java        mod giriş noktası
 ├── mana/                mana kuralları, aşamalar, blok kırma olayı, /mana komutu
-├── block/               mana masası
+├── block/               mana masası ve işleme mantığı
+├── menu/                mana masası arayüzünün sunucu tarafı
 ├── item/                işlenmiş mana (özümseme)
 ├── registry/            eşya, attachment, yaratıcı sekme kayıtları
-├── client/              mana barı (HUD)
+├── client/              mana barı (HUD) ve mana masası ekranı
 └── gametest/            otomatik testler
 ```

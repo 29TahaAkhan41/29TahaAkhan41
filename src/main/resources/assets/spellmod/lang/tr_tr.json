@@ -15,5 +15,13 @@
   "message.spellmod.stage_up": "Vücudun manaya alıştı. Yeni aşama: %s",
   "message.spellmod.status": "Aşama: %s | Mana: %s/%s | Mana tecrübesi: %s | Ham mana bulma şansı: %%%s",
   "item.spellmod.mana_capsule": "Mana Kapsülü",
-  "block.spellmod.mana_table": "Mana Masası"
+  "block.spellmod.mana_table": "Mana Masası",
+  "container.spellmod.mana_table": "Mana Masası",
+  "gui.spellmod.refine": "İşle",
+  "gui.spellmod.time": "Süre: %s",
+  "gui.spellmod.time_left": "Kalan: %s",
+  "gui.spellmod.loss": "Kayıp riski: %%%s",
+  "gui.spellmod.minutes_seconds": "%sdk %ssn",
+  "gui.spellmod.seconds": "%ssn",
+  "message.spellmod.status_refining": "Mana yatkınlığı: %%%s | İşlenen ham mana: %s | İşleme süresi: %ssn | Kayıp riski: %%%s"
 }

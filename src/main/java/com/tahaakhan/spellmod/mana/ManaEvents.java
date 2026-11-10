@@ -65,6 +65,9 @@ public final class ManaEvents {
             String chance = String.format("%.2f", Mana.findChance(data.experience()) * 100.0F);
             context.getSource().sendSuccess(() -> Component.translatable("message.spellmod.status",
                     data.stage().displayName(), data.mana(), data.capacity(), data.experience(), chance), false);
+            context.getSource().sendSuccess(() -> Component.translatable("message.spellmod.status_refining",
+                    Math.round(Mana.affinity(data) * 100.0F), data.refined(),
+                    (Mana.refineTicks(data.refined()) + 19) / 20, Math.round(Mana.lossChance(data) * 100.0F)), false);
             return Command.SINGLE_SUCCESS;
         }));
     }

@@ -15,5 +15,13 @@
   "message.spellmod.stage_up": "Your body has grown used to mana. New stage: %s",
   "message.spellmod.status": "Stage: %s | Mana: %s/%s | Mana experience: %s | Chance to find raw mana: %s%%",
   "item.spellmod.mana_capsule": "Mana Capsule",
-  "block.spellmod.mana_table": "Mana Table"
+  "block.spellmod.mana_table": "Mana Table",
+  "container.spellmod.mana_table": "Mana Table",
+  "gui.spellmod.refine": "Refine",
+  "gui.spellmod.time": "Time: %s",
+  "gui.spellmod.time_left": "Left: %s",
+  "gui.spellmod.loss": "Loss risk: %s%%",
+  "gui.spellmod.minutes_seconds": "%sm %ss",
+  "gui.spellmod.seconds": "%ss",
+  "message.spellmod.status_refining": "Mana affinity: %s%% | Raw mana refined: %s | Refining time: %ss | Loss risk: %s%%"
 }

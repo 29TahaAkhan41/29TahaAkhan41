@@ -23,7 +23,46 @@ public final class Mana {
     public static final int CAPACITY_PER_ABSORB = 2;
     public static final int MAX_CAPACITY = ManaStage.ARCHMAGE.minCapacity();
 
+    /** Mana experience gained each time raw mana is put through a mana table. */
+    public static final int EXPERIENCE_PER_REFINE = 1;
+    /** Refining one piece of raw mana takes this long for someone who has never done it (10 minutes). */
+    public static final int MAX_REFINE_TICKS = 10 * 60 * 20;
+    /** ...and never less than this (1 second). */
+    public static final int MIN_REFINE_TICKS = 20;
+    /** Each piece refined so far makes the next one this much faster (0.9 = 10% faster). */
+    public static final double REFINE_SPEEDUP = 0.9;
+
+    /** Chance that raw mana is destroyed while refining, with no affinity at all (75%). */
+    public static final float MAX_LOSS_CHANCE = 0.75F;
+    /** ...and with full affinity (5%). */
+    public static final float MIN_LOSS_CHANCE = 0.05F;
+
     private Mana() {}
+
+    /** How long refining one piece of raw mana takes, in ticks, after having refined {@code refined} pieces. */
+    public static int refineTicks(int refined) {
+        double ticks = MAX_REFINE_TICKS * Math.pow(REFINE_SPEEDUP, Math.max(refined, 0));
+        return (int) Math.clamp(Math.round(ticks), MIN_REFINE_TICKS, MAX_REFINE_TICKS);
+    }
+
+    /**
+     * Affinity for mana, from 0 (none) to 1 (full). Comes from both knowing mana (experience)
+     * and having a body used to it (capacity).
+     */
+    public static float affinity(ManaData data) {
+        return Math.clamp((data.experience() * 0.5F + data.capacity() * 0.25F) / 100.0F, 0.0F, 1.0F);
+    }
+
+    /** Chance (0..1) that raw mana is destroyed instead of refined. Falls as affinity rises. */
+    public static float lossChance(ManaData data) {
+        return MIN_LOSS_CHANCE + (MAX_LOSS_CHANCE - MIN_LOSS_CHANCE) * (1.0F - affinity(data));
+    }
+
+    /** Called when a player's raw mana starts being refined on a mana table. */
+    public static void onRefineStarted(Player player) {
+        ManaData data = get(player);
+        set(player, new ManaData(data.mana(), data.capacity(), data.experience() + EXPERIENCE_PER_REFINE, data.refined() + 1));
+    }
 
     public static ManaData get(Player player) {
         return player.getData(ModAttachments.MANA);
@@ -51,7 +90,7 @@ public final class Mana {
     /** Called when a player finds raw mana in a block. */
     public static void onRawManaFound(Player player) {
         ManaData data = get(player);
-        set(player, new ManaData(data.mana(), data.capacity(), data.experience() + EXPERIENCE_PER_FIND));
+        set(player, new ManaData(data.mana(), data.capacity(), data.experience() + EXPERIENCE_PER_FIND, data.refined()));
     }
 
     /**
@@ -64,7 +103,7 @@ public final class Mana {
         int wanted = before.mana() + MANA_PER_REFINED;
         int mana = Math.min(wanted, capacity);
         int overflow = wanted - mana;
-        ManaData after = new ManaData(mana, capacity, before.experience() + EXPERIENCE_PER_ABSORB);
+        ManaData after = new ManaData(mana, capacity, before.experience() + EXPERIENCE_PER_ABSORB, before.refined());
         set(player, after);
         return new AbsorbResult(overflow, overflowDamage(overflow, capacity), before.stage(), after.stage());
     }

@@ -2,10 +2,12 @@ package com.tahaakhan.spellmod.gametest;
 
 import com.mojang.authlib.GameProfile;
 import com.tahaakhan.spellmod.SpellMod;
+import com.tahaakhan.spellmod.block.ManaTableBlockEntity;
 import com.tahaakhan.spellmod.mana.Mana;
 import com.tahaakhan.spellmod.mana.ManaData;
 import com.tahaakhan.spellmod.mana.ManaEvents;
 import com.tahaakhan.spellmod.mana.ManaStage;
+import com.tahaakhan.spellmod.menu.ManaTableMenu;
 import com.tahaakhan.spellmod.registry.ModBlocks;
 import com.tahaakhan.spellmod.registry.ModItems;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -28,6 +30,7 @@ import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -57,6 +60,10 @@ public final class ManaGameTests {
         TEST_FUNCTIONS.register("stages_follow_capacity", () -> ManaGameTests::stagesFollowCapacity);
         TEST_FUNCTIONS.register("capsule_and_table_recipes", () -> ManaGameTests::capsuleAndTableRecipes);
         TEST_FUNCTIONS.register("mana_table_block", () -> ManaGameTests::manaTableBlock);
+        TEST_FUNCTIONS.register("refining_rules", () -> ManaGameTests::refiningRules);
+        TEST_FUNCTIONS.register("table_refines_raw_mana", () -> ManaGameTests::tableRefinesRawMana);
+        TEST_FUNCTIONS.register("table_can_destroy_mana", () -> ManaGameTests::tableCanDestroyMana);
+        TEST_FUNCTIONS.register("table_needs_mana_and_fuel", () -> ManaGameTests::tableNeedsManaAndFuel);
     }
 
     private ManaGameTests() {}
@@ -140,7 +147,7 @@ public final class ManaGameTests {
         helper.assertTrue(first.stageChanged(), "first absorption awakens the player");
 
         // With room to spare there is no overflow and no pain.
-        Mana.set(player, new ManaData(0, 50, 0));
+        Mana.set(player, new ManaData(0, 50, 0, 0));
         Mana.AbsorbResult roomy = Mana.absorb(player);
         helper.assertValueEqual(roomy.overflow(), 0, "overflow with free capacity");
         helper.assertValueEqual(roomy.damage(), 0.0F, "damage with free capacity");
@@ -150,7 +157,7 @@ public final class ManaGameTests {
         helper.assertTrue(Mana.overflowDamage(8, 100) < Mana.overflowDamage(8, 2), "overflow should hurt less at high capacity");
 
         // Capacity never grows past the maximum.
-        Mana.set(player, new ManaData(0, Mana.MAX_CAPACITY, 0));
+        Mana.set(player, new ManaData(0, Mana.MAX_CAPACITY, 0, 0));
         Mana.absorb(player);
         helper.assertValueEqual(Mana.get(player).capacity(), Mana.MAX_CAPACITY, "capacity is capped");
         finish(helper, player);
@@ -217,6 +224,104 @@ public final class ManaGameTests {
         helper.assertTrue(drops.getFirst().is(ModItems.MANA_TABLE.get()), "the table should drop itself");
         helper.setBlock(pos, Blocks.AIR);
         helper.succeed();
+    }
+
+    private static void refiningRules(GameTestHelper helper) {
+        helper.assertValueEqual(Mana.refineTicks(0), 10 * 60 * 20, "first refining takes 10 minutes");
+        helper.assertTrue(Mana.refineTicks(1) < Mana.refineTicks(0), "refining gets faster with practice");
+        helper.assertTrue(Mana.refineTicks(30) < Mana.refineTicks(10), "and keeps getting faster");
+        helper.assertValueEqual(Mana.refineTicks(1000), 20, "fastest refining takes 1 second");
+
+        ManaData beginner = ManaData.EMPTY;
+        ManaData practiced = new ManaData(0, 40, 60, 0);
+        ManaData master = new ManaData(0, Mana.MAX_CAPACITY, 500, 0);
+        helper.assertValueEqual(Mana.affinity(beginner), 0.0F, "affinity of a beginner");
+        helper.assertValueEqual(Mana.affinity(master), 1.0F, "affinity of a master");
+        helper.assertValueEqual(Mana.lossChance(beginner), Mana.MAX_LOSS_CHANCE, "loss chance of a beginner");
+        helper.assertValueEqual(Mana.lossChance(master), Mana.MIN_LOSS_CHANCE, "loss chance of a master");
+        helper.assertTrue(Mana.lossChance(practiced) < Mana.lossChance(beginner) && Mana.lossChance(practiced) > Mana.lossChance(master),
+                "loss chance falls as affinity grows");
+        helper.succeed();
+    }
+
+    private static void tableRefinesRawMana(GameTestHelper helper) {
+        ServerPlayer player = mockPlayer(helper);
+        // Practiced enough for the fastest time (1 second).
+        Mana.set(player, new ManaData(0, 0, 0, 1000));
+        ManaTableBlockEntity table = placeTable(helper, 2, 2);
+
+        // Pressing the button in the menu takes one raw mana and one eye of ender.
+        AbstractContainerMenu menu = table.createMenu(1, player.getInventory(), player);
+        helper.assertTrue(menu.clickMenuButton(player, ManaTableMenu.BUTTON_REFINE), "the refine button should start the table");
+        helper.assertTrue(table.isRunning(), "table should be running");
+        helper.assertValueEqual(table.totalTicks(), 20, "refining time for this player");
+        helper.assertValueEqual(table.lossPermille(), 750, "loss chance for this player, in 1/1000");
+        helper.assertValueEqual(table.getItem(ManaTableBlockEntity.SLOT_INPUT).getCount(), 1, "raw mana left");
+        helper.assertValueEqual(table.getItem(ManaTableBlockEntity.SLOT_FUEL).getCount(), 1, "eyes of ender left");
+        helper.assertValueEqual(Mana.get(player).refined(), 1001, "player's refined count");
+        helper.assertValueEqual(Mana.get(player).experience(), Mana.EXPERIENCE_PER_REFINE, "player's experience");
+        helper.assertFalse(menu.clickMenuButton(player, ManaTableMenu.BUTTON_REFINE), "pressing again while running does nothing");
+
+        // A roll above the loss chance succeeds, and the table carries on with the next piece by itself.
+        table.complete(helper.getLevel(), 999);
+        helper.assertValueEqual(table.getItem(ManaTableBlockEntity.SLOT_OUTPUT).getCount(), 1, "refined mana after first piece");
+        helper.assertTrue(table.getItem(ManaTableBlockEntity.SLOT_OUTPUT).is(ModItems.REFINED_MANA.get()), "output should be refined mana");
+        helper.assertTrue(table.isRunning(), "table should continue with the second piece");
+        helper.assertTrue(table.getItem(ManaTableBlockEntity.SLOT_INPUT).isEmpty(), "all raw mana taken");
+
+        // The second piece finishes on its own after the 1 second timer, then the table stops.
+        helper.runAfterDelay(30, () -> {
+            helper.assertFalse(table.isRunning(), "table should stop when the raw mana runs out");
+            int refined = table.getItem(ManaTableBlockEntity.SLOT_OUTPUT).getCount();
+            helper.assertTrue(refined == 1 || refined == 2, "second piece is refined or destroyed, output was " + refined);
+            table.clearContent();
+            helper.setBlock(new BlockPos(0, 2, 0), Blocks.AIR);
+            finish(helper, player);
+        });
+    }
+
+    private static void tableCanDestroyMana(GameTestHelper helper) {
+        ServerPlayer player = mockPlayer(helper);
+        ManaTableBlockEntity table = placeTable(helper, 1, 1);
+        helper.assertTrue(table.start(player), "table should start");
+        helper.assertValueEqual(table.totalTicks(), Mana.MAX_REFINE_TICKS, "a beginner waits the full 10 minutes");
+        // A roll below the loss chance destroys the mana: fuel and raw mana are gone, nothing comes out.
+        table.complete(helper.getLevel(), 0);
+        helper.assertTrue(table.getItem(ManaTableBlockEntity.SLOT_OUTPUT).isEmpty(), "nothing comes out when the mana is destroyed");
+        helper.assertTrue(table.getItem(ManaTableBlockEntity.SLOT_INPUT).isEmpty(), "raw mana is used up");
+        helper.assertTrue(table.getItem(ManaTableBlockEntity.SLOT_FUEL).isEmpty(), "eye of ender is used up");
+        helper.assertFalse(table.isRunning(), "table should stop");
+        helper.setBlock(new BlockPos(0, 2, 0), Blocks.AIR);
+        finish(helper, player);
+    }
+
+    private static void tableNeedsManaAndFuel(GameTestHelper helper) {
+        ServerPlayer player = mockPlayer(helper);
+        ManaTableBlockEntity table = placeTable(helper, 1, 0);
+        helper.assertFalse(table.start(player), "no eye of ender: should not start");
+        table.clearContent();
+        table.setItem(ManaTableBlockEntity.SLOT_FUEL, new ItemStack(Items.ENDER_EYE));
+        helper.assertFalse(table.start(player), "no raw mana: should not start");
+        helper.assertValueEqual(Mana.get(player).refined(), 0, "nothing was refined");
+
+        // Only the right items fit in the slots.
+        helper.assertTrue(table.canPlaceItem(ManaTableBlockEntity.SLOT_INPUT, new ItemStack(ModItems.RAW_MANA.get())), "raw mana fits the input");
+        helper.assertFalse(table.canPlaceItem(ManaTableBlockEntity.SLOT_INPUT, new ItemStack(Items.ENDER_EYE)), "eyes do not fit the input");
+        helper.assertTrue(table.canPlaceItem(ManaTableBlockEntity.SLOT_FUEL, new ItemStack(Items.ENDER_EYE)), "eyes fit the fuel slot");
+        helper.assertFalse(table.canPlaceItem(ManaTableBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL)), "coal is not fuel");
+        helper.assertFalse(table.canPlaceItem(ManaTableBlockEntity.SLOT_OUTPUT, new ItemStack(ModItems.REFINED_MANA.get())), "nothing can be put in the output");
+        table.clearContent();
+        helper.setBlock(new BlockPos(0, 2, 0), Blocks.AIR);
+        finish(helper, player);
+    }
+
+    private static ManaTableBlockEntity placeTable(GameTestHelper helper, int rawMana, int eyes) {
+        BlockPos pos = new BlockPos(0, 2, 0);
+        helper.setBlock(pos, ModBlocks.MANA_TABLE.get());
+        ManaTableBlockEntity table = helper.getBlockEntity(pos, ManaTableBlockEntity.class);
+        table.setItem(ManaTableBlockEntity.SLOT_INPUT, new ItemStack(ModItems.RAW_MANA.get(), rawMana));
+        table.setItem(ManaTableBlockEntity.SLOT_FUEL, new ItemStack(Items.ENDER_EYE, eyes));
+        return table;
     }
 
     private static int rawManaNear(GameTestHelper helper, BlockPos pos) {
