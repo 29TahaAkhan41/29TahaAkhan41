@@ -14,8 +14,8 @@ C# gerekmez; her şey JSON + Tiled haritası.
 
 ## Köye gitmek
 
-- **Yürüyerek:** çiftlikten otobüs durağına çık; yolun üzerinde, birkaç adım
-  ileride ok işaretli bir tabela durur. Tabelaya tıkla.
+- **Yürüyerek:** çiftlikten otobüs durağına çık; birkaç adım ileride, yolun
+  üst kenarındaki çimde ok işaretli bir tabela durur. Tabelaya tıkla.
 - **Vagonla:** herhangi bir vagona tıkla, listeden *Çınarköy*'ü seç.
   (Vagonların açık olması gerekir: Topluluk Merkezi kazan dairesi ya da Joja.)
 - **Test için:** SMAPI konsoluna şunu yaz:
