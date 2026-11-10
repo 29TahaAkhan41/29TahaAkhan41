@@ -11,6 +11,7 @@ import com.tahaakhan.spellmod.spell.Spell;
 import io.netty.channel.embedded.EmbeddedChannel;
 import java.util.UUID;
 import java.util.function.Consumer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.FunctionGameTestInstance;
@@ -25,9 +26,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
@@ -40,7 +44,7 @@ public final class SpellGameTests {
             DeferredRegister.create(Registries.TEST_FUNCTION, SpellMod.MODID);
 
     private static final String[] NAMES = {"fireball_costs_mana", "no_mana_no_cast", "heal_restores_health",
-            "sneak_cycles_spell", "mana_crystal_restores_mana", "mana_regenerates"};
+            "sneak_cycles_spell", "mana_crystal_restores_mana", "mana_regenerates", "blink_teleports", "lightning_strikes"};
 
     static {
         test(NAMES[0], SpellGameTests::fireballCostsMana);
@@ -49,6 +53,8 @@ public final class SpellGameTests {
         test(NAMES[3], SpellGameTests::sneakCyclesSpell);
         test(NAMES[4], SpellGameTests::manaCrystalRestoresMana);
         test(NAMES[5], SpellGameTests::manaRegenerates);
+        test(NAMES[6], SpellGameTests::blinkTeleports);
+        test(NAMES[7], SpellGameTests::lightningStrikes);
     }
 
     private SpellGameTests() {}
@@ -132,11 +138,52 @@ public final class SpellGameTests {
     private static void manaRegenerates(GameTestHelper helper) {
         ServerPlayer player = mockPlayer(helper);
         Mana.set(player, 0);
-        helper.runAfterDelay(40, () -> {
-            int mana = Mana.get(player);
-            helper.assertTrue(mana >= 6 && mana <= 10, "expected about 8 mana after 40 ticks, got " + mana);
-            finish(helper, player);
-        });
+        // Mock players are not ticked by the server (no real connection), so tick by hand
+        // (tickCount is normally advanced by the level, doTick by the connection).
+        for (int i = 0; i < 40; i++) {
+            player.tickCount++;
+            player.doTick();
+        }
+        helper.assertValueEqual(Mana.get(player), 8, "mana after 40 ticks");
+        finish(helper, player);
+    }
+
+    private static void blinkTeleports(GameTestHelper helper) {
+        ServerPlayer player = wandPlayer(helper, Spell.BLINK);
+        // Float in the air and look straight down at a block we place below.
+        BlockPos floor = helper.absolutePos(new BlockPos(0, 3, 0));
+        helper.getLevel().setBlockAndUpdate(floor, Blocks.STONE.defaultBlockState());
+        player.teleportTo(floor.getX() + 0.5, floor.getY() + 7.0, floor.getZ() + 0.5);
+        lookDown(player, 90.0F);
+        helper.assertTrue(useMainHand(player).consumesAction(), "blink should succeed");
+        helper.assertValueEqual(player.getY(), floor.getY() + 1.0, "player lands on top of the targeted block");
+        helper.assertValueEqual(Mana.get(player), Mana.MAX - Spell.BLINK.manaCost(), "mana after blink");
+        helper.getLevel().setBlockAndUpdate(floor, Blocks.AIR.defaultBlockState());
+        finish(helper, player);
+    }
+
+    private static void lightningStrikes(GameTestHelper helper) {
+        ServerPlayer player = wandPlayer(helper, Spell.LIGHTNING);
+        // Looking at the sky: nothing to hit, so the spell fizzles for free.
+        lookDown(player, -90.0F);
+        helper.assertFalse(useMainHand(player).consumesAction(), "lightning needs a target");
+        helper.assertValueEqual(Mana.get(player), Mana.MAX, "mana unchanged without target");
+        BlockPos floor = helper.absolutePos(new BlockPos(0, 3, 0));
+        helper.getLevel().setBlockAndUpdate(floor, Blocks.STONE.defaultBlockState());
+        player.teleportTo(floor.getX() + 0.5, floor.getY() + 5.0, floor.getZ() + 0.5);
+        lookDown(player, 90.0F);
+        helper.assertTrue(useMainHand(player).consumesAction(), "lightning should succeed");
+        int bolts = helper.getLevel().getEntitiesOfClass(LightningBolt.class, new AABB(floor).inflate(2.0)).size();
+        helper.assertValueEqual(bolts, 1, "lightning bolts at target");
+        helper.assertValueEqual(Mana.get(player), Mana.MAX - Spell.LIGHTNING.manaCost(), "mana after lightning");
+        helper.getLevel().setBlockAndUpdate(floor, Blocks.AIR.defaultBlockState());
+        finish(helper, player);
+    }
+
+    private static void lookDown(ServerPlayer player, float pitch) {
+        player.setXRot(pitch);
+        // Same as what the next tick would do; some ray casts read the previous tick's rotation.
+        player.xRotO = pitch;
     }
 
     private static InteractionResult useMainHand(ServerPlayer player) {
@@ -156,18 +203,14 @@ public final class SpellGameTests {
         return player;
     }
 
-    /** A survival-mode player that is really logged in, so packets, ticking and attachments all work. */
+    /** A survival-mode player that is really logged in, so packets and attachments work. */
     private static ServerPlayer mockPlayer(GameTestHelper helper) {
         CommonListenerCookie cookie = CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "test-mock-player"), false);
-        ServerPlayer player = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(), cookie.gameProfile(), cookie.clientInformation()) {
-            @Override
-            public GameType gameMode() {
-                return GameType.SURVIVAL;
-            }
-        };
+        ServerPlayer player = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(), cookie.gameProfile(), cookie.clientInformation());
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
         helper.getLevel().getServer().getPlayerList().placeNewPlayer(connection, player, cookie);
+        player.setGameMode(GameType.SURVIVAL);
         Vec3 pos = helper.absoluteVec(new Vec3(0.5, 1.0, 0.5));
         player.teleportTo(pos.x, pos.y, pos.z);
         Mana.set(player, Mana.MAX);
