@@ -1,0 +1,57 @@
+{
+    "Format": "2.0.0",
+    "Changes": [
+        // 1) Harita dosyasini oyuna yukle
+        {
+            "Action": "Load",
+            "Target": "Maps/{{ModId}}_Koy",
+            "FromFile": "assets/Cinarkoy.tmx"
+        },
+
+        // 2) Koyu yeni bir konum olarak kaydet
+        {
+            "Action": "EditData",
+            "Target": "Data/Locations",
+            "Entries": {
+                "{{ModId}}_Koy": {
+                    "DisplayName": "{{i18n: konum.ad}}",
+                    "DefaultArrivalTile": { "X": 4, "Y": 14 },
+                    "CreateOnLoad": {
+                        "MapPath": "Maps/{{ModId}}_Koy"
+                    }
+                }
+            }
+        },
+
+        // 3) Vagon agina "Cinarkoy" duragini ekle (gidis)
+        {
+            "Action": "EditData",
+            "Target": "Data/Minecarts",
+            "TargetField": [ "Default", "Destinations" ],
+            "Entries": {
+                "{{ModId}}_Koy": {
+                    "Id": "{{ModId}}_Koy",
+                    "DisplayName": "{{i18n: konum.ad}}",
+                    "TargetLocation": "{{ModId}}_Koy",
+                    "TargetTile": { "X": 4, "Y": 14 },
+                    "TargetDirection": "down"
+                }
+            }
+        },
+
+        // 4) Koydeki vagona tiklaninca vagon menusunu ac (donus)
+        {
+            "Action": "EditMap",
+            "Target": "Maps/{{ModId}}_Koy",
+            "MapTiles": [
+                {
+                    "Position": { "X": 4, "Y": 13 },
+                    "Layer": "Buildings",
+                    "SetProperties": {
+                        "Action": "MinecartTransport Default {{ModId}}_Koy"
+                    }
+                }
+            ]
+        }
+    ]
+}
