@@ -34,17 +34,21 @@ Dönüş için köydeki tabelaya (otobüs durağına) ya da vagona tıkla.
 | `[CP] Cinarkoy/content.json` | Konum kaydı, vagon durağı, harita yüklemesi |
 | `[CP] Cinarkoy/assets/Cinarkoy.tmx` | Köy haritası ([Tiled](https://www.mapeditor.org) ile düzenlenir) |
 | `[CP] Cinarkoy/assets/Tabela.tmx` | Otobüs durağına bindirilen tabela yaması |
-| `[CP] Cinarkoy/assets/<mevsim>_cinarkoy_evler.png` | Yeniden boyanmış ev karoları (depoda yok, betik üretir) |
+| `[CP] Cinarkoy/assets/<mevsim>_cinarkoy_evler.png` | Özgün bina karoları (kışın karlı) |
 | `[CP] Cinarkoy/i18n/` | Çeviriler (`default.json` İngilizce, `tr.json` Türkçe) |
-| `[CP] Cinarkoy/assets/cinarkoy_kulube.png` | Sıfırdan çizilmiş özgün taş kulübe |
-| `tools/ev_ciz.py` | Kulübeyi piksel piksel çizen betik |
-| `tools/harita_uret.py` | Haritayı oyunun kendi karolarından üreten betik |
+| `tools/ev_ciz.py` | Binaları sıfırdan, piksel piksel çizen betik |
+| `tools/harita_uret.py` | Haritayı üreten betik |
 
 ## Haritayı düzenlemek
 
-Harita oyunun kendi karo setlerini (`spring_town`, `spring_outdoorsTileSheet` …)
-kullanır; bu görseller moda dahil değildir, oyun onları kendi dosyalarından yükler.
-Mevsim değişince karolar da kendiliğinden değişir.
+Binaların hepsi (taş kulübe, sıvalı kulübe, ahşap ev, iki katlı ev, dükkân, ahır,
+kuyu) bu mod için sıfırdan çizildi; `tools/ev_ciz.py` onları üretir ve oyunun
+görsellerinden hiçbir piksel içermez. Yeni bina eklemek ya da renk değiştirmek
+için o betiği düzenle.
+
+Zemin, ağaçlar, vagon ve tabela için oyunun kendi karo seti
+(`spring_outdoorsTileSheet`) kullanılır; bu görsel moda dahil değildir, oyun onu
+kendi dosyalarından yükler ve mevsime göre kendiliğinden değiştirir.
 
 `Cinarkoy.tmx` dosyasını [Tiled](https://www.mapeditor.org) ile açmak için karo
 seti PNG'leri aynı klasörde olmalı: oyunu
@@ -61,20 +65,15 @@ Katman adları oyun için anlamlıdır, değiştirme:
 Vagonun (6, 20), tabelanın (10, 21) ve varış karolarının (6, 22) / (10, 22) yerini
 değiştirirsen `content.json` içindeki koordinatları da güncelle.
 
-Köydeki üç ev (yeşil, krem, arduvaz çatılı) oyunun evlerinin yeniden boyanmış
-halidir. Bu karolar oyunun görsellerinden türediği için depoya konmaz
-(`.gitignore`); aşağıdaki betik onları senin oyun dosyalarından üretir. **Depoyu
-indirdiysen modu kullanmadan önce betiği bir kez çalıştırman gerekir.**
-
-Haritayı ve ev karolarını üretmek için:
+Haritayı ve bina karolarını baştan üretmek için:
 
 ```
 python3 tools/harita_uret.py "<oyun klasörü>/Content (unpacked)/Maps"
 ```
 
-Betik evleri, ağaçları, vagonu ve tabelayı oyunun `Town.tmx` / `BusStop.tmx`
-haritalarından okur. Haritayı elle düzenlemeye başladıktan sonra tekrar
-çalıştırma; haritanın üzerine yazar.
+Betik ağaçların, vagonun ve tabelanın karo düzenini oyunun `Town.tmx` /
+`BusStop.tmx` haritalarından okur. Haritayı elle düzenlemeye başladıktan sonra
+tekrar çalıştırma; haritanın üzerine yazar.
 
 ## Sırada ne var
 
