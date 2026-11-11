@@ -1908,4 +1908,56 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="20" name="Buildings" visible="0">
+  <object id="1" name="TileData" x="272" y="288" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 6 11 TahaAkhan.Cinarkoy_IkiKatli"/>
+   </properties>
+  </object>
+  <object id="2" name="TileData" x="656" y="288" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 5 10 TahaAkhan.Cinarkoy_Bakkal"/>
+   </properties>
+  </object>
+  <object id="3" name="TileData" x="672" y="288" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 5 10 TahaAkhan.Cinarkoy_Bakkal"/>
+   </properties>
+  </object>
+  <object id="4" name="TileData" x="160" y="592" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 5 9 TahaAkhan.Cinarkoy_TasKulube"/>
+   </properties>
+  </object>
+  <object id="5" name="TileData" x="176" y="592" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 5 9 TahaAkhan.Cinarkoy_TasKulube"/>
+   </properties>
+  </object>
+  <object id="6" name="TileData" x="352" y="592" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 5 10 TahaAkhan.Cinarkoy_AhsapEv"/>
+   </properties>
+  </object>
+  <object id="7" name="TileData" x="528" y="592" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 6 11 TahaAkhan.Cinarkoy_Ahir"/>
+   </properties>
+  </object>
+  <object id="8" name="TileData" x="544" y="592" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 6 11 TahaAkhan.Cinarkoy_Ahir"/>
+   </properties>
+  </object>
+  <object id="9" name="TileData" x="720" y="592" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 5 9 TahaAkhan.Cinarkoy_SivaKulube"/>
+   </properties>
+  </object>
+  <object id="10" name="TileData" x="736" y="592" width="16" height="16">
+   <properties>
+    <property name="Action" type="string" value="Warp 5 9 TahaAkhan.Cinarkoy_SivaKulube"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

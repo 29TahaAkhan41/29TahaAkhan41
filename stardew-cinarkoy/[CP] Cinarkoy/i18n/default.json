@@ -1,5 +1,11 @@
 {
     "konum.ad": "Cinarkoy",
+    "konum.Bakkal": "Village Shop",
+    "konum.IkiKatli": "Granny Nazife's House",
+    "konum.Ahir": "Kerem's Barn",
+    "konum.AhsapEv": "Zeynep's House",
+    "konum.TasKulube": "Stone Cottage",
+    "konum.SivaKulube": "Plaster Cottage",
     "Halil.ad": "Halil",
     "Halil.diyalog.Introduction": "Welcome! I'm Halil. I run the village shop.#$b#Not many people come up here from the valley. Glad to see you.$h",
     "Halil.diyalog.Mon": "The shelves are always empty on Monday morning. The village clears me out over the weekend.",

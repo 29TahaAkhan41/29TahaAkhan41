@@ -14,6 +14,7 @@ setlerine yalnızca adlarıyla başvurur.
     [CP] Cinarkoy/assets/Cinarkoy.tmx                   köy haritası
     [CP] Cinarkoy/assets/Tabela.tmx                     otobüs durağı tabela yaması
     [CP] Cinarkoy/assets/<mevsim>_cinarkoy_evler.png    özgün bina karoları
+    [CP] Cinarkoy/assets/Ic_<Konum>.tmx                 ev içi haritaları (ic_uret.py)
     onizleme.png                                         haritanın önizlemesi
 
 Haritayı Tiled ile elle düzenlemeye başladıktan sonra bu betiği tekrar
@@ -28,6 +29,7 @@ from pathlib import Path
 from PIL import Image
 
 import ev_ciz
+import ic_uret
 
 KOK = Path(__file__).resolve().parent.parent
 ASSETS = KOK / "[CP] Cinarkoy" / "assets"
@@ -207,7 +209,7 @@ for ad, hx, hy in KUZEY + GUNEY:
     kx, ky, gk, yk, on, kapi = EV_YER[ad]
     alt = hy + yk
     yol(hx + kapi[0], alt, hx + kapi[-1], ANA_YOL[0] - 1 if (ad, hx, hy) in KUZEY else 38)
-    KAPILAR.append((ad, hx + kapi[0], alt - 1))
+    KAPILAR.append((ad, [hx + k for k in kapi], alt - 1))
 
 zemini_dose()
 for ad, hx, hy in KUZEY + GUNEY:
@@ -264,7 +266,23 @@ def katman_xml(i, ad, veri, g, y):
     return f' <layer id="{i}" name="{ad}" width="{g}" height="{y}">\n  <data encoding="csv">\n{csv}\n</data>\n </layer>\n'
 
 
-def tmx(g, y, setler, katmanlar, ozellikler=""):
+def kapi_nesneleri():
+    """Köydeki kapı karolarına 'içeri gir' eylemi (oyunun kendi haritalarındaki TileData biçimi)."""
+    satirlar, no = [], 1
+    for ad, sutunlar, ky in KAPILAR:
+        gx, gy = ic_uret.ODALAR[ad].giris
+        for kx in sutunlar:
+            assert harita["Buildings"][ky][kx], f"{ad}: kapı karosu boş"
+            satirlar.append(
+                f'  <object id="{no}" name="TileData" x="{kx * 16}" y="{ky * 16}" width="16" height="16">\n'
+                '   <properties>\n'
+                f'    <property name="Action" type="string" value="Warp {gx} {gy} {ic_uret.konum(ad)}"/>\n'
+                '   </properties>\n  </object>\n')
+            no += 1
+    return ' <objectgroup id="20" name="Buildings" visible="0">\n' + "".join(satirlar) + ' </objectgroup>\n'
+
+
+def tmx(g, y, setler, katmanlar, ozellikler="", nesneler=""):
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" '
             f'width="{g}" height="{y}" tilewidth="16" tileheight="16" infinite="0" '
@@ -272,7 +290,7 @@ def tmx(g, y, setler, katmanlar, ozellikler=""):
             + ozellikler
             + "".join(" " + s + "\n" for s in setler)
             + "".join(katman_xml(i, ad, veri, g, y) for i, (ad, veri) in enumerate(katmanlar, 1))
-            + "</map>\n")
+            + nesneler + "</map>\n")
 
 
 EV_SET = (f'<tileset firstgid="{EV0}" name="cinarkoy_evler" tilewidth="16" tileheight="16" '
@@ -295,7 +313,11 @@ def kullanilan_setler():
 def yaz():
     ASSETS.mkdir(parents=True, exist_ok=True)
     koy = tmx(G, Y, [set_xml(town, s) for s in kullanilan_setler()] + [EV_SET], [(ad, harita[ad]) for ad in KATMANLAR],
-              ' <properties>\n  <property name="Outdoors" type="string" value="T"/>\n </properties>\n')
+              ' <properties>\n  <property name="Outdoors" type="string" value="T"/>\n </properties>\n',
+              kapi_nesneleri())
+    # Ev içleri: her odanın çıkışı, köydeki kapının hemen önündeki karoya bağlanır
+    ic_uret.yaz({ad: (sutunlar[0], ky + 1) for ad, sutunlar, ky in KAPILAR})
+    ic_uret.onizleme(KOK / "onizleme_ic.png")
     (ASSETS / "Cinarkoy.tmx").write_text(koy, encoding="utf-8")
     # Otobüs durağı yaması: 1x2, üstte tabela levhası (Front), altta direk (Buildings)
     yama = tmx(1, 2, [set_xml(bus, "spring_outdoorsTileSheet")],

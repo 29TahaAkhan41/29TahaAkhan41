@@ -35,10 +35,14 @@ Dönüş için köydeki tabelaya (otobüs durağına) ya da vagona tıkla.
 | `[CP] Cinarkoy/assets/Cinarkoy.tmx` | Köy haritası ([Tiled](https://www.mapeditor.org) ile düzenlenir) |
 | `[CP] Cinarkoy/assets/Tabela.tmx` | Otobüs durağına bindirilen tabela yaması |
 | `[CP] Cinarkoy/assets/<mevsim>_cinarkoy_evler.png` | Özgün bina karoları (kışın karlı) |
+| `[CP] Cinarkoy/assets/Ic_<Konum>.tmx` | Ev içi haritaları (altı ev) |
+| `[CP] Cinarkoy/assets/cinarkoy_ic.png` | Özgün ev içi karoları: zemin, duvar, mobilya |
 | `[CP] Cinarkoy/assets/karakterler/` | Köylülerin yürüme sprite'ları (64×128) |
 | `[CP] Cinarkoy/assets/portreler/` | Köylülerin portreleri (6 ifade) |
 | `[CP] Cinarkoy/i18n/` | Çeviriler (`default.json` İngilizce, `tr.json` Türkçe) |
 | `tools/ev_ciz.py` | Binaları sıfırdan, piksel piksel çizen betik |
+| `tools/ic_ciz.py` | Ev içi karolarını sıfırdan çizen betik |
+| `tools/ic_uret.py` | Ev içi haritalarını kuran betik |
 | `tools/karakter_ciz.py` | Köylüleri sıfırdan çizen betik |
 | `tools/harita_uret.py` | Haritayı üreten betik |
 
@@ -55,8 +59,15 @@ Dönüş için köydeki tabelaya (otobüs durağına) ya da vagona tıkla.
 Hepsinin görselleri bu mod için sıfırdan çizildi (`tools/karakter_ciz.py`); oyunun
 karakter ölçülerine uyar ama oyunun görsellerinden piksel içermez. Kimlikleri,
 programları ve hediye zevkleri `content.json` içinde, konuşmaları `i18n/`
-dosyalarında durur. Ev içleri henüz olmadığı için köylüler geceyi kapılarının
-önünde geçirir ve köyden dışarı çıkmaz.
+dosyalarında durur. Köylüler geceyi evlerinde geçirir, gündüz köyde dolaşır;
+köyden dışarı çıkmazlar.
+
+## Ev içleri
+
+Altı evin de içi var; kapıya tıklayınca girilir, odanın altındaki paspastan
+çıkılır. Odalar yalnızca modun kendi karo setini kullanır (`cinarkoy_ic.png`).
+Yeni mobilya çizmek için `tools/ic_ciz.py`, bir odanın düzenini değiştirmek için
+`tools/ic_uret.py` düzenlenir. Önizleme: `onizleme_ic.png`.
 
 ## Haritayı düzenlemek
 
@@ -96,8 +107,7 @@ tekrar çalıştırma; haritanın üzerine yazar.
 
 ## Sırada ne var
 
-- Evlerin içleri (her ev için ayrı harita + kapı `Warp`'ları)
-- Köylüler (`Data/Characters`, portre ve sprite çizimleri, diyaloglar, programlar)
-- Dükkân (`Data/Shops`)
+- Bakkalda alışveriş (`Data/Shops`)
+- Köylüler için kalp olayları ve daha çok konuşma
 - Tabela yerine gerçek bir yürüyüş yolu (vanilla bir haritanın kenarına `AddWarps`)
 - Dünya haritasında köyün görünmesi (`Data/WorldMap`)

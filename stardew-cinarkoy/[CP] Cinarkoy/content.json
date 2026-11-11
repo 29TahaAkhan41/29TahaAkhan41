@@ -1,51 +1,146 @@
 {
     "Format": "2.0.0",
     "Changes": [
-        // 1) Harita dosyasini oyuna yukle
         {
             "Action": "Load",
             "Target": "Maps/{{ModId}}_Koy",
             "FromFile": "assets/Cinarkoy.tmx"
         },
-
-        // 2) Koyu yeni bir konum olarak kaydet
+        {
+            "Action": "Load",
+            "Target": "Maps/{{ModId}}_TasKulube",
+            "FromFile": "assets/Ic_TasKulube.tmx"
+        },
+        {
+            "Action": "Load",
+            "Target": "Maps/{{ModId}}_SivaKulube",
+            "FromFile": "assets/Ic_SivaKulube.tmx"
+        },
+        {
+            "Action": "Load",
+            "Target": "Maps/{{ModId}}_AhsapEv",
+            "FromFile": "assets/Ic_AhsapEv.tmx"
+        },
+        {
+            "Action": "Load",
+            "Target": "Maps/{{ModId}}_IkiKatli",
+            "FromFile": "assets/Ic_IkiKatli.tmx"
+        },
+        {
+            "Action": "Load",
+            "Target": "Maps/{{ModId}}_Bakkal",
+            "FromFile": "assets/Ic_Bakkal.tmx"
+        },
+        {
+            "Action": "Load",
+            "Target": "Maps/{{ModId}}_Ahir",
+            "FromFile": "assets/Ic_Ahir.tmx"
+        },
         {
             "Action": "EditData",
             "Target": "Data/Locations",
             "Entries": {
                 "{{ModId}}_Koy": {
                     "DisplayName": "{{i18n: konum.ad}}",
-                    "DefaultArrivalTile": { "X": 10, "Y": 22 },
+                    "DefaultArrivalTile": {
+                        "X": 10,
+                        "Y": 22
+                    },
                     "CreateOnLoad": {
                         "MapPath": "Maps/{{ModId}}_Koy"
+                    }
+                },
+                "{{ModId}}_TasKulube": {
+                    "DisplayName": "{{i18n: konum.TasKulube}}",
+                    "DefaultArrivalTile": {
+                        "X": 5,
+                        "Y": 9
+                    },
+                    "CreateOnLoad": {
+                        "MapPath": "Maps/{{ModId}}_TasKulube"
+                    }
+                },
+                "{{ModId}}_SivaKulube": {
+                    "DisplayName": "{{i18n: konum.SivaKulube}}",
+                    "DefaultArrivalTile": {
+                        "X": 5,
+                        "Y": 9
+                    },
+                    "CreateOnLoad": {
+                        "MapPath": "Maps/{{ModId}}_SivaKulube"
+                    }
+                },
+                "{{ModId}}_AhsapEv": {
+                    "DisplayName": "{{i18n: konum.AhsapEv}}",
+                    "DefaultArrivalTile": {
+                        "X": 5,
+                        "Y": 10
+                    },
+                    "CreateOnLoad": {
+                        "MapPath": "Maps/{{ModId}}_AhsapEv"
+                    }
+                },
+                "{{ModId}}_IkiKatli": {
+                    "DisplayName": "{{i18n: konum.IkiKatli}}",
+                    "DefaultArrivalTile": {
+                        "X": 6,
+                        "Y": 11
+                    },
+                    "CreateOnLoad": {
+                        "MapPath": "Maps/{{ModId}}_IkiKatli"
+                    }
+                },
+                "{{ModId}}_Bakkal": {
+                    "DisplayName": "{{i18n: konum.Bakkal}}",
+                    "DefaultArrivalTile": {
+                        "X": 5,
+                        "Y": 10
+                    },
+                    "CreateOnLoad": {
+                        "MapPath": "Maps/{{ModId}}_Bakkal"
+                    }
+                },
+                "{{ModId}}_Ahir": {
+                    "DisplayName": "{{i18n: konum.Ahir}}",
+                    "DefaultArrivalTile": {
+                        "X": 6,
+                        "Y": 11
+                    },
+                    "CreateOnLoad": {
+                        "MapPath": "Maps/{{ModId}}_Ahir"
                     }
                 }
             }
         },
-
-        // 3) Vagon agina "Cinarkoy" duragini ekle (gidis)
         {
             "Action": "EditData",
             "Target": "Data/Minecarts",
-            "TargetField": [ "Default", "Destinations" ],
+            "TargetField": [
+                "Default",
+                "Destinations"
+            ],
             "Entries": {
                 "{{ModId}}_Koy": {
                     "Id": "{{ModId}}_Koy",
                     "DisplayName": "{{i18n: konum.ad}}",
                     "TargetLocation": "{{ModId}}_Koy",
-                    "TargetTile": { "X": 6, "Y": 22 },
+                    "TargetTile": {
+                        "X": 6,
+                        "Y": 22
+                    },
                     "TargetDirection": "down"
                 }
             }
         },
-
-        // 4) Koydeki vagona tiklaninca vagon menusunu ac (donus)
         {
             "Action": "EditMap",
             "Target": "Maps/{{ModId}}_Koy",
             "MapTiles": [
                 {
-                    "Position": { "X": 6, "Y": 20 },
+                    "Position": {
+                        "X": 6,
+                        "Y": 20
+                    },
                     "Layer": "Buildings",
                     "SetProperties": {
                         "Action": "MinecartTransport Default {{ModId}}_Koy"
@@ -53,13 +148,16 @@
                 }
             ]
         },
-
-        // 5) Otobus duragina, ciftlik cikisindaki yolun ust kenarina, cime tabela koy (yuruyerek gidis)
         {
             "Action": "EditMap",
             "Target": "Maps/BusStop",
             "FromFile": "assets/Tabela.tmx",
-            "ToArea": { "X": 14, "Y": 21, "Width": 1, "Height": 2 },
+            "ToArea": {
+                "X": 14,
+                "Y": 21,
+                "Width": 1,
+                "Height": 2
+            },
             "PatchMode": "Overlay"
         },
         {
@@ -67,7 +165,10 @@
             "Target": "Maps/BusStop",
             "MapTiles": [
                 {
-                    "Position": { "X": 14, "Y": 22 },
+                    "Position": {
+                        "X": 14,
+                        "Y": 22
+                    },
                     "Layer": "Buildings",
                     "SetProperties": {
                         "Action": "Warp 10 22 {{ModId}}_Koy"
@@ -75,14 +176,15 @@
                 }
             ]
         },
-
-        // 6) Koydeki tabelaya tiklaninca otobus duragina don
         {
             "Action": "EditMap",
             "Target": "Maps/{{ModId}}_Koy",
             "MapTiles": [
                 {
-                    "Position": { "X": 10, "Y": 21 },
+                    "Position": {
+                        "X": 10,
+                        "Y": 21
+                    },
                     "Layer": "Buildings",
                     "SetProperties": {
                         "Action": "Warp 12 24 BusStop"
@@ -90,8 +192,6 @@
                 }
             ]
         },
-
-        // 7) Koyluler: gorseller, kimlik, diyalog, gunluk program, hediye zevkleri
         {
             "Action": "Load",
             "Target": "Characters/{{ModId}}_Halil",
@@ -169,12 +269,12 @@
                     "Home": [
                         {
                             "Id": "Default",
-                            "Location": "{{ModId}}_Koy",
+                            "Location": "{{ModId}}_Bakkal",
                             "Tile": {
-                                "X": 41,
-                                "Y": 19
+                                "X": 10,
+                                "Y": 8
                             },
-                            "Direction": "down"
+                            "Direction": "right"
                         }
                     ]
                 },
@@ -196,12 +296,12 @@
                     "Home": [
                         {
                             "Id": "Default",
-                            "Location": "{{ModId}}_Koy",
+                            "Location": "{{ModId}}_IkiKatli",
                             "Tile": {
-                                "X": 17,
-                                "Y": 19
+                                "X": 3,
+                                "Y": 8
                             },
-                            "Direction": "down"
+                            "Direction": "left"
                         }
                     ]
                 },
@@ -223,12 +323,12 @@
                     "Home": [
                         {
                             "Id": "Default",
-                            "Location": "{{ModId}}_Koy",
+                            "Location": "{{ModId}}_Ahir",
                             "Tile": {
-                                "X": 33,
-                                "Y": 38
+                                "X": 10,
+                                "Y": 10
                             },
-                            "Direction": "down"
+                            "Direction": "right"
                         }
                     ]
                 },
@@ -250,12 +350,12 @@
                     "Home": [
                         {
                             "Id": "Default",
-                            "Location": "{{ModId}}_Koy",
+                            "Location": "{{ModId}}_AhsapEv",
                             "Tile": {
-                                "X": 22,
-                                "Y": 38
+                                "X": 7,
+                                "Y": 8
                             },
-                            "Direction": "down"
+                            "Direction": "right"
                         }
                     ]
                 },
@@ -277,12 +377,12 @@
                     "Home": [
                         {
                             "Id": "Default",
-                            "Location": "{{ModId}}_Koy",
+                            "Location": "{{ModId}}_IkiKatli",
                             "Tile": {
-                                "X": 18,
-                                "Y": 20
+                                "X": 10,
+                                "Y": 8
                             },
-                            "Direction": "down"
+                            "Direction": "right"
                         }
                     ]
                 }
@@ -306,9 +406,9 @@
             "Action": "EditData",
             "Target": "Characters/schedules/{{ModId}}_Halil",
             "Entries": {
-                "default": "630 {{ModId}}_Koy 41 19 2/900 {{ModId}}_Koy 43 20 2/1300 {{ModId}}_Koy 33 21 0/1500 {{ModId}}_Koy 43 20 2/1900 {{ModId}}_Koy 28 20 1/2100 {{ModId}}_Koy 41 19 2",
-                "spring": "630 {{ModId}}_Koy 41 19 2/900 {{ModId}}_Koy 43 20 2/1300 {{ModId}}_Koy 33 21 0/1500 {{ModId}}_Koy 43 20 2/1900 {{ModId}}_Koy 28 20 1/2100 {{ModId}}_Koy 41 19 2",
-                "rain": "900 {{ModId}}_Koy 41 19 2"
+                "default": "630 {{ModId}}_Bakkal 3 5 2/1200 {{ModId}}_Koy 33 21 0/1330 {{ModId}}_Bakkal 3 5 2/1800 {{ModId}}_Koy 28 20 1/2000 {{ModId}}_Bakkal 10 8 1",
+                "spring": "630 {{ModId}}_Bakkal 3 5 2/1200 {{ModId}}_Koy 33 21 0/1330 {{ModId}}_Bakkal 3 5 2/1800 {{ModId}}_Koy 28 20 1/2000 {{ModId}}_Bakkal 10 8 1",
+                "rain": "900 {{ModId}}_Bakkal 3 5 2/2000 {{ModId}}_Bakkal 10 8 1"
             }
         },
         {
@@ -329,9 +429,9 @@
             "Action": "EditData",
             "Target": "Characters/schedules/{{ModId}}_Nazife",
             "Entries": {
-                "default": "700 {{ModId}}_Koy 17 20 2/1000 {{ModId}}_Koy 27 19 1/1400 {{ModId}}_Koy 17 20 2/1800 {{ModId}}_Koy 34 20 3/2000 {{ModId}}_Koy 17 19 2",
-                "spring": "700 {{ModId}}_Koy 17 20 2/1000 {{ModId}}_Koy 27 19 1/1400 {{ModId}}_Koy 17 20 2/1800 {{ModId}}_Koy 34 20 3/2000 {{ModId}}_Koy 17 19 2",
-                "rain": "900 {{ModId}}_Koy 17 19 2"
+                "default": "800 {{ModId}}_IkiKatli 6 6 0/1000 {{ModId}}_Koy 27 19 1/1300 {{ModId}}_IkiKatli 6 6 0/1700 {{ModId}}_Koy 34 20 3/1930 {{ModId}}_IkiKatli 3 8 3",
+                "spring": "800 {{ModId}}_IkiKatli 6 6 0/1000 {{ModId}}_Koy 27 19 1/1300 {{ModId}}_IkiKatli 6 6 0/1700 {{ModId}}_Koy 34 20 3/1930 {{ModId}}_IkiKatli 3 8 3",
+                "rain": "900 {{ModId}}_IkiKatli 6 6 0/2000 {{ModId}}_IkiKatli 3 8 3"
             }
         },
         {
@@ -352,9 +452,9 @@
             "Action": "EditData",
             "Target": "Characters/schedules/{{ModId}}_Kerem",
             "Entries": {
-                "default": "600 {{ModId}}_Koy 34 39 2/900 {{ModId}}_Koy 50 23 1/1200 {{ModId}}_Koy 33 38 2/1500 {{ModId}}_Koy 36 21 3/1900 {{ModId}}_Koy 33 38 2",
-                "spring": "600 {{ModId}}_Koy 34 39 2/900 {{ModId}}_Koy 50 23 1/1200 {{ModId}}_Koy 33 38 2/1500 {{ModId}}_Koy 36 21 3/1900 {{ModId}}_Koy 33 38 2",
-                "rain": "900 {{ModId}}_Koy 33 38 2"
+                "default": "600 {{ModId}}_Ahir 6 5 0/900 {{ModId}}_Koy 50 23 1/1200 {{ModId}}_Ahir 6 5 0/1500 {{ModId}}_Koy 36 21 3/1900 {{ModId}}_Ahir 10 10 1",
+                "spring": "600 {{ModId}}_Ahir 6 5 0/900 {{ModId}}_Koy 50 23 1/1200 {{ModId}}_Ahir 6 5 0/1500 {{ModId}}_Koy 36 21 3/1900 {{ModId}}_Ahir 10 10 1",
+                "rain": "900 {{ModId}}_Ahir 6 5 0/2000 {{ModId}}_Ahir 10 10 1"
             }
         },
         {
@@ -375,9 +475,9 @@
             "Action": "EditData",
             "Target": "Characters/schedules/{{ModId}}_Zeynep",
             "Entries": {
-                "default": "730 {{ModId}}_Koy 22 39 2/1000 {{ModId}}_Koy 24 39 3/1300 {{ModId}}_Koy 29 20 1/1600 {{ModId}}_Koy 22 39 2/2000 {{ModId}}_Koy 22 38 2",
-                "spring": "730 {{ModId}}_Koy 22 39 2/1000 {{ModId}}_Koy 24 39 3/1300 {{ModId}}_Koy 29 20 1/1600 {{ModId}}_Koy 22 39 2/2000 {{ModId}}_Koy 22 38 2",
-                "rain": "900 {{ModId}}_Koy 22 38 2"
+                "default": "730 {{ModId}}_AhsapEv 4 8 3/1200 {{ModId}}_Koy 29 20 1/1400 {{ModId}}_AhsapEv 4 8 3/1800 {{ModId}}_Koy 24 39 3/2000 {{ModId}}_AhsapEv 7 8 1",
+                "spring": "730 {{ModId}}_AhsapEv 4 8 3/1200 {{ModId}}_Koy 29 20 1/1400 {{ModId}}_AhsapEv 4 8 3/1800 {{ModId}}_Koy 24 39 3/2000 {{ModId}}_AhsapEv 7 8 1",
+                "rain": "900 {{ModId}}_AhsapEv 4 8 3/2000 {{ModId}}_AhsapEv 7 8 1"
             }
         },
         {
@@ -398,9 +498,9 @@
             "Action": "EditData",
             "Target": "Characters/schedules/{{ModId}}_Elif",
             "Entries": {
-                "default": "800 {{ModId}}_Koy 30 21 2/1100 {{ModId}}_Koy 33 39 0/1400 {{ModId}}_Koy 12 22 2/1700 {{ModId}}_Koy 35 20 2/1930 {{ModId}}_Koy 18 20 2",
-                "spring": "800 {{ModId}}_Koy 30 21 2/1100 {{ModId}}_Koy 33 39 0/1400 {{ModId}}_Koy 12 22 2/1700 {{ModId}}_Koy 35 20 2/1930 {{ModId}}_Koy 18 20 2",
-                "rain": "900 {{ModId}}_Koy 18 20 2"
+                "default": "800 {{ModId}}_IkiKatli 9 10 0/900 {{ModId}}_Koy 30 21 2/1200 {{ModId}}_Koy 33 39 0/1500 {{ModId}}_Koy 12 22 2/1800 {{ModId}}_IkiKatli 9 10 0/2000 {{ModId}}_IkiKatli 10 8 1",
+                "spring": "800 {{ModId}}_IkiKatli 9 10 0/900 {{ModId}}_Koy 30 21 2/1200 {{ModId}}_Koy 33 39 0/1500 {{ModId}}_Koy 12 22 2/1800 {{ModId}}_IkiKatli 9 10 0/2000 {{ModId}}_IkiKatli 10 8 1",
+                "rain": "900 {{ModId}}_IkiKatli 9 10 0/2000 {{ModId}}_IkiKatli 10 8 1"
             }
         },
         {
