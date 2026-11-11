@@ -35,9 +35,28 @@ Dönüş için köydeki tabelaya (otobüs durağına) ya da vagona tıkla.
 | `[CP] Cinarkoy/assets/Cinarkoy.tmx` | Köy haritası ([Tiled](https://www.mapeditor.org) ile düzenlenir) |
 | `[CP] Cinarkoy/assets/Tabela.tmx` | Otobüs durağına bindirilen tabela yaması |
 | `[CP] Cinarkoy/assets/<mevsim>_cinarkoy_evler.png` | Özgün bina karoları (kışın karlı) |
+| `[CP] Cinarkoy/assets/karakterler/` | Köylülerin yürüme sprite'ları (64×128) |
+| `[CP] Cinarkoy/assets/portreler/` | Köylülerin portreleri (6 ifade) |
 | `[CP] Cinarkoy/i18n/` | Çeviriler (`default.json` İngilizce, `tr.json` Türkçe) |
 | `tools/ev_ciz.py` | Binaları sıfırdan, piksel piksel çizen betik |
+| `tools/karakter_ciz.py` | Köylüleri sıfırdan çizen betik |
 | `tools/harita_uret.py` | Haritayı üreten betik |
+
+## Köylüler
+
+| Köylü | Kim | Evi |
+|---|---|---|
+| Halil | Bakkal | Dükkân |
+| Nazife Nine | Köyün en yaşlısı | İki katlı ev |
+| Elif | Nazife Nine'nin torunu | İki katlı ev |
+| Kerem | Çiftçi | Ahır |
+| Zeynep | Marangoz | Ahşap ev |
+
+Hepsinin görselleri bu mod için sıfırdan çizildi (`tools/karakter_ciz.py`); oyunun
+karakter ölçülerine uyar ama oyunun görsellerinden piksel içermez. Kimlikleri,
+programları ve hediye zevkleri `content.json` içinde, konuşmaları `i18n/`
+dosyalarında durur. Ev içleri henüz olmadığı için köylüler geceyi kapılarının
+önünde geçirir ve köyden dışarı çıkmaz.
 
 ## Haritayı düzenlemek
 
