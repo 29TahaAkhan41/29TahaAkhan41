@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["GGG", "LRL", "ICI"],
+  "key": {
+    "G": "minecraft:glass",
+    "L": "minecraft:lapis_lazuli",
+    "R": "minecraft:redstone",
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": { "id": "solartech:solar_panel" }
+}

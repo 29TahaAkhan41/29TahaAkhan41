@@ -1,0 +1,6 @@
+{
+  "template": "minecraft:iron_block",
+  "properties": { "hardness": 3.0, "sounds": "minecraft:copper_block" },
+  "state_properties": { "active": { "type": "boolean" } },
+  "default_state": { "active": "false" }
+}

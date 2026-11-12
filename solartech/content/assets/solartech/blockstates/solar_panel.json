@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "active=false": { "model": "solartech:block/solar_panel" },
+    "active=true": { "model": "solartech:block/solar_panel_active" }
+  }
+}

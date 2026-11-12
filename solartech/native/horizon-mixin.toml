@@ -1,0 +1,13 @@
+# SolarTech: a native trait mod (Horizon docs/native-mods.md, "Trait mods").
+# It gives the block `solartech:solar_panel` (declared by the content mod of the
+# same id) its block entity, its energy buffer and its tick.
+[mod]
+id = "solartech"
+version = "0.1.0"
+
+# Made for and tested against Nightly 2026-11-08 (fdc87ae).
+[compatibility]
+horizon_revision = "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca"
+
+[api]
+path = "api"

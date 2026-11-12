@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "solartech:block/solar_panel_top_active",
+    "bottom": "solartech:block/solar_panel_bottom",
+    "side": "solartech:block/solar_panel_side"
+  }
+}
