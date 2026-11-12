@@ -1,0 +1,12 @@
+# Same language, English keywords. Mixing both is fine too.
+fn divides(n, d) { n % d == 0 -> return }
+
+1 -> i
+i <= 20 -> while {
+    i -> divides(15) -> if { "FizzBuzz" -> print } else {
+        i -> divides(3) -> if { "Fizz" -> print } else {
+            i -> divides(5) -> if { "Buzz" -> print } else { i -> print }
+        }
+    }
+    i + 1 -> i
+}

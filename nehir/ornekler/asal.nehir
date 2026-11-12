@@ -1,0 +1,24 @@
+# 50'ye kadar asal sayılar — Türkçe ve İngilizce anahtar kelimeler karışık.
+işlev asal_mı(n) {
+    n < 2 -> eğer { yanlış -> döndür }
+    2 -> b
+    b * b <= n -> iken {
+        n % b == 0 -> if { false -> return }
+        b + 1 -> b
+    }
+    doğru -> döndür
+}
+
+işlev kare(n) { n * n -> döndür }
+işlev topla(a, b) { a + b -> döndür }
+
+2 -> s
+s < 50 -> iken {
+    asal_mı(s) -> eğer { s -> yazdır }
+    s + 1 -> s
+}
+
+# Boru hattı: 3 -> kare -> topla(1)  ==  topla(kare(3), 1)
+3 -> kare -> topla(1) -> yazdır
+-7 / 2 -> yazdır
+değil (1 > 2) ve (3 == 3 veya 1 / 0 == 0) -> yazdır

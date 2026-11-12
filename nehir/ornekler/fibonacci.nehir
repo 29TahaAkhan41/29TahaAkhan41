@@ -1,0 +1,12 @@
+# Özyinelemeli Fibonacci
+işlev fib(n) {
+    n < 2 -> eğer { n -> döndür }
+    fib(n - 1) + fib(n - 2) -> döndür
+}
+
+"İlk 15 Fibonacci sayısı:" -> yazdır
+0 -> i
+i < 15 -> iken {
+    i -> fib -> yazdır      # i, fib'e akar; sonucu yazdır'a akar
+    i + 1 -> i
+}

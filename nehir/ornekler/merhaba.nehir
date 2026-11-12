@@ -1,0 +1,8 @@
+# Nehir'de her şey soldan sağa akar.
+"Merhaba, dünya!" -> yazdır
+
+5 -> x                  # 5, x'e akar
+x * 2 + 1 -> yazdır     # 11
+
+# Akış zincirlenebilir: değer her duraktan geçip yoluna devam eder.
+40 + 2 -> cevap -> yazdır
