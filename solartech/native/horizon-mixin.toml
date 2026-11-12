@@ -3,11 +3,12 @@
 # cable, electric furnace) their block entities, their energy and their screens.
 [mod]
 id = "solartech"
-version = "0.2.0"
+version = "0.2.1"
 
-# Made for Nightly 2026-11-08 (fdc87ae).
+# The Horizon source the launcher builds the game from (main, 2026-11-12). Nightly
+# 2026-11-08 (fdc87ae) doesn't build with launcher 0.2.62: see build.sh.
 [compatibility]
-horizon_revision = "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca"
+horizon_revision = "4acdda54f2ef1e44ade292ce3b02ed91910f9f83"
 
 [api]
 path = "api"

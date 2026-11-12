@@ -1,9 +1,9 @@
 [package]
 name = "mod-solartech"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 
 [dependencies]
 # The launcher points this at the Horizon source it builds the game from. Any other
 # dependency must be a crate and version in Horizon's Cargo.lock.
-horizon-client = { git = "https://github.com/horizon-rust/horizon", rev = "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca" }
+horizon-client = { git = "https://github.com/horizon-rust/horizon", rev = "4acdda54f2ef1e44ade292ce3b02ed91910f9f83" }

@@ -3,7 +3,10 @@
 Horizon (Minecraft: Rust Edition) için teknik mod: güneş paneli, enerji kablosu ve
 elektrikli fırın.
 
-Nightly `2026-11-08 · fdc87ae` için yazıldı. Sürüm 0.2.0.
+Sürüm 0.2.1. Horizon'un `4acdda5` (12 Kasım 2026) kaynağına sabitlenmiştir: başlatıcı 0.2.62,
+Nightly `fdc87ae` kaynağıyla native mod derleyemiyor (ürettiği giriş dosyası o kaynakta olmayan
+`horizon_threads::GameAllocator` türünü istiyor). Başlatıcı bu yüzden derlerken oyunu bu
+kaynağa taşır.
 
 ## Bloklar
 
@@ -116,5 +119,7 @@ paneller kaybolabilir ya da boş görünebilir. Kırıp yeniden yerleştir.
 ## Doğrulama durumu
 
 - Enerji ağı, eritme adımı, üretim formülü ve arayüz hesapları 21 birim testiyle doğrulandı.
-- Kod, Horizon `fdc87ae` kaynağından okunan imzalarla elle yazılmış bir API taklidine karşı
-  derlendi. Gerçek oyuna karşı derlenmedi ve oyun içinde denenmedi.
+- Kod, kullanıcının makinesinde Horizon `fdc87ae` kaynağına karşı derlendi (`mod-solartech`
+  adımı geçti); oyunun kendisi başlatıcı uyumsuzluğu yüzünden bağlanamadı. `4acdda5` ile
+  derleme ve oyun içi davranış henüz denenmedi. Modun kullandığı hook imzaları iki kaynakta
+  aynıdır.

@@ -7,13 +7,14 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 ID=solartech
-VERSION=0.2.0
-# The Horizon commit it is made for (Nightly 2026-11-08), as native/horizon-mixin.toml pins it.
-HORIZON=fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca
+VERSION=0.2.1
+# The Horizon commit the launcher builds the game from, as native/horizon-mixin.toml pins it.
+# Not Nightly 2026-11-08 (fdc87ae): launcher 0.2.62 generates a game entry point that needs
+# horizon_threads::GameAllocator, which that Nightly's source doesn't have. This is the first
+# commit checked to have it; the hook points the mod uses are the same in both.
+HORIZON=4acdda54f2ef1e44ade292ce3b02ed91910f9f83
 # The horizon-mixins commit that Horizon's launcher uses (launcher/src/native_mods.rs, MIXINS_REV).
 MIXINS=5a64af938ec86b00d53d16a408aabc0038fb3e57
-# The native hook points' version of that Horizon (NATIVE_HOOKS_API).
-HOOKS=411
 
 grep -q "^version = \"$VERSION\"" content/horizon-mod.toml
 grep -q "^version = \"$VERSION\"" native/horizon-mixin.toml
@@ -25,7 +26,7 @@ mkdir -p dist "build/mixins/$ID"
 (cd content && zip -q -X -r "../dist/$ID.hmod" horizon-mod.toml assets data)
 
 cat > build/horizon-native.json <<JSON
-{"schema": 1, "id": "$ID", "version": "$VERSION", "game": "26.3", "horizon": "$HORIZON", "mixins": "$MIXINS", "hooks": $HOOKS}
+{"schema": 1, "id": "$ID", "version": "$VERSION", "game": "26.3", "horizon": "$HORIZON", "mixins": "$MIXINS"}
 JSON
 cp native/horizon-mixin.toml native/.gitignore "build/mixins/$ID/"
 mkdir -p "build/mixins/$ID/api/src"
