@@ -65,6 +65,11 @@ YERLEŞİKLER = {
     "aralık": "aralık", "aralik": "aralık", "range": "aralık",
     "metne": "metne", "str": "metne",
     "sayıya": "sayıya", "sayiya": "sayıya", "num": "sayıya",
+    "dilim": "dilim", "slice": "dilim",
+    "bul": "bul", "find": "bul",
+    "sil": "sil", "remove": "sil",
+    "böl": "böl", "bol": "böl", "split": "böl",
+    "birleş": "birleş", "birles": "birleş", "join": "birleş",
     "oku": "oku", "read": "oku",
     "girdi_var": "girdi_var", "has_input": "girdi_var",
 }
@@ -509,11 +514,11 @@ class TürKoduSatırı:
     """Yazdırılan listenin eleman türü sonradan belli olabileceği için
     tür kodunu yükleyen satır ancak derlemenin sonunda metne çevrilir."""
 
-    def __init__(self, tür):
-        self.tür = tür
+    def __init__(self, tür, yazmaç="esi"):
+        self.tür, self.yazmaç = tür, yazmaç
 
     def __str__(self):
-        return f"    mov esi, {tür_kodu(self.tür)}"
+        return f"    mov {self.yazmaç}, {tür_kodu(self.tür)}"
 
 
 KARŞILAŞTIRMA = {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"}
@@ -524,7 +529,9 @@ BOŞ_LİSTE_HATASI = ("bu listenin eleman türü henüz belli değil; "
 # Hata verebilen çalışma zamanı işlemleri; öncesinde r15'e kaynak satırı yüklenir.
 RİSKLİ = {"jz __sifira_bolme"} | {"call " + ad for ad in (
     "__liste_al", "__liste_koy", "__metin_al", "__metinden_sayi", "__liste_yeni",
-    "__liste_ekle", "__aralik", "__metin_birlestir", "__sayidan_metin", "__oku")}
+    "__liste_ekle", "__aralik", "__metin_birlestir", "__sayidan_metin", "__oku",
+    "__metin_dilim", "__liste_dilim", "__liste_birlestir", "__liste_sil",
+    "__metin_bol", "__liste_birles")}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -888,6 +895,352 @@ __metinden_sayi:                # rdi = metin -> rax = sayı
     jz 2f
     neg rax
 2:  ret
+
+__deger_esit:                   # rdi = a, rsi = b, rdx = tür kodu -> rax = eşitse 1, değilse 0
+    test rdx, rdx               # 0: sayı
+    jnz 1f
+    xor eax, eax
+    cmp rdi, rsi
+    sete al
+    ret
+1:  cmp rdx, 1                  # 1: metin
+    jne 2f
+    call __metin_karsilastir
+    test rax, rax
+    sete al
+    movzx eax, al
+    ret
+2:  push rbx                    # k+2: liste; uzunluklar ve tüm elemanlar eşit olmalı
+    push r12
+    push r13
+    push r14
+    mov r12, rdi
+    mov r13, rsi
+    lea r14, [rdx-2]
+    mov rax, [r12]
+    cmp rax, [r13]
+    jne 5f
+    xor ebx, ebx
+3:  cmp rbx, [r12]
+    jae 4f
+    mov rax, [r12+16]
+    mov rdi, [rax+rbx*8]
+    mov rax, [r13+16]
+    mov rsi, [rax+rbx*8]
+    mov rdx, r14
+    call __deger_esit
+    test rax, rax
+    jz 5f
+    inc rbx
+    jmp 3b
+4:  mov eax, 1
+    jmp 6f
+5:  xor eax, eax
+6:  pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__liste_bul:                    # rdi = liste, rsi = aranan, rdx = eleman tür kodu -> rax = dizin ya da -1
+    push rbx
+    push r12
+    push r13
+    push r14
+    mov r12, rdi
+    mov r13, rsi
+    mov r14, rdx
+    xor ebx, ebx
+1:  cmp rbx, [r12]
+    jae 2f
+    mov rax, [r12+16]
+    mov rdi, [rax+rbx*8]
+    mov rsi, r13
+    mov rdx, r14
+    call __deger_esit
+    test rax, rax
+    jnz 3f
+    inc rbx
+    jmp 1b
+2:  mov rbx, -1
+3:  mov rax, rbx
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__liste_sil:                    # rdi = liste, rsi = dizin -> rax = silinen eleman
+    cmp rsi, [rdi]
+    jae __dizin_hatasi
+    mov rdx, [rdi+16]
+    mov rax, [rdx+rsi*8]
+    mov rcx, [rdi]
+    dec rcx
+    mov [rdi], rcx
+1:  cmp rsi, rcx                # sonrakileri bir göz geri kaydır
+    jae 2f
+    mov r8, [rdx+rsi*8+8]
+    mov [rdx+rsi*8], r8
+    inc rsi
+    jmp 1b
+2:  ret
+
+__liste_dilim:                  # rdi = liste, rsi = baş, rdx = son -> rax = [baş, son) elemanlarının yeni listesi
+    push rbx
+    push r12
+    push r13
+    push r14
+    mov rbx, rdi
+    mov r12, rsi
+    mov r13, rdx
+    test r12, r12               # sınırlar listeye sığdırılır
+    jns 1f
+    xor r12, r12
+1:  cmp r13, [rbx]
+    jle 2f
+    mov r13, [rbx]
+2:  mov rdi, r13
+    sub rdi, r12
+    cmp rdi, 4
+    jge 3f
+    mov edi, 4
+3:  call __liste_yeni
+    mov r14, rax
+4:  cmp r12, r13
+    jge 5f
+    mov rax, [rbx+16]
+    mov rsi, [rax+r12*8]
+    mov rdi, r14
+    call __liste_ekle
+    inc r12
+    jmp 4b
+5:  mov rax, r14
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__liste_birlestir:              # rdi = a, rsi = b -> rax = a + b (yeni liste)
+    push rbx
+    push r12
+    push r13
+    push r14
+    mov r12, rdi
+    mov r13, rsi
+    mov rdi, [r12]
+    add rdi, [r13]
+    cmp rdi, 4
+    jge 1f
+    mov edi, 4
+1:  call __liste_yeni
+    mov r14, rax
+    xor ebx, ebx
+2:  cmp rbx, [r12]
+    jae 3f
+    mov rax, [r12+16]
+    mov rsi, [rax+rbx*8]
+    mov rdi, r14
+    call __liste_ekle
+    inc rbx
+    jmp 2b
+3:  xor ebx, ebx
+4:  cmp rbx, [r13]
+    jae 5f
+    mov rax, [r13+16]
+    mov rsi, [rax+rbx*8]
+    mov rdi, r14
+    call __liste_ekle
+    inc rbx
+    jmp 4b
+5:  mov rax, r14
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__metin_konum:                  # rdi = metin, rsi = karakter dizini -> rax = bayt konumu (metne sığdırılır)
+    mov rcx, [rdi-8]
+    xor eax, eax
+    test rsi, rsi
+    jle 3f
+1:  cmp rax, rcx
+    jae 3f
+    inc rax
+2:  cmp rax, rcx
+    jae 4f
+    movzx edx, byte ptr [rdi+rax]
+    and edx, 0xC0
+    cmp edx, 0x80
+    jne 4f
+    inc rax
+    jmp 2b
+4:  dec rsi
+    jnz 1b
+3:  ret
+
+__metin_dilim:                  # rdi = metin, rsi = baş, rdx = son (karakter) -> rax = alt metin
+    push rbx
+    push r12
+    push r13
+    mov rbx, rdi
+    mov r13, rdx
+    call __metin_konum
+    mov r12, rax
+    mov rdi, rbx
+    mov rsi, r13
+    call __metin_konum
+    mov r13, rax
+    cmp r13, r12
+    jae 1f
+    mov r13, r12
+1:  sub r13, r12
+    mov rdi, r13
+    call __metin_yeni
+    mov rdi, rax
+    lea rsi, [rbx+r12]
+    mov rcx, r13
+    rep movsb
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__metin_bul:                    # rdi = metin, rsi = aranan -> rax = ilk geçtiği karakter dizini ya da -1
+    push rbx
+    mov rcx, [rdi-8]
+    mov rdx, [rsi-8]
+    xor r8, r8                  # bayt konumu
+    xor eax, eax                # karakter dizini
+1:  lea r9, [r8+rdx]
+    cmp r9, rcx
+    ja 5f
+    xor r10, r10
+2:  cmp r10, rdx
+    jae 4f
+    lea r9, [rdi+r8]
+    movzx r11d, byte ptr [r9+r10]
+    movzx ebx, byte ptr [rsi+r10]
+    cmp r11d, ebx
+    jne 3f
+    inc r10
+    jmp 2b
+3:  movzx r11d, byte ptr [rdi+r8]
+    and r11d, 0xC0
+    cmp r11d, 0x80
+    setne r11b
+    movzx r11d, r11b
+    add rax, r11
+    inc r8
+    jmp 1b
+4:  pop rbx
+    ret
+5:  mov rax, -1
+    pop rbx
+    ret
+
+__bol_parca:                    # rbx = metin, r14 = baş, rsi = son (bayt); parçayı r13 listesine ekler
+    sub rsi, r14
+    push rsi
+    mov rdi, rsi
+    call __metin_yeni
+    pop rcx
+    mov rdi, rax
+    lea rsi, [rbx+r14]
+    rep movsb
+    mov rsi, rax
+    mov rdi, r13
+    jmp __liste_ekle
+
+__metin_bol:                    # rdi = metin, rsi = ayraç -> rax = parçaların listesi
+    push rbx
+    push r12
+    push r13
+    push r14
+    push rbp
+    mov rbx, rdi
+    mov r12, rsi
+    mov edi, 4
+    call __liste_yeni
+    mov r13, rax
+    xor r14, r14                # süren parçanın başı
+    xor ebp, ebp                # tarama konumu
+    cmp qword ptr [r12-8], 0    # boş ayraç: metin tek parça kalır
+    je 5f
+1:  mov rax, [r12-8]
+    add rax, rbp
+    cmp rax, [rbx-8]
+    ja 5f
+    xor ecx, ecx
+2:  cmp rcx, [r12-8]
+    jae 4f
+    lea rax, [rbx+rbp]
+    movzx edx, byte ptr [rax+rcx]
+    cmp dl, [r12+rcx]
+    jne 3f
+    inc rcx
+    jmp 2b
+3:  inc rbp
+    jmp 1b
+4:  mov rsi, rbp
+    call __bol_parca
+    add rbp, [r12-8]
+    mov r14, rbp
+    jmp 1b
+5:  mov rsi, [rbx-8]
+    call __bol_parca
+    mov rax, r13
+    pop rbp
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__liste_birles:                 # rdi = metin listesi, rsi = ayraç -> rax = birleşik metin
+    push rbx
+    push r12
+    push r13
+    push r14
+    mov r12, rdi
+    mov r13, rsi
+    xor edi, edi                # toplam bayt uzunluğu
+    xor ebx, ebx
+    mov rdx, [r12+16]
+1:  cmp rbx, [r12]
+    jae 3f
+    mov rax, [rdx+rbx*8]
+    add rdi, [rax-8]
+    test rbx, rbx
+    jz 2f
+    add rdi, [r13-8]
+2:  inc rbx
+    jmp 1b
+3:  call __metin_yeni
+    mov r14, rax
+    mov rdi, rax
+    xor ebx, ebx
+4:  cmp rbx, [r12]
+    jae 6f
+    test rbx, rbx
+    jz 5f
+    mov rsi, r13
+    mov rcx, [r13-8]
+    rep movsb
+5:  mov rax, [r12+16]
+    mov rsi, [rax+rbx*8]
+    mov rcx, [rsi-8]
+    rep movsb
+    inc rbx
+    jmp 4b
+6:  mov rax, r14
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
 
 __girdi_doldur:                 # tamponu stdin'den doldurur -> rax = 1, girdi bittiyse 0
     xor eax, eax
@@ -1454,6 +1807,54 @@ class KodÜretici:
             self.yaz("pop rdi")
             self.yaz("call __liste_ekle")
             return türler[0]
+        if asıl == "dilim":
+            if len(türler) != 3 or türler[1:] != ["sayı", "sayı"] \
+                    or not (ilk_liste or türler[0] == "metin"):
+                yanlış("liste ya da metin, baş, son")
+            self.yaz("pop rdx")
+            self.yaz("pop rsi")
+            self.yaz("pop rdi")
+            self.yaz("call __liste_dilim" if ilk_liste else "call __metin_dilim")
+            return Liste(türler[0].eleman) if ilk_liste else "metin"
+        if asıl == "bul":
+            if türler == ["metin", "metin"]:
+                self.yaz("pop rsi")
+                self.yaz("pop rdi")
+                self.yaz("call __metin_bul")
+                return "sayı"
+            if len(türler) != 2 or not ilk_liste:
+                yanlış("metin, aranan metin  ya da  liste, aranan eleman")
+            if not birleştir(türler[0], Liste(türler[1])):
+                raise NehirHatası(f"{türler[0]} içinde {türler[1]} aranamaz", satır)
+            self.yaz("pop rsi")
+            self.yaz("pop rdi")
+            self.çıktı.append(TürKoduSatırı(türler[1], "edx"))
+            self.yaz("call __liste_bul")
+            return "sayı"
+        if asıl == "sil":
+            if len(türler) != 2 or not ilk_liste or türler[1] != "sayı":
+                yanlış("liste, dizin")
+            if türler[0].eleman is None:
+                raise NehirHatası(BOŞ_LİSTE_HATASI, satır)
+            self.yaz("pop rsi")
+            self.yaz("pop rdi")
+            self.yaz("call __liste_sil")
+            return türler[0].eleman
+        if asıl == "böl":
+            if türler != ["metin", "metin"]:
+                yanlış("metin, ayraç")
+            self.yaz("pop rsi")
+            self.yaz("pop rdi")
+            self.yaz("call __metin_bol")
+            return Liste("metin")
+        if asıl == "birleş":
+            if len(türler) != 2 or not ilk_liste or türler[1] != "metin" \
+                    or not birleştir(türler[0], Liste("metin")):
+                yanlış("metin listesi, ayraç")
+            self.yaz("pop rsi")
+            self.yaz("pop rdi")
+            self.yaz("call __liste_birles")
+            return "metin"
         if türler != ["sayı", "sayı"]:      # aralık
             yanlış("sayı, sayı")
         self.yaz("pop rsi")
@@ -1570,6 +1971,23 @@ class KodÜretici:
             self.yaz(f"{KARŞILAŞTIRMA[iş]} al")
             self.yaz("movzx eax, al")
             return "sayı"
+        if isinstance(sol_türü, Liste) and isinstance(sağ_türü, Liste) and iş in ("+", "==", "!="):
+            if not birleştir(sol_türü, sağ_türü):
+                raise NehirHatası(f"{sol_türü} ile {sağ_türü} "
+                                  + ("birleştirilemez" if iş == "+" else "karşılaştırılamaz"), satır)
+            self.yaz("mov rdi, rax")
+            self.yaz("mov rsi, rcx")
+            if iş == "+":
+                self.yaz("call __liste_birlestir")
+                return sol_türü
+            self.çıktı.append(TürKoduSatırı(sol_türü, "edx"))
+            self.yaz("call __deger_esit")
+            if iş == "!=":
+                self.yaz("xor eax, 1")
+            return "sayı"
+        if isinstance(sol_türü, Liste) and iş == "+":
+            raise NehirHatası(f"listeye '+' ile eleman eklenemez", satır,
+                              "eleman eklemek için:  liste -> ekle(eleman)")
         if "metin" in (sol_türü, sağ_türü) and "sayı" in (sol_türü, sağ_türü) and iş == "+":
             raise NehirHatası("metin ile sayı doğrudan toplanamaz", satır,
                               "sayıyı önce metne çevirin:  \"a\" + metne(5)")

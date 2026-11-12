@@ -1,0 +1,45 @@
+# Yerleşik metin ve liste işlevleri
+
+# dilim: [baş, son) aralığını alır; sınırlar taşarsa sığdırılır.
+"çağlayan nehir" -> m
+m -> dilim(0, 8) -> yazdır
+m -> dilim(9, 100) -> yazdır
+[10, 20, 30, 40, 50] -> sayılar -> dilim(1, 4) -> yazdır
+
+# bul: ilk geçtiği dizini verir, yoksa -1.
+m -> bul("nehir") -> yazdır
+m -> bul("deniz") -> yazdır
+sayılar -> bul(40) -> yazdır
+["elma", "armut"] -> bul("armut") -> yazdır
+
+# sil: dizindeki elemanı listeden çıkarır ve onu verir.
+sayılar -> sil(0) -> yazdır
+sayılar -> yazdır
+
+# böl ve birleş
+"su,akar,yatağını,bulur" -> böl(",") -> kelimeler -> yazdır
+kelimeler -> birleş(" ") -> yazdır
+"a--b----c" -> böl("--") -> yazdır
+[] -> boş
+boş -> birleş(", ") -> uzunluk -> yazdır
+
+# Listeler + ile birleşir, == ile karşılaştırılır.
+[1, 2] + [3] -> üçlü -> yazdır
+üçlü == [1, 2, 3] -> yazdır
+üçlü != [1, 2] -> yazdır
+[["a"], ["b", "c"]] == [["a"], ["b", "c"]] -> yazdır
+kelimeler + ["son"] -> uzunluk -> yazdır
+
+# Hepsi bir arada: bir cümlenin kelimelerini ters sırayla yaz.
+işlev ters_çevir(liste) {
+    [] -> sonuç
+    liste -> her (e) { [e] + sonuç -> sonuç }
+    sonuç -> döndür
+}
+"nehir denize akar" -> böl(" ") -> ters_çevir -> birleş(" ") -> yazdır
+
+# English names: slice, find, remove, split, join
+"a b c" -> split(" ") -> parts
+parts -> remove(1) -> print
+parts -> join("+") -> print
+parts -> find("c") -> print

@@ -143,6 +143,7 @@ sayılar -> her (s) {
 **İfadeler:** `+ - * / %`, `== != < > <= >=`, `ve veya değil`, parantez, işlev çağrısı `f(a, b)`,
 liste `[1, 2, 3]`, eleman erişimi `l[i]`.
 Metinlerde `+` birleştirir, karşılaştırma işleçleri sözlük sırasına göre çalışır ve `m[i]` `i`. karakteri verir.
+Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikleri (iç içe listeler dahil) karşılaştırır.
 `->` yerine `→` da yazılabilir. Yorumlar `#` ile başlar.
 
 **Yerleşik işlevler:**
@@ -152,6 +153,11 @@ Metinlerde `+` birleştirir, karşılaştırma işleçleri sözlük sırasına g
 | `uzunluk(x)` | `len` | listenin eleman sayısı ya da metnin karakter sayısı |
 | `ekle(l, e)` | `push` | `e`'yi listenin sonuna ekler, listeyi döndürür |
 | `aralık(a, b)` | `range` | `[a, a+1, ..., b-1]` listesini üretir |
+| `dilim(x, baş, son)` | `slice` | listenin ya da metnin `baş` ile `son` arasındaki parçası (`son` dahil değil); taşan sınırlar sığdırılır |
+| `bul(x, aranan)` | `find` | elemanın listede ya da metnin metinde ilk geçtiği dizin; yoksa `-1` |
+| `sil(l, i)` | `remove` | `i`. elemanı listeden çıkarır ve o elemanı verir |
+| `böl(m, ayraç)` | `split` | metni ayraçtan böler, metin listesi verir |
+| `birleş(l, ayraç)` | `join` | metin listesinin elemanlarını araya ayraç koyarak tek metin yapar |
 | `metne(n)` | `str` | sayıyı metne çevirir |
 | `sayıya(m)` | `num` | metni sayıya çevirir; metin geçerli bir tam sayı değilse program hatayla durur |
 | `oku()` | `read` | standart girdiden bir satır okur (satır sonu olmadan); girdi bittiyse `""` verir |
@@ -189,8 +195,9 @@ Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
 
 ## Şimdilik olmayanlar
 
-- Metinler değiştirilemez; alt metin alma, arama, büyük/küçük harf çevirme yok
-- Listelerden eleman silinemez; listeler `+` ile birleştirilemez ve `==` ile karşılaştırılamaz
+- Metinler değiştirilemez; büyük/küçük harf çevirme yok
+- Listeler `<` ve `>` ile karşılaştırılamaz; yerleşik sıralama işlevi yok
+- Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, ...) değişken ya da işlev adı olarak kullanılamaz
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
 - Ondalıklı sayı, dosya okuma/yazma yok

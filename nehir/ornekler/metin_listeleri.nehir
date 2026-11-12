@@ -10,18 +10,7 @@ meyveler -> her (m) { m + " (" + metne(uzunluk(m)) + ")" -> yazdır }
 girdi_var() -> iken { satırlar -> ekle(oku()) }
 satırlar -> yazdır
 
-# Metni ayraçtan bölen bir işlev: metin alır, metin listesi döndürür.
-işlev böl(m, ayraç) {
-    [] -> parçalar
-    "" -> parça
-    m -> her (k) {
-        k == ayraç -> eğer {
-            parçalar -> ekle(parça)
-            "" -> parça
-        } değilse { parça + k -> parça }
-    }
-    parçalar -> ekle(parça) -> döndür
-}
+# Yerleşik böl işlevi metni ayraçtan böler ve metin listesi verir.
 satırlar[0] -> böl(" ") -> kelimeler -> yazdır
 
 # Sözlük sırasına göre sıralama
