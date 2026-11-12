@@ -20,6 +20,11 @@ i < 5 -> iken {             # koşul her turda yeniden akar
     i -> yazdır
     i + 1 -> i
 }
+
+[3, 1, 4] -> l -> ekle(1) -> yazdır     # [3, 1, 4, 1]
+l -> her (e) { e * e -> yazdır }        # her eleman e'ye akar
+
+4 -> (yazdır | kare -> a | kare -> kare -> b)   # çatal: nehir kollara ayrılır
 ```
 
 ## Derleyici
@@ -54,6 +59,9 @@ Gereksinimler: Python 3.8+, GNU binutils (`as`, `ld`), x86-64 Linux.
 | `yazdır` | değeri yazdırır, değer akmaya devam eder |
 | `eğer { } değilse { }` | değer sıfır değilse ilk blok, sıfırsa ikinci blok çalışır |
 | `iken { }` | akış sıfır olmayan değer ürettiği sürece bloğu tekrarlar |
+| `her (x) { }` | akan listenin her elemanı sırayla `x`'e akar ve blok çalışır |
+| `liste[i]` | değeri listenin `i`. gözüne yazar (ilk göz 0) |
+| `(a \| b \| c)` | **çatal:** aynı değer her kola ayrı ayrı akar, sonra değişmeden yoluna devam eder |
 | `döndür` | değeri işlevden döndürür |
 
 **Anahtar kelimeler** Türkçe, ASCII-Türkçe ya da İngilizce yazılabilir ve karıştırılabilir:
@@ -63,21 +71,54 @@ Gereksinimler: Python 3.8+, GNU binutils (`as`, `ld`), x86-64 Linux.
 | `eğer` | `eger` | `if` |
 | `değilse` | `degilse` | `else` |
 | `iken` | | `while` |
+| `her` | | `each` |
 | `işlev`, `fonksiyon` | `islev` | `fn` |
 | `döndür` | `dondur` | `return` |
 | `yazdır` | `yazdir` | `print` |
 | `doğru` / `yanlış` | `dogru` / `yanlis` | `true` / `false` |
 | `ve` / `veya` / `değil` | `degil` | `and` / `or` / `not` |
 
-**İfadeler:** `+ - * / %`, `== != < > <= >=`, `ve veya değil`, parantez, işlev çağrısı `f(a, b)`.
+**Çatal** dilin en kendine özgü parçasıdır. Her kol bir hedef zinciridir:
+
+```nehir
+4 -> (yazdır | kare -> a | küp -> b)    # 4 yazılır, a = 16, b = 64
+10 -> (kare -> yazdır) -> x             # 100 yazılır, x = 10
+```
+
+Kollarda `eğer` ve `döndür` kullanılabilir; `iken` ve `her` kullanılamaz.
+
+**İfadeler:** `+ - * / %`, `== != < > <= >=`, `ve veya değil`, parantez, işlev çağrısı `f(a, b)`,
+liste `[1, 2, 3]`, eleman erişimi `l[i]`.
 `->` yerine `→` da yazılabilir. Yorumlar `#` ile başlar.
 
-**Türler:** 64 bit tam sayılar ve metinler. Tür derleme anında denetlenir; bir değişkenin türü değişemez.
+**Yerleşik işlevler:**
+
+| Türkçe | İngilizce | Ne yapar |
+| --- | --- | --- |
+| `uzunluk(x)` | `len` | listenin eleman sayısı ya da metnin bayt sayısı |
+| `ekle(l, n)` | `push` | `n`'yi listenin sonuna ekler, listeyi döndürür |
+| `aralık(a, b)` | `range` | `[a, a+1, ..., b-1]` listesini üretir |
+
+**Türler:** 64 bit tam sayılar, metinler ve tam sayı listeleri. Türler derleme anında denetlenir;
+bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
+çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır.
 
 **Kapsam:** En üst düzeyde atanan değişkenler küreseldir. İşlev içinde ilk kez atanan adlar yereldir.
 
+**Satırlar:** Deyimler arasında ayırıcı gerekmez. Tek kural: çağrı `f(...)` ve eleman erişimi
+`l[...]` için parantez adla aynı satırda olmalıdır. Aynı satıra birden çok deyim yazarken `;` kullanılabilir.
+
+## Sınamalar
+
+```bash
+python3 test.py
+```
+
+Her örnek derlenir, çalıştırılır ve çıktısı yanındaki `.beklenen` dosyasıyla karşılaştırılır.
+
 ## Şimdilik olmayanlar
 
-- Metinler yalnızca yazdırılabilir ve değişkende tutulabilir (birleştirme, karşılaştırma yok)
-- İşlevler yalnızca sayı alır ve döndürür
-- Liste, kullanıcıdan girdi alma, ondalıklı sayı yok
+- Metinler yalnızca yazdırılabilir, değişkende tutulabilir ve işlevlere verilebilir (birleştirme, karşılaştırma yok)
+- Listeler yalnızca tam sayı tutar
+- Bellek geri toplanmaz: program en çok 256 MB liste belleği ayırabilir
+- Kullanıcıdan girdi alma, ondalıklı sayı, döngüden erken çıkma yok

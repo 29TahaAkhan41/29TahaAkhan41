@@ -1,0 +1,40 @@
+# Listeler
+[3, 1, 4, 1, 5] -> sayılar -> yazdır
+sayılar -> uzunluk -> yazdır
+sayılar[2] -> yazdır
+
+9 -> sayılar[0]                 # 9, listenin ilk gözüne akar
+sayılar -> ekle(2) -> ekle(6) -> yazdır
+
+# Liste 'her'e akar; her eleman sırayla x'e akar.
+0 -> toplam
+sayılar -> her (x) { toplam + x -> toplam }
+toplam -> yazdır
+
+# İşlevler liste alıp döndürebilir; türler ilk çağrıdan çıkarılır.
+işlev kareler(liste) {
+    [] -> sonuç
+    liste -> her (e) { sonuç -> ekle(e * e) }
+    sonuç -> döndür
+}
+aralık(1, 6) -> kareler -> yazdır
+
+# Kabarcık sıralaması
+işlev sırala(l) {
+    l -> uzunluk -> n
+    0 -> i
+    i < n -> iken {
+        0 -> j
+        j < n - 1 - i -> iken {
+            l[j] > l[j + 1] -> eğer {
+                l[j] -> geçici
+                l[j + 1] -> l[j]
+                geçici -> l[j + 1]
+            }
+            j + 1 -> j
+        }
+        i + 1 -> i
+    }
+    l -> döndür
+}
+[5, 2, 9, 1, 7, 3] -> sırala -> yazdır

@@ -1,0 +1,25 @@
+# Çatal: nehir kollara ayrılır. Aynı değer her kola ayrı ayrı akar.
+işlev kare(n) { n * n -> döndür }
+işlev küp(n) { n * n * n -> döndür }
+
+# 4 üç kola ayrılır: kendisi yazılır, karesi a'ya, küpü b'ye akar.
+4 -> (yazdır | kare -> a | küp -> b)
+a + b -> yazdır
+
+# Çataldan sonra asıl değer değişmeden yoluna devam eder.
+10 -> (kare -> yazdır | küp -> yazdır) -> x
+x -> yazdır
+
+# Kollarda koşul da olabilir. English keywords work here too.
+fn is_negative(n) { n < 0 -> return }
+fn is_zero(n) { n == 0 -> return }
+fn is_positive(n) { n > 0 -> return }
+
+fn classify(n) {
+    n -> (
+        is_negative -> if { "negatif" -> print }
+      | is_zero     -> if { "sıfır" -> print }
+      | is_positive -> if { "pozitif" -> print }
+    )
+}
+[-5, 0, 7] -> each (v) { v -> classify }
