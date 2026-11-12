@@ -57,6 +57,37 @@ python3 nehir.py ornekler/merhaba.nehir --asm
 
 Gereksinimler: Python 3.8+, GNU binutils (`as`, `ld`), x86-64 Linux.
 
+## Hata mesajları
+
+Derleyici hatanın yerini kaynak satırında gösterir ve yapabildiğinde bir ipucu verir:
+
+```
+program.nehir:2:1: hata: 'toplm' adında bir değişken yok
+    2 | toplm + 1 -> yazdır
+      | ^^^^^
+      = ipucu: 'toplam' mi demek istediniz?
+```
+
+```
+program.nehir:1:3: hata: Nehir'de '=' ile atama yok
+    1 | x = 5
+      |   ^
+      = ipucu: değer soldan sağa akar: 5 -> x   (eşitlik sınaması için ==)
+```
+
+Nehir'de bilinmeyen bir ada akan değer yeni bir değişken oluşturduğu için, işlev adındaki
+yazım hatası (`5 -> kere`) hata değildir. Derleyici, bir işlev ya da anahtar kelimeye çok
+benzeyen ve hiç okunmayan değişkenler için uyarı verir. Uyarılar derlemeyi durdurmaz.
+
+Çalışma zamanı hataları (sıfıra bölme, sınır dışı dizin, sayıya çevrilemeyen metin, biten bellek)
+programı 1 çıkış koduyla durdurur ve hatanın olduğu kaynak satırını bildirir:
+
+```
+program.nehir:4: çalışma hatası: sıfıra bölme
+```
+
+Terminalde mesajlar renklidir; `NO_COLOR` ortam değişkeni renkleri kapatır.
+
 ## Dil
 
 **Akış hedefleri** (`->` işaretinin sağına gelebilenler):
@@ -153,6 +184,7 @@ python3 test.py
 ```
 
 Her örnek derlenir, çalıştırılır ve çıktısı yanındaki `.beklenen` dosyasıyla karşılaştırılır.
+`ornekler/hatalar/` altındaki programlar bilerek hatalıdır; onların beklenen çıktısı hata mesajlarıdır.
 Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
 
 ## Şimdilik olmayanlar

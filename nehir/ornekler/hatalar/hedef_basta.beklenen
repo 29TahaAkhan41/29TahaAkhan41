@@ -1,0 +1,4 @@
+ornekler/hatalar/hedef_basta.nehir:2:1: hata: bir ifade bekleniyordu, 'if' bulundu
+    2 | if x > 3 { "büyük" -> print }
+      | ^^
+      = ipucu: 'if' bir hedeftir; değer ona soldan akar:  koşul -> if { ... }

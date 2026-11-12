@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""ornekler/ altındaki her .nehir dosyasını derler, çalıştırır ve çıktısını
-yanındaki .beklenen dosyasıyla karşılaştırır. Aynı adlı bir .girdi dosyası varsa
+"""ornekler/ ve ornekler/hatalar/ altındaki her .nehir dosyasını derler, çalıştırır
+ve çıktısını (hata mesajları dahil) yanındaki .beklenen dosyasıyla karşılaştırır. Aynı adlı bir .girdi dosyası varsa
 programa standart girdi olarak verilir.
 
   python3 test.py              sınamaları çalıştır
@@ -19,8 +19,13 @@ def ana():
     güncelle = any(a in ("--güncelle", "--guncelle", "--update") for a in sys.argv[1:])
     başarısız = 0
     with tempfile.TemporaryDirectory() as geçici:
-        for kaynak in sorted(glob.glob(os.path.join(KÖK, "ornekler", "*.nehir"))):
-            ad = os.path.splitext(os.path.basename(kaynak))[0]
+        kaynaklar = sorted(glob.glob(os.path.join(KÖK, "ornekler", "*.nehir"))) + \
+            sorted(glob.glob(os.path.join(KÖK, "ornekler", "hatalar", "*.nehir")))
+        for kaynak in kaynaklar:
+            # Hata mesajları dosya yolunu içerdiği için derleyici hep aynı
+            # dizinden, göreli yolla çalıştırılır.
+            göreli = os.path.relpath(kaynak, KÖK).replace(os.sep, "/")
+            ad = os.path.splitext(göreli)[0].replace("ornekler/", "", 1)
             beklenen_yolu = os.path.splitext(kaynak)[0] + ".beklenen"
             try:
                 with open(os.path.splitext(kaynak)[0] + ".girdi", encoding="utf-8") as f:
@@ -28,9 +33,9 @@ def ana():
             except FileNotFoundError:
                 girdi = ""
             sonuç = subprocess.run(
-                [sys.executable, os.path.join(KÖK, "nehir.py"), kaynak,
-                 "-o", os.path.join(geçici, ad), "--run"],
-                input=girdi, capture_output=True, text=True, encoding="utf-8")
+                [sys.executable, "nehir.py", göreli,
+                 "-o", os.path.join(geçici, os.path.basename(ad)), "--run"],
+                cwd=KÖK, input=girdi, capture_output=True, text=True, encoding="utf-8")
             çıktı = sonuç.stdout + sonuç.stderr
             if güncelle:
                 with open(beklenen_yolu, "w", encoding="utf-8") as f:

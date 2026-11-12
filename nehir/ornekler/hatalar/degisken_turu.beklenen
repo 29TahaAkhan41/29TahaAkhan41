@@ -1,0 +1,3 @@
+ornekler/hatalar/degisken_turu.nehir:2:10: hata: 'sayaç' değişkeni sayı türünde; metin atanamaz
+    2 | "beş" -> sayaç
+      |          ^^^^^

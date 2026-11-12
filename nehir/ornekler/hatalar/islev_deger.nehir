@@ -1,0 +1,2 @@
+işlev kare(n) { n * n -> döndür }
+kare + 1 -> yazdır

@@ -6,16 +6,36 @@ ardından `as` ve `ld` ile libc'siz, bağımsız bir çalıştırılabilir dosya
 
 Aşamalar:  kaynak -> Sözcükleyici -> Ayrıştırıcı (AST) -> Kod üretici -> .s -> as/ld
 """
+import difflib
 import os
 import subprocess
 import sys
 
 
+class Konum(int):
+    """Bir satır numarası gibi davranır ama sütunu ve uzunluğu da taşır;
+    hata mesajları kaynak satırında tam yeri gösterebilsin diye."""
+
+    def __new__(cls, satır, sütun=1, uzunluk=1):
+        k = super().__new__(cls, satır)
+        k.sütun, k.uzunluk = sütun, uzunluk
+        return k
+
+
 class NehirHatası(Exception):
-    def __init__(self, mesaj, satır=None):
+    def __init__(self, mesaj, satır=None, ipucu=None):
         super().__init__(mesaj)
         self.mesaj = mesaj
         self.satır = satır
+        self.ipucu = ipucu
+
+
+def benzerler(ad, adaylar):
+    """Yazım hatası için 'şunu mu demek istediniz' ipucu; benzer ad yoksa None."""
+    yakın = difflib.get_close_matches(ad, sorted(set(adaylar) - {ad}), n=2, cutoff=0.7)
+    if not yakın:
+        return None
+    return " ya da ".join(f"'{y}'" for y in yakın) + " mi demek istediniz?"
 
 
 # ───────────────────────────── Sözcükleyici ─────────────────────────────
@@ -55,10 +75,22 @@ YERLEŞİKLER = {
 KAÇIŞLAR = {"n": "\n", "t": "\t", '"': '"', "\\": "\\"}
 
 
+def uzaklık(a, b):
+    """Düzenleme (Levenshtein) uzaklığı."""
+    önceki = list(range(len(b) + 1))
+    for i, x in enumerate(a, 1):
+        şimdiki = [i]
+        for j, y in enumerate(b, 1):
+            şimdiki.append(min(önceki[j] + 1, şimdiki[j - 1] + 1, önceki[j - 1] + (x != y)))
+        önceki = şimdiki
+    return önceki[-1]
+
+
 class Sözcük:
-    def __init__(self, tür, değer, satır, yeni_satır):
+    def __init__(self, tür, değer, satır, yeni_satır, yazım):
         self.tür, self.değer, self.satır = tür, değer, satır
         self.yeni_satır = yeni_satır    # bu sözcük satırının ilk sözcüğü mü?
+        self.yazım = yazım              # kaynakta yazıldığı hâli
 
     def __repr__(self):
         return f"{self.tür}:{self.değer!r}"
@@ -66,11 +98,15 @@ class Sözcük:
 
 def sözcükle(kaynak):
     sözcükler, i, satır, n = [], 0, 1, len(kaynak)
+    satır_başı = 0
     son_satır = 0
 
-    def ekle(tür, değer):
+    def konum(baş, son):
+        return Konum(satır, baş - satır_başı + 1, max(son - baş, 1))
+
+    def ekle(tür, değer, baş, son):
         nonlocal son_satır
-        sözcükler.append(Sözcük(tür, değer, satır, satır != son_satır))
+        sözcükler.append(Sözcük(tür, değer, konum(baş, son), satır != son_satır, kaynak[baş:son]))
         son_satır = satır
 
     while i < n:
@@ -78,6 +114,7 @@ def sözcükle(kaynak):
         if c == "\n":
             satır += 1
             i += 1
+            satır_başı = i
         elif c.isspace():
             i += 1
         elif c == ";":
@@ -90,24 +127,30 @@ def sözcükle(kaynak):
             j = i
             while j < n and (kaynak[j].isdigit() or kaynak[j] == "_"):
                 j += 1
-            ekle("SAYI", int(kaynak[i:j].replace("_", "")))
+            değer = int(kaynak[i:j].replace("_", ""))
+            if değer >= 2 ** 63:
+                raise NehirHatası("sayı çok büyük; en fazla 9223372036854775807 olabilir", konum(i, j))
+            ekle("SAYI", değer, i, j)
             i = j
         elif c == '"':
             j, parçalar = i + 1, []
             while True:
                 if j >= n or kaynak[j] == "\n":
-                    raise NehirHatası("metin kapatılmamış (\" eksik)", satır)
+                    raise NehirHatası("metin kapatılmamış", konum(i, j),
+                                      "metinler aynı satırda \" ile kapanmalı; "
+                                      "satır sonu için \\n yazın")
                 if kaynak[j] == '"':
                     break
                 if kaynak[j] == "\\":
                     j += 1
                     if j >= n or kaynak[j] not in KAÇIŞLAR:
-                        raise NehirHatası("geçersiz kaçış dizisi", satır)
+                        raise NehirHatası("geçersiz kaçış dizisi", konum(j - 1, j + 1),
+                                          "geçerli olanlar: \\n  \\t  \\\"  \\\\")
                     parçalar.append(KAÇIŞLAR[kaynak[j]])
                 else:
                     parçalar.append(kaynak[j])
                 j += 1
-            ekle("METİN", "".join(parçalar))
+            ekle("METİN", "".join(parçalar), i, j + 1)
             i = j + 1
         elif c.isalpha() or c == "_":
             j = i
@@ -115,19 +158,22 @@ def sözcükle(kaynak):
                 j += 1
             ad = kaynak[i:j]
             if ad in ANAHTARLAR:
-                ekle("ANAHTAR", ANAHTARLAR[ad])
+                ekle("ANAHTAR", ANAHTARLAR[ad], i, j)
             else:
-                ekle("AD", ad)
+                ekle("AD", ad, i, j)
             i = j
         else:
             for iş in İŞLEÇLER:
                 if kaynak.startswith(iş, i):
-                    ekle("İŞLEÇ", "->" if iş == "→" else iş)
+                    ekle("İŞLEÇ", "->" if iş == "→" else iş, i, i + len(iş))
                     i += len(iş)
                     break
             else:
-                raise NehirHatası(f"tanınmayan karakter: {c!r}", satır)
-    ekle("SON", None)
+                if c == "=":
+                    raise NehirHatası("Nehir'de '=' ile atama yok", konum(i, i + 1),
+                                      "değer soldan sağa akar: 5 -> x   (eşitlik sınaması için ==)")
+                raise NehirHatası(f"tanınmayan karakter: {c!r}", konum(i, i + 1))
+    ekle("SON", None, n, n)
     return sözcükler
 
 
@@ -179,10 +225,13 @@ class Ayrıştırıcı:
     def bekle(self, tür, değer=None):
         s = self.al(tür, değer)
         if s is None:
-            beklenen = değer if değer is not None else tür
-            bulunan = "dosya sonu" if self.şimdiki.tür == "SON" else repr(self.şimdiki.değer)
-            raise NehirHatası(f"'{beklenen}' bekleniyordu, {bulunan} bulundu", self.şimdiki.satır)
+            beklenen = {"AD": "bir ad"}.get(tür, tür) if değer is None else f"'{değer}'"
+            raise NehirHatası(f"{beklenen} bekleniyordu, {self.bulunan()} bulundu", self.şimdiki.satır)
         return s
+
+    def bulunan(self):
+        s = self.şimdiki
+        return "dosya sonu" if s.tür == "SON" else f"'{s.yazım}'"
 
     def program(self):
         deyimler = []
@@ -213,13 +262,14 @@ class Ayrıştırıcı:
         self.işlevler[ad] = (parametreler, self.blok(), satır)
 
     def blok(self):
-        self.bekle("İŞLEÇ", "{")
+        açılış = self.bekle("İŞLEÇ", "{")
         deyimler = []
         while not self.bak("İŞLEÇ", "}"):
             if self.bak("ANAHTAR", "işlev"):
                 raise NehirHatası("işlevler yalnızca en üst düzeyde tanımlanabilir", self.şimdiki.satır)
             if self.bak("SON"):
-                raise NehirHatası("blok kapatılmamış ('}' eksik)", self.şimdiki.satır)
+                raise NehirHatası("bu blok kapatılmamış", açılış.satır,
+                                  "eşleşen '}' eksik")
             deyimler.append(self.deyim())
         self.bekle("İŞLEÇ", "}")
         return deyimler
@@ -273,8 +323,8 @@ class Ayrıştırıcı:
                 self.bekle("İŞLEÇ", "]")
                 return ("eleman", s.değer, dizin, s.satır)
             return ("ad", s.değer, None, s.satır)
-        raise NehirHatası("'->' sonrasında bir hedef bekleniyordu "
-                          "(değişken, işlev, yazdır, döndür, eğer, iken, her, çatal)", s.satır)
+        raise NehirHatası(f"'->' sonrasında bir hedef bekleniyordu, {self.bulunan()} bulundu", s.satır,
+                          "hedef olabilenler: değişken, işlev, yazdır, döndür, eğer, iken, her, ( çatal )")
 
     def dal(self):
         """Çatalın bir kolu:  hedef (-> hedef)*"""
@@ -372,8 +422,15 @@ class Ayrıştırıcı:
             elemanlar = self.ifade_listesi("]")
             self.bekle("İŞLEÇ", "]")
             return ("liste", elemanlar, s.satır)
-        bulunan = "dosya sonu" if s.tür == "SON" else repr(s.değer)
-        raise NehirHatası(f"bir ifade bekleniyordu, {bulunan} bulundu", s.satır)
+        ipucu = None
+        if s.tür == "ANAHTAR" and s.değer in ("yazdır", "döndür", "eğer", "iken", "her"):
+            ipucu = (f"'{s.yazım}' bir hedeftir; değer ona soldan akar:  "
+                     + ("liste" if s.değer == "her" else "koşul" if s.değer in ("eğer", "iken") else "değer")
+                     + f" -> {s.yazım}" + (" (x) { ... }" if s.değer == "her" else
+                                           " { ... }" if s.değer in ("eğer", "iken") else ""))
+        elif s.tür == "ANAHTAR" and s.değer == "değilse":
+            ipucu = f"'{s.yazım}' yalnızca bir 'eğer' bloğunun hemen ardından gelebilir"
+        raise NehirHatası(f"bir ifade bekleniyordu, {self.bulunan()} bulundu", s.satır, ipucu)
 
 
 # ───────────────────────────── Kod üretici ─────────────────────────────
@@ -463,6 +520,11 @@ KARŞILAŞTIRMA = {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": 
 
 BOŞ_LİSTE_HATASI = ("bu listenin eleman türü henüz belli değil; "
                     "önce içine bir eleman akmalı")
+
+# Hata verebilen çalışma zamanı işlemleri; öncesinde r15'e kaynak satırı yüklenir.
+RİSKLİ = {"jz __sifira_bolme"} | {"call " + ad for ad in (
+    "__liste_al", "__liste_koy", "__metin_al", "__metinden_sayi", "__liste_yeni",
+    "__liste_ekle", "__aralik", "__metin_birlestir", "__sayidan_metin", "__oku")}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -899,13 +961,32 @@ __sayi_hatasi:
 __bellek_bitti:
     lea rsi, [rip+__h_bellek]
     mov edx, __h_bellek_son - __h_bellek
-__hata:                         # rsi = mesaj, rdx = uzunluk; stderr'e yazıp 1 ile çıkar
-    mov eax, 1
-    mov edi, 2
-    syscall
+__hata:                         # rsi = mesaj, rdx = uzunluk, r15 = kaynak satırı
+    push rdx                    # stderr'e "dosya:satır: çalışma hatası: mesaj" yazıp 1 ile çıkar
+    push rsi
+    lea rsi, [rip+__h_dosya]
+    mov edx, __h_dosya_son - __h_dosya
+    call __hata_yaz
+    sub rsp, 32
+    mov rdi, r15
+    lea rsi, [rsp+32]
+    call __sayi_basamak
+    call __hata_yaz
+    add rsp, 32
+    lea rsi, [rip+__h_ara]
+    mov edx, __h_ara_son - __h_ara
+    call __hata_yaz
+    pop rsi
+    pop rdx
+    call __hata_yaz
     mov edi, 1
     mov eax, 60
     syscall
+__hata_yaz:
+    mov eax, 1
+    mov edi, 2
+    syscall
+    ret
 
     .section .rodata
 __yeni_satir: .byte 10
@@ -913,13 +994,15 @@ __ac: .ascii "["
 __kapa: .ascii "]"
 __virgul: .ascii ", "
 __tirnak: .byte 34
-__h_sifir: .ascii "Nehir çalışma hatası: sıfıra bölme\n"
+__h_ara: .ascii ": çalışma hatası: "
+__h_ara_son:
+__h_sifir: .ascii "sıfıra bölme\n"
 __h_sifir_son:
-__h_dizin: .ascii "Nehir çalışma hatası: dizin sınırların dışında\n"
+__h_dizin: .ascii "dizin sınırların dışında\n"
 __h_dizin_son:
-__h_sayi: .ascii "Nehir çalışma hatası: metin sayıya çevrilemiyor\n"
+__h_sayi: .ascii "metin sayıya çevrilemiyor\n"
 __h_sayi_son:
-__h_bellek: .ascii "Nehir çalışma hatası: bellek tükendi\n"
+__h_bellek: .ascii "bellek tükendi\n"
 __h_bellek_son:
 
     .section .data
@@ -937,7 +1020,9 @@ __g_son: .skip 8
 
 
 class KodÜretici:
-    def __init__(self, deyimler, işlevler):
+    def __init__(self, deyimler, işlevler, dosya_adı="<girdi>"):
+        self.dosya_adı = dosya_adı
+        self.konum = 0            # o anda derlenen düğümün satırı
         self.deyimler = deyimler
         self.işlevler = işlevler
         # Her işlev için: etiket, parametre türleri (ilk çağrıda belirlenir),
@@ -945,7 +1030,8 @@ class KodÜretici:
         self.bilgi = {ad: {"etiket": f"f{i}", "türler": None, "dönüş": None,
                            "varsayım": False, "bitti": False}
                       for i, ad in enumerate(işlevler)}
-        self.küreseller = {}      # ad -> [etiket, tür|None]
+        # Değişken kayıtları: [yer, tür|None, ilk atamanın konumu, okundu mu]
+        self.küreseller = {}      # ad -> kayıt (yer = etiket)
         self.metinler = []        # bayt dizileri
         self.etiket_no = 0
         self.çıktı = []
@@ -953,12 +1039,14 @@ class KodÜretici:
         self.uyarılar = []
         # geçerli işlev bağlamı (en üst düzeyde geçerli None'dır)
         self.geçerli = None
-        self.yereller = None      # ad -> [rbp'ye göre konum, tür]
+        self.yereller = None      # ad -> kayıt (yer = rbp'ye göre konum)
         self.yerel_sayısı = 0
         self.döngüler = []        # iç içe döngüler: (devam etiketi, son etiketi, çatal derinliği)
         self.çatal_derinliği = 0  # o anda yığında bekleyen çatal değerlerinin sayısı
 
     def yaz(self, satır):
+        if satır in RİSKLİ:
+            self.çıktı.append(f"    mov r15d, {int(self.konum)}")
         self.çıktı.append("    " + satır)
 
     def etiket_koy(self, etiket):
@@ -980,13 +1068,17 @@ class KodÜretici:
         self.yaz("leave")
         self.yaz("ret")
 
+        self.okunmayanları_bildir(self.küreseller)
         for ad, b in self.bilgi.items():
             if b["türler"] is None:
                 self.uyarılar.append((self.işlevler[ad][2],
-                                      f"'{ad}' işlevi hiç çağrılmıyor; derlenmedi"))
+                                      f"'{ad}' işlevi hiç çağrılmıyor; derlenmedi", None))
+        self.uyarılar.sort(key=lambda u: int(u[0]))
 
         baş = [".intel_syntax noprefix", ".global _start", ".section .text"]
-        son = [ÇALIŞMA_ZAMANI]
+        son = [ÇALIŞMA_ZAMANI, "    .section .rodata",
+               "__h_dosya: .byte " + ", ".join(str(b) for b in (self.dosya_adı + ":").encode("utf-8")),
+               "__h_dosya_son:"]
         if self.metinler:
             son.append("    .section .rodata")
             for i, veri in enumerate(self.metinler):
@@ -997,9 +1089,27 @@ class KodÜretici:
                     son.append("    .byte " + ", ".join(str(b) for b in veri))
         if self.küreseller:
             son.append("    .section .bss")
-            for ad, (etiket, _) in self.küreseller.items():
-                son.append(f"{etiket}: .skip 8    # {ad}")
+            for ad, kayıt in self.küreseller.items():
+                son.append(f"{kayıt[0]}: .skip 8    # {ad}")
         return "\n".join(map(str, baş + self.çıktı + self.işlev_kodu + son)) + "\n"
+
+    def okunmayanları_bildir(self, değişkenler):
+        """Bir işlev adına çok benzeyen ve hiç okunmayan değişken büyük olasılıkla
+        yazım hatasıdır: `5 -> kere` sessizce yeni bir değişken oluşturur."""
+        for ad, (_, _, konum, okundu) in değişkenler.items():
+            if okundu or konum is None:
+                continue
+            # Yanlış alarm vermemek için yalnızca çok yakın adlar sayılır:
+            # 'sayılar' ile 'sayıya' benzer ama kasıtlı bir değişken adıdır.
+            sınır = 1 if len(ad) < 8 else 2
+            adaylar = sorted(set(self.işlevler) | set(YERLEŞİKLER) | set(ANAHTARLAR))
+            yakın = [a for a in adaylar
+                     if len(ad) >= 3 and len(a) >= 3 and uzaklık(ad, a) <= sınır]
+            if yakın:
+                self.uyarılar.append((konum, f"'{ad}' yeni bir değişken olarak tanımlandı "
+                                             f"ama hiç okunmuyor",
+                                      " ya da ".join(f"'{y}'" for y in yakın[:2])
+                                      + " mi demek istediniz?"))
 
     def küreselleri_topla(self, deyimler):
         """En üst düzeyde (iç içe bloklar dahil) atanan her ad küresel değişkendir."""
@@ -1009,7 +1119,7 @@ class KodÜretici:
 
     def hedeflerden_topla(self, hedefler):
         def küresel(ad):
-            self.küreseller.setdefault(ad, [f"g{len(self.küreseller)}", None])
+            self.küreseller.setdefault(ad, [f"g{len(self.küreseller)}", None, None, False])
 
         for h in hedefler:
             if h[0] == "ad" and h[2] is None and h[1] not in self.işlevler \
@@ -1035,13 +1145,14 @@ class KodÜretici:
         saklanan = (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
                     self.döngüler, self.çatal_derinliği)
         # Argümanlar soldan sağa itilir: ilk argüman en derinde durur.
-        self.yereller = {p: [16 + 8 * (n - 1 - i), b["türler"][i]]
+        self.yereller = {p: [16 + 8 * (n - 1 - i), b["türler"][i], None, True]
                          for i, p in enumerate(parametreler)}
         self.çıktı, self.geçerli, self.yerel_sayısı = [], ad, 0
         self.döngüler, self.çatal_derinliği = [], 0
         for d in gövde:
             self.deyim(d)
         gövde_kodu, yerel_sayısı = self.çıktı, self.yerel_sayısı
+        self.okunmayanları_bildir(self.yereller)
         (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
          self.döngüler, self.çatal_derinliği) = saklanan
 
@@ -1093,6 +1204,13 @@ class KodÜretici:
         self.döngüler.pop()
 
     def hedef(self, h, tür, döngü_başı=None):
+        önceki, self.konum = self.konum, h[-1]
+        try:
+            return self.hedef_üret(h, tür, döngü_başı)
+        finally:
+            self.konum = önceki
+
+    def hedef_üret(self, h, tür, döngü_başı):
         tip, satır = h[0], h[-1]
         if tip == "yazdır":
             self.yaz("push rax")
@@ -1206,9 +1324,21 @@ class KodÜretici:
             self.yaz("push rax")
             return self.çağır(ad, argümanlar or [], satır, akan=tür)
         if argümanlar is not None:
-            raise NehirHatası(f"'{ad}' adında bir işlev yok", satır)
+            raise self.işlev_yok(ad, satır)
         self.ata(ad, tür, satır)
         return tür
+
+    def bilinen_değişkenler(self):
+        adlar = [ad for ad, k in self.küreseller.items() if k[1] is not None]
+        if self.yereller is not None:
+            adlar += [ad for ad, k in self.yereller.items() if k[1] is not None]
+        return adlar
+
+    def işlev_yok(self, ad, satır):
+        if self.değişken_kaydı(ad)[0] is not None:
+            return NehirHatası(f"'{ad}' bir değişken, işlev değil", satır)
+        return NehirHatası(f"'{ad}' adında bir işlev yok", satır,
+                           benzerler(ad, list(self.işlevler) + list(YERLEŞİKLER)))
 
     def değişken_kaydı(self, ad):
         """(kayıt, bellek adresi metni) ya da değişken yoksa (None, None)."""
@@ -1224,10 +1354,10 @@ class KodÜretici:
         kayıt, adres = self.değişken_kaydı(ad)
         if kayıt is None:       # işlev içinde ilk kez atanan ad: yeni yerel
             self.yerel_sayısı += 1
-            self.yereller[ad] = [-8 * self.yerel_sayısı, None]
+            self.yereller[ad] = [-8 * self.yerel_sayısı, None, None, False]
             kayıt, adres = self.değişken_kaydı(ad)
         if kayıt[1] is None:
-            kayıt[1] = tür
+            kayıt[1], kayıt[2] = tür, satır
         elif not birleştir(kayıt[1], tür):
             raise NehirHatası(f"'{ad}' değişkeni {kayıt[1]} türünde; {tür} atanamaz", satır)
         self.yaz(f"mov {adres}, rax")
@@ -1242,12 +1372,14 @@ class KodÜretici:
         if ad in YERLEŞİKLER:
             return self.yerleşik(YERLEŞİKLER[ad], ad, türler, satır)
         if ad not in self.işlevler:
-            raise NehirHatası(f"'{ad}' adında bir işlev yok", satır)
+            raise self.işlev_yok(ad, satır)
 
         b = self.bilgi[ad]
         beklenen = len(self.işlevler[ad][0])
         if len(türler) != beklenen:
-            raise NehirHatası(f"'{ad}' işlevi {beklenen} argüman bekliyor, {len(türler)} verildi", satır)
+            raise NehirHatası(f"'{ad}' işlevi {beklenen} argüman bekliyor, {len(türler)} verildi", satır,
+                              f"tanımı: {ad}({', '.join(self.işlevler[ad][0])})"
+                              + ("; akıştan gelen değer ilk argüman sayılır" if akan else ""))
         if b["türler"] is None:
             b["türler"] = türler
             self.işlevi_derle(ad)
@@ -1335,6 +1467,13 @@ class KodÜretici:
 
     # ── ifadeler ──
     def ifade(self, e):
+        önceki, self.konum = self.konum, e[-1]
+        try:
+            return self.ifade_üret(e)
+        finally:
+            self.konum = önceki
+
+    def ifade_üret(self, e):
         tip, satır = e[0], e[-1]
         if tip == "sayı":
             self.yaz(f"mov rax, {e[1]}")
@@ -1347,8 +1486,16 @@ class KodÜretici:
             return "metin"
         if tip == "değişken":
             kayıt, adres = self.değişken_kaydı(e[1])
-            if kayıt is None or kayıt[1] is None:
-                raise NehirHatası(f"'{e[1]}' değişkenine henüz bir değer akmadı", satır)
+            if kayıt is not None and kayıt[1] is None:
+                raise NehirHatası(f"'{e[1]}' değişkenine henüz bir değer akmadı", satır,
+                                  "değişken, programın daha aşağısında tanımlanıyor")
+            if kayıt is None:
+                if e[1] in self.işlevler or e[1] in YERLEŞİKLER:
+                    raise NehirHatası(f"'{e[1]}' bir işlev; burada değer olarak kullanılmış", satır,
+                                      f"çağırmak için: {e[1]}(...)   ya da   değer -> {e[1]}")
+                raise NehirHatası(f"'{e[1]}' adında bir değişken yok", satır,
+                                  benzerler(e[1], self.bilinen_değişkenler()))
+            kayıt[3] = True
             self.yaz(f"mov rax, {adres}")
             return kayıt[1]
         if tip == "çağrı":
@@ -1424,8 +1571,8 @@ class KodÜretici:
             self.yaz("movzx eax, al")
             return "sayı"
         if "metin" in (sol_türü, sağ_türü) and "sayı" in (sol_türü, sağ_türü) and iş == "+":
-            raise NehirHatası("metin ile sayı doğrudan toplanamaz; "
-                              "sayıyı önce 'metne' ile çevirin: \"a\" + metne(5)", satır)
+            raise NehirHatası("metin ile sayı doğrudan toplanamaz", satır,
+                              "sayıyı önce metne çevirin:  \"a\" + metne(5)")
         self.sayı_olmalı(sol_türü, f"'{iş}' işlecinin sol tarafı", satır)
         self.sayı_olmalı(sağ_türü, f"'{iş}' işlecinin sağ tarafı", satır)
         if iş == "+":
@@ -1450,12 +1597,47 @@ class KodÜretici:
 
 # ───────────────────────────── Sürücü ─────────────────────────────
 
-def derle(kaynak):
+def derle(kaynak, dosya_adı="<girdi>"):
     """Nehir kaynak metnini (assembly metni, uyarılar) ikilisine çevirir."""
     ayrıştırıcı = Ayrıştırıcı(sözcükle(kaynak))
     deyimler = ayrıştırıcı.program()
-    üretici = KodÜretici(deyimler, ayrıştırıcı.işlevler)
+    üretici = KodÜretici(deyimler, ayrıştırıcı.işlevler, dosya_adı)
     return üretici.üret(), üretici.uyarılar
+
+
+def bildir(dosya, kaynak, düzey, mesaj, konum=None, ipucu=None):
+    """Hata ya da uyarıyı, kaynak satırı ve altı çizili yeriyle stderr'e yazar:
+
+        dosya:3:5: hata: 'x' adında bir değişken yok
+            3 | y + x -> yazdır
+              |     ^
+              = ipucu: 'xs' mi demek istediniz?
+    """
+    renkli = sys.stderr.isatty() and "NO_COLOR" not in os.environ
+    def boya(metin, kod):
+        return f"\033[{kod}m{metin}\033[0m" if renkli else metin
+
+    renk = "1;31" if düzey == "hata" else "1;33"
+    yer = dosya
+    if konum is not None:
+        yer += f":{int(konum)}"
+        if isinstance(konum, Konum):
+            yer += f":{konum.sütun}"
+    çıktı = [f"{boya(yer + ':', '1')} {boya(düzey + ':', renk)} {boya(mesaj, '1')}"]
+
+    satırlar = kaynak.split("\n") if kaynak is not None else []
+    kenar = " " * 6 + boya("|", "34")
+    if isinstance(konum, Konum) and 1 <= konum <= len(satırlar):
+        satır = satırlar[konum - 1]
+        önce = satır[:konum.sütun - 1]
+        # Sekmeler korunur ki işaret, kaynak satırındaki yerle aynı hizaya gelsin.
+        boşluk = "".join("\t" if k == "\t" else " " for k in önce)
+        uzunluk = max(1, min(konum.uzunluk, len(satır) - len(önce)))
+        çıktı.append(f"{boya(f'{int(konum):5} |', '34')} {satır}")
+        çıktı.append(f"{kenar} {boşluk}{boya('^' * uzunluk, renk)}")
+    if ipucu:
+        çıktı.append(f"{' ' * 6}{boya('=', '34')} {boya('ipucu:', '1')} {ipucu}")
+    sys.stderr.write("\n".join(çıktı) + "\n")
 
 
 KULLANIM = """kullanım: nehir.py <dosya.nehir> [seçenekler]
@@ -1488,18 +1670,22 @@ def ana(argv):
         sys.stderr.write(KULLANIM)
         return 2
 
+    kaynak = None
     try:
         with open(girdi, encoding="utf-8") as f:
-            asm, uyarılar = derle(f.read())
+            kaynak = f.read()
+        asm, uyarılar = derle(kaynak, girdi)
     except OSError as h:
-        sys.stderr.write(f"hata: {girdi} okunamadı: {h.strerror}\n")
+        bildir(girdi, None, "hata", f"dosya okunamadı: {h.strerror}")
+        return 1
+    except UnicodeDecodeError:
+        bildir(girdi, None, "hata", "dosya geçerli UTF-8 değil")
         return 1
     except NehirHatası as h:
-        yer = f"{girdi}:{h.satır}" if h.satır else girdi
-        sys.stderr.write(f"{yer}: hata: {h.mesaj}\n")
+        bildir(girdi, kaynak, "hata", h.mesaj, h.satır, h.ipucu)
         return 1
-    for satır, mesaj in uyarılar:
-        sys.stderr.write(f"{girdi}:{satır}: uyarı: {mesaj}\n")
+    for satır, mesaj, ipucu in uyarılar:
+        bildir(girdi, kaynak, "uyarı", mesaj, satır, ipucu)
 
     kök = çıktı or os.path.splitext(girdi)[0]
     if yalnız_asm:

@@ -1,0 +1,4 @@
+ornekler/hatalar/kapanmamis_blok.nehir:2:15: hata: bu blok kapatılmamış
+    2 | x > 3 -> eğer {
+      |               ^
+      = ipucu: eşleşen '}' eksik

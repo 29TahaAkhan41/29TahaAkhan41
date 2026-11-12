@@ -1,0 +1,4 @@
+ornekler/hatalar/tanimsiz_degisken.nehir:2:2: hata: 'toplm' adında bir değişken yok
+    2 | 	toplm + 1 -> yazdır
+      | 	^^^^^
+      = ipucu: 'toplam' mi demek istediniz?

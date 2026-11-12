@@ -1,0 +1,4 @@
+ornekler/hatalar/islev_deger.nehir:2:1: hata: 'kare' bir işlev; burada değer olarak kullanılmış
+    2 | kare + 1 -> yazdır
+      | ^^^^
+      = ipucu: çağırmak için: kare(...)   ya da   değer -> kare

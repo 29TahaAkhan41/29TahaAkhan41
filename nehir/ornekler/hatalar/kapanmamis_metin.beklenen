@@ -1,0 +1,4 @@
+ornekler/hatalar/kapanmamis_metin.nehir:1:1: hata: metin kapatılmamış
+    1 | "merhaba -> yazdır
+      | ^^^^^^^^^^^^^^^^^^
+      = ipucu: metinler aynı satırda " ile kapanmalı; satır sonu için \n yazın

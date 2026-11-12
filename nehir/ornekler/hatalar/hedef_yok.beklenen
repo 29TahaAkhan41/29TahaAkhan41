@@ -1,0 +1,4 @@
+ornekler/hatalar/hedef_yok.nehir:1:6: hata: '->' sonrasında bir hedef bekleniyordu, '3' bulundu
+    1 | 5 -> 3
+      |      ^
+      = ipucu: hedef olabilenler: değişken, işlev, yazdır, döndür, eğer, iken, her, ( çatal )

@@ -1,0 +1,4 @@
+ornekler/hatalar/arguman_sayisi.nehir:2:6: hata: 'topla' işlevi 2 argüman bekliyor, 3 verildi
+    2 | 1 -> topla(2, 3) -> yazdır
+      |      ^^^^^
+      = ipucu: tanımı: topla(a, b); akıştan gelen değer ilk argüman sayılır

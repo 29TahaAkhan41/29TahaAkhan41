@@ -1,0 +1,4 @@
+ornekler/hatalar/tur_uyusmazligi.nehir:1:9: hata: metin ile sayı doğrudan toplanamaz
+    1 | "yaş: " + 5 -> yazdır
+      |         ^
+      = ipucu: sayıyı önce metne çevirin:  "a" + metne(5)

@@ -1,0 +1,4 @@
+ornekler/hatalar/atama.nehir:1:3: hata: Nehir'de '=' ile atama yok
+    1 | x = 5
+      |   ^
+      = ipucu: değer soldan sağa akar: 5 -> x   (eşitlik sınaması için ==)

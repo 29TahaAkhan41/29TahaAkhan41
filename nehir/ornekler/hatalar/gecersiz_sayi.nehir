@@ -1,0 +1,5 @@
+işlev çevir(m) {
+    m -> sayıya -> döndür
+}
+"12" -> çevir -> yazdır
+"on iki" -> çevir -> yazdır

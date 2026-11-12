@@ -1,0 +1,4 @@
+ornekler/hatalar/sonra_tanimli.nehir:1:1: hata: 'toplam' değişkenine henüz bir değer akmadı
+    1 | toplam -> yazdır
+      | ^^^^^^
+      = ipucu: değişken, programın daha aşağısında tanımlanıyor

@@ -1,0 +1,2 @@
+işlev topla(a, b) { a + b -> döndür }
+1 -> topla(2, 3) -> yazdır
