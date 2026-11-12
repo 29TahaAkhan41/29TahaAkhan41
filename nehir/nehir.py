@@ -73,6 +73,13 @@ YERLEŞİKLER = {
     "var": "var", "has": "var",
     "anahtarlar": "anahtarlar", "keys": "anahtarlar",
     "değerler": "değerler", "degerler": "değerler", "values": "değerler",
+    "dosya_oku": "dosya_oku", "read_file": "dosya_oku",
+    "dosya_yaz": "dosya_yaz", "write_file": "dosya_yaz",
+    "dosya_ekle": "dosya_ekle", "append_file": "dosya_ekle",
+    "dosya_var": "dosya_var", "file_exists": "dosya_var",
+    "dosya_sil": "dosya_sil", "delete_file": "dosya_sil",
+    "argümanlar": "argümanlar", "argumanlar": "argümanlar", "args": "argümanlar",
+    "çık": "çık", "cik": "çık", "exit": "çık",
     "oku": "oku", "read": "oku",
     "girdi_var": "girdi_var", "has_input": "girdi_var",
 }
@@ -463,7 +470,8 @@ class Ayrıştırıcı:
 #
 # Değerler 64 bitliktir:
 #   sayı   tam sayının kendisi
-#   metin  baytların adresi (uzunluk 8 bayt öncesinde durur)
+#   metin  baytların adresi (uzunluk 8 bayt öncesinde durur; baytların ardında her
+#          zaman bir sıfır baytı vardır, böylece metin dosya yolu olarak çekirdeğe verilebilir)
 #   liste  {uzunluk, kapasite, veri adresi} başlığının adresi; elemanlar da 64 bitlik
 #          değerlerdir (sayı, metin ya da başka listeler)
 #   sözlük {sayı, kapasite, anahtarlar, değerler, tablo boyu, tablo} başlığının adresi.
@@ -589,13 +597,15 @@ RİSKLİ = {"jz __sifira_bolme"} | {"call " + ad for ad in (
     "__liste_ekle", "__aralik", "__metin_birlestir", "__sayidan_metin", "__oku",
     "__metin_dilim", "__liste_dilim", "__liste_birlestir", "__liste_sil",
     "__metin_bol", "__liste_birles", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
-    "__sozluk_sil", "__sozluk_liste")}
+    "__sozluk_sil", "__sozluk_liste", "__dosya_oku", "__dosya_yaz", "__dosya_sil",
+    "__argumanlar")}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
 ÇALIŞMA_ZAMANI = r"""
 # ── çalışma zamanı ──
 _start:
+    mov [rip+__baslangic_sp], rsp
     call nehir_ana
     xor edi, edi
     mov eax, 60
@@ -829,7 +839,7 @@ __aralik:                       # rdi = baş, rsi = son -> rax = [baş, ..., son
 
 __metin_yeni:                   # rdi = bayt uzunluğu -> rax = metin (içeriği boş)
     push rdi
-    add rdi, 15
+    add rdi, 16                 # başlık + baytlar + en az bir sıfır baytı (yeni bellek sıfırdır)
     and rdi, -8
     call __ayir
     pop rcx
@@ -1578,6 +1588,141 @@ __sozluk_liste:                 # rdi = sözlük, rsi = 16 (anahtarlar) ya da 24
     pop rbx
     ret
 
+__dosya_oku:                    # rdi = yol -> rax = dosyanın tüm içeriği (metin)
+    push rbx
+    push r12
+    push r13
+    mov [rip+__h_ek], rdi
+    mov eax, 2                  # open(yol, O_RDONLY)
+    xor esi, esi
+    xor edx, edx
+    syscall
+    test rax, rax
+    js __dosya_hatasi
+    mov r13, rax
+    mov rbx, [rip+__yigin_uc]   # içerik doğrudan yığının ucuna okunur
+    add rbx, 8
+    xor r12, r12
+1:  lea rsi, [rbx+r12]
+    lea rdx, [rip+__yigin_son]
+    sub rdx, rsi
+    jbe __bellek_bitti
+    mov rdi, r13
+    xor eax, eax                # read
+    syscall
+    test rax, rax
+    js __dosya_hatasi
+    jz 2f
+    add r12, rax
+    jmp 1b
+2:  mov rdi, r13
+    mov eax, 3                  # close
+    syscall
+    mov [rbx-8], r12
+    lea rax, [rbx+r12+8]
+    and rax, -8
+    mov [rip+__yigin_uc], rax
+    mov qword ptr [rip+__h_ek], 0
+    mov rax, rbx
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__dosya_yaz:                    # rdi = içerik, rsi = yol, rdx = open bayrakları -> rax = içerik
+    push rbx
+    push r12
+    push r13
+    mov rbx, rdi
+    mov [rip+__h_ek], rsi
+    mov rdi, rsi
+    mov rsi, rdx
+    mov edx, 420                # 0644
+    mov eax, 2
+    syscall
+    test rax, rax
+    js __dosya_hatasi
+    mov r13, rax
+    xor r12, r12
+1:  mov rdx, [rbx-8]
+    sub rdx, r12
+    jz 2f
+    lea rsi, [rbx+r12]
+    mov rdi, r13
+    mov eax, 1
+    syscall
+    test rax, rax
+    js __dosya_hatasi
+    add r12, rax
+    jmp 1b
+2:  mov rdi, r13
+    mov eax, 3
+    syscall
+    mov qword ptr [rip+__h_ek], 0
+    mov rax, rbx
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__dosya_var:                    # rdi = yol -> rax = dosya varsa 1, yoksa 0
+    mov eax, 21                 # access(yol, F_OK)
+    xor esi, esi
+    syscall
+    test rax, rax
+    sete al
+    movzx eax, al
+    ret
+
+__dosya_sil:                    # rdi = yol
+    mov [rip+__h_ek], rdi
+    mov eax, 87                 # unlink
+    syscall
+    test rax, rax
+    js __dosya_hatasi
+    mov qword ptr [rip+__h_ek], 0
+    xor eax, eax
+    ret
+
+__argumanlar:                   # -> rax = komut satırı argümanlarının listesi (program adı hariç)
+    push rbx
+    push r12
+    push r13
+    push r14
+    mov r12, [rip+__baslangic_sp]
+    mov r13, [r12]
+    mov edi, 4
+    call __liste_yeni
+    mov r14, rax
+    mov ebx, 1
+1:  cmp rbx, r13
+    jae 4f
+    mov rsi, [r12+8+rbx*8]
+    xor ecx, ecx
+2:  cmp byte ptr [rsi+rcx], 0
+    je 3f
+    inc rcx
+    jmp 2b
+3:  push rsi
+    push rcx
+    mov rdi, rcx
+    call __metin_yeni
+    pop rcx
+    pop rsi
+    mov rdi, rax
+    rep movsb
+    mov rsi, rax
+    mov rdi, r14
+    call __liste_ekle
+    inc rbx
+    jmp 1b
+4:  mov rax, r14
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
 __girdi_doldur:                 # tamponu stdin'den doldurur -> rax = 1, girdi bittiyse 0
     xor eax, eax
     xor edi, edi
@@ -1627,7 +1772,7 @@ __oku:                          # -> rax = bir satır (satır sonu olmadan); gir
     inc r12
     jmp 1b
 3:  mov [rbx-8], r12
-    lea rax, [rbx+r12+7]
+    lea rax, [rbx+r12+8]
     and rax, -8
     mov [rip+__yigin_uc], rax
     mov rax, rbx
@@ -1642,6 +1787,22 @@ __sifira_bolme:
 __dizin_hatasi:
     lea rsi, [rip+__h_dizin]
     mov edx, __h_dizin_son - __h_dizin
+    jmp __hata
+__dosya_hatasi:                 # rax = -errno; yol __h_ek'te
+    lea rsi, [rip+__h_yok]
+    mov edx, __h_yok_son - __h_yok
+    cmp rax, -2                 # ENOENT
+    je __hata
+    lea rsi, [rip+__h_izin]
+    mov edx, __h_izin_son - __h_izin
+    cmp rax, -13                # EACCES
+    je __hata
+    lea rsi, [rip+__h_dizin_yol]
+    mov edx, __h_dizin_yol_son - __h_dizin_yol
+    cmp rax, -21                # EISDIR
+    je __hata
+    lea rsi, [rip+__h_dosya_genel]
+    mov edx, __h_dosya_genel_son - __h_dosya_genel
     jmp __hata
 __anahtar_hatasi:
     lea rsi, [rip+__h_anahtar]
@@ -1672,6 +1833,19 @@ __hata:                         # rsi = mesaj, rdx = uzunluk, r15 = kaynak satı
     pop rsi
     pop rdx
     call __hata_yaz
+    mov rax, [rip+__h_ek]       # varsa ek bilgi: ": dosya yolu"
+    test rax, rax
+    jz 1f
+    push rax
+    lea rsi, [rip+__iki_nokta]
+    mov edx, 2
+    call __hata_yaz
+    pop rsi
+    mov rdx, [rsi-8]
+    call __hata_yaz
+1:  lea rsi, [rip+__yeni_satir]
+    mov edx, 1
+    call __hata_yaz
     mov edi, 1
     mov eax, 60
     syscall
@@ -1692,15 +1866,23 @@ __sus_kapa: .ascii "}"
 __iki_nokta: .ascii ": "
 __h_ara: .ascii ": çalışma hatası: "
 __h_ara_son:
-__h_sifir: .ascii "sıfıra bölme\n"
+__h_sifir: .ascii "sıfıra bölme"
 __h_sifir_son:
-__h_dizin: .ascii "dizin sınırların dışında\n"
+__h_dizin: .ascii "dizin sınırların dışında"
 __h_dizin_son:
-__h_sayi: .ascii "metin sayıya çevrilemiyor\n"
+__h_sayi: .ascii "metin sayıya çevrilemiyor"
 __h_sayi_son:
-__h_anahtar: .ascii "anahtar sözlükte yok\n"
+__h_anahtar: .ascii "anahtar sözlükte yok"
 __h_anahtar_son:
-__h_bellek: .ascii "bellek tükendi\n"
+__h_yok: .ascii "dosya bulunamadı"
+__h_yok_son:
+__h_izin: .ascii "dosyaya erişim izni yok"
+__h_izin_son:
+__h_dizin_yol: .ascii "bu bir dizin, dosya değil"
+__h_dizin_yol_son:
+__h_dosya_genel: .ascii "dosya işlemi başarısız"
+__h_dosya_genel_son:
+__h_bellek: .ascii "bellek tükendi"
 __h_bellek_son:
 
     .section .data
@@ -1712,6 +1894,8 @@ __yigin: .skip YIGIN_BOYUTU
 __yigin_son:
     .skip 64                    # __oku'nun başlık ve yuvarlama payı
 __g_tampon: .skip 65536
+__baslangic_sp: .skip 8         # süreç başlarken yığın: argc, argv...
+__h_ek: .skip 8                 # hata mesajına eklenecek metin (dosya yolu) ya da 0
 __g_konum: .skip 8
 __g_son: .skip 8
 """.replace("YIGIN_BOYUTU", str(YIĞIN_BOYUTU))
@@ -1785,8 +1969,7 @@ class KodÜretici:
                 son.append("    .balign 8")
                 son.append(f"    .quad {len(veri)}")
                 son.append(f"m{i}:")
-                if veri:
-                    son.append("    .byte " + ", ".join(str(b) for b in veri))
+                son.append("    .byte " + ", ".join(str(b) for b in veri + b"\0"))
         if self.küreseller:
             son.append("    .section .bss")
             for ad, kayıt in self.küreseller.items():
@@ -2183,6 +2366,33 @@ class KodÜretici:
                 self.yaz("call __ham_yaz")
             self.yaz("call __oku")
             return "metin"
+        if asıl in ("dosya_oku", "dosya_var", "dosya_sil"):
+            if türler != ["metin"]:
+                yanlış("dosya yolu")
+            self.yaz("pop rdi")
+            self.yaz("call __" + asıl)
+            return "metin" if asıl == "dosya_oku" else "sayı"
+        if asıl in ("dosya_yaz", "dosya_ekle"):
+            if türler != ["metin", "metin"]:
+                yanlış("içerik, dosya yolu")
+            self.yaz("pop rsi")
+            self.yaz("pop rdi")
+            # O_WRONLY | O_CREAT ve üstüne yazmak için O_TRUNC, eklemek için O_APPEND
+            self.yaz(f"mov edx, {0x241 if asıl == 'dosya_yaz' else 0x441}")
+            self.yaz("call __dosya_yaz")
+            return "metin"
+        if asıl == "argümanlar":
+            if türler:
+                yanlış("argümansız")
+            self.yaz("call __argumanlar")
+            return Liste("metin")
+        if asıl == "çık":
+            if türler != ["sayı"]:
+                yanlış("çıkış kodu")
+            self.yaz("pop rdi")
+            self.yaz("mov eax, 60")
+            self.yaz("syscall")
+            return "sayı"
         if asıl == "girdi_var":
             if türler:
                 yanlış("argümansız")
@@ -2511,11 +2721,16 @@ KULLANIM = """kullanım: nehir.py <dosya.nehir> [seçenekler]
   -o <ad>            çıktı dosyasının adı (varsayılan: kaynak dosya adı, uzantısız)
   --asm              yalnızca assembly (.s) üret, derlemeyi orada bırak
   --çalıştır, --run  derledikten sonra programı çalıştır
+  -- <argümanlar>    --çalıştır ile birlikte: sonrası programa argüman olarak verilir
 """
 
 
 def ana(argv):
     girdi, çıktı, yalnız_asm, çalıştır = None, None, False, False
+    program_argümanları = []
+    if "--" in argv:
+        ayraç = argv.index("--")
+        argv, program_argümanları = argv[:ayraç], argv[ayraç + 1:]
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -2571,7 +2786,7 @@ def ana(argv):
             os.remove(nesne)
 
     if çalıştır:
-        return subprocess.run([os.path.abspath(kök)]).returncode
+        return subprocess.run([os.path.abspath(kök)] + program_argümanları).returncode
     return 0
 
 

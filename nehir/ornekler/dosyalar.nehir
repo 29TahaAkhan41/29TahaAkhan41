@@ -1,0 +1,34 @@
+# Dosyalar: içerik dosyaya akar, yol dosya_oku'ya akar.
+"/tmp/nehir_ornek.txt" -> yol
+
+"birinci satır\n" -> dosya_yaz(yol)             # dosyayı oluşturur ya da üstüne yazar
+"ikinci satır\n" -> dosya_ekle(yol)             # sonuna ekler
+"üçüncü satır\n" -> dosya_ekle(yol)
+
+yol -> dosya_var -> yazdır
+yol -> dosya_oku -> içerik -> uzunluk -> yazdır
+
+# Satır satır işlemek için içerik bölünür.
+içerik -> böl("\n") -> satırlar
+satırlar -> sil(uzunluk(satırlar) - 1)          # son satır sonundan kalan boş parça
+1 -> no
+satırlar -> her (satır) {
+    metne(no) + ": " + satır -> yazdır
+    no + 1 -> no
+}
+
+# Satırları ters sırayla yeniden yaz ve geri oku.
+[] -> ters
+satırlar -> her (satır) { [satır] + ters -> ters }
+ters -> birleş("\n") -> dosya_yaz(yol) -> uzunluk -> yazdır
+yol -> dosya_oku -> yazdır
+
+# Temizlik
+yol -> dosya_sil
+yol -> dosya_var -> yazdır
+
+# Komut satırı argümanları (bu sınamada yok) ve çıkış kodu
+argümanlar() -> uzunluk -> yazdır
+"bitti" -> yazdır
+çık(0)
+"buraya gelinmez" -> yazdır

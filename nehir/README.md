@@ -36,6 +36,9 @@ meyveler -> her (m) { m == "armut" -> eğer { dur }   m -> yazdır }
 7 -> stok["kiraz"]                      # 7, "kiraz" anahtarına akar
 stok["elma"] + 1 -> stok["elma"]
 
+"günlük.txt" -> dosya_oku -> böl("\n") -> satırlar     # dosya okuma
+satırlar -> birleş("\n") -> dosya_yaz("kopya.txt")     # içerik dosyaya akar
+
 "Adın ne? " -> oku -> ad                # istem oku'ya akar, yazılan satır geri akar
 "Merhaba, " + ad + "!" -> yazdır
 ```
@@ -58,6 +61,7 @@ python3 nehir.py ornekler/merhaba.nehir --asm
 | `-o <ad>` | çıktı dosyasının adı |
 | `--asm` | yalnızca assembly (`.s`) üret |
 | `--çalıştır`, `--run` | derledikten sonra çalıştır |
+| `-- <argümanlar>` | `--çalıştır` ile birlikte: sonrası programa argüman olarak verilir |
 
 Gereksinimler: Python 3.8+, GNU binutils (`as`, `ld`), x86-64 Linux.
 
@@ -83,7 +87,8 @@ Nehir'de bilinmeyen bir ada akan değer yeni bir değişken oluşturduğu için,
 yazım hatası (`5 -> kere`) hata değildir. Derleyici, bir işlev ya da anahtar kelimeye çok
 benzeyen ve hiç okunmayan değişkenler için uyarı verir. Uyarılar derlemeyi durdurmaz.
 
-Çalışma zamanı hataları (sıfıra bölme, sınır dışı dizin, sayıya çevrilemeyen metin, biten bellek)
+Çalışma zamanı hataları (sıfıra bölme, sınır dışı dizin, olmayan anahtar, sayıya çevrilemeyen metin,
+açılamayan dosya, biten bellek)
 programı 1 çıkış koduyla durdurur ve hatanın olduğu kaynak satırını bildirir:
 
 ```
@@ -172,6 +177,17 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `oku()` | `read` | standart girdiden bir satır okur (satır sonu olmadan); girdi bittiyse `""` verir |
 | `oku(istem)` | `read` | önce `istem` metnini satır sonu eklemeden yazar, sonra bir satır okur |
 | `girdi_var()` | `has_input` | okunacak girdi kaldıysa 1, bittiyse 0 verir |
+| `dosya_oku(yol)` | `read_file` | dosyanın tüm içeriğini metin olarak verir |
+| `dosya_yaz(içerik, yol)` | `write_file` | içeriği dosyaya yazar (yoksa oluşturur, varsa üstüne yazar); içeriği geri verir |
+| `dosya_ekle(içerik, yol)` | `append_file` | içeriği dosyanın sonuna ekler |
+| `dosya_var(yol)` | `file_exists` | dosya varsa 1, yoksa 0 |
+| `dosya_sil(yol)` | `delete_file` | dosyayı siler |
+| `argümanlar()` | `args` | programa verilen komut satırı argümanlarının listesi (program adı hariç) |
+| `çık(kod)` | `exit` | programı verilen çıkış koduyla hemen bitirir |
+
+Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
+Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
+`program.nehir:3: çalışma hatası: dosya bulunamadı: yok.txt`. Önce `dosya_var` ile sorulabilir.
 
 Girdinin tamamını okumak için koşulu döngüye akıtmak yeter:
 
@@ -223,4 +239,6 @@ Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
 - Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken ya da işlev adı olarak kullanılamaz
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
-- Ondalıklı sayı, dosya okuma/yazma yok
+- Ondalıklı sayı yok
+- Dosyalar yalnızca bütün olarak okunur ve yazılır; dizin listeleme ya da oluşturma yok
+- Çalışma zamanı hataları yakalanamaz
