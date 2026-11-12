@@ -26,6 +26,8 @@ ANAHTARLAR = {
     "değilse": "değilse", "degilse": "değilse", "else": "değilse",
     "iken": "iken", "while": "iken",
     "her": "her", "each": "her",
+    "dur": "dur", "break": "dur",
+    "devam": "devam", "continue": "devam",
     "işlev": "işlev", "islev": "işlev", "fonksiyon": "işlev", "fn": "işlev",
     "döndür": "döndür", "dondur": "döndür", "return": "döndür",
     "yazdır": "yazdır", "yazdir": "yazdır", "print": "yazdır",
@@ -137,6 +139,7 @@ def sözcükle(kaynak):
 #   ("liste", [elemanlar], satır)     ("dizin", ifade, dizin_ifadesi, satır)
 #   ("tekli", işleç, ifade, satır)    ("ikili", işleç, sol, sağ, satır)
 #   ("akış", kaynak_ifade, [hedefler], satır)
+#   ("dur", satır)  ("devam", satır)              döngüden çık / sonraki tura geç
 #
 # Hedefler:
 #   ("yazdır", satır)  ("döndür", satır)  ("ad", ad, argümanlar|None, satır)
@@ -223,6 +226,10 @@ class Ayrıştırıcı:
 
     def deyim(self):
         satır = self.şimdiki.satır
+        if self.al("ANAHTAR", "dur"):
+            return ("dur", satır)
+        if self.al("ANAHTAR", "devam"):
+            return ("devam", satır)
         return ("akış", self.ifade(), self.zincir(), satır)
 
     def zincir(self):
@@ -376,11 +383,86 @@ class Ayrıştırıcı:
 # Değerler 64 bitliktir:
 #   sayı   tam sayının kendisi
 #   metin  baytların adresi (uzunluk 8 bayt öncesinde durur)
-#   liste  {uzunluk, kapasite, veri adresi} başlığının adresi (elemanlar sayıdır)
+#   liste  {uzunluk, kapasite, veri adresi} başlığının adresi; elemanlar da 64 bitlik
+#          değerlerdir (sayı, metin ya da başka listeler)
 # Türler derleme anında izlenir. İşlevlerin parametre türleri ilk çağrıdan
 # çıkarılır; bu yüzden işlevler ilk çağrıldıkları anda derlenir.
 
+class Liste:
+    """Liste türü. Eleman türü baştan bilinmeyebilir (`[]`); sonradan öğrenilince
+    aynı listeye bakan her yer birlikte güncellensin diye türler birbirine bağlanır."""
+
+    def __init__(self, eleman=None):
+        self._eleman = eleman
+        self.bağ = None
+
+    def kök(self):
+        t = self
+        while t.bağ is not None:
+            t = t.bağ
+        return t
+
+    @property
+    def eleman(self):
+        return self.kök()._eleman
+
+    def __str__(self):
+        return "boş liste" if self.eleman is None else f"{self.eleman} listesi"
+
+
+def içerir(tür, hedef):
+    if not isinstance(tür, Liste):
+        return False
+    tür = tür.kök()
+    return tür is hedef or içerir(tür._eleman, hedef)
+
+
+def birleştir(a, b):
+    """İki türü eşitlemeye çalışır; bilinmeyen eleman türlerini doldurur."""
+    if isinstance(a, Liste) != isinstance(b, Liste):
+        return False
+    if not isinstance(a, Liste):
+        return a == b
+    a, b = a.kök(), b.kök()
+    if a is b:
+        return True
+    if a._eleman is None or b._eleman is None:
+        if a._eleman is not None:
+            a, b = b, a
+        if içerir(b, a):        # bir liste kendi elemanı olamaz
+            return False
+        a.bağ = b
+        return True
+    if birleştir(a._eleman, b._eleman):
+        a.bağ = b
+        return True
+    return False
+
+
+def tür_kodu(tür):
+    """Çalışma zamanındaki yazdırma kodu: 0 sayı, 1 metin, k+2 = k kodlu elemanların listesi."""
+    if tür == "metin":
+        return 1
+    if isinstance(tür, Liste):
+        return 2 + tür_kodu(tür.eleman)
+    return 0
+
+
+class TürKoduSatırı:
+    """Yazdırılan listenin eleman türü sonradan belli olabileceği için
+    tür kodunu yükleyen satır ancak derlemenin sonunda metne çevrilir."""
+
+    def __init__(self, tür):
+        self.tür = tür
+
+    def __str__(self):
+        return f"    mov esi, {tür_kodu(self.tür)}"
+
+
 KARŞILAŞTIRMA = {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"}
+
+BOŞ_LİSTE_HATASI = ("bu listenin eleman türü henüz belli değil; "
+                    "önce içine bir eleman akmalı")
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -438,43 +520,58 @@ __sayi_ham:                     # rdi = sayı; satır sonu eklemeden yazar
     leave
     ret
 
-__yaz_sayi:                     # rdi = sayı
-    call __sayi_ham
-    jmp __satir_sonu
-
-__yaz_metin:                    # rdi = metin
+__deger_ham:                    # rdi = değer, rsi = tür kodu; satır sonu eklemeden yazar
+    test rsi, rsi               # 0: sayı
+    jz __sayi_ham
+    cmp rsi, 1                  # 1: metin
+    jne 1f
     mov rsi, rdi
     mov rdx, [rdi-8]
-    call __ham_yaz
-    jmp __satir_sonu
-
-__yaz_liste:                    # rdi = liste
-    push rbx
+    jmp __ham_yaz
+1:  push rbx                    # k+2: k kodlu elemanların listesi
     push r12
     push r13
+    push r14
     mov r12, [rdi]
     mov r13, [rdi+16]
+    lea r14, [rsi-2]
     xor ebx, ebx
     lea rsi, [rip+__ac]
     mov edx, 1
     call __ham_yaz
-1:  cmp rbx, r12
-    jge 3f
+2:  cmp rbx, r12
+    jge 6f
     test rbx, rbx
-    jz 2f
+    jz 3f
     lea rsi, [rip+__virgul]
     mov edx, 2
     call __ham_yaz
-2:  mov rdi, [r13+rbx*8]
-    call __sayi_ham
-    inc rbx
-    jmp 1b
-3:  lea rsi, [rip+__kapa]
+3:  cmp r14, 1
+    jne 4f
+    lea rsi, [rip+__tirnak]     # liste içindeki metinler tırnakla yazılır
     mov edx, 1
     call __ham_yaz
+4:  mov rdi, [r13+rbx*8]
+    mov rsi, r14
+    call __deger_ham
+    cmp r14, 1
+    jne 5f
+    lea rsi, [rip+__tirnak]
+    mov edx, 1
+    call __ham_yaz
+5:  inc rbx
+    jmp 2b
+6:  lea rsi, [rip+__kapa]
+    mov edx, 1
+    call __ham_yaz
+    pop r14
     pop r13
     pop r12
     pop rbx
+    ret
+
+__yaz_deger:                    # rdi = değer, rsi = tür kodu
+    call __deger_ham
     jmp __satir_sonu
 
 __ayir:                         # rdi = bayt sayısı -> rax = adres
@@ -815,6 +912,7 @@ __yeni_satir: .byte 10
 __ac: .ascii "["
 __kapa: .ascii "]"
 __virgul: .ascii ", "
+__tirnak: .byte 34
 __h_sifir: .ascii "Nehir çalışma hatası: sıfıra bölme\n"
 __h_sifir_son:
 __h_dizin: .ascii "Nehir çalışma hatası: dizin sınırların dışında\n"
@@ -857,6 +955,8 @@ class KodÜretici:
         self.geçerli = None
         self.yereller = None      # ad -> [rbp'ye göre konum, tür]
         self.yerel_sayısı = 0
+        self.döngüler = []        # iç içe döngüler: (devam etiketi, son etiketi, çatal derinliği)
+        self.çatal_derinliği = 0  # o anda yığında bekleyen çatal değerlerinin sayısı
 
     def yaz(self, satır):
         self.çıktı.append("    " + satır)
@@ -899,12 +999,13 @@ class KodÜretici:
             son.append("    .section .bss")
             for ad, (etiket, _) in self.küreseller.items():
                 son.append(f"{etiket}: .skip 8    # {ad}")
-        return "\n".join(baş + self.çıktı + self.işlev_kodu + son) + "\n"
+        return "\n".join(map(str, baş + self.çıktı + self.işlev_kodu + son)) + "\n"
 
     def küreselleri_topla(self, deyimler):
         """En üst düzeyde (iç içe bloklar dahil) atanan her ad küresel değişkendir."""
-        for _, _, hedefler, _ in deyimler:
-            self.hedeflerden_topla(hedefler)
+        for d in deyimler:
+            if d[0] == "akış":
+                self.hedeflerden_topla(d[2])
 
     def hedeflerden_topla(self, hedefler):
         def küresel(ad):
@@ -931,15 +1032,18 @@ class KodÜretici:
         parametreler, gövde, satır = self.işlevler[ad]
         b = self.bilgi[ad]
         n = len(parametreler)
-        saklanan = (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı)
+        saklanan = (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
+                    self.döngüler, self.çatal_derinliği)
         # Argümanlar soldan sağa itilir: ilk argüman en derinde durur.
         self.yereller = {p: [16 + 8 * (n - 1 - i), b["türler"][i]]
                          for i, p in enumerate(parametreler)}
         self.çıktı, self.geçerli, self.yerel_sayısı = [], ad, 0
+        self.döngüler, self.çatal_derinliği = [], 0
         for d in gövde:
             self.deyim(d)
         gövde_kodu, yerel_sayısı = self.çıktı, self.yerel_sayısı
-        self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı = saklanan
+        (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
+         self.döngüler, self.çatal_derinliği) = saklanan
 
         if b["dönüş"] is None:
             b["dönüş"] = "sayı"      # hiç döndür yok: işlev 0 döndürür
@@ -949,7 +1053,7 @@ class KodÜretici:
         b["bitti"] = True
 
         k = self.işlev_kodu
-        k.append(f"{b['etiket']}:    # işlev {ad}({', '.join(b['türler'])}) -> {b['dönüş']}")
+        k.append(f"{b['etiket']}:    # işlev {ad}({', '.join(map(str, b['türler']))}) -> {b['dönüş']}")
         k.append("    push rbp")
         k.append("    mov rbp, rsp")
         if yerel_sayısı:
@@ -961,6 +1065,14 @@ class KodÜretici:
 
     # ── deyimler ──
     def deyim(self, d):
+        if d[0] in ("dur", "devam"):
+            if not self.döngüler:
+                raise NehirHatası(f"'{d[0]}' yalnızca döngü içinde kullanılabilir", d[1])
+            devam, son, derinlik = self.döngüler[-1]
+            if self.çatal_derinliği > derinlik:     # çatalların yığında bıraktıklarını at
+                self.yaz(f"add rsp, {8 * (self.çatal_derinliği - derinlik)}")
+            self.yaz(f"jmp {son if d[0] == 'dur' else devam}")
+            return
         _, kaynak, hedefler, _ = d
         döngü_başı = None
         if hedefler and hedefler[-1][0] == "iken":
@@ -975,22 +1087,28 @@ class KodÜretici:
         for d in deyimler:
             self.deyim(d)
 
+    def döngü_gövdesi(self, deyimler, devam, son):
+        self.döngüler.append((devam, son, self.çatal_derinliği))
+        self.blok(deyimler)
+        self.döngüler.pop()
+
     def hedef(self, h, tür, döngü_başı=None):
         tip, satır = h[0], h[-1]
         if tip == "yazdır":
             self.yaz("push rax")
             self.yaz("mov rdi, rax")
-            self.yaz({"sayı": "call __yaz_sayi", "metin": "call __yaz_metin",
-                      "liste": "call __yaz_liste"}[tür])
+            self.çıktı.append(TürKoduSatırı(tür))
+            self.yaz("call __yaz_deger")
             self.yaz("pop rax")      # değer akmaya devam eder
             return tür
         if tip == "döndür":
             if self.geçerli is None:
                 raise NehirHatası("'döndür' yalnızca işlev içinde kullanılabilir", satır)
             b = self.bilgi[self.geçerli]
-            if b["dönüş"] not in (None, tür):
+            if b["dönüş"] is None:
+                b["dönüş"] = tür
+            elif not birleştir(b["dönüş"], tür):
                 raise NehirHatası(f"'{self.geçerli}' işlevi hem {b['dönüş']} hem {tür} döndürüyor", satır)
-            b["dönüş"] = tür
             self.yaz("leave")
             self.yaz("ret")
             return tür
@@ -1010,12 +1128,12 @@ class KodÜretici:
             son = self.yeni_etiket()
             self.yaz("test rax, rax")
             self.yaz(f"jz {son}")
-            self.blok(h[1])
+            self.döngü_gövdesi(h[1], döngü_başı, son)
             self.yaz(f"jmp {döngü_başı}")
             self.etiket_koy(son)
             return tür
         if tip == "her":
-            baş, son = self.yeni_etiket(), self.yeni_etiket()
+            baş, artır, son = self.yeni_etiket(), self.yeni_etiket(), self.yeni_etiket()
             if tür == "metin":      # her karakter sırayla değişkene akar
                 self.yaz("push rax")                 # [rsp+16] = metin
                 self.yaz("mov rdi, rax")
@@ -1029,14 +1147,17 @@ class KodÜretici:
                 self.yaz("mov rdi, [rsp+16]")
                 self.yaz("call __metin_al")
                 self.ata(h[1], "metin", satır)
-                self.blok(h[2])
+                self.döngü_gövdesi(h[2], artır, son)
+                self.etiket_koy(artır)
                 self.yaz("inc qword ptr [rsp]")
                 self.yaz(f"jmp {baş}")
                 self.etiket_koy(son)
                 self.yaz("add rsp, 24")
                 return tür
-            if tür != "liste":
+            if not isinstance(tür, Liste):
                 raise NehirHatası(f"'her' içine bir liste ya da metin akmalı, {tür} bulundu", satır)
+            if tür.eleman is None:
+                raise NehirHatası(BOŞ_LİSTE_HATASI, satır)
             self.yaz("push rax")                 # [rsp+8] = liste
             self.yaz("push 0")                   # [rsp]   = dizin
             self.etiket_koy(baş)
@@ -1045,8 +1166,9 @@ class KodÜretici:
             self.yaz("cmp rsi, [rdi]")
             self.yaz(f"jge {son}")
             self.yaz("call __liste_al")
-            self.ata(h[1], "sayı", satır)
-            self.blok(h[2])
+            self.ata(h[1], tür.eleman, satır)
+            self.döngü_gövdesi(h[2], artır, son)
+            self.etiket_koy(artır)
             self.yaz("inc qword ptr [rsp]")
             self.yaz(f"jmp {baş}")
             self.etiket_koy(son)
@@ -1056,16 +1178,20 @@ class KodÜretici:
             # Aynı değer her kola ayrı ayrı akar; sonra olduğu gibi yoluna devam eder.
             for dal in h[1]:
                 self.yaz("push rax")
+                self.çatal_derinliği += 1
                 kol_türü = tür
                 for alt in dal:
                     kol_türü = self.hedef(alt, kol_türü)
+                self.çatal_derinliği -= 1
                 self.yaz("pop rax")
             return tür
         if tip == "eleman":
-            self.sayı_olmalı(tür, "listeye akan değer", satır)
             self.yaz("push rax")
-            if self.ifade(("değişken", h[1], satır)) != "liste":
+            liste_türü = self.ifade(("değişken", h[1], satır))
+            if not isinstance(liste_türü, Liste):
                 raise NehirHatası(f"'{h[1]}' bir liste değil", satır)
+            if not birleştir(liste_türü, Liste(tür)):
+                raise NehirHatası(f"'{h[1]}' bir {liste_türü}; içine {tür} akamaz", satır)
             self.yaz("push rax")
             self.sayı_olmalı(self.ifade(h[2]), "liste dizini", satır)
             self.yaz("mov rsi, rax")
@@ -1100,9 +1226,10 @@ class KodÜretici:
             self.yerel_sayısı += 1
             self.yereller[ad] = [-8 * self.yerel_sayısı, None]
             kayıt, adres = self.değişken_kaydı(ad)
-        if kayıt[1] not in (None, tür):
+        if kayıt[1] is None:
+            kayıt[1] = tür
+        elif not birleştir(kayıt[1], tür):
             raise NehirHatası(f"'{ad}' değişkeni {kayıt[1]} türünde; {tür} atanamaz", satır)
-        kayıt[1] = tür
         self.yaz(f"mov {adres}, rax")
 
     def çağır(self, ad, argümanlar, satır, akan=None):
@@ -1124,9 +1251,9 @@ class KodÜretici:
         if b["türler"] is None:
             b["türler"] = türler
             self.işlevi_derle(ad)
-        elif b["türler"] != türler:
-            raise NehirHatası(f"'{ad}' işlevi ({', '.join(b['türler'])}) ile çağrılmıştı; "
-                              f"şimdi ({', '.join(türler)}) veriliyor", satır)
+        elif not all(birleştir(x, y) for x, y in zip(b["türler"], türler)):
+            raise NehirHatası(f"'{ad}' işlevi ({', '.join(map(str, b['türler']))}) ile çağrılmıştı; "
+                              f"şimdi ({', '.join(map(str, türler))}) veriliyor", satır)
         self.yaz(f"call {b['etiket']}")
         if türler:
             self.yaz(f"add rsp, {8 * len(türler)}")
@@ -1136,15 +1263,15 @@ class KodÜretici:
         return b["dönüş"]
 
     def yerleşik(self, asıl, ad, türler, satır):
-        def imza(*beklenen):
-            if len(türler) != len(beklenen) or any(t not in b for t, b in zip(türler, beklenen)):
-                beklenen_metin = ", ".join("/".join(b) for b in beklenen)
-                raise NehirHatası(f"'{ad}' ({beklenen_metin}) bekliyor; "
-                                  f"({', '.join(türler)}) verildi", satır)
+        def yanlış(beklenen):
+            raise NehirHatası(f"'{ad}' ({beklenen}) bekliyor; "
+                              f"({', '.join(map(str, türler))}) verildi", satır)
 
+        ilk_liste = bool(türler) and isinstance(türler[0], Liste)
         if asıl == "uzunluk":
-            imza(("liste", "metin"))
-            if türler[0] == "liste":
+            if len(türler) != 1 or not (ilk_liste or türler[0] == "metin"):
+                yanlış("liste ya da metin")
+            if ilk_liste:
                 self.yaz("pop rax")
                 self.yaz("mov rax, [rax]")
             else:
@@ -1154,8 +1281,7 @@ class KodÜretici:
         if asıl == "oku":
             # Akan ya da verilen metin, satır sonu eklenmeden istem olarak yazılır.
             if türler not in ([], ["metin"]):
-                raise NehirHatası(f"'{ad}' ya argümansız çağrılır ya da istem olarak bir metin alır; "
-                                  f"({', '.join(türler)}) verildi", satır)
+                yanlış("argümansız ya da istem metni")
             if türler:
                 self.yaz("pop rsi")
                 self.yaz("mov rdx, [rsi-8]")
@@ -1163,11 +1289,13 @@ class KodÜretici:
             self.yaz("call __oku")
             return "metin"
         if asıl == "girdi_var":
-            imza()
+            if türler:
+                yanlış("argümansız")
             self.yaz("call __girdi_var")
             return "sayı"
         if asıl == "metne":
-            imza(("sayı", "metin"))
+            if türler not in (["sayı"], ["metin"]):
+                yanlış("sayı")
             if türler[0] == "sayı":
                 self.yaz("pop rdi")
                 self.yaz("call __sayidan_metin")
@@ -1175,7 +1303,8 @@ class KodÜretici:
                 self.yaz("pop rax")
             return "metin"
         if asıl == "sayıya":
-            imza(("metin", "sayı"))
+            if türler not in (["sayı"], ["metin"]):
+                yanlış("metin")
             if türler[0] == "metin":
                 self.yaz("pop rdi")
                 self.yaz("call __metinden_sayi")
@@ -1183,16 +1312,22 @@ class KodÜretici:
                 self.yaz("pop rax")
             return "sayı"
         if asıl == "ekle":
-            imza(("liste",), ("sayı",))
+            if len(türler) != 2 or not ilk_liste:
+                yanlış("liste, eleman")
+            if içerir(türler[1], türler[0].kök()):
+                raise NehirHatası("bir liste kendi içine eklenemez", satır)
+            if not birleştir(türler[0], Liste(türler[1])):
+                raise NehirHatası(f"{türler[0]} içine {türler[1]} eklenemez", satır)
             self.yaz("pop rsi")
             self.yaz("pop rdi")
             self.yaz("call __liste_ekle")
-            return "liste"
-        imza(("sayı",), ("sayı",))          # aralık
+            return türler[0]
+        if türler != ["sayı", "sayı"]:      # aralık
+            yanlış("sayı, sayı")
         self.yaz("pop rsi")
         self.yaz("pop rdi")
         self.yaz("call __aralik")
-        return "liste"
+        return Liste("sayı")
 
     def sayı_olmalı(self, tür, ne, satır):
         if tür != "sayı":
@@ -1222,23 +1357,29 @@ class KodÜretici:
             self.yaz(f"mov edi, {max(len(e[1]), 4)}")
             self.yaz("call __liste_yeni")
             self.yaz("push rax")
+            tür = Liste()
             for eleman in e[1]:
-                self.sayı_olmalı(self.ifade(eleman), "liste elemanı", satır)
+                eleman_türü = self.ifade(eleman)
+                if not birleştir(tür, Liste(eleman_türü)):
+                    raise NehirHatası(f"listenin elemanları aynı türde olmalı: "
+                                      f"{tür.eleman} ve {eleman_türü} karışmış", satır)
                 self.yaz("mov rsi, rax")
                 self.yaz("mov rdi, [rsp]")
                 self.yaz("call __liste_ekle")
             self.yaz("pop rax")
-            return "liste"
+            return tür
         if tip == "dizin":
             kap = self.ifade(e[1])
             if kap == "sayı":
                 raise NehirHatası("'[ ]' ile yalnızca liste ve metinlere erişilebilir", satır)
+            if isinstance(kap, Liste) and kap.eleman is None:
+                raise NehirHatası(BOŞ_LİSTE_HATASI, satır)
             self.yaz("push rax")
             self.sayı_olmalı(self.ifade(e[2]), "dizin", satır)
             self.yaz("mov rsi, rax")
             self.yaz("pop rdi")
-            self.yaz("call __liste_al" if kap == "liste" else "call __metin_al")
-            return "sayı" if kap == "liste" else "metin"
+            self.yaz("call __metin_al" if kap == "metin" else "call __liste_al")
+            return "metin" if kap == "metin" else kap.eleman
         if tip == "tekli":
             self.sayı_olmalı(self.ifade(e[2]), f"'{e[1]}' işlecinin işleneni", satır)
             if e[1] == "-":

@@ -1,0 +1,47 @@
+# Metin listeleri
+["elma", "armut", "çilek"] -> meyveler -> yazdır
+meyveler -> ekle("kiraz") -> uzunluk -> yazdır
+meyveler[2] -> yazdır
+"ayva" -> meyveler[0]
+meyveler -> her (m) { m + " (" + metne(uzunluk(m)) + ")" -> yazdır }
+
+# Boş listenin türü, içine akan ilk elemandan anlaşılır.
+[] -> satırlar
+girdi_var() -> iken { satırlar -> ekle(oku()) }
+satırlar -> yazdır
+
+# Metni ayraçtan bölen bir işlev: metin alır, metin listesi döndürür.
+işlev böl(m, ayraç) {
+    [] -> parçalar
+    "" -> parça
+    m -> her (k) {
+        k == ayraç -> eğer {
+            parçalar -> ekle(parça)
+            "" -> parça
+        } değilse { parça + k -> parça }
+    }
+    parçalar -> ekle(parça) -> döndür
+}
+satırlar[0] -> böl(" ") -> kelimeler -> yazdır
+
+# Sözlük sırasına göre sıralama
+işlev sırala(l) {
+    0 -> i
+    i < uzunluk(l) -> iken {
+        i -> j
+        j > 0 ve l[j - 1] > l[j] -> iken {
+            l[j] -> geçici
+            l[j - 1] -> l[j]
+            geçici -> l[j - 1]
+            j - 1 -> j
+        }
+        i + 1 -> i
+    }
+    l -> döndür
+}
+kelimeler -> sırala -> yazdır
+
+# Listeler iç içe de olabilir.
+[[1, 2], [3], []] -> matris -> yazdır
+matris[0][1] -> yazdır
+[["a", "b"], ["c"]] -> yazdır

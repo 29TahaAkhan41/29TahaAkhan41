@@ -1,0 +1,13 @@
+["elma", "armut", "çilek"]
+4
+çilek
+ayva (4)
+armut (5)
+çilek (5)
+kiraz (5)
+["su akar yatağını bulur", "ikinci satır"]
+["su", "akar", "yatağını", "bulur"]
+["akar", "bulur", "su", "yatağını"]
+[[1, 2], [3], []]
+2
+[["a", "b"], ["c"]]

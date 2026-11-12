@@ -1,0 +1,43 @@
+# dur: döngüden çıkar.  devam: sonraki tura geçer.
+
+# İlk 5'e bölünen sayıyı bul
+[3, 8, 14, 25, 7, 40] -> sayılar -> her (s) {
+    s % 5 == 0 -> eğer {
+        "bulundu: " + metne(s) -> yazdır
+        dur
+    }
+    "geçildi: " + metne(s) -> yazdır
+}
+
+# Çiftleri atla, 7'den büyük olunca dur
+0 -> i
+doğru -> iken {
+    i + 1 -> i
+    i % 2 == 0 -> eğer { devam }
+    i > 7 -> eğer { dur }
+    i -> yazdır
+}
+
+# İç döngüdeki dur yalnızca iç döngüyü bitirir. English: break / continue.
+fn first_vowel(word) {
+    "" -> found
+    word -> each (c) {
+        c == "a" or c == "e" or c == "i" or c == "o" or c == "u" -> if {
+            c -> found
+            break
+        }
+    }
+    found -> return
+}
+["nehir", "strm", "akış"] -> each (w) {
+    first_vowel(w) -> v
+    v == "" -> if { continue }
+    w + ": " + v -> print
+}
+
+# Çatalın içinden de çıkılabilir.
+işlev büyük_mü(n) { n > 2 -> döndür }
+aralık(0, 10) -> her (n) {
+    n -> (yazdır | büyük_mü -> eğer { dur })
+}
+"bitti" -> yazdır
