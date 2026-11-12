@@ -1,0 +1,4 @@
+işlev kare(n) { n * n -> döndür }
+işlev mutlak(n) { n < 0 -> eğer { 0 - n -> döndür }   n -> döndür }
+işlev kullanılmayan(n) { n -> döndür }      # modüllerde kullanılmayan işlev uyarı vermez
+"sayılar modülü yüklendi" -> yazdır

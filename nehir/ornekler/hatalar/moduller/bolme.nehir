@@ -1,0 +1,4 @@
+# Çalışma zamanı hatası bu dosyanın satırını göstermeli.
+işlev böl_güvensiz(a, b) {
+    a / b -> döndür
+}

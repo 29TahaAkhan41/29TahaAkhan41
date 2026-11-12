@@ -1,0 +1,4 @@
+ornekler/hatalar/modul_icerde.nehir:2:5: hata: bir ifade bekleniyordu, 'kullan' bulundu
+    2 |     kullan "moduller/bolme.nehir"
+      |     ^^^^^^
+      = ipucu: 'kullan' yalnızca dosyanın en üst düzeyinde kullanılabilir

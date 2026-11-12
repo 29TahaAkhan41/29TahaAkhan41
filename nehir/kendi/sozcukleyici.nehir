@@ -1,12 +1,11 @@
 # Nehir sözcükleyicisi — Nehir ile yazılmış.
 #
 # nehir.py içindeki `sözcükle` işlevinin karşılığıdır ve aynı sözcükleri üretir.
-# Kendi kendini derleyen derleyicinin ilk aşaması.
+# Kendi kendini derleyen derleyicinin ilk aşaması. Bu dosya bir modüldür:
 #
-#   kullanım: sozcukleyici <dosya.nehir>
-#
-# Her sözcüğü bir satır olarak yazar (nehir.py --sözcükler ile aynı biçim):
-#   satır:sütun:uzunluk  satırın_ilk_sözcüğü_mü  TÜR  değer
+#   kullan "sozcukleyici.nehir"
+#   "program.nehir" -> l_dosya
+#   l_dosya -> dosya_oku -> sözcükle        # sözcükler s_* listelerine dolar
 
 # ── tablolar ──
 
@@ -20,6 +19,7 @@
     "devam": "devam", "continue": "devam",
     "işlev": "işlev", "islev": "işlev", "fonksiyon": "işlev", "fn": "işlev",
     "kayıt": "kayıt", "kayit": "kayıt", "record": "kayıt",
+    "kullan": "kullan", "use": "kullan", "import": "kullan",
     "yok": "yok", "none": "yok",
     "döndür": "döndür", "dondur": "döndür", "return": "döndür",
     "yazdır": "yazdır", "yazdir": "yazdır", "print": "yazdır",
@@ -195,6 +195,8 @@ işlev sözcükle(kaynak) {
 }
 
 # ── döküm ──
+# Her sözcüğü bir satır olarak yazar (nehir.py --sözcükler ile aynı biçim):
+#   satır:sütun:uzunluk  satırın_ilk_sözcüğü_mü  TÜR  değer
 
 işlev kaçır(m) {
     m -> böl("\\") -> birleş("\\\\") -> böl("\n") -> birleş("\\n")
@@ -211,20 +213,3 @@ işlev dök() {
         i + 1 -> i
     }
 }
-
-işlev ana() {
-    argümanlar() -> a
-    uzunluk(a) != 1 -> eğer {
-        "kullanım: sozcukleyici <dosya.nehir>" -> uyar
-        çık(2)
-    }
-    a[0] -> l_dosya
-    değil dosya_var(l_dosya) -> eğer {
-        l_dosya + ": hata: dosya okunamadı" -> uyar
-        çık(1)
-    }
-    l_dosya -> dosya_oku -> sözcükle
-    dök()
-}
-
-ana()

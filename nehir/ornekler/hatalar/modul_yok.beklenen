@@ -1,0 +1,4 @@
+ornekler/hatalar/modul_yok.nehir:1:8: hata: 'ornekler/hatalar/moduller/yok.nehir' modülü okunamadı: dosya bulunamadı
+    1 | kullan "moduller/yok.nehir"
+      |        ^^^^^^^^^^^^^^^^^^^^
+      = ipucu: yol, 'kullan' yazan dosyanın bulunduğu dizine göredir

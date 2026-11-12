@@ -1,0 +1,6 @@
+ornekler/hatalar/modul_ad_cakismasi.nehir:3:7: hata: 'böl_güvensiz' adı zaten bir işlev için kullanılmış
+    3 | işlev böl_güvensiz(a, b) { 0 -> döndür }
+      |       ^^^^^^^^^^^^
+ornekler/hatalar/moduller/bolme.nehir:2:7: not: ilk tanım burada
+    2 | işlev böl_güvensiz(a, b) {
+      |       ^^^^^^^^^^^^

@@ -1,0 +1,3 @@
+ornekler/hatalar/moduller/bozuk.nehir:3:1: hata: 'toplm' adında bir değişken yok
+    3 | toplm + 1 -> yazdır
+      | ^^^^^

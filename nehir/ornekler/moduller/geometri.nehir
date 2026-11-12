@@ -1,0 +1,12 @@
+# Bir modül: başka dosyalar `kullan "moduller/geometri.nehir"` ile içe alır.
+kullan "sayilar.nehir"          # yol, bu dosyanın dizinine göredir
+
+kayıt Nokta { x: sayı, y: sayı }
+
+işlev uzaklık_karesi(a, b) { kare(a.x - b.x) + kare(a.y - b.y) -> döndür }
+
+işlev orta(a, b) { Nokta((a.x + b.x) / 2, (a.y + b.y) / 2) -> döndür }
+
+# Modülün üst düzey kodu, onu ilk kullanan dosyada `kullan` satırına gelindiğinde bir kez çalışır.
+Nokta(0, 0) -> BAŞLANGIÇ
+"geometri modülü yüklendi" -> yazdır

@@ -1,0 +1,3 @@
+kullan "moduller/bolme.nehir"
+
+işlev böl_güvensiz(a, b) { 0 -> döndür }

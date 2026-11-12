@@ -1,4 +1,4 @@
 tamam
-ornekler/hatalar/cagrilmayan.nehir:1:1: uyarı: 'kullanılmayan' işlevi hiç çağrılmıyor; derlenmedi
+ornekler/hatalar/cagrilmayan.nehir:1:7: uyarı: 'kullanılmayan' işlevi hiç çağrılmıyor; derlenmedi
     1 | işlev kullanılmayan(n) { n -> döndür }
-      | ^^^^^
+      |       ^^^^^^^^^^^^^

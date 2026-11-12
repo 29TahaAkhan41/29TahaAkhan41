@@ -1,7 +1,7 @@
 5
-ornekler/hatalar/tanimsiz_islev.nehir:1:1: uyarı: 'kare' işlevi hiç çağrılmıyor; derlenmedi
+ornekler/hatalar/tanimsiz_islev.nehir:1:7: uyarı: 'kare' işlevi hiç çağrılmıyor; derlenmedi
     1 | işlev kare(n) { n * n -> döndür }
-      | ^^^^^
+      |       ^^^^
 ornekler/hatalar/tanimsiz_islev.nehir:2:6: uyarı: 'kere' yeni bir değişken olarak tanımlandı ama hiç okunmuyor
     2 | 5 -> kere -> yazdır
       |      ^^^^

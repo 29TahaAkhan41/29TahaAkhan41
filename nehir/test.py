@@ -71,7 +71,7 @@ def kendi_sözcükleyiciyi_sına(geçici, kaynaklar):
         return s.returncode, s.stdout, ilk_hata
 
     ikili = os.path.join(geçici, "sozcukleyici")
-    kod, _, hata = çalıştır([sys.executable, "nehir.py", "kendi/sozcukleyici.nehir", "-o", ikili])
+    kod, _, hata = çalıştır([sys.executable, "nehir.py", "kendi/sozcuk_dok.nehir", "-o", ikili])
     if kod != 0:
         print("BAŞARISIZ kendi/sozcukleyici derlenemedi:", hata)
         return 1

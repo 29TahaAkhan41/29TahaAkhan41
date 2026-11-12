@@ -1,0 +1,3 @@
+işlev f() {
+    kullan "moduller/bolme.nehir"
+}

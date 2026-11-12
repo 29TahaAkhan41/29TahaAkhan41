@@ -1,0 +1,4 @@
+kullan "moduller/bolme.nehir"
+
+10 -> böl_güvensiz(2) -> yazdır
+10 -> böl_güvensiz(0) -> yazdır

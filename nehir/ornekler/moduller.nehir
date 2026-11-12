@@ -1,0 +1,10 @@
+# Modüller: `kullan` başka bir dosyanın işlevlerini, kayıtlarını ve değişkenlerini içe alır.
+"ana program başladı" -> yazdır
+
+kullan "moduller/geometri.nehir"
+kullan "moduller/sayilar.nehir"         # geometri zaten yüklemişti; ikinci kez yüklenmez
+
+Nokta(3, 4) -> p
+p -> uzaklık_karesi(BAŞLANGIÇ) -> yazdır
+orta(p, Nokta(7, 10)) -> yazdır
+mutlak(0 - 12) -> yazdır

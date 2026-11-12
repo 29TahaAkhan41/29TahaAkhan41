@@ -1,0 +1,3 @@
+işlev iki_kat(n) { n * 2 -> döndür }
+
+toplm + 1 -> yazdır

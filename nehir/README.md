@@ -132,6 +132,7 @@ Terminalde mesajlar renklidir; `NO_COLOR` ortam değişkeni renkleri kapatır.
 | `devam` | | `continue` |
 | `işlev`, `fonksiyon` | `islev` | `fn` |
 | `kayıt` | `kayit` | `record` |
+| `kullan` | | `use`, `import` |
 | `yok` | | `none` |
 | `döndür` | `dondur` | `return` |
 | `yazdır` | `yazdir` | `print` |
@@ -251,6 +252,22 @@ d != yok -> iken {
 }
 ```
 
+**Modüller.** `kullan "yol"` başka bir Nehir dosyasını içe alır; yol, `kullan` yazan dosyanın
+dizinine göredir. Modülün işlevleri, kayıtları ve üst düzey değişkenleri doğrudan kullanılabilir:
+
+```nehir
+kullan "moduller/geometri.nehir"
+
+Nokta(3, 4) -> p
+p -> uzaklık_karesi(BAŞLANGIÇ) -> yazdır
+```
+
+- Bütün dosyalar tek bir ad alanını paylaşır: iki dosya aynı adda işlev ya da kayıt tanımlayamaz.
+- Modülün üst düzey kodu, `kullan` satırına gelindiğinde bir kez çalışır.
+- Bir modül kaç kez istenirse istensin bir kez yüklenir; modüller birbirini karşılıklı kullanabilir.
+- `kullan` yalnızca dosyanın en üst düzeyinde yazılabilir.
+- Derleme ve çalışma zamanı hataları, hatanın bulunduğu dosyayı ve satırı gösterir.
+
 **Türler:** 64 bit tam sayılar, metinler, listeler, sözlükler ve kayıtlar. Bir listenin bütün elemanları aynı türdendir:
 sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listenin (`[]`) türü,
 içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
@@ -268,17 +285,17 @@ o zamana kadar asıl derleyici olarak kalır ve yeni parçaların doğruluğu on
 
 | Aşama | Dosya | Durum |
 | --- | --- | --- |
-| Sözcükleyici | `kendi/sozcukleyici.nehir` | tamam: bütün örneklerde ve kendi kaynağında `nehir.py` ile aynı sözcükleri üretiyor |
-| Kayıtlar (sözdizimi ağacı için) | | tamam |
+| Sözcükleyici | `kendi/sozcukleyici.nehir` (modül), `kendi/sozcuk_dok.nehir` (onu kullanan program) | tamam: bütün örneklerde ve kendi kaynağında `nehir.py` ile aynı sözcükleri üretiyor |
+| Kayıtlar ve modüller (ayrıştırıcının ön koşulları) | | tamam |
 | Ayrıştırıcı | | sırada |
 | Kod üretici | | bekliyor |
 
 ```bash
-python3 nehir.py kendi/sozcukleyici.nehir -o sozcukleyici
+python3 nehir.py kendi/sozcuk_dok.nehir -o sozcuk_dok
 ```
 
 ```bash
-./sozcukleyici ornekler/merhaba.nehir
+./sozcuk_dok ornekler/merhaba.nehir
 ```
 
 Aynı dökümü Python'daki sözcükleyiciden almak için: `python3 nehir.py ornekler/merhaba.nehir --sözcükler`.
@@ -306,6 +323,7 @@ Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
 - Ondalıklı sayı yok
+- Modüllerin kendi ad alanı yok; adların çakışmaması programcıya kalır
 - Kayıtlar kurulurken değerler yalnızca sırayla verilir (`Nokta(x: 3, y: 4)` yazılamaz); kayıtların yöntemi yok
 - `yok` yalnızca kayıtlar içindir; "sayı yok" ya da "metin yok" diye bir değer yok
 - Dosyalar yalnızca bütün olarak okunur ve yazılır; dizin listeleme ya da oluşturma yok
