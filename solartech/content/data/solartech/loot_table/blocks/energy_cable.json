@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "condition": { "type": "minecraft:survives_explosion" },
+      "entries": [{ "type": "minecraft:item", "name": "solartech:energy_cable" }],
+      "rolls": 1
+    }
+  ],
+  "random_sequence": "solartech:blocks/energy_cable"
+}

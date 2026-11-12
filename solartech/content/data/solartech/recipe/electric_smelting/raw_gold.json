@@ -1,0 +1,7 @@
+{
+  "type": "solartech:electric_smelting",
+  "ingredient": "minecraft:raw_gold",
+  "result": {
+    "id": "minecraft:gold_ingot"
+  }
+}

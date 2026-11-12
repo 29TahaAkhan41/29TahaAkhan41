@@ -1,0 +1,7 @@
+{
+  "type": "solartech:electric_smelting",
+  "ingredient": "minecraft:deepslate_emerald_ore",
+  "result": {
+    "id": "minecraft:emerald"
+  }
+}

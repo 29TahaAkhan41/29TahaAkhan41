@@ -1,0 +1,7 @@
+{
+  "type": "solartech:electric_smelting",
+  "ingredient": "minecraft:ancient_debris",
+  "result": {
+    "id": "minecraft:netherite_scrap"
+  }
+}

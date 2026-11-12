@@ -1,0 +1,7 @@
+{
+  "type": "solartech:electric_smelting",
+  "ingredient": "minecraft:clay_ball",
+  "result": {
+    "id": "minecraft:brick"
+  }
+}

@@ -1,7 +1,7 @@
 id = "solartech"
 name = "SolarTech"
-version = "0.1.0"
-description = "A tech mod. For now: a solar panel that turns sunlight into energy."
+version = "0.2.0"
+description = "A tech mod: solar panels, energy cables and an electric furnace."
 authors = ["29TahaAkhan41"]
 api = "0.2"
 side = "both"

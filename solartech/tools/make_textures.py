@@ -48,8 +48,75 @@ def bottom():
     return img
 
 
+COPPER, COPPER_LIGHT, COPPER_DARK = (196, 122, 60), (226, 160, 96), (140, 80, 40)
+RUBBER, RUBBER_LIGHT = (44, 46, 52), (66, 69, 78)
+
+
+def cable():
+    """Insulation with a copper stripe; the models take the middle 6 pixels of it."""
+    img = Image.new("RGBA", (16, 16), RUBBER + (255,))
+    px = img.load()
+    for i in range(16):
+        px[i, 5] = px[5, i] = RUBBER_LIGHT + (255,)
+        px[i, 7] = px[i, 8] = COPPER + (255,)
+        px[7, i] = px[8, i] = COPPER + (255,)
+    for x, y in ((7, 7), (8, 7), (7, 8), (8, 8)):
+        px[x, y] = COPPER_LIGHT + (255,)
+    return img
+
+
+def casing():
+    img = Image.new("RGBA", (16, 16), FRAME + (255,))
+    px = img.load()
+    for i in range(16):
+        px[i, 0] = px[0, i] = FRAME_LIGHT + (255,)
+        px[i, 15] = px[15, i] = FRAME_DARK + (255,)
+    for x, y in ((2, 2), (13, 2), (2, 13), (13, 13)):  # rivets
+        px[x, y] = FRAME_DARK + (255,)
+    return img
+
+
+def furnace_front(coil, coil_hi):
+    img = casing()
+    px = img.load()
+    for y in range(4, 12):  # the chamber
+        for x in range(3, 13):
+            px[x, y] = (20, 20, 24, 255)
+    for y in (6, 8, 10):  # the heating coil
+        for x in range(4, 12):
+            px[x, y] = (coil_hi if (x + y) % 3 == 0 else coil) + (255,)
+    for x in (6, 7, 8, 9):  # the energy socket
+        px[x, 13] = COPPER + (255,)
+    return img
+
+
+def furnace_side():
+    img = casing()
+    px = img.load()
+    for y in (5, 7, 9):  # vents
+        for x in range(4, 12):
+            px[x, y] = FRAME_DARK + (255,)
+    for x, y in ((7, 12), (8, 12), (7, 13), (8, 13)):
+        px[x, y] = COPPER + (255,)
+    return img
+
+
+def furnace_top():
+    img = casing()
+    px = img.load()
+    for y in range(5, 11):
+        for x in range(5, 11):
+            px[x, y] = (FRAME_DARK if (x + y) % 2 else RUBBER) + (255,)
+    return img
+
+
 OUT.mkdir(parents=True, exist_ok=True)
 top((24, 38, 84), (40, 60, 120), (150, 160, 175)).save(OUT / "solar_panel_top.png")
 top((36, 84, 190), (120, 180, 255), (200, 215, 235)).save(OUT / "solar_panel_top_active.png")
 side().save(OUT / "solar_panel_side.png")
 bottom().save(OUT / "solar_panel_bottom.png")
+cable().save(OUT / "energy_cable.png")
+furnace_front((70, 50, 44), (90, 62, 52)).save(OUT / "electric_furnace_front.png")
+furnace_front((240, 120, 30), (255, 210, 90)).save(OUT / "electric_furnace_front_on.png")
+furnace_side().save(OUT / "electric_furnace_side.png")
+furnace_top().save(OUT / "electric_furnace_top.png")

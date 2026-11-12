@@ -1,4 +1,6 @@
 {
   "block.solartech.solar_panel": "Güneş Paneli",
+  "block.solartech.energy_cable": "Enerji Kablosu",
+  "block.solartech.electric_furnace": "Elektrikli Fırın",
   "itemGroup.solartech.solartech": "SolarTech"
 }

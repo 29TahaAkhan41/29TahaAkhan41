@@ -1,4 +1,6 @@
 {
   "block.solartech.solar_panel": "Solar Panel",
+  "block.solartech.energy_cable": "Energy Cable",
+  "block.solartech.electric_furnace": "Electric Furnace",
   "itemGroup.solartech.solartech": "SolarTech"
 }

@@ -1,0 +1,7 @@
+{
+  "type": "solartech:electric_smelting",
+  "ingredient": "minecraft:cactus",
+  "result": {
+    "id": "minecraft:green_dye"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "template": "minecraft:chorus_plant",
+  "properties": { "hardness": 0.5, "sounds": "minecraft:copper_block" },
+  "connects_to": "#solartech:energy_connects",
+  "thickness": 6
+}

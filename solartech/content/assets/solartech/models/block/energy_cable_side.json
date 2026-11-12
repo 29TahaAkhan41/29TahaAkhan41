@@ -1,0 +1,16 @@
+{
+  "textures": { "cable": "solartech:block/energy_cable", "particle": "solartech:block/energy_cable" },
+  "elements": [
+    {
+      "from": [5, 5, 0],
+      "to": [11, 11, 5],
+      "faces": {
+        "down": { "uv": [5, 0, 11, 5], "texture": "#cable" },
+        "up": { "uv": [5, 0, 11, 5], "texture": "#cable" },
+        "north": { "uv": [5, 5, 11, 11], "texture": "#cable", "cullface": "north" },
+        "west": { "uv": [0, 5, 5, 11], "texture": "#cable" },
+        "east": { "uv": [0, 5, 5, 11], "texture": "#cable" }
+      }
+    }
+  ]
+}

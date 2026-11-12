@@ -1,0 +1,7 @@
+{
+  "type": "solartech:electric_smelting",
+  "ingredient": "minecraft:nether_quartz_ore",
+  "result": {
+    "id": "minecraft:quartz"
+  }
+}

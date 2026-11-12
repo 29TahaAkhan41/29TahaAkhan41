@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 ID=solartech
-VERSION=0.1.0
+VERSION=0.2.0
 # The Horizon commit it is made for (Nightly 2026-11-08), as native/horizon-mixin.toml pins it.
 HORIZON=fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca
 # The horizon-mixins commit that Horizon's launcher uses (launcher/src/native_mods.rs, MIXINS_REV).
@@ -30,7 +30,7 @@ JSON
 cp native/horizon-mixin.toml native/.gitignore "build/mixins/$ID/"
 mkdir -p "build/mixins/$ID/api/src"
 cp native/api/Cargo.toml "build/mixins/$ID/api/"
-cp native/api/src/lib.rs "build/mixins/$ID/api/src/"
+cp native/api/src/*.rs "build/mixins/$ID/api/src/"
 (cd build && zip -q -X -r "../dist/$ID.hnmod" horizon-native.json mixins)
 rm -rf build
 

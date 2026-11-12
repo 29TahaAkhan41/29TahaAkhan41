@@ -1,0 +1,7 @@
+{
+  "type": "solartech:electric_smelting",
+  "ingredient": "minecraft:deepslate_gold_ore",
+  "result": {
+    "id": "minecraft:gold_ingot"
+  }
+}

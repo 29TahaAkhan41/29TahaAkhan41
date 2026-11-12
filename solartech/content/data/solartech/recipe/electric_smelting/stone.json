@@ -1,0 +1,7 @@
+{
+  "type": "solartech:electric_smelting",
+  "ingredient": "minecraft:stone",
+  "result": {
+    "id": "minecraft:smooth_stone"
+  }
+}

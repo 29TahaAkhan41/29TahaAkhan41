@@ -1,143 +1,282 @@
 //! SolarTech: the code half of the mod. The launcher links this crate into the game and
 //! calls `hooks()`; each method of `Hooks` is one of Horizon's hook points.
 //!
-//! The block itself (`solartech:solar_panel`, its model, recipe and loot) is declared by
-//! the content mod of the same id. This crate gives it:
+//! The blocks themselves (their models, recipes and loot) are declared by the content mod
+//! of the same id. This crate gives them their behaviour:
 //!
-//! - a block entity that is saved with the chunk (`block_entity`),
-//! - an energy buffer other mods' machines and cables can drain (`block_entity_energy`),
-//! - a server tick that turns sunlight into energy (`block_entity_tick`),
-//! - a read-out on the action bar when it is clicked with a stick (`use_item_on`).
-use std::collections::HashMap;
+//! - `solartech:solar_panel` turns sunlight into energy,
+//! - `solartech:energy_cable` carries it,
+//! - `solartech:electric_furnace` smelts with it.
+//!
+//! Each has a block entity that keeps its energy in the saved int `energy`, the field
+//! Horizon's own energy buffers use, and moves it through the grid in `grid.rs`. The panel
+//! and the furnace open a screen drawn in `screens.rs`.
+mod grid;
+mod screens;
+mod smelting;
+
 use std::sync::{Mutex, PoisonError};
+use std::time::{Duration, Instant};
 
 use horizon_client::mod_api::{
-    BlockEntityEnergyEvent, BlockEntityEvent, BlockEntityTickEvent, BlockEntityTicksEvent,
-    Compound, Flow, Hooks, Host, ModEnergyBuffer, Tag, Text, UseItemOnEvent,
+    BlockEntityContainerEvent, BlockEntityEnergyEvent, BlockEntityEvent, BlockEntityTickEvent,
+    BlockEntityTicksEvent, Compound, Hooks, Host, ModContainer, ModEnergyBuffer, NativeScreen,
+    ScreenDrawEvent, ScreenEvent, ScreenTooltipEvent, Tag,
 };
 
-/// The block, and the id of its block entity.
+use grid::{Grid, Kind, TRANSFER};
+use smelting::{Recipes, Step};
+
+/// The blocks, which are also the ids of their block entities and of their menu types.
 const PANEL: &str = "solartech:solar_panel";
-/// The item that reads a panel's charge.
-const METER: &str = "minecraft:stick";
+const CABLE: &str = "solartech:energy_cable";
+const FURNACE: &str = "solartech:electric_furnace";
+
 /// The saved int Horizon's energy helpers read and write (`native_block_entity_energy`).
 const ENERGY: &str = "energy";
-/// How much one panel holds.
-const CAPACITY: i32 = 100_000;
-/// What it makes each tick at noon, under a clear sky.
+/// The furnace's saved smelting progress, in ticks.
+const PROGRESS: &str = "progress";
+
+/// How much each block holds.
+const PANEL_CAPACITY: i32 = 100_000;
+const CABLE_CAPACITY: i32 = 2_000;
+const FURNACE_CAPACITY: i32 = 20_000;
+/// What a panel makes each tick at noon, under a clear sky.
 const PEAK_OUTPUT: i32 = 20;
-/// The most one extract takes.
-const MAX_EXTRACT: i32 = 200;
+
+/// The furnace's slots.
+const INPUT: usize = 0;
+const OUTPUT: usize = 1;
+
+/// How long the furnace keeps the recipes it read before reading them again, so a data
+/// pack's `/reload` reaches it.
+const RECIPES_KEPT: Duration = Duration::from_secs(5);
 
 pub fn hooks() -> Box<dyn Hooks> {
     Box::new(SolarTech::default())
 }
 
-/// A panel's place: its dimension and position.
-type Place = (&'static str, [i32; 3]);
-
 #[derive(Default)]
 struct SolarTech {
-    /// What each ticking panel holds and makes, for the stick's read-out: the hooks
-    /// that hear a click are not handed the block entity. Never saved; a panel is
-    /// back in it on its first tick after a load.
-    panels: Mutex<HashMap<Place, Reading>>,
-}
-
-/// A panel's stored energy and what it made last tick.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Reading {
-    stored: i32,
-    output: i32,
+    grid: Mutex<Grid>,
+    recipes: Mutex<Option<(Instant, Recipes)>>,
 }
 
 impl Hooks for SolarTech {
-    /// The panel has a block entity: an empty buffer when it is placed.
+    /// Each block has a block entity: an empty buffer when it is placed.
     fn block_entity(
         &self,
         _host: &mut dyn Host,
         event: &mut BlockEntityEvent,
     ) -> Option<(String, Compound)> {
-        (event.block == PANEL).then(|| {
+        matches!(event.block, PANEL | CABLE | FURNACE).then(|| {
             let mut nbt = Compound::new();
             nbt.insert(ENERGY.into(), Tag::Int(0));
-            (PANEL.to_owned(), nbt)
+            (event.block.to_owned(), nbt)
         })
     }
 
-    /// It ticks on the server.
+    /// They tick on the server.
     fn block_entity_ticks(&self, _host: &dyn Host, event: &mut BlockEntityTicksEvent) {
-        if event.block == PANEL {
+        if matches!(event.block, PANEL | CABLE | FURNACE) {
             event.ticks = true;
         }
     }
 
-    /// Its buffer: nothing goes in, and energy leaves by every face but the top.
+    /// Their buffers, for other mods' cables and machines: Horizon's energy helpers read
+    /// them. A panel only gives, a furnace only takes, a cable does both.
     fn block_entity_energy(
         &self,
         _host: &dyn Host,
         event: &mut BlockEntityEnergyEvent,
     ) -> Option<ModEnergyBuffer> {
-        (event.block == PANEL).then(|| ModEnergyBuffer {
-            capacity: CAPACITY,
-            max_insert: 0,
-            max_extract: MAX_EXTRACT,
-            insert_faces: [false; 6],
-            // By `Direction`: down, up, north, south, west, east.
-            extract_faces: [true, false, true, true, true, true],
+        // By `Direction`: down, up, north, south, west, east.
+        let all = [true; 6];
+        let none = [false; 6];
+        let (capacity, insert_faces, extract_faces) = match event.block {
+            PANEL => (PANEL_CAPACITY, none, [true, false, true, true, true, true]),
+            CABLE => (CABLE_CAPACITY, all, all),
+            FURNACE => (FURNACE_CAPACITY, all, none),
+            _ => return None,
+        };
+        Some(ModEnergyBuffer {
+            capacity,
+            max_insert: if insert_faces == none { 0 } else { TRANSFER },
+            max_extract: if extract_faces == none { 0 } else { TRANSFER },
+            insert_faces,
+            extract_faces,
         })
     }
 
-    /// One server tick of a panel: make energy from the sky above it.
-    fn block_entity_tick(&self, host: &mut dyn Host, event: &mut BlockEntityTickEvent) {
-        if event.entity.id != PANEL {
-            return;
+    /// The panel and the furnace open a menu of their own type (the content mod's
+    /// `data/solartech/horizon/menu/`), shown by the screens below.
+    fn block_entity_container(
+        &self,
+        _host: &dyn Host,
+        event: &mut BlockEntityContainerEvent,
+    ) -> Option<ModContainer> {
+        match event.block {
+            // A menu needs a container. The panel's one slot is never shown, and no
+            // face reaches it.
+            PANEL => Some(ModContainer {
+                slots: 1,
+                menu: Some(PANEL.to_owned()),
+                ..ModContainer::default()
+            }),
+            // Hoppers fill the input from above and the sides and empty the output
+            // from below.
+            FURNACE => Some(ModContainer {
+                slots: 2,
+                faces: [
+                    vec![OUTPUT],
+                    vec![INPUT],
+                    vec![INPUT],
+                    vec![INPUT],
+                    vec![INPUT],
+                    vec![INPUT],
+                ],
+                inputs: vec![INPUT],
+                outputs: vec![OUTPUT],
+                menu: Some(FURNACE.to_owned()),
+            }),
+            _ => None,
         }
-        let [x, y, z] = event.pos;
-        let (_block_light, sky_light) = host.light([x, y + 1, z]);
-        let (rain, thunder) = host.weather();
-        let output = output(host.day_time(), sky_light, rain, thunder);
-
-        let stored = int(&event.entity.nbt, ENERGY);
-        let charged = (stored + output).min(CAPACITY);
-        // Each write through `entity` marks it changed, so only write what moved.
-        if charged != stored {
-            event.entity.nbt.insert(ENERGY.into(), Tag::Int(charged));
-        }
-        let reading = Reading { stored: charged, output };
-        self.panels
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .insert((host.dimension(), event.pos), reading);
-        // The cells light up while the sun is on them. A write that changes nothing
-        // is refused by the game, so this costs a state change at dawn and dusk only.
-        let active = if output > 0 { "true" } else { "false" };
-        host.set_block_property(event.pos, "active", active);
     }
 
-    /// A stick on a panel reads its charge on the action bar.
-    fn use_item_on(&self, host: &mut dyn Host, event: &mut UseItemOnEvent) -> Flow {
-        if &*event.stack.item != METER || host.block(event.pos) != PANEL {
-            return Flow::Continue;
-        }
-        let Some(player) = host.acting_player() else {
-            return Flow::Continue;
+    /// One server tick of a block: collect what the neighbours paid in, do the block's
+    /// own work, pay the neighbours.
+    fn block_entity_tick(&self, host: &mut dyn Host, event: &mut BlockEntityTickEvent) {
+        let (kind, capacity) = match event.entity.id.as_str() {
+            PANEL => (Kind::Source, PANEL_CAPACITY),
+            CABLE => (Kind::Cable, CABLE_CAPACITY),
+            FURNACE => (Kind::Sink, FURNACE_CAPACITY),
+            _ => return,
         };
-        let reading = self
-            .panels
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .get(&(host.dimension(), event.pos))
-            .copied();
-        let line = match reading {
-            Some(Reading { stored, output }) => {
-                format!("Solar Panel: {stored} / {CAPACITY} FE  (+{output} FE/t)")
+        let place = (host.dimension(), event.pos);
+        let before = int(&event.entity.nbt, ENERGY);
+        let mut energy = self.grid().collect(place, before, capacity);
+
+        match kind {
+            Kind::Source => {
+                let [x, y, z] = event.pos;
+                let (_block_light, sky_light) = host.light([x, y + 1, z]);
+                let (rain, thunder) = host.weather();
+                let output = output(host.day_time(), sky_light, rain, thunder);
+                energy = (energy + output).min(capacity);
+                // The cells light up while the sun is on them. The game refuses a
+                // write that changes nothing, so this is a state change at dawn and
+                // dusk only.
+                let active = if output > 0 { "true" } else { "false" };
+                host.set_block_property(event.pos, "active", active);
+                // What the screen shows: data slots are 16 bits wide.
+                let [low, high] = screens::split(energy);
+                set_data(event, vec![low, high, output]);
             }
-            // Placed this tick: it hasn't ticked yet.
-            None => format!("Solar Panel: 0 / {CAPACITY} FE"),
+            Kind::Cable => {}
+            Kind::Sink => {
+                let recipes = self.recipes(&*host);
+                let mut progress = int(&event.entity.nbt, PROGRESS);
+                let was = progress;
+                if event.entity.items.len() <= OUTPUT {
+                    event.entity.items.resize(OUTPUT + 1, None);
+                }
+                // Smelt on copies and write back what changed: a write through
+                // `entity` marks it changed.
+                let mut input = event.entity.items[INPUT].clone();
+                let mut output = event.entity.items[OUTPUT].clone();
+                let step = smelting::step(
+                    &recipes,
+                    &mut input,
+                    &mut output,
+                    &mut energy,
+                    &mut progress,
+                    |item| host.max_stack_size(item).unwrap_or(64),
+                );
+                if input != event.entity.items[INPUT] {
+                    event.entity.items[INPUT] = input;
+                }
+                if output != event.entity.items[OUTPUT] {
+                    event.entity.items[OUTPUT] = output;
+                }
+                if progress != was {
+                    event.entity.nbt.insert(PROGRESS.into(), Tag::Int(progress));
+                }
+                let lit = if step == Step::Worked { "true" } else { "false" };
+                host.set_block_property(event.pos, "lit", lit);
+                let [low, high] = screens::split(energy);
+                set_data(event, vec![low, high, progress, smelting::TICKS_PER_ITEM]);
+            }
+        }
+
+        let energy = self
+            .grid()
+            .settle(place, kind, energy, capacity, Instant::now());
+        if energy != before {
+            event.entity.nbt.insert(ENERGY.into(), Tag::Int(energy));
+        }
+    }
+
+    /// Where the slots of a block's screen are. The server asks too: a slot left out
+    /// here is not in its menu either.
+    fn screen(&self, _host: &dyn Host, event: &mut ScreenEvent) -> Option<NativeScreen> {
+        match event.block {
+            PANEL => Some(screens::panel_layout()),
+            FURNACE => Some(screens::furnace_layout()),
+            _ => None,
+        }
+    }
+
+    /// Draws a block's screen from its menu's data slots.
+    fn screen_draw(&self, host: &dyn Host, event: &mut ScreenDrawEvent) {
+        match event.block {
+            PANEL => screens::draw_panel(host, event.batch, event.origin, event.data),
+            FURNACE => screens::draw_furnace(host, event.batch, event.origin, event.data),
+            _ => {}
+        }
+    }
+
+    /// The exact numbers, over a screen's bars.
+    fn screen_tooltip(&self, _host: &dyn Host, event: &mut ScreenTooltipEvent) {
+        let line = match event.block {
+            PANEL => screens::panel_tooltip(event.at, event.data),
+            FURNACE => screens::furnace_tooltip(event.at, event.data),
+            _ => None,
         };
-        host.action_bar(player.uuid, Text::colored(line, 0xFFD24A));
-        Flow::Cancel
+        event.lines.extend(line);
+    }
+}
+
+impl SolarTech {
+    fn grid(&self) -> std::sync::MutexGuard<'_, Grid> {
+        self.grid.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// The furnace's recipes: the files of its type in the content mod and the world's
+    /// data packs, read again every few seconds.
+    fn recipes(&self, host: &dyn Host) -> Recipes {
+        let mut kept = self.recipes.lock().unwrap_or_else(PoisonError::into_inner);
+        let now = Instant::now();
+        match &*kept {
+            Some((read, recipes)) if now.saturating_duration_since(*read) < RECIPES_KEPT => {
+                recipes.clone()
+            }
+            _ => {
+                let recipes: Recipes = host
+                    .recipes_of_type(smelting::RECIPE_TYPE)
+                    .iter()
+                    .filter_map(|recipe| smelting::recipe(&recipe.json))
+                    .collect();
+                *kept = Some((now, recipes.clone()));
+                recipes
+            }
+        }
+    }
+}
+
+/// Sets the data slots a block's menu shows, when they changed.
+fn set_data(event: &mut BlockEntityTickEvent, data: Vec<i32>) {
+    if event.entity.data != data {
+        event.entity.data = data;
     }
 }
 
@@ -209,5 +348,10 @@ mod tests {
         assert_eq!(int(&nbt, ENERGY), 0);
         nbt.insert(ENERGY.into(), Tag::Int(42));
         assert_eq!(int(&nbt, ENERGY), 42);
+    }
+
+    #[test]
+    fn one_panel_at_noon_keeps_one_furnace_running() {
+        assert!(PEAK_OUTPUT >= smelting::ENERGY_PER_TICK);
     }
 }
