@@ -25,6 +25,9 @@ i < 5 -> iken {             # koşul her turda yeniden akar
 l -> her (e) { e * e -> yazdır }        # her eleman e'ye akar
 
 4 -> (yazdır | kare -> a | kare -> kare -> b)   # çatal: nehir kollara ayrılır
+
+"Cevap: " + metne(6 * 7) -> yazdır      # Cevap: 42
+"nehir" -> her (k) { k -> yazdır }      # karakterler tek tek akar
 ```
 
 ## Derleyici
@@ -59,7 +62,7 @@ Gereksinimler: Python 3.8+, GNU binutils (`as`, `ld`), x86-64 Linux.
 | `yazdır` | değeri yazdırır, değer akmaya devam eder |
 | `eğer { } değilse { }` | değer sıfır değilse ilk blok, sıfırsa ikinci blok çalışır |
 | `iken { }` | akış sıfır olmayan değer ürettiği sürece bloğu tekrarlar |
-| `her (x) { }` | akan listenin her elemanı sırayla `x`'e akar ve blok çalışır |
+| `her (x) { }` | akan listenin her elemanı (ya da metnin her karakteri) sırayla `x`'e akar ve blok çalışır |
 | `liste[i]` | değeri listenin `i`. gözüne yazar (ilk göz 0) |
 | `(a \| b \| c)` | **çatal:** aynı değer her kola ayrı ayrı akar, sonra değişmeden yoluna devam eder |
 | `döndür` | değeri işlevden döndürür |
@@ -89,15 +92,21 @@ Kollarda `eğer` ve `döndür` kullanılabilir; `iken` ve `her` kullanılamaz.
 
 **İfadeler:** `+ - * / %`, `== != < > <= >=`, `ve veya değil`, parantez, işlev çağrısı `f(a, b)`,
 liste `[1, 2, 3]`, eleman erişimi `l[i]`.
+Metinlerde `+` birleştirir, karşılaştırma işleçleri sözlük sırasına göre çalışır ve `m[i]` `i`. karakteri verir.
 `->` yerine `→` da yazılabilir. Yorumlar `#` ile başlar.
 
 **Yerleşik işlevler:**
 
 | Türkçe | İngilizce | Ne yapar |
 | --- | --- | --- |
-| `uzunluk(x)` | `len` | listenin eleman sayısı ya da metnin bayt sayısı |
+| `uzunluk(x)` | `len` | listenin eleman sayısı ya da metnin karakter sayısı |
 | `ekle(l, n)` | `push` | `n`'yi listenin sonuna ekler, listeyi döndürür |
 | `aralık(a, b)` | `range` | `[a, a+1, ..., b-1]` listesini üretir |
+| `metne(n)` | `str` | sayıyı metne çevirir |
+| `sayıya(m)` | `num` | metni sayıya çevirir; metin geçerli bir tam sayı değilse program hatayla durur |
+
+Metinler UTF-8'dir; uzunluk ve dizinler bayt değil karakter sayar (`"çığlık"` 6 karakterdir).
+Metin ile sayı doğrudan toplanamaz: `"a" + metne(5)`.
 
 **Türler:** 64 bit tam sayılar, metinler ve tam sayı listeleri. Türler derleme anında denetlenir;
 bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
@@ -118,7 +127,7 @@ Her örnek derlenir, çalıştırılır ve çıktısı yanındaki `.beklenen` do
 
 ## Şimdilik olmayanlar
 
-- Metinler yalnızca yazdırılabilir, değişkende tutulabilir ve işlevlere verilebilir (birleştirme, karşılaştırma yok)
+- Metinler değiştirilemez; alt metin alma, arama, büyük/küçük harf çevirme yok
 - Listeler yalnızca tam sayı tutar
-- Bellek geri toplanmaz: program en çok 256 MB liste belleği ayırabilir
+- Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
 - Kullanıcıdan girdi alma, ondalıklı sayı, döngüden erken çıkma yok

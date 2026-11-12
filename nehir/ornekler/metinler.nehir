@@ -1,0 +1,34 @@
+# Metinler
+"Merhaba" -> selam
+selam + ", " + "dünya!" -> yazdır
+
+# Sayılar 'metne' akarak metne, metinler 'sayıya' akarak sayıya dönüşür.
+"Cevap: " + metne(6 * 7) -> yazdır
+"40" -> sayıya -> kırk
+kırk + 2 -> yazdır
+
+# Uzunluk ve dizinler bayt değil karakter sayar.
+"çığlık" -> s -> uzunluk -> yazdır
+s[1] -> yazdır
+
+# Karşılaştırma sözlük sırasına göredir.
+"elma" == "elma" -> yazdır
+"armut" < "elma" -> yazdır
+"elma" != "Elma" -> yazdır
+
+# Metin 'her'e akarsa karakterleri tek tek akar.
+işlev tersine(m) {
+    "" -> sonuç
+    m -> her (k) { k + sonuç -> sonuç }
+    sonuç -> döndür
+}
+"nehir" -> tersine -> yazdır
+
+işlev palindrom_mu(m) { m == tersine(m) -> döndür }
+"kayak" -> palindrom_mu -> eğer { "kayak bir palindrom" -> yazdır }
+"nehir" -> palindrom_mu -> eğer { "olmamalı" -> yazdır } değilse { "nehir palindrom değil" -> yazdır }
+
+# Sayının basamaklarını toplamak: sayı -> metin -> karakterler -> sayılar
+0 -> toplam
+metne(2026) -> her (b) { toplam + sayıya(b) -> toplam }
+toplam -> yazdır

@@ -41,6 +41,8 @@ YERLEŞİKLER = {
     "uzunluk": "uzunluk", "len": "uzunluk",
     "ekle": "ekle", "push": "ekle",
     "aralık": "aralık", "aralik": "aralık", "range": "aralık",
+    "metne": "metne", "str": "metne",
+    "sayıya": "sayıya", "sayiya": "sayıya", "num": "sayıya",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -399,12 +401,8 @@ __satir_sonu:
     mov edx, 1
     jmp __ham_yaz
 
-__sayi_ham:                     # rdi = sayı; satır sonu eklemeden yazar
-    push rbp
-    mov rbp, rsp
-    sub rsp, 32
+__sayi_basamak:                 # rdi = sayı, rsi = tampon sonu -> rsi = baş, rdx = uzunluk
     mov rax, rdi
-    mov rsi, rbp
     xor r8, r8
     xor r9, r9
     test rax, rax
@@ -426,6 +424,14 @@ __sayi_ham:                     # rdi = sayı; satır sonu eklemeden yazar
     mov byte ptr [rsi], 45
     inc r8
 3:  mov rdx, r8
+    ret
+
+__sayi_ham:                     # rdi = sayı; satır sonu eklemeden yazar
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32
+    mov rsi, rbp
+    call __sayi_basamak
     call __ham_yaz
     leave
     ret
@@ -563,6 +569,165 @@ __aralik:                       # rdi = baş, rsi = son -> rax = [baş, ..., son
     pop rbx
     ret
 
+__metin_yeni:                   # rdi = bayt uzunluğu -> rax = metin (içeriği boş)
+    push rdi
+    add rdi, 15
+    and rdi, -8
+    call __ayir
+    pop rcx
+    mov [rax], rcx
+    add rax, 8
+    ret
+
+__metin_birlestir:              # rdi = a, rsi = b -> rax = a + b
+    push rbx
+    push r12
+    push r13
+    mov r12, rdi
+    mov r13, rsi
+    mov rdi, [r12-8]
+    add rdi, [r13-8]
+    call __metin_yeni
+    mov rbx, rax
+    mov rdi, rax
+    mov rsi, r12
+    mov rcx, [r12-8]
+    rep movsb
+    mov rsi, r13
+    mov rcx, [r13-8]
+    rep movsb
+    mov rax, rbx
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__metin_karsilastir:            # rdi = a, rsi = b -> rax = -1 / 0 / 1 (sözlük sırası)
+    mov rcx, [rdi-8]
+    mov rdx, [rsi-8]
+    xor r8, r8
+1:  cmp r8, rcx
+    jae 2f
+    cmp r8, rdx
+    jae 4f
+    movzx eax, byte ptr [rdi+r8]
+    movzx r9d, byte ptr [rsi+r8]
+    inc r8
+    cmp eax, r9d
+    je 1b
+    jb 3f
+4:  mov eax, 1
+    ret
+2:  cmp rcx, rdx
+    je 5f
+3:  mov rax, -1
+    ret
+5:  xor eax, eax
+    ret
+
+__metin_uzunluk:                # rdi = metin -> rax = karakter sayısı (UTF-8)
+    mov rcx, [rdi-8]
+    xor eax, eax
+    xor r8, r8
+1:  cmp r8, rcx
+    jae 2f
+    movzx edx, byte ptr [rdi+r8]
+    and edx, 0xC0
+    cmp edx, 0x80
+    setne dl
+    movzx edx, dl
+    add rax, rdx
+    inc r8
+    jmp 1b
+2:  ret
+
+__metin_al:                     # rdi = metin, rsi = karakter dizini -> rax = o karakter (metin)
+    push rbx
+    push r12
+    mov rcx, [rdi-8]
+    xor r8, r8
+1:  cmp r8, rcx                 # rsi karakter atla
+    jae __dizin_hatasi
+    test rsi, rsi
+    jz 3f
+    inc r8
+2:  cmp r8, rcx
+    jae 4f
+    movzx edx, byte ptr [rdi+r8]
+    and edx, 0xC0
+    cmp edx, 0x80
+    jne 4f
+    inc r8
+    jmp 2b
+4:  dec rsi
+    jmp 1b
+3:  mov r9, r8                  # karakterin sonunu bul
+    inc r9
+5:  cmp r9, rcx
+    jae 6f
+    movzx edx, byte ptr [rdi+r9]
+    and edx, 0xC0
+    cmp edx, 0x80
+    jne 6f
+    inc r9
+    jmp 5b
+6:  lea rbx, [rdi+r8]
+    mov r12, r9
+    sub r12, r8
+    mov rdi, r12
+    call __metin_yeni
+    mov rdi, rax
+    mov rsi, rbx
+    mov rcx, r12
+    rep movsb
+    pop r12
+    pop rbx
+    ret
+
+__sayidan_metin:                # rdi = sayı -> rax = metin
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32
+    mov rsi, rbp
+    call __sayi_basamak
+    push rsi
+    push rdx
+    mov rdi, rdx
+    call __metin_yeni
+    pop rcx
+    pop rsi
+    mov rdi, rax
+    rep movsb
+    leave
+    ret
+
+__metinden_sayi:                # rdi = metin -> rax = sayı
+    mov rcx, [rdi-8]
+    xor eax, eax
+    xor r8, r8
+    xor r9, r9
+    test rcx, rcx
+    jz __sayi_hatasi
+    cmp byte ptr [rdi], 45
+    jne 1f
+    mov r9, 1
+    inc r8
+    cmp r8, rcx
+    jae __sayi_hatasi
+1:  movzx edx, byte ptr [rdi+r8]
+    sub edx, 48
+    cmp edx, 9
+    ja __sayi_hatasi
+    imul rax, rax, 10
+    add rax, rdx
+    inc r8
+    cmp r8, rcx
+    jb 1b
+    test r9, r9
+    jz 2f
+    neg rax
+2:  ret
+
 __sifira_bolme:
     lea rsi, [rip+__h_sifir]
     mov edx, __h_sifir_son - __h_sifir
@@ -570,6 +735,10 @@ __sifira_bolme:
 __dizin_hatasi:
     lea rsi, [rip+__h_dizin]
     mov edx, __h_dizin_son - __h_dizin
+    jmp __hata
+__sayi_hatasi:
+    lea rsi, [rip+__h_sayi]
+    mov edx, __h_sayi_son - __h_sayi
     jmp __hata
 __bellek_bitti:
     lea rsi, [rip+__h_bellek]
@@ -589,8 +758,10 @@ __kapa: .ascii "]"
 __virgul: .ascii ", "
 __h_sifir: .ascii "Nehir çalışma hatası: sıfıra bölme\n"
 __h_sifir_son:
-__h_dizin: .ascii "Nehir çalışma hatası: liste dizini sınırların dışında\n"
+__h_dizin: .ascii "Nehir çalışma hatası: dizin sınırların dışında\n"
 __h_dizin_son:
+__h_sayi: .ascii "Nehir çalışma hatası: metin sayıya çevrilemiyor\n"
+__h_sayi_son:
 __h_bellek: .ascii "Nehir çalışma hatası: bellek tükendi\n"
 __h_bellek_son:
 
@@ -781,9 +952,28 @@ class KodÜretici:
             self.etiket_koy(son)
             return tür
         if tip == "her":
-            if tür != "liste":
-                raise NehirHatası(f"'her' içine bir liste akmalı, {tür} bulundu", satır)
             baş, son = self.yeni_etiket(), self.yeni_etiket()
+            if tür == "metin":      # her karakter sırayla değişkene akar
+                self.yaz("push rax")                 # [rsp+16] = metin
+                self.yaz("mov rdi, rax")
+                self.yaz("call __metin_uzunluk")
+                self.yaz("push rax")                 # [rsp+8]  = karakter sayısı
+                self.yaz("push 0")                   # [rsp]    = dizin
+                self.etiket_koy(baş)
+                self.yaz("mov rsi, [rsp]")
+                self.yaz("cmp rsi, [rsp+8]")
+                self.yaz(f"jge {son}")
+                self.yaz("mov rdi, [rsp+16]")
+                self.yaz("call __metin_al")
+                self.ata(h[1], "metin", satır)
+                self.blok(h[2])
+                self.yaz("inc qword ptr [rsp]")
+                self.yaz(f"jmp {baş}")
+                self.etiket_koy(son)
+                self.yaz("add rsp, 24")
+                return tür
+            if tür != "liste":
+                raise NehirHatası(f"'her' içine bir liste ya da metin akmalı, {tür} bulundu", satır)
             self.yaz("push rax")                 # [rsp+8] = liste
             self.yaz("push 0")                   # [rsp]   = dizin
             self.etiket_koy(baş)
@@ -891,8 +1081,28 @@ class KodÜretici:
 
         if asıl == "uzunluk":
             imza(("liste", "metin"))
-            self.yaz("pop rax")
-            self.yaz("mov rax, [rax]" if türler[0] == "liste" else "mov rax, [rax-8]")
+            if türler[0] == "liste":
+                self.yaz("pop rax")
+                self.yaz("mov rax, [rax]")
+            else:
+                self.yaz("pop rdi")
+                self.yaz("call __metin_uzunluk")
+            return "sayı"
+        if asıl == "metne":
+            imza(("sayı", "metin"))
+            if türler[0] == "sayı":
+                self.yaz("pop rdi")
+                self.yaz("call __sayidan_metin")
+            else:
+                self.yaz("pop rax")
+            return "metin"
+        if asıl == "sayıya":
+            imza(("metin", "sayı"))
+            if türler[0] == "metin":
+                self.yaz("pop rdi")
+                self.yaz("call __metinden_sayi")
+            else:
+                self.yaz("pop rax")
             return "sayı"
         if asıl == "ekle":
             imza(("liste",), ("sayı",))
@@ -942,14 +1152,15 @@ class KodÜretici:
             self.yaz("pop rax")
             return "liste"
         if tip == "dizin":
-            if self.ifade(e[1]) != "liste":
-                raise NehirHatası("yalnızca listelerin elemanına '[ ]' ile erişilebilir", satır)
+            kap = self.ifade(e[1])
+            if kap == "sayı":
+                raise NehirHatası("'[ ]' ile yalnızca liste ve metinlere erişilebilir", satır)
             self.yaz("push rax")
-            self.sayı_olmalı(self.ifade(e[2]), "liste dizini", satır)
+            self.sayı_olmalı(self.ifade(e[2]), "dizin", satır)
             self.yaz("mov rsi, rax")
             self.yaz("pop rdi")
-            self.yaz("call __liste_al")
-            return "sayı"
+            self.yaz("call __liste_al" if kap == "liste" else "call __metin_al")
+            return "sayı" if kap == "liste" else "metin"
         if tip == "tekli":
             self.sayı_olmalı(self.ifade(e[2]), f"'{e[1]}' işlecinin işleneni", satır)
             if e[1] == "-":
@@ -977,11 +1188,27 @@ class KodÜretici:
             self.yaz("movzx eax, al")
             self.etiket_koy(son)
             return "sayı"
-        self.sayı_olmalı(self.ifade(sol), f"'{iş}' işlecinin sol tarafı", satır)
+        sol_türü = self.ifade(sol)
         self.yaz("push rax")
-        self.sayı_olmalı(self.ifade(sağ), f"'{iş}' işlecinin sağ tarafı", satır)
+        sağ_türü = self.ifade(sağ)
         self.yaz("mov rcx, rax")
         self.yaz("pop rax")
+        if sol_türü == sağ_türü == "metin" and (iş == "+" or iş in KARŞILAŞTIRMA):
+            self.yaz("mov rdi, rax")
+            self.yaz("mov rsi, rcx")
+            if iş == "+":
+                self.yaz("call __metin_birlestir")
+                return "metin"
+            self.yaz("call __metin_karsilastir")
+            self.yaz("test rax, rax")       # işaretli sonuç 0 ile karşılaştırılır
+            self.yaz(f"{KARŞILAŞTIRMA[iş]} al")
+            self.yaz("movzx eax, al")
+            return "sayı"
+        if "metin" in (sol_türü, sağ_türü) and "sayı" in (sol_türü, sağ_türü) and iş == "+":
+            raise NehirHatası("metin ile sayı doğrudan toplanamaz; "
+                              "sayıyı önce 'metne' ile çevirin: \"a\" + metne(5)", satır)
+        self.sayı_olmalı(sol_türü, f"'{iş}' işlecinin sol tarafı", satır)
+        self.sayı_olmalı(sağ_türü, f"'{iş}' işlecinin sağ tarafı", satır)
         if iş == "+":
             self.yaz("add rax, rcx")
         elif iş == "-":
