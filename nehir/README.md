@@ -65,6 +65,7 @@ python3 nehir.py ornekler/merhaba.nehir --asm
 | `-o <ad>` | çıktı dosyasının adı |
 | `--asm` | yalnızca assembly (`.s`) üret |
 | `--sözcükler` | derlemeden yalnızca sözcükleri dök |
+| `--ağaç` | derlemeden yalnızca sözdizimi ağacını dök |
 | `--çalıştır`, `--run` | derledikten sonra çalıştır |
 | `-- <argümanlar>` | `--çalıştır` ile birlikte: sonrası programa argüman olarak verilir |
 
@@ -271,7 +272,7 @@ p -> uzaklık_karesi(BAŞLANGIÇ) -> yazdır
 **Türler:** 64 bit tam sayılar, metinler, listeler, sözlükler ve kayıtlar. Bir listenin bütün elemanları aynı türdendir:
 sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listenin (`[]`) türü,
 içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
-çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır.
+çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır. Birbirini çağıran işlevlerin dönüş türleri de çıkarılır.
 
 **Kapsam:** En üst düzeyde atanan değişkenler küreseldir. İşlev içinde ilk kez atanan adlar yereldir.
 
@@ -285,22 +286,30 @@ o zamana kadar asıl derleyici olarak kalır ve yeni parçaların doğruluğu on
 
 | Aşama | Dosya | Durum |
 | --- | --- | --- |
-| Sözcükleyici | `kendi/sozcukleyici.nehir` (modül), `kendi/sozcuk_dok.nehir` (onu kullanan program) | tamam: bütün örneklerde ve kendi kaynağında `nehir.py` ile aynı sözcükleri üretiyor |
-| Kayıtlar ve modüller (ayrıştırıcının ön koşulları) | | tamam |
-| Ayrıştırıcı | | sırada |
-| Kod üretici | | bekliyor |
+| Sözcükleyici | `kendi/sozcukleyici.nehir` | tamam |
+| Ayrıştırıcı | `kendi/ayristirici.nehir` | tamam |
+| Tür denetimi ve kod üretici | | sırada |
+| Modül yükleme, hata gösterimi (kaynak satırı, ipuçları) | | bekliyor |
+
+Her aşama bir modüldür ve Python'daki karşılığıyla aynı çıktıyı verdiği, bütün `.nehir` dosyalarında
+(örnekler, hatalı programlar, `kendi/sinamalar/` altındaki zor girdiler ve aşamaların kendi kaynak
+kodları) sınanır. Hatalı dosyalarda ilk hata satırı ve çıkış kodu da aynı olmalıdır.
+
+| Program | Ne döker | Python'daki karşılığı |
+| --- | --- | --- |
+| `kendi/sozcuk_dok.nehir` | sözcükler | `nehir.py <dosya> --sözcükler` |
+| `kendi/agac_dok.nehir` | sözdizimi ağacı | `nehir.py <dosya> --ağaç` |
 
 ```bash
-python3 nehir.py kendi/sozcuk_dok.nehir -o sozcuk_dok
+python3 nehir.py kendi/agac_dok.nehir -o agac_dok
 ```
 
 ```bash
-./sozcuk_dok ornekler/merhaba.nehir
+./agac_dok ornekler/fibonacci.nehir
 ```
 
-Aynı dökümü Python'daki sözcükleyiciden almak için: `python3 nehir.py ornekler/merhaba.nehir --sözcükler`.
-Bilinen tek fark: Nehir sürümü ASCII dışındaki her karakteri harf sayar; Python sürümü Unicode'un
-harf tanımını kullanır (yalnızca adların içinde harf olmayan ASCII dışı simgeler kullanılırsa fark eder).
+Bilinen farklar: Nehir sürümleri hata mesajının yalnızca ilk satırını yazar (kaynak satırını ve
+ipucunu göstermez), ve ASCII dışındaki her karakteri harf sayar; Python sürümü Unicode'un harf tanımını kullanır.
 
 ## Sınamalar
 
@@ -310,9 +319,8 @@ python3 test.py
 
 Her örnek derlenir, çalıştırılır ve çıktısı yanındaki `.beklenen` dosyasıyla karşılaştırılır.
 `ornekler/hatalar/` altındaki programlar bilerek hatalıdır; onların beklenen çıktısı hata mesajlarıdır.
-Son olarak Nehir ile yazılmış sözcükleyici derlenir ve bütün `.nehir` dosyalarında (`kendi/sinamalar/`
-altındaki zor ve hatalı girdiler dahil) Python'daki sözcükleyiciyle aynı çıktıyı verdiği doğrulanır.
-Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
+Son olarak Nehir ile yazılmış derleyici aşamaları derlenir ve bütün `.nehir` dosyalarında
+Python'daki karşılıklarıyla aynı çıktıyı verdikleri doğrulanır.
 
 ## Şimdilik olmayanlar
 

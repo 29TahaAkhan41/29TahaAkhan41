@@ -2134,10 +2134,9 @@ class KodÜretici:
         self.konum = 0            # o anda derlenen düğümün satırı
         self.deyimler = deyimler
         self.işlevler = işlevler
-        # Her işlev için: etiket, parametre türleri (ilk çağrıda belirlenir),
-        # dönüş türü, ve özyineleme sırasında dönüş türü varsayıldı mı.
+        # Her işlev için: etiket, parametre türleri (ilk çağrıda belirlenir) ve dönüş türü.
         self.bilgi = {ad: {"etiket": f"f{i}", "türler": None, "dönüş": None,
-                           "varsayım": False, "bitti": False}
+                           "bitti": False}
                       for i, ad in enumerate(işlevler)}
         # Değişken kayıtları: [yer, tür|None, ilk atamanın konumu, okundu mu]
         self.küreseller = {}      # ad -> kayıt (yer = etiket)
@@ -2338,11 +2337,13 @@ class KodÜretici:
         (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
          self.döngüler, self.çatal_derinliği) = saklanan
 
-        if b["dönüş"] is None:
-            b["dönüş"] = "sayı"      # hiç döndür yok: işlev 0 döndürür
-        if b["varsayım"] and b["dönüş"] != "sayı":
-            raise NehirHatası(f"özyinelemeli '{ad}' işlevinin dönüş türü ilk kullanımda "
-                              f"sayı varsayıldı ama {b['dönüş']} döndürüyor", satır)
+        dönüş = çöz(b["dönüş"])
+        if dönüş is None or (isinstance(dönüş, TürDeğişkeni) and not dönüş.yalnız_kayıt):
+            # Hiç 'döndür' yok (ya da yalnızca kendi sonucunu döndürüyor): işlev 0 döndürür.
+            if dönüş is None:
+                b["dönüş"] = "sayı"
+            else:
+                dönüş.bağ = "sayı"
         b["bitti"] = True
 
         k = self.işlev_kodu
@@ -2616,9 +2617,10 @@ class KodÜretici:
         self.yaz(f"call {b['etiket']}")
         if türler:
             self.yaz(f"add rsp, {8 * len(türler)}")
-        if b["dönüş"] is None:      # özyineleme: işlev hâlâ derleniyor
-            b["varsayım"] = True
-            return "sayı"
+        if b["dönüş"] is None:
+            # Özyineleme: işlev hâlâ derleniyor ve henüz bir şey döndürmedi. Dönüş türü,
+            # ilk 'döndür'de ya da sonucun kullanıldığı yerde belli olacak bir bilinmeyendir.
+            b["dönüş"] = TürDeğişkeni()
         return b["dönüş"]
 
     def yerleşik(self, asıl, ad, türler, satır):
@@ -3054,6 +3056,87 @@ def sözcük_dökümü(kaynak):
     return "\n".join(satırlar) + "\n"
 
 
+def ağaç_dökümü(kaynak):
+    """Sözdizimi ağacını girintili satırlara döker:  tür "ad" sayı @satır:sütun:uzunluk
+    Nehir ile yazılmış ayrıştırıcının (kendi/ayristirici.nehir) çıktısı bununla bire bir
+    aynı olmalıdır. Modüller yüklenmez; `kullan` bir düğüm olarak görünür."""
+    ayrıştırıcı = Ayrıştırıcı(sözcükle(kaynak), içe_aktar=lambda yol, konum: [("kullan", yol, konum)])
+    deyimler = ayrıştırıcı.program()
+
+    # Her düğüm ortak bir biçime çevrilir: (tür, ad, sayı, çocuklar, konum)
+    def blok(deyimler, k):
+        return ("blok", "", 0, [ifade(d) for d in deyimler], k)
+
+    def ifade(n):       # ifadeler ve deyimler
+        t, k = n[0], n[-1]
+        if t == "sayı":
+            return (t, "", n[1], [], k)
+        if t in ("metin", "değişken", "kullan"):
+            return (t, n[1], 0, [], k)
+        if t == "çağrı":
+            return (t, n[1], 0, [ifade(a) for a in n[2]], k)
+        if t == "liste":
+            return (t, "", 0, [ifade(a) for a in n[1]], k)
+        if t == "sözlük":
+            return (t, "", 0, [ifade(x) for çift in n[1] for x in çift], k)
+        if t == "dizin":
+            return (t, "", 0, [ifade(n[1]), ifade(n[2])], k)
+        if t == "alan":
+            return (t, n[2], 0, [ifade(n[1])], k)
+        if t == "tekli":
+            return (t, n[1], 0, [ifade(n[2])], k)
+        if t == "ikili":
+            return (t, n[1], 0, [ifade(n[2]), ifade(n[3])], k)
+        if t == "akış":
+            return (t, "", 0, [ifade(n[1])] + [hedef(h) for h in n[2]], k)
+        return (t, "", 0, [], k)        # yok, dur, devam
+
+    def hedef(h):
+        t, k = h[0], h[-1]
+        if t == "ad":
+            argümanlar = [] if h[2] is None else [("argümanlar", "", 0, [ifade(a) for a in h[2]], k)]
+            return ("hedef_ad", h[1], 0, argümanlar, k)
+        if t == "eleman":
+            return (t, "", 0, [ifade(h[1]), ifade(h[2])], k)
+        if t == "alan_yaz":
+            return (t, h[2], 0, [ifade(h[1])], k)
+        if t == "eğer":
+            return (t, "", 0, [blok(h[1], k)] + ([] if h[2] is None else [blok(h[2], k)]), k)
+        if t == "iken":
+            return (t, "", 0, [blok(h[1], k)], k)
+        if t == "her":
+            return (t, h[1], 0, [blok(h[2], k)], k)
+        if t == "çatal":
+            return (t, "", 0, [("dal", "", 0, [hedef(x) for x in dal], k) for dal in h[1]], k)
+        return (t, "", 0, [], k)        # yazdır, döndür
+
+    def tür(t):
+        if t[0] == "ad":
+            return ("tür_adı", t[1], 0, [], t[-1])
+        return ("tür_" + t[0], "", 0, [tür(x) for x in t[1:-1]], t[-1])
+
+    çocuklar = []
+    for ad, (alanlar, k) in ayrıştırıcı.kayıtlar.items():
+        çocuklar.append(("kayıt", ad, 0, [("alan_tanımı", a, 0, [] if t is None else [tür(t)], ak)
+                                          for a, t, ak in alanlar], k))
+    for ad, (parametreler, gövde, k) in ayrıştırıcı.işlevler.items():
+        çocuklar.append(("işlev", ad, 0, [("param", p, 0, [], k) for p in parametreler] + [blok(gövde, k)], k))
+    çocuklar += [ifade(d) for d in deyimler]
+
+    satırlar = []
+
+    def dök(d, girinti):
+        t, ad, sayı, alt, k = d
+        for ham, kaçış in (("\\", "\\\\"), ("\n", "\\n"), ("\t", "\\t"), ("\r", "\\r")):
+            ad = ad.replace(ham, kaçış)
+        satırlar.append(f'{girinti}{t} "{ad}" {sayı} @{int(k)}:{k.sütun}:{k.uzunluk}')
+        for ç in alt:
+            dök(ç, girinti + "  ")
+
+    dök(("program", "", 0, çocuklar, Konum(0, 0, 0)), "")
+    return "\n".join(satırlar) + "\n"
+
+
 def bildir(dosya, kaynak, düzey, mesaj, konum=None, ipucu=None):
     """Hata ya da uyarıyı, kaynak satırı ve altı çizili yeriyle stderr'e yazar:
 
@@ -3095,12 +3178,14 @@ KULLANIM = """kullanım: nehir.py <dosya.nehir> [seçenekler]
   --asm              yalnızca assembly (.s) üret, derlemeyi orada bırak
   --çalıştır, --run  derledikten sonra programı çalıştır
   --sözcükler        derlemeden yalnızca sözcükleri dök
+  --ağaç             derlemeden yalnızca sözdizimi ağacını dök
   -- <argümanlar>    --çalıştır ile birlikte: sonrası programa argüman olarak verilir
 """
 
 
 def ana(argv):
     girdi, çıktı, yalnız_asm, çalıştır, yalnız_sözcükler = None, None, False, False, False
+    yalnız_ağaç = False
     program_argümanları = []
     if "--" in argv:
         ayraç = argv.index("--")
@@ -3115,6 +3200,8 @@ def ana(argv):
             yalnız_asm = True
         elif a in ("--sözcükler", "--sozcukler", "--tokens"):
             yalnız_sözcükler = True
+        elif a in ("--ağaç", "--agac", "--ast"):
+            yalnız_ağaç = True
         elif a in ("--çalıştır", "--calistir", "--run"):
             çalıştır = True
         elif a.startswith("-") or girdi is not None:
@@ -3135,9 +3222,11 @@ def ana(argv):
         bildir(yol, kaynak, düzey, mesaj, konum, ipucu)
 
     try:
-        if yalnız_sözcükler:
+        if yalnız_sözcükler or yalnız_ağaç:
             with open(girdi, encoding="utf-8") as f:
-                sys.stdout.write(sözcük_dökümü(f.read()))
+                kaynak = f.read()
+            dosyalar.append((girdi, kaynak))
+            sys.stdout.write(sözcük_dökümü(kaynak) if yalnız_sözcükler else ağaç_dökümü(kaynak))
             return 0
         asm, uyarılar = derle(girdi, dosyalar)
     except (OSError, UnicodeDecodeError) as h:

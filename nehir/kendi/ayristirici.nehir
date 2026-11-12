@@ -1,0 +1,524 @@
+# Nehir ayrıştırıcısı — Nehir ile yazılmış.
+#
+# nehir.py içindeki `Ayrıştırıcı` sınıfının karşılığıdır: sözcükleyicinin ürettiği
+# sözcüklerden sözdizimi ağacını kurar. Kendi kendini derleyen derleyicinin ikinci aşaması.
+#
+#   kullan "ayristirici.nehir"
+#   "program.nehir" -> l_dosya
+#   l_dosya -> dosya_oku -> sözcükle
+#   program() -> ağaç
+
+kullan "sozcukleyici.nehir"
+
+# ── ağaç ──
+# Bütün düğümler tek bir kayıt türündendir. `tür` düğümün ne olduğunu söyler; `ad`
+# ve `sayı` düğüme özgü yükü (değişken adı, işleç, sayının değeri) taşır.
+#
+#   İfadeler:  sayı  metin  değişken  çağrı  liste  sözlük  dizin  alan  yok  tekli  ikili
+#   Deyimler:  akış (ilk çocuk kaynak ifade, sonrakiler hedefler)  dur  devam  kullan
+#   Hedefler:  yazdır  döndür  hedef_ad  eleman  alan_yaz  eğer  iken  her  çatal (çocukları: dal)
+#   Tanımlar:  işlev (çocukları: param..., blok)   kayıt (çocukları: alan_tanımı)
+#   Türler:    tür_adı  tür_liste  tür_sözlük
+
+kayıt Düğüm {
+    tür: metin, ad: metin, sayı: sayı, çocuklar: [Düğüm],
+    satır: sayı, sütun: sayı, uzunluk: sayı
+}
+
+# Yerleşik işlev adları; işlev ve kayıtlara bu adlar verilemez.
+{
+    "uzunluk": 1, "len": 1, "ekle": 1, "push": 1, "aralık": 1, "aralik": 1, "range": 1, "metne": 1,
+    "str": 1, "sayıya": 1, "sayiya": 1, "num": 1, "dilim": 1, "slice": 1, "bul": 1, "find": 1,
+    "sil": 1, "remove": 1, "böl": 1, "bol": 1, "split": 1, "birleş": 1, "birles": 1, "join": 1,
+    "var": 1, "has": 1, "anahtarlar": 1, "keys": 1, "değerler": 1, "degerler": 1, "values": 1,
+    "dosya_oku": 1, "read_file": 1, "dosya_yaz": 1, "write_file": 1, "dosya_ekle": 1,
+    "append_file": 1, "dosya_var": 1, "file_exists": 1, "dosya_sil": 1, "delete_file": 1,
+    "argümanlar": 1, "argumanlar": 1, "args": 1, "çık": 1, "cik": 1, "exit": 1, "uyar": 1,
+    "warn": 1, "oku": 1, "read": 1, "girdi_var": 1, "has_input": 1
+} -> YERLEŞİK_ADLAR
+
+# ── durum ──
+
+0 -> a_k            # sıradaki sözcüğün dizini
+[] -> a_işlevler    # işlev düğümleri, tanımlanma sırasıyla
+[] -> a_kayıtlar    # kayıt düğümleri
+{} -> a_adlar       # tanımlı ad -> "işlev" ya da "kayıt"
+
+# ── yardımcılar ──
+
+işlev hata_yer(mesaj, satır, sütun) {
+    l_dosya + ":" + metne(satır) + ":" + metne(sütun) + ": hata: " + mesaj -> uyar
+    çık(1)
+}
+
+# k. sözcüğün konumunda hata verir.
+işlev hata_sözcükte(mesaj, k) { hata_yer(mesaj, s_satır[k], s_sütun[k]) }
+
+# Konumu k. sözcükten alan, çocuksuz yeni bir düğüm.
+işlev düğüm(tür, ad, k) {
+    Düğüm(tür, ad, 0, [], s_satır[k], s_sütun[k], s_uzunluk[k]) -> döndür
+}
+
+işlev bulunan() {
+    s_tür[a_k] == "SON" -> eğer { "dosya sonu" -> döndür }
+    "'" + s_yazım[a_k] + "'" -> döndür
+}
+
+# Sıradaki sözcük bu türde mi? `değer` boş değilse değeri de tutmalı.
+işlev bak(tür, değer) {
+    s_tür[a_k] == tür ve (değer == "" veya s_değer[a_k] == değer) -> döndür
+}
+
+# Sıradaki sözcük uyuyorsa onu tüketir.
+işlev al(tür, değer) {
+    bak(tür, değer) -> eğer {
+        a_k + 1 -> a_k
+        doğru -> döndür
+    }
+    yanlış -> döndür
+}
+
+# Sıradaki sözcük uymak zorundadır; tüketir ve dizinini verir.
+işlev bekle(tür, değer) {
+    a_k -> k
+    al(tür, değer) -> eğer { k -> döndür }
+    tür -> beklenen
+    tür == "AD" -> eğer { "bir ad" -> beklenen }
+    değer != "" -> eğer { "'" + değer + "'" -> beklenen }
+    hata_sözcükte(beklenen + " bekleniyordu, " + bulunan() + " bulundu", a_k)
+    0 -> döndür
+}
+
+# Ardıl '(' ve '[' yalnızca aynı satırdaysa önceki ifadeye bağlanır; böylece
+# yeni satırda '[' ya da '(' ile başlayan deyim ayrı kalır.
+işlev aynı_satırda(değer) { bak("İŞLEÇ", değer) ve değil s_yeni[a_k] -> döndür }
+
+# Bu hedeflerden sonra akış devam etmez.
+işlev sonlandıran_mı(tür) {
+    tür == "eğer" veya tür == "iken" veya tür == "her" veya tür == "döndür" -> döndür
+}
+
+# ── tanımlar ──
+
+işlev yeni_ad(k, ne) {
+    s_değer[k] -> ad
+    a_adlar -> var(ad) -> eğer {
+        hata_sözcükte("'" + ad + "' adı zaten bir " + a_adlar[ad] + " için kullanılmış", k)
+    }
+    YERLEŞİK_ADLAR -> var(ad) -> eğer {
+        hata_sözcükte("'" + ad + "' yerleşik bir işlevdir, " + ne + " adı olamaz", k)
+    }
+    ad -> döndür
+}
+
+# Tür adı:  sayı | metin | KayıtAdı | [Tür] | {Tür: Tür}
+işlev tür_ifadesi() {
+    a_k -> k
+    al("İŞLEÇ", "[") -> eğer {
+        düğüm("tür_liste", "", k) -> d
+        d.çocuklar -> ekle(tür_ifadesi())
+        bekle("İŞLEÇ", "]")
+        d -> döndür
+    }
+    al("İŞLEÇ", "{") -> eğer {
+        düğüm("tür_sözlük", "", k) -> d
+        d.çocuklar -> ekle(tür_ifadesi())
+        bekle("İŞLEÇ", ":")
+        d.çocuklar -> ekle(tür_ifadesi())
+        bekle("İŞLEÇ", "}")
+        d -> döndür
+    }
+    al("AD", "") -> eğer { düğüm("tür_adı", s_değer[k], k) -> döndür }
+    hata_sözcükte("bir tür bekleniyordu, " + bulunan() + " bulundu", k)
+    düğüm("", "", k) -> döndür
+}
+
+# kayıt Ad { alan, alan: Tür, ... }
+işlev kayıt_tanımı() {
+    bekle("ANAHTAR", "kayıt")
+    bekle("AD", "") -> ad_k
+    yeni_ad(ad_k, "kayıt") -> ad
+    bekle("İŞLEÇ", "{")
+    düğüm("kayıt", ad, ad_k) -> kayıt_d
+    {} -> görülen
+    değil bak("İŞLEÇ", "}") -> iken {
+        bekle("AD", "") -> alan_k
+        s_değer[alan_k] -> alan_adı
+        görülen -> var(alan_adı) -> eğer {
+            hata_sözcükte("'" + ad + "' kaydında '" + alan_adı + "' alanı iki kez tanımlanmış", alan_k)
+        }
+        1 -> görülen[alan_adı]
+        düğüm("alan_tanımı", alan_adı, alan_k) -> alan_d
+        al("İŞLEÇ", ":") -> eğer { alan_d.çocuklar -> ekle(tür_ifadesi()) }
+        kayıt_d.çocuklar -> ekle(alan_d)
+        değil al("İŞLEÇ", ",") -> eğer { dur }
+    }
+    bekle("İŞLEÇ", "}")
+    "kayıt" -> a_adlar[ad]
+    a_kayıtlar -> ekle(kayıt_d)
+}
+
+işlev işlev_tanımı() {
+    bekle("ANAHTAR", "işlev")
+    bekle("AD", "") -> ad_k
+    yeni_ad(ad_k, "işlev") -> ad
+    bekle("İŞLEÇ", "(")
+    düğüm("işlev", ad, ad_k) -> işlev_d
+    {} -> görülen
+    yanlış -> yinelenen
+    değil bak("İŞLEÇ", ")") -> eğer {
+        doğru -> iken {
+            bekle("AD", "") -> p_k
+            görülen -> var(s_değer[p_k]) -> eğer { doğru -> yinelenen }
+            1 -> görülen[s_değer[p_k]]
+            işlev_d.çocuklar -> ekle(düğüm("param", s_değer[p_k], ad_k))
+            değil al("İŞLEÇ", ",") -> eğer { dur }
+        }
+    }
+    bekle("İŞLEÇ", ")")
+    yinelenen -> eğer {
+        hata_sözcükte("'" + ad + "' işlevinde aynı parametre adı iki kez kullanılmış", ad_k)
+    }
+    "işlev" -> a_adlar[ad]      # gövdeden önce kaydedilir: işlev kendini çağırabilir
+    a_işlevler -> ekle(işlev_d)
+    işlev_d.çocuklar -> ekle(blok(ad_k))
+}
+
+# ── deyimler ──
+
+# { deyim* } — blok düğümü, konumunu ait olduğu yapıdan (konum_k) alır.
+işlev blok(konum_k) {
+    bekle("İŞLEÇ", "{") -> açılış
+    düğüm("blok", "", konum_k) -> b
+    değil bak("İŞLEÇ", "}") -> iken {
+        bak("ANAHTAR", "işlev") -> eğer {
+            hata_sözcükte("işlevler yalnızca en üst düzeyde tanımlanabilir", a_k)
+        }
+        bak("SON", "") -> eğer { hata_sözcükte("bu blok kapatılmamış", açılış) }
+        b.çocuklar -> ekle(deyim())
+    }
+    bekle("İŞLEÇ", "}")
+    b -> döndür
+}
+
+işlev deyim() {
+    a_k -> k
+    al("ANAHTAR", "dur") -> eğer { düğüm("dur", "", k) -> döndür }
+    al("ANAHTAR", "devam") -> eğer { düğüm("devam", "", k) -> döndür }
+    düğüm("akış", "", k) -> d
+    d.çocuklar -> ekle(ifade())
+    zincir(d)
+    d -> döndür
+}
+
+# Sıfır ya da daha çok '-> hedef'; hedefler d'nin çocuklarına eklenir.
+işlev zincir(d) {
+    al("İŞLEÇ", "->") -> iken {
+        hedef() -> h
+        d.çocuklar -> ekle(h)
+        sonlandıran_mı(h.tür) -> eğer { dur }
+    }
+}
+
+işlev hedef() {
+    a_k -> k
+    al("ANAHTAR", "yazdır") -> eğer { düğüm("yazdır", "", k) -> döndür }
+    al("ANAHTAR", "döndür") -> eğer { düğüm("döndür", "", k) -> döndür }
+    al("ANAHTAR", "eğer") -> eğer {
+        düğüm("eğer", "", k) -> d
+        d.çocuklar -> ekle(blok(k))
+        al("ANAHTAR", "değilse") -> eğer { d.çocuklar -> ekle(blok(k)) }
+        d -> döndür
+    }
+    al("ANAHTAR", "iken") -> eğer {
+        düğüm("iken", "", k) -> d
+        d.çocuklar -> ekle(blok(k))
+        d -> döndür
+    }
+    al("ANAHTAR", "her") -> eğer {
+        bekle("İŞLEÇ", "(")
+        bekle("AD", "") -> değişken_k
+        bekle("İŞLEÇ", ")")
+        düğüm("her", s_değer[değişken_k], k) -> d
+        d.çocuklar -> ekle(blok(k))
+        d -> döndür
+    }
+    al("İŞLEÇ", "(") -> eğer {
+        düğüm("çatal", "", k) -> d
+        d.çocuklar -> ekle(dal(k))
+        al("İŞLEÇ", "|") -> iken { d.çocuklar -> ekle(dal(k)) }
+        bekle("İŞLEÇ", ")")
+        d -> döndür
+    }
+    al("AD", "") -> eğer {
+        aynı_satırda("(") -> eğer {
+            düğüm("hedef_ad", s_değer[k], k) -> d
+            düğüm("argümanlar", "", k) -> arg_d
+            argüman_listesi(arg_d)
+            d.çocuklar -> ekle(arg_d)
+            d -> döndür
+        }
+        değil (aynı_satırda("[") veya bak("İŞLEÇ", ".")) -> eğer {
+            düğüm("hedef_ad", s_değer[k], k) -> döndür
+        }
+        # a[i].x[j] gibi bir hedefte son erişim yazılacak yerdir; öncekiler okunur.
+        düğüm("değişken", s_değer[k], k) -> kap
+        kap -> son
+        doğru -> iken {
+            al("İŞLEÇ", ".") -> eğer {
+                bekle("AD", "") -> alan_k
+                düğüm("alan", s_değer[alan_k], alan_k) -> son
+                son.çocuklar -> ekle(kap)
+            } değilse {
+                bekle("İŞLEÇ", "[") -> köşe_k
+                düğüm("dizin", "", köşe_k) -> son
+                son.çocuklar -> ekle(kap)
+                son.çocuklar -> ekle(ifade())
+                bekle("İŞLEÇ", "]")
+            }
+            değil (aynı_satırda("[") veya bak("İŞLEÇ", ".")) -> eğer { dur }
+            son -> kap
+        }
+        son.tür == "alan" -> eğer {
+            "alan_yaz" -> son.tür
+            son -> döndür
+        }
+        "eleman" -> son.tür
+        s_satır[k] -> son.satır
+        s_sütun[k] -> son.sütun
+        s_uzunluk[k] -> son.uzunluk
+        son -> döndür
+    }
+    hata_sözcükte("'->' sonrasında bir hedef bekleniyordu, " + bulunan() + " bulundu", k)
+    düğüm("", "", k) -> döndür
+}
+
+# Çatalın bir kolu:  hedef (-> hedef)*
+işlev dal(konum_k) {
+    düğüm("dal", "", konum_k) -> d
+    hedef() -> h
+    d.çocuklar -> ekle(h)
+    değil sonlandıran_mı(h.tür) -> eğer { zincir(d) }
+    d.çocuklar -> her (x) {
+        x.tür == "iken" veya x.tür == "her" -> eğer {
+            hata_yer("çatalın kolunda '" + x.tür + "' kullanılamaz", x.satır, x.sütun)
+        }
+    }
+    d -> döndür
+}
+
+# ── ifadeler ──
+# Öncelik düşükten yükseğe: veya, ve, değil, karşılaştırma, + -, * / %, tekli eksi
+
+# ( ifade, ... ) — ifadeler d'nin çocuklarına eklenir.
+işlev argüman_listesi(d) {
+    bekle("İŞLEÇ", "(")
+    ifade_listesi(d, ")")
+    bekle("İŞLEÇ", ")")
+}
+
+işlev ifade_listesi(d, kapanış) {
+    değil bak("İŞLEÇ", kapanış) -> eğer {
+        d.çocuklar -> ekle(ifade())
+        al("İŞLEÇ", ",") -> iken { d.çocuklar -> ekle(ifade()) }
+    }
+}
+
+işlev ikili(işleç, sol, sağ, k) {
+    düğüm("ikili", işleç, k) -> d
+    d.çocuklar -> ekle(sol)
+    d.çocuklar -> ekle(sağ)
+    d -> döndür
+}
+
+işlev ifade() {
+    ve_ifadesi() -> sol
+    doğru -> iken {
+        a_k -> k
+        değil al("ANAHTAR", "veya") -> eğer { dur }
+        ikili("veya", sol, ve_ifadesi(), k) -> sol
+    }
+    sol -> döndür
+}
+
+işlev ve_ifadesi() {
+    değil_ifadesi() -> sol
+    doğru -> iken {
+        a_k -> k
+        değil al("ANAHTAR", "ve") -> eğer { dur }
+        ikili("ve", sol, değil_ifadesi(), k) -> sol
+    }
+    sol -> döndür
+}
+
+işlev değil_ifadesi() {
+    a_k -> k
+    al("ANAHTAR", "değil") -> eğer {
+        düğüm("tekli", "değil", k) -> d
+        d.çocuklar -> ekle(değil_ifadesi())
+        d -> döndür
+    }
+    karşılaştırma() -> döndür
+}
+
+işlev karşılaştırma() {
+    toplama() -> sol
+    doğru -> iken {
+        a_k -> k
+        s_değer[k] -> iş
+        değil (s_tür[k] == "İŞLEÇ" ve (iş == "==" veya iş == "!=" veya iş == "<"
+                veya iş == ">" veya iş == "<=" veya iş == ">=")) -> eğer { dur }
+        a_k + 1 -> a_k
+        ikili(iş, sol, toplama(), k) -> sol
+    }
+    sol -> döndür
+}
+
+işlev toplama() {
+    çarpma() -> sol
+    doğru -> iken {
+        a_k -> k
+        s_değer[k] -> iş
+        değil (s_tür[k] == "İŞLEÇ" ve (iş == "+" veya iş == "-")) -> eğer { dur }
+        iş == "-" ve s_yeni[k] -> eğer { dur }      # satır başındaki '-' yeni bir deyimin eksi işaretidir
+        a_k + 1 -> a_k
+        ikili(iş, sol, çarpma(), k) -> sol
+    }
+    sol -> döndür
+}
+
+işlev çarpma() {
+    tekli() -> sol
+    doğru -> iken {
+        a_k -> k
+        s_değer[k] -> iş
+        değil (s_tür[k] == "İŞLEÇ" ve (iş == "*" veya iş == "/" veya iş == "%")) -> eğer { dur }
+        a_k + 1 -> a_k
+        ikili(iş, sol, tekli(), k) -> sol
+    }
+    sol -> döndür
+}
+
+işlev tekli() {
+    a_k -> k
+    al("İŞLEÇ", "-") -> eğer {
+        düğüm("tekli", "-", k) -> d
+        d.çocuklar -> ekle(tekli())
+        d -> döndür
+    }
+    ardıl() -> döndür
+}
+
+# birincil ifadenin ardından gelen [dizin] ve .alan erişimleri
+işlev ardıl() {
+    birincil() -> e
+    doğru -> iken {
+        a_k -> k
+        aynı_satırda("[") -> eğer {
+            a_k + 1 -> a_k
+            düğüm("dizin", "", k) -> d
+            d.çocuklar -> ekle(e)
+            d.çocuklar -> ekle(ifade())
+            bekle("İŞLEÇ", "]")
+            d -> e
+            devam
+        }
+        al("İŞLEÇ", ".") -> eğer {
+            bekle("AD", "") -> alan_k
+            düğüm("alan", s_değer[alan_k], alan_k) -> d
+            d.çocuklar -> ekle(e)
+            d -> e
+            devam
+        }
+        dur
+    }
+    e -> döndür
+}
+
+işlev birincil() {
+    a_k -> k
+    al("SAYI", "") -> eğer {
+        düğüm("sayı", "", k) -> d
+        sayıya(s_değer[k]) -> d.sayı
+        d -> döndür
+    }
+    al("METİN", "") -> eğer { düğüm("metin", s_değer[k], k) -> döndür }
+    al("ANAHTAR", "doğru") -> eğer {
+        düğüm("sayı", "", k) -> d
+        1 -> d.sayı
+        d -> döndür
+    }
+    al("ANAHTAR", "yanlış") -> eğer { düğüm("sayı", "", k) -> döndür }
+    al("ANAHTAR", "yok") -> eğer { düğüm("yok", "", k) -> döndür }
+    al("AD", "") -> eğer {
+        aynı_satırda("(") -> eğer {
+            düğüm("çağrı", s_değer[k], k) -> d
+            argüman_listesi(d)
+            d -> döndür
+        }
+        düğüm("değişken", s_değer[k], k) -> döndür
+    }
+    al("İŞLEÇ", "(") -> eğer {
+        ifade() -> iç
+        bekle("İŞLEÇ", ")")
+        iç -> döndür
+    }
+    al("İŞLEÇ", "[") -> eğer {
+        düğüm("liste", "", k) -> d
+        ifade_listesi(d, "]")
+        bekle("İŞLEÇ", "]")
+        d -> döndür
+    }
+    al("İŞLEÇ", "{") -> eğer {
+        düğüm("sözlük", "", k) -> d
+        değil bak("İŞLEÇ", "}") -> iken {
+            d.çocuklar -> ekle(ifade())
+            bekle("İŞLEÇ", ":")
+            d.çocuklar -> ekle(ifade())
+            değil al("İŞLEÇ", ",") -> eğer { dur }
+        }
+        bekle("İŞLEÇ", "}")
+        d -> döndür
+    }
+    hata_sözcükte("bir ifade bekleniyordu, " + bulunan() + " bulundu", k)
+    düğüm("", "", k) -> döndür
+}
+
+# ── program ──
+
+# Bütün dosyayı ayrıştırır. Kök düğümün çocukları: önce kayıtlar, sonra işlevler,
+# sonra üst düzey deyimler. `kullan` burada yalnızca bir düğümdür; modülleri
+# yüklemek sonraki aşamanın işidir.
+işlev program() {
+    Düğüm("program", "", 0, [], 0, 0, 0) -> kök
+    [] -> deyimler
+    değil bak("SON", "") -> iken {
+        bak("ANAHTAR", "işlev") -> eğer {
+            işlev_tanımı()
+            devam
+        }
+        bak("ANAHTAR", "kayıt") -> eğer {
+            kayıt_tanımı()
+            devam
+        }
+        a_k -> k
+        al("ANAHTAR", "kullan") -> eğer {
+            bekle("METİN", "") -> yol_k
+            deyimler -> ekle(düğüm("kullan", s_değer[yol_k], yol_k))
+            devam
+        }
+        deyimler -> ekle(deyim())
+    }
+    a_kayıtlar + a_işlevler + deyimler -> kök.çocuklar
+    kök -> döndür
+}
+
+# ── döküm ──
+# Ağacı girintili satırlara döker (nehir.py --ağaç ile aynı biçim):
+#   tür "ad" sayı @satır:sütun:uzunluk
+
+işlev ağaç_dök(d, girinti) {
+    girinti + d.tür + " \"" + kaçır(d.ad) + "\" " + metne(d.sayı)
+        + " @" + metne(d.satır) + ":" + metne(d.sütun) + ":" + metne(d.uzunluk) -> yazdır
+    d.çocuklar -> her (ç) { ağaç_dök(ç, girinti + "  ") }
+}

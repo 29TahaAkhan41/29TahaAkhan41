@@ -1,0 +1,29 @@
+# Ayrıştırıcı için zor durumlar
+kayıt K { a, b: sayı, c: [K], d: {metin: [sayı]}, }
+kayıt Boş { }
+işlev f() { }
+işlev g(a, b, c) { a -> döndür }
+1 + 2 * 3 - -4 / (5 % 6) -> x
+değil a ve b veya değil değil c == d != e < f -> y
+x -> (yazdır | f -> g(1, 2) -> z | eğer { dur } değilse { devam } | döndür) -> w
+l[0][1].a.b[2] -> t
+5 -> l[0].a[1]
+6 -> k.a.b
+7 -> m[1]
+[] -> boş; {} -> s; [1,] -> tek
+{"a": 1, "b": [2, 3], } -> s2
+f()
+(1)
+-1 -> n
+a
+-b -> c
+x
+[1] -> y
+x
+(2) -> z
+yok -> k
+doğru -> p; yanlış -> q
+l -> her (e) { e -> yazdır }
+c -> iken { }
+kullan "x.nehir"
+g(f(), [1, {2: 3}], "m")[0].a -> yazdır

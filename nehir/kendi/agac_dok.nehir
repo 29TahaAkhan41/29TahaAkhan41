@@ -1,0 +1,24 @@
+# Bir Nehir dosyasının sözdizimi ağacını döker.
+#
+#   kullanım: agac_dok <dosya.nehir>
+#
+# Çıktısı `nehir.py <dosya> --ağaç` ile bire bir aynıdır.
+
+kullan "ayristirici.nehir"
+
+işlev ana() {
+    argümanlar() -> a
+    uzunluk(a) != 1 -> eğer {
+        "kullanım: agac_dok <dosya.nehir>" -> uyar
+        çık(2)
+    }
+    a[0] -> l_dosya
+    değil dosya_var(l_dosya) -> eğer {
+        l_dosya + ": hata: dosya okunamadı" -> uyar
+        çık(1)
+    }
+    l_dosya -> dosya_oku -> sözcükle
+    program() -> ağaç_dök("")
+}
+
+ana()

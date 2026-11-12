@@ -42,12 +42,14 @@
 
 [] -> s_tür         # "SAYI", "METİN", "AD", "ANAHTAR", "İŞLEÇ", "SON"
 [] -> s_değer       # metin olarak; sayılar için onluk yazımı
+[] -> s_yazım       # kaynakta yazıldığı hâli (hata mesajları için)
 [] -> s_satır
 [] -> s_sütun
 [] -> s_uzunluk
 [] -> s_yeni        # sözcük, satırının ilk sözcüğü mü?
 
 "" -> l_dosya
+[""] -> l_kr        # kaynağın karakterleri
 1 -> l_satır
 0 -> l_satır_başı   # geçerli satırın ilk karakterinin dizini
 0 -> l_son_satır    # en son sözcüğün satırı; ';' sıfırlar
@@ -73,6 +75,7 @@ işlev sözcük_ekle(tür, değer, baş, son) {
     u < 1 -> eğer { 1 -> u }
     s_tür -> ekle(tür)
     s_değer -> ekle(değer)
+    s_yazım -> ekle(birleş(dilim(l_kr, baş, son), ""))
     s_satır -> ekle(l_satır)
     s_sütun -> ekle(baş - l_satır_başı + 1)
     s_uzunluk -> ekle(u)
@@ -97,6 +100,7 @@ işlev sözcükle(kaynak) {
     # Metinde dizinle erişim baştan saymayı gerektirir; karakter listesinde anlıktır.
     [] -> kr
     kaynak -> her (k) { kr -> ekle(k) }
+    kr -> l_kr
     uzunluk(kr) -> n
 
     0 -> i
