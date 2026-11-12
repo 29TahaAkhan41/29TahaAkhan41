@@ -1,0 +1,11 @@
+{
+  "type": "lumina:infusion",
+  "ingredient": {
+    "item": "lumina:lumen_shard"
+  },
+  "result": {
+    "id": "lumina:charged_lumen_shard",
+    "count": 1
+  },
+  "starlight": 250
+}

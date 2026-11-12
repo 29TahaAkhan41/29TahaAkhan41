@@ -1,0 +1,47 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+version = mod_version
+group = 'dev.lumina'
+
+base {
+    archivesName = 'lumina'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = neo_version
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'lumina'
+        }
+    }
+
+    mods {
+        lumina {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+// Bu depoda ayrica Astral Sorcery icin Turkce ceviri dosyasi duruyor;
+// o dosya Lumina modunun parcasi degil, jar'a girmesin.
+tasks.named('processResources') {
+    exclude 'assets/astralsorcery/**'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

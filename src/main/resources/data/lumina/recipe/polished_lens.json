@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "item": "minecraft:gold_nugget"
+    },
+    "P": {
+      "item": "minecraft:glass_pane"
+    },
+    "S": {
+      "item": "lumina:lumen_shard"
+    }
+  },
+  "pattern": [
+    " G ",
+    "PSP",
+    " G "
+  ],
+  "result": {
+    "id": "lumina:polished_lens",
+    "count": 2
+  }
+}

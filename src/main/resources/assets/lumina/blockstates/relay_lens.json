@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "lumina:block/relay_lens"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "lumina:infusion",
+  "ingredient": {
+    "item": "minecraft:cobblestone"
+  },
+  "result": {
+    "id": "minecraft:end_stone",
+    "count": 1
+  },
+  "starlight": 200
+}

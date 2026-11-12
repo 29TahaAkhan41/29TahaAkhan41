@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "lumina:charged_lumen_shard"
+    },
+    "L": {
+      "item": "lumina:polished_lens"
+    },
+    "I": {
+      "item": "lumina:starlit_ingot"
+    }
+  },
+  "pattern": [
+    " C ",
+    "LCL",
+    " I "
+  ],
+  "result": {
+    "id": "lumina:splitting_prism",
+    "count": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "lumina:infusion",
+  "ingredient": {
+    "item": "minecraft:glowstone"
+  },
+  "result": {
+    "id": "minecraft:sea_lantern",
+    "count": 1
+  },
+  "starlight": 600
+}

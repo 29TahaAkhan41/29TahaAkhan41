@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "Q": {
+      "item": "minecraft:quartz_block"
+    },
+    "L": {
+      "item": "lumina:polished_lens"
+    },
+    "S": {
+      "item": "lumina:lumen_shard"
+    }
+  },
+  "pattern": [
+    "QLQ",
+    " Q ",
+    "QSQ"
+  ],
+  "result": {
+    "id": "lumina:infusion_pedestal",
+    "count": 1
+  }
+}

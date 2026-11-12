@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 100,
+  "experience": 0.7,
+  "group": "lumen_shard",
+  "ingredient": {
+    "item": "lumina:lumen_ore"
+  },
+  "result": {
+    "id": "lumina:lumen_shard"
+  }
+}

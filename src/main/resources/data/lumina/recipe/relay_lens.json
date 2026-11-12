@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "L": {
+      "item": "lumina:polished_lens"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "pattern": [
+    " L ",
+    " I ",
+    "ICI"
+  ],
+  "result": {
+    "id": "lumina:relay_lens",
+    "count": 2
+  }
+}

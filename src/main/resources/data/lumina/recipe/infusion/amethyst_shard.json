@@ -1,0 +1,11 @@
+{
+  "type": "lumina:infusion",
+  "ingredient": {
+    "item": "minecraft:quartz"
+  },
+  "result": {
+    "id": "minecraft:amethyst_shard",
+    "count": 1
+  },
+  "starlight": 300
+}

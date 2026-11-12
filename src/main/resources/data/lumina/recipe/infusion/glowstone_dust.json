@@ -1,0 +1,11 @@
+{
+  "type": "lumina:infusion",
+  "ingredient": {
+    "item": "minecraft:redstone"
+  },
+  "result": {
+    "id": "minecraft:glowstone_dust",
+    "count": 1
+  },
+  "starlight": 150
+}

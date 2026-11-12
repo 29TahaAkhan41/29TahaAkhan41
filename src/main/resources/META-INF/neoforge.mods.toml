@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "lumina"
+version = "${file.jarVersion}"
+displayName = "Lumina"
+authors = "29TahaAkhan41"
+description = '''
+Yıldız ışığını topla, mercek ve prizmalarla aktar, kaidelerde eşyalara işle.
+Collect starlight, route it through lenses and prisms, and infuse items with it.
+'''
+
+[[dependencies.lumina]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.lumina]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "S": {
+      "item": "lumina:lumen_shard"
+    },
+    "L": {
+      "item": "lumina:polished_lens"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "C": {
+      "item": "minecraft:copper_block"
+    }
+  },
+  "pattern": [
+    " S ",
+    "SLS",
+    "GCG"
+  ],
+  "result": {
+    "id": "lumina:starlight_collector",
+    "count": 1
+  }
+}

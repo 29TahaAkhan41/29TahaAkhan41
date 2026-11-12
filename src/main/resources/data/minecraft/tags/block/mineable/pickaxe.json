@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "lumina:starlight_collector",
+    "lumina:relay_lens",
+    "lumina:splitting_prism",
+    "lumina:starlight_cell",
+    "lumina:infusion_pedestal",
+    "lumina:lumen_ore",
+    "lumina:deepslate_lumen_ore"
+  ]
+}

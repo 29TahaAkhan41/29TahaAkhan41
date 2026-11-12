@@ -1,0 +1,11 @@
+{
+  "type": "lumina:infusion",
+  "ingredient": {
+    "item": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "lumina:starlit_ingot",
+    "count": 1
+  },
+  "starlight": 400
+}

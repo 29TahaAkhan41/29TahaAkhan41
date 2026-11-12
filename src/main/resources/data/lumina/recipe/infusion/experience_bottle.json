@@ -1,0 +1,11 @@
+{
+  "type": "lumina:infusion",
+  "ingredient": {
+    "item": "minecraft:glass_bottle"
+  },
+  "result": {
+    "id": "minecraft:experience_bottle",
+    "count": 1
+  },
+  "starlight": 1200
+}
