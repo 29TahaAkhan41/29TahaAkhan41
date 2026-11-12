@@ -1,0 +1,56 @@
+# Sözlükler: anahtar -> değer eşlemesi
+{"elma": 3, "armut": 5} -> stok -> yazdır
+stok["elma"] -> yazdır
+
+7 -> stok["kiraz"]                  # yeni anahtar
+stok["elma"] + 10 -> stok["elma"]   # var olanı güncelle
+stok -> yazdır
+stok -> uzunluk -> yazdır
+
+stok -> var("armut") -> yazdır
+stok -> var("muz") -> yazdır
+stok -> sil("armut") -> yazdır
+stok -> anahtarlar -> yazdır
+stok -> değerler -> yazdır
+
+# Sözlük 'her'e akarsa anahtarları eklenme sırasıyla akar.
+stok -> her (meyve) { meyve + ": " + metne(stok[meyve]) -> yazdır }
+
+# Boş sözlüğün türleri, içine akan ilk değerden anlaşılır.
+# Kelime sayma: girdideki her kelime kaç kez geçiyor?
+{} -> sayılar
+girdi_var() -> iken {
+    oku() -> böl(" ") -> her (kelime) {
+        kelime == "" -> eğer { devam }
+        sayılar -> var(kelime) -> eğer {
+            sayılar[kelime] + 1 -> sayılar[kelime]
+        } değilse {
+            1 -> sayılar[kelime]
+        }
+    }
+}
+sayılar -> yazdır
+
+# Sayı anahtarlar ve liste değerler: sayıları son basamağına göre grupla.
+{} -> gruplar
+[12, 25, 32, 7, 45, 17] -> her (n) {
+    n % 10 -> son
+    değil var(gruplar, son) -> eğer { [] -> gruplar[son] }
+    gruplar[son] -> ekle(n)
+}
+gruplar -> yazdır
+
+# İç içe yazma: a[i][j] hedefinde son dizine yazılır.
+{"x": [1, 2, 3]} -> noktalar
+99 -> noktalar["x"][1]
+noktalar -> yazdır
+
+# İşlevler sözlük alıp döndürebilir. English: has, keys, values, remove.
+fn invert(d) {
+    {} -> result
+    d -> each (k) { k -> result[d[k]] }
+    result -> return
+}
+{"one": 1, "two": 2} -> invert -> inv -> print
+inv -> keys -> print
+inv -> has(2) -> print

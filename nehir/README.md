@@ -32,6 +32,10 @@ l -> her (e) { e * e -> yazdır }        # her eleman e'ye akar
 ["elma", "armut"] -> meyveler -> ekle("kiraz") -> yazdır   # metin listesi
 meyveler -> her (m) { m == "armut" -> eğer { dur }   m -> yazdır }
 
+{"elma": 3} -> stok                     # sözlük
+7 -> stok["kiraz"]                      # 7, "kiraz" anahtarına akar
+stok["elma"] + 1 -> stok["elma"]
+
 "Adın ne? " -> oku -> ad                # istem oku'ya akar, yazılan satır geri akar
 "Merhaba, " + ad + "!" -> yazdır
 ```
@@ -99,8 +103,9 @@ Terminalde mesajlar renklidir; `NO_COLOR` ortam değişkeni renkleri kapatır.
 | `yazdır` | değeri yazdırır, değer akmaya devam eder |
 | `eğer { } değilse { }` | değer sıfır değilse ilk blok, sıfırsa ikinci blok çalışır |
 | `iken { }` | akış sıfır olmayan değer ürettiği sürece bloğu tekrarlar |
-| `her (x) { }` | akan listenin her elemanı (ya da metnin her karakteri) sırayla `x`'e akar ve blok çalışır |
+| `her (x) { }` | akan listenin her elemanı (metnin her karakteri, sözlüğün her anahtarı) sırayla `x`'e akar ve blok çalışır |
 | `liste[i]` | değeri listenin `i`. gözüne yazar (ilk göz 0) |
+| `sözlük[a]` | değeri sözlükte `a` anahtarına yazar; anahtar yoksa eklenir |
 | `(a \| b \| c)` | **çatal:** aynı değer her kola ayrı ayrı akar, sonra değişmeden yoluna devam eder |
 | `döndür` | değeri işlevden döndürür |
 
@@ -141,7 +146,7 @@ sayılar -> her (s) {
 ```
 
 **İfadeler:** `+ - * / %`, `== != < > <= >=`, `ve veya değil`, parantez, işlev çağrısı `f(a, b)`,
-liste `[1, 2, 3]`, eleman erişimi `l[i]`.
+liste `[1, 2, 3]`, sözlük `{"a": 1, "b": 2}`, eleman erişimi `l[i]` ve `s[anahtar]`.
 Metinlerde `+` birleştirir, karşılaştırma işleçleri sözlük sırasına göre çalışır ve `m[i]` `i`. karakteri verir.
 Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikleri (iç içe listeler dahil) karşılaştırır.
 `->` yerine `→` da yazılabilir. Yorumlar `#` ile başlar.
@@ -150,12 +155,16 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 
 | Türkçe | İngilizce | Ne yapar |
 | --- | --- | --- |
-| `uzunluk(x)` | `len` | listenin eleman sayısı ya da metnin karakter sayısı |
+| `uzunluk(x)` | `len` | listenin eleman sayısı, sözlüğün anahtar sayısı ya da metnin karakter sayısı |
 | `ekle(l, e)` | `push` | `e`'yi listenin sonuna ekler, listeyi döndürür |
 | `aralık(a, b)` | `range` | `[a, a+1, ..., b-1]` listesini üretir |
 | `dilim(x, baş, son)` | `slice` | listenin ya da metnin `baş` ile `son` arasındaki parçası (`son` dahil değil); taşan sınırlar sığdırılır |
 | `bul(x, aranan)` | `find` | elemanın listede ya da metnin metinde ilk geçtiği dizin; yoksa `-1` |
 | `sil(l, i)` | `remove` | `i`. elemanı listeden çıkarır ve o elemanı verir |
+| `sil(s, a)` | `remove` | `a` anahtarını sözlükten çıkarır ve değerini verir |
+| `var(s, a)` | `has` | `a` anahtarı sözlükte varsa 1, yoksa 0 |
+| `anahtarlar(s)` | `keys` | sözlüğün anahtarlarının listesi (eklenme sırasıyla) |
+| `değerler(s)` | `values` | sözlüğün değerlerinin listesi |
 | `böl(m, ayraç)` | `split` | metni ayraçtan böler, metin listesi verir |
 | `birleş(l, ayraç)` | `join` | metin listesinin elemanlarını araya ayraç koyarak tek metin yapar |
 | `metne(n)` | `str` | sayıyı metne çevirir |
@@ -173,9 +182,22 @@ girdi_var() -> iken { oku() -> sayıya -> n   toplam + n -> toplam }
 Metinler UTF-8'dir; uzunluk ve dizinler bayt değil karakter sayar (`"çığlık"` 6 karakterdir).
 Metin ile sayı doğrudan toplanamaz: `"a" + metne(5)`.
 
-**Türler:** 64 bit tam sayılar, metinler ve listeler. Bir listenin bütün elemanları aynı türdendir:
+**Sözlükler** anahtarları değerlere eşler ve eklenme sırasını korur. Anahtarlar sayı ya da metin,
+değerler herhangi bir tür olabilir; bir sözlüğün bütün anahtarları aynı türden, bütün değerleri aynı türdendir.
+Olmayan bir anahtarı okumak çalışma zamanı hatasıdır; önce `var` ile sorulabilir:
+
+```nehir
+{} -> sayılar
+"su akar su bulur" -> böl(" ") -> her (kelime) {
+    sayılar -> var(kelime) -> eğer { sayılar[kelime] + 1 -> sayılar[kelime] }
+    değilse { 1 -> sayılar[kelime] }
+}
+sayılar -> yazdır           # {"su": 2, "akar": 1, "bulur": 1}
+```
+
+**Türler:** 64 bit tam sayılar, metinler, listeler ve sözlükler. Bir listenin bütün elemanları aynı türdendir:
 sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listenin (`[]`) türü,
-içine akan ilk elemandan anlaşılır. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
+içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
 çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır.
 
 **Kapsam:** En üst düzeyde atanan değişkenler küreseldir. İşlev içinde ilk kez atanan adlar yereldir.
@@ -197,7 +219,8 @@ Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
 
 - Metinler değiştirilemez; büyük/küçük harf çevirme yok
 - Listeler `<` ve `>` ile karşılaştırılamaz; yerleşik sıralama işlevi yok
-- Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, ...) değişken ya da işlev adı olarak kullanılamaz
+- Sözlükler `==` ile karşılaştırılamaz; anahtar olarak liste kullanılamaz
+- Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken ya da işlev adı olarak kullanılamaz
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
 - Ondalıklı sayı, dosya okuma/yazma yok

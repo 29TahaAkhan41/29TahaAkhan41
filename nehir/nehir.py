@@ -70,12 +70,15 @@ YERLEŞİKLER = {
     "sil": "sil", "remove": "sil",
     "böl": "böl", "bol": "böl", "split": "böl",
     "birleş": "birleş", "birles": "birleş", "join": "birleş",
+    "var": "var", "has": "var",
+    "anahtarlar": "anahtarlar", "keys": "anahtarlar",
+    "değerler": "değerler", "degerler": "değerler", "values": "değerler",
     "oku": "oku", "read": "oku",
     "girdi_var": "girdi_var", "has_input": "girdi_var",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
-            "+", "-", "*", "/", "%", "<", ">", "(", ")", "{", "}", "[", "]", ",", "|"]
+            "+", "-", "*", "/", "%", "<", ">", "(", ")", "{", "}", "[", "]", ",", "|", ":"]
 
 KAÇIŞLAR = {"n": "\n", "t": "\t", '"': '"', "\\": "\\"}
 
@@ -188,13 +191,14 @@ def sözcükle(kaynak):
 #   ("sayı", değer, satır)            ("metin", değer, satır)
 #   ("değişken", ad, satır)           ("çağrı", ad, [argümanlar], satır)
 #   ("liste", [elemanlar], satır)     ("dizin", ifade, dizin_ifadesi, satır)
+#   ("sözlük", [(anahtar, değer), ...], satır)
 #   ("tekli", işleç, ifade, satır)    ("ikili", işleç, sol, sağ, satır)
 #   ("akış", kaynak_ifade, [hedefler], satır)
 #   ("dur", satır)  ("devam", satır)              döngüden çık / sonraki tura geç
 #
 # Hedefler:
 #   ("yazdır", satır)  ("döndür", satır)  ("ad", ad, argümanlar|None, satır)
-#   ("eleman", ad, dizin_ifadesi, satır)          değer -> liste[dizin]
+#   ("eleman", kap_ifadesi, dizin_ifadesi, satır) değer -> liste[dizin], değer -> sözlük[anahtar]
 #   ("eğer", blok, değilse_blok|None, satır)  ("iken", blok, satır)
 #   ("her", değişken, blok, satır)                liste -> her (x) { ... }
 #   ("çatal", [[hedefler], [hedefler], ...], satır)   değer -> (a | b -> c)
@@ -323,10 +327,15 @@ class Ayrıştırıcı:
             if self.aynı_satırda("("):
                 return ("ad", s.değer, self.argümanlar(), s.satır)
             if self.aynı_satırda("["):
-                self.al("İŞLEÇ")
-                dizin = self.ifade()
-                self.bekle("İŞLEÇ", "]")
-                return ("eleman", s.değer, dizin, s.satır)
+                # a[i][j] hedefinde son dizin yazılacak gözdür; öncekiler okunur.
+                kap = ("değişken", s.değer, s.satır)
+                while True:
+                    köşe = self.al("İŞLEÇ")
+                    dizin = self.ifade()
+                    self.bekle("İŞLEÇ", "]")
+                    if not self.aynı_satırda("["):
+                        return ("eleman", kap, dizin, s.satır)
+                    kap = ("dizin", kap, dizin, köşe.satır)
             return ("ad", s.değer, None, s.satır)
         raise NehirHatası(f"'->' sonrasında bir hedef bekleniyordu, {self.bulunan()} bulundu", s.satır,
                           "hedef olabilenler: değişken, işlev, yazdır, döndür, eğer, iken, her, ( çatal )")
@@ -427,6 +436,16 @@ class Ayrıştırıcı:
             elemanlar = self.ifade_listesi("]")
             self.bekle("İŞLEÇ", "]")
             return ("liste", elemanlar, s.satır)
+        if self.al("İŞLEÇ", "{"):
+            çiftler = []
+            while not self.bak("İŞLEÇ", "}"):
+                anahtar = self.ifade()
+                self.bekle("İŞLEÇ", ":")
+                çiftler.append((anahtar, self.ifade()))
+                if not self.al("İŞLEÇ", ","):
+                    break
+            self.bekle("İŞLEÇ", "}")
+            return ("sözlük", çiftler, s.satır)
         ipucu = None
         if s.tür == "ANAHTAR" and s.değer in ("yazdır", "döndür", "eğer", "iken", "her"):
             ipucu = (f"'{s.yazım}' bir hedeftir; değer ona soldan akar:  "
@@ -447,91 +466,130 @@ class Ayrıştırıcı:
 #   metin  baytların adresi (uzunluk 8 bayt öncesinde durur)
 #   liste  {uzunluk, kapasite, veri adresi} başlığının adresi; elemanlar da 64 bitlik
 #          değerlerdir (sayı, metin ya da başka listeler)
+#   sözlük {sayı, kapasite, anahtarlar, değerler, tablo boyu, tablo} başlığının adresi.
+#          Anahtarlar ve değerler eklenme sırasıyla iki dizide durur; tablo, anahtarın
+#          hash'inden dizideki yerine (dizin + 1, boşsa 0) götüren açık adresli bir dizindir.
+#
+# Yazdırma ve eşitlik gibi türe bağlı işlemler için derleyici her türün bir
+# tanımını üretir: {tür kodu, 1. parametre tanımı, 2. parametre tanımı};
+# tür kodu 0 sayı, 1 metin, 2 liste, 3 sözlük.
 # Türler derleme anında izlenir. İşlevlerin parametre türleri ilk çağrıdan
 # çıkarılır; bu yüzden işlevler ilk çağrıldıkları anda derlenir.
 
-class Liste:
-    """Liste türü. Eleman türü baştan bilinmeyebilir (`[]`); sonradan öğrenilince
-    aynı listeye bakan her yer birlikte güncellensin diye türler birbirine bağlanır."""
+class TürDeğişkeni:
+    """Henüz bilinmeyen bir tür (`[]` listesinin eleman türü gibi). Öğrenildiğinde
+    `bağ` ile gerçek türe bağlanır; aynı değişkeni paylaşan her yer birlikte güncellenir."""
 
-    def __init__(self, eleman=None):
-        self._eleman = eleman
+    def __init__(self):
         self.bağ = None
 
-    def kök(self):
-        t = self
-        while t.bağ is not None:
-            t = t.bağ
-        return t
+    def __str__(self):
+        return "henüz bilinmeyen tür"
+
+
+def çöz(tür):
+    while isinstance(tür, TürDeğişkeni) and tür.bağ is not None:
+        tür = tür.bağ
+    return tür
+
+
+def bilinen(tür):
+    """Çözülmüş tür; hâlâ bilinmiyorsa None."""
+    tür = çöz(tür)
+    return None if isinstance(tür, TürDeğişkeni) else tür
+
+
+class Liste:
+    def __init__(self, eleman=None):
+        self._eleman = TürDeğişkeni() if eleman is None else eleman
 
     @property
     def eleman(self):
-        return self.kök()._eleman
+        return bilinen(self._eleman)
+
+    def parametreler(self):
+        return [self._eleman]
 
     def __str__(self):
         return "boş liste" if self.eleman is None else f"{self.eleman} listesi"
 
 
+class Sözlük:
+    def __init__(self, anahtar=None, değer=None):
+        self._anahtar = TürDeğişkeni() if anahtar is None else anahtar
+        self._değer = TürDeğişkeni() if değer is None else değer
+
+    @property
+    def anahtar(self):
+        return bilinen(self._anahtar)
+
+    @property
+    def değer(self):
+        return bilinen(self._değer)
+
+    def parametreler(self):
+        return [self._anahtar, self._değer]
+
+    def __str__(self):
+        if self.anahtar is None or self.değer is None:
+            return "boş sözlük"
+        return f"{self.anahtar} → {self.değer} sözlüğü"
+
+
 def içerir(tür, hedef):
-    if not isinstance(tür, Liste):
-        return False
-    tür = tür.kök()
-    return tür is hedef or içerir(tür._eleman, hedef)
+    tür = çöz(tür)
+    if tür is hedef:
+        return True
+    return isinstance(tür, (Liste, Sözlük)) and any(içerir(p, hedef) for p in tür.parametreler())
+
+
+def sözlük_içerir(tür):
+    tür = çöz(tür)
+    return isinstance(tür, Sözlük) or (isinstance(tür, Liste) and sözlük_içerir(tür._eleman))
 
 
 def birleştir(a, b):
-    """İki türü eşitlemeye çalışır; bilinmeyen eleman türlerini doldurur."""
-    if isinstance(a, Liste) != isinstance(b, Liste):
-        return False
-    if not isinstance(a, Liste):
-        return a == b
-    a, b = a.kök(), b.kök()
+    """İki türü eşitlemeye çalışır; bilinmeyen türleri doldurur."""
+    a, b = çöz(a), çöz(b)
     if a is b:
         return True
-    if a._eleman is None or b._eleman is None:
-        if a._eleman is not None:
-            a, b = b, a
+    if isinstance(b, TürDeğişkeni):
+        a, b = b, a
+    if isinstance(a, TürDeğişkeni):
         if içerir(b, a):        # bir liste kendi elemanı olamaz
             return False
         a.bağ = b
         return True
-    if birleştir(a._eleman, b._eleman):
-        a.bağ = b
-        return True
-    return False
-
-
-def tür_kodu(tür):
-    """Çalışma zamanındaki yazdırma kodu: 0 sayı, 1 metin, k+2 = k kodlu elemanların listesi."""
-    if tür == "metin":
-        return 1
-    if isinstance(tür, Liste):
-        return 2 + tür_kodu(tür.eleman)
-    return 0
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, str):
+        return a == b
+    return all(birleştir(x, y) for x, y in zip(a.parametreler(), b.parametreler()))
 
 
 class TürKoduSatırı:
-    """Yazdırılan listenin eleman türü sonradan belli olabileceği için
-    tür kodunu yükleyen satır ancak derlemenin sonunda metne çevrilir."""
+    """Bir yazmaca, değerin çalışma zamanı tür tanımının adresini yükler. Tür
+    (örneğin boş listenin eleman türü) sonradan belli olabileceği için satır
+    ancak derlemenin sonunda metne çevrilir."""
 
-    def __init__(self, tür, yazmaç="esi"):
+    def __init__(self, tür, yazmaç="rsi"):
         self.tür, self.yazmaç = tür, yazmaç
-
-    def __str__(self):
-        return f"    mov {self.yazmaç}, {tür_kodu(self.tür)}"
 
 
 KARŞILAŞTIRMA = {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"}
 
 BOŞ_LİSTE_HATASI = ("bu listenin eleman türü henüz belli değil; "
                     "önce içine bir eleman akmalı")
+BOŞ_SÖZLÜK_HATASI = ("bu sözlüğün anahtar ve değer türleri henüz belli değil; "
+                     "önce içine bir değer akmalı:  değer -> sözlük[anahtar]")
 
 # Hata verebilen çalışma zamanı işlemleri; öncesinde r15'e kaynak satırı yüklenir.
 RİSKLİ = {"jz __sifira_bolme"} | {"call " + ad for ad in (
     "__liste_al", "__liste_koy", "__metin_al", "__metinden_sayi", "__liste_yeni",
     "__liste_ekle", "__aralik", "__metin_birlestir", "__sayidan_metin", "__oku",
     "__metin_dilim", "__liste_dilim", "__liste_birlestir", "__liste_sil",
-    "__metin_bol", "__liste_birles")}
+    "__metin_bol", "__liste_birles", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
+    "__sozluk_sil", "__sozluk_liste")}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -589,57 +647,89 @@ __sayi_ham:                     # rdi = sayı; satır sonu eklemeden yazar
     leave
     ret
 
-__deger_ham:                    # rdi = değer, rsi = tür kodu; satır sonu eklemeden yazar
-    test rsi, rsi               # 0: sayı
+__deger_tirnakli:               # rdi = değer, rsi = tür tanımı; metinse tırnak içinde yazar
+    cmp qword ptr [rsi], 1
+    jne __deger_ham
+    push rdi
+    lea rsi, [rip+__tirnak]
+    mov edx, 1
+    call __ham_yaz
+    pop rsi
+    mov rdx, [rsi-8]
+    call __ham_yaz
+    lea rsi, [rip+__tirnak]
+    mov edx, 1
+    jmp __ham_yaz
+
+__deger_ham:                    # rdi = değer, rsi = tür tanımı; satır sonu eklemeden yazar
+    mov rax, [rsi]
+    test rax, rax               # 0: sayı
     jz __sayi_ham
-    cmp rsi, 1                  # 1: metin
+    cmp rax, 1                  # 1: metin
     jne 1f
     mov rsi, rdi
     mov rdx, [rdi-8]
     jmp __ham_yaz
-1:  push rbx                    # k+2: k kodlu elemanların listesi
+1:  push rbx
     push r12
     push r13
-    push r14
-    mov r12, [rdi]
-    mov r13, [rdi+16]
-    lea r14, [rsi-2]
+    mov r12, rdi
+    mov r13, rsi
     xor ebx, ebx
-    lea rsi, [rip+__ac]
+    cmp rax, 3
+    je 5f
+    lea rsi, [rip+__ac]         # 2: liste
     mov edx, 1
     call __ham_yaz
-2:  cmp rbx, r12
-    jge 6f
+2:  cmp rbx, [r12]
+    jae 4f
     test rbx, rbx
     jz 3f
     lea rsi, [rip+__virgul]
     mov edx, 2
     call __ham_yaz
-3:  cmp r14, 1
-    jne 4f
-    lea rsi, [rip+__tirnak]     # liste içindeki metinler tırnakla yazılır
-    mov edx, 1
-    call __ham_yaz
-4:  mov rdi, [r13+rbx*8]
-    mov rsi, r14
-    call __deger_ham
-    cmp r14, 1
-    jne 5f
-    lea rsi, [rip+__tirnak]
-    mov edx, 1
-    call __ham_yaz
-5:  inc rbx
+3:  mov rax, [r12+16]
+    mov rdi, [rax+rbx*8]
+    mov rsi, [r13+8]
+    call __deger_tirnakli
+    inc rbx
     jmp 2b
-6:  lea rsi, [rip+__kapa]
+4:  lea rsi, [rip+__kapa]
     mov edx, 1
     call __ham_yaz
-    pop r14
-    pop r13
+    jmp 9f
+5:  lea rsi, [rip+__sus_ac]     # 3: sözlük
+    mov edx, 1
+    call __ham_yaz
+6:  cmp rbx, [r12]
+    jae 8f
+    test rbx, rbx
+    jz 7f
+    lea rsi, [rip+__virgul]
+    mov edx, 2
+    call __ham_yaz
+7:  mov rax, [r12+16]
+    mov rdi, [rax+rbx*8]
+    mov rsi, [r13+8]
+    call __deger_tirnakli
+    lea rsi, [rip+__iki_nokta]
+    mov edx, 2
+    call __ham_yaz
+    mov rax, [r12+24]
+    mov rdi, [rax+rbx*8]
+    mov rsi, [r13+16]
+    call __deger_tirnakli
+    inc rbx
+    jmp 6b
+8:  lea rsi, [rip+__sus_kapa]
+    mov edx, 1
+    call __ham_yaz
+9:  pop r13
     pop r12
     pop rbx
     ret
 
-__yaz_deger:                    # rdi = değer, rsi = tür kodu
+__yaz_deger:                    # rdi = değer, rsi = tür tanımı
     call __deger_ham
     jmp __satir_sonu
 
@@ -896,27 +986,28 @@ __metinden_sayi:                # rdi = metin -> rax = sayı
     neg rax
 2:  ret
 
-__deger_esit:                   # rdi = a, rsi = b, rdx = tür kodu -> rax = eşitse 1, değilse 0
-    test rdx, rdx               # 0: sayı
+__deger_esit:                   # rdi = a, rsi = b, rdx = tür tanımı -> rax = eşitse 1, değilse 0
+    mov rax, [rdx]
+    test rax, rax               # 0: sayı
     jnz 1f
-    xor eax, eax
     cmp rdi, rsi
     sete al
+    movzx eax, al
     ret
-1:  cmp rdx, 1                  # 1: metin
+1:  cmp rax, 1                  # 1: metin
     jne 2f
     call __metin_karsilastir
     test rax, rax
     sete al
     movzx eax, al
     ret
-2:  push rbx                    # k+2: liste; uzunluklar ve tüm elemanlar eşit olmalı
+2:  push rbx                    # 2: liste; uzunluklar ve tüm elemanlar eşit olmalı
     push r12
     push r13
     push r14
     mov r12, rdi
     mov r13, rsi
-    lea r14, [rdx-2]
+    mov r14, [rdx+8]
     mov rax, [r12]
     cmp rax, [r13]
     jne 5f
@@ -942,7 +1033,7 @@ __deger_esit:                   # rdi = a, rsi = b, rdx = tür kodu -> rax = eş
     pop rbx
     ret
 
-__liste_bul:                    # rdi = liste, rsi = aranan, rdx = eleman tür kodu -> rax = dizin ya da -1
+__liste_bul:                    # rdi = liste, rsi = aranan, rdx = eleman tür tanımı -> rax = dizin ya da -1
     push rbx
     push r12
     push r13
@@ -1242,6 +1333,251 @@ __liste_birles:                 # rdi = metin listesi, rsi = ayraç -> rax = bir
     pop rbx
     ret
 
+__sozluk_yeni:                  # -> rax = boş sözlük
+    mov edi, 56
+    call __ayir
+    push rax
+    mov edi, 64
+    call __ayir
+    mov rdx, [rsp]
+    mov [rdx+16], rax
+    mov edi, 64
+    call __ayir
+    mov rdx, [rsp]
+    mov [rdx+24], rax
+    mov edi, 128
+    call __ayir                 # yeni ayrılan bellek sıfırdır: tablo boş başlar
+    pop rdx
+    mov [rdx+40], rax
+    mov qword ptr [rdx], 0
+    mov qword ptr [rdx+8], 8
+    mov qword ptr [rdx+32], 16
+    mov rax, rdx
+    ret
+
+__sozluk_ara:                   # rdi = sözlük, rsi = anahtar, rdx = anahtar türü (0 sayı, 1 metin)
+    push rbx                    # -> rax = girdinin dizini ya da -1; r8 = bulunduğu / ilk boş tablo gözü
+    push r12
+    push r13
+    push r14
+    push rbp
+    mov rbx, rdi
+    mov r12, rsi
+    mov r13, rdx
+    test r13, r13
+    jnz 1f
+    mov rax, r12                # sayı: çarpımsal hash
+    mov rcx, 0x9E3779B97F4A7C15
+    imul rax, rcx
+    mov rcx, rax
+    shr rcx, 32
+    xor rax, rcx
+    jmp 3f
+1:  mov rax, 0xCBF29CE484222325 # metin: FNV-1a
+    mov rcx, [r12-8]
+    xor edx, edx
+    mov r8, 0x100000001B3
+2:  cmp rdx, rcx
+    jae 3f
+    movzx r9d, byte ptr [r12+rdx]
+    xor rax, r9
+    imul rax, r8
+    inc rdx
+    jmp 2b
+3:  mov r14, [rbx+32]
+    dec r14                     # tablo boyu 2'nin kuvveti: maske
+    and rax, r14
+    mov rbp, rax
+4:  mov rax, [rbx+40]
+    mov rax, [rax+rbp*8]
+    test rax, rax
+    jz 7f
+    dec rax
+    mov rcx, [rbx+16]
+    mov rdi, [rcx+rax*8]
+    test r13, r13
+    jnz 5f
+    cmp rdi, r12
+    je 8f
+    jmp 6f
+5:  push rax
+    mov rsi, r12
+    call __metin_karsilastir
+    mov rcx, rax
+    pop rax
+    test rcx, rcx
+    jz 8f
+6:  inc rbp                     # doğrusal yoklama
+    and rbp, r14
+    jmp 4b
+7:  mov rax, -1
+8:  mov r8, rbp
+    pop rbp
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__sozluk_dizinle:               # rdi = sözlük, rsi = anahtar türü; tabloyu baştan kurar
+    push rbx
+    push r12
+    push r13
+    mov rbx, rdi
+    mov r13, rsi
+    mov rdi, [rbx+40]
+    mov rcx, [rbx+32]
+    xor eax, eax
+    rep stosq
+    xor r12, r12
+1:  cmp r12, [rbx]
+    jae 2f
+    mov rdi, rbx
+    mov rax, [rbx+16]
+    mov rsi, [rax+r12*8]
+    mov rdx, r13
+    call __sozluk_ara
+    inc r12
+    mov rax, [rbx+40]
+    mov [rax+r8*8], r12
+    jmp 1b
+2:  pop r13
+    pop r12
+    pop rbx
+    ret
+
+__sozluk_koy:                   # rdi = sözlük, rsi = anahtar, rdx = anahtar türü, rcx = değer -> rax = sözlük
+    push rbx
+    push r12
+    push r13
+    push r14
+    mov rbx, rdi
+    mov r12, rsi
+    mov r13, rdx
+    mov r14, rcx
+    mov rax, [rbx]              # girdi dizileri doluysa iki katına çıkar
+    cmp rax, [rbx+8]
+    jb 1f
+    mov rdi, [rbx+8]
+    shl rdi, 4
+    call __ayir
+    mov rdi, rax
+    mov rsi, [rbx+16]
+    mov rcx, [rbx]
+    rep movsq
+    mov [rbx+16], rax
+    mov rdi, [rbx+8]
+    shl rdi, 4
+    call __ayir
+    mov rdi, rax
+    mov rsi, [rbx+24]
+    mov rcx, [rbx]
+    rep movsq
+    mov [rbx+24], rax
+    shl qword ptr [rbx+8], 1
+1:  mov rax, [rbx]              # tablo yarıdan fazla dolacaksa iki katına çıkar
+    inc rax
+    shl rax, 1
+    cmp rax, [rbx+32]
+    jbe 2f
+    mov rdi, [rbx+32]
+    shl rdi, 4
+    call __ayir
+    mov [rbx+40], rax
+    shl qword ptr [rbx+32], 1
+    mov rdi, rbx
+    mov rsi, r13
+    call __sozluk_dizinle
+2:  mov rdi, rbx
+    mov rsi, r12
+    mov rdx, r13
+    call __sozluk_ara
+    test rax, rax
+    js 3f
+    mov rcx, [rbx+24]           # anahtar var: değeri güncelle
+    mov [rcx+rax*8], r14
+    jmp 4f
+3:  mov rax, [rbx]              # yeni girdi
+    mov rcx, [rbx+16]
+    mov [rcx+rax*8], r12
+    mov rcx, [rbx+24]
+    mov [rcx+rax*8], r14
+    inc rax
+    mov [rbx], rax
+    mov rcx, [rbx+40]
+    mov [rcx+r8*8], rax
+4:  mov rax, rbx
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__sozluk_al:                    # rdi = sözlük, rsi = anahtar, rdx = anahtar türü -> rax = değer
+    push rdi
+    call __sozluk_ara
+    pop rdi
+    test rax, rax
+    js __anahtar_hatasi
+    mov rcx, [rdi+24]
+    mov rax, [rcx+rax*8]
+    ret
+
+__sozluk_sil:                   # rdi = sözlük, rsi = anahtar, rdx = anahtar türü -> rax = silinen değer
+    push rbx
+    push r12
+    push r13
+    mov rbx, rdi
+    mov r13, rdx
+    call __sozluk_ara
+    test rax, rax
+    js __anahtar_hatasi
+    mov rcx, [rbx+24]
+    mov r12, [rcx+rax*8]
+    mov rsi, [rbx+16]
+    mov rdx, [rbx]
+    dec rdx
+    mov [rbx], rdx
+1:  cmp rax, rdx                # sonraki girdileri bir göz geri kaydır
+    jae 2f
+    mov r8, [rsi+rax*8+8]
+    mov [rsi+rax*8], r8
+    mov r8, [rcx+rax*8+8]
+    mov [rcx+rax*8], r8
+    inc rax
+    jmp 1b
+2:  mov rdi, rbx
+    mov rsi, r13
+    call __sozluk_dizinle
+    mov rax, r12
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__sozluk_liste:                 # rdi = sözlük, rsi = 16 (anahtarlar) ya da 24 (değerler) -> rax = yeni liste
+    push rbx
+    push r12
+    push r13
+    mov rbx, rdi
+    mov r13, rsi
+    mov rdi, [rbx]
+    cmp rdi, 4
+    jge 1f
+    mov edi, 4
+1:  call __liste_yeni
+    mov r12, rax
+    mov rsi, [rbx+r13]
+    mov rdi, [r12+16]
+    mov rcx, [rbx]
+    mov [r12], rcx
+    rep movsq
+    mov rax, r12
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
 __girdi_doldur:                 # tamponu stdin'den doldurur -> rax = 1, girdi bittiyse 0
     xor eax, eax
     xor edi, edi
@@ -1307,6 +1643,10 @@ __dizin_hatasi:
     lea rsi, [rip+__h_dizin]
     mov edx, __h_dizin_son - __h_dizin
     jmp __hata
+__anahtar_hatasi:
+    lea rsi, [rip+__h_anahtar]
+    mov edx, __h_anahtar_son - __h_anahtar
+    jmp __hata
 __sayi_hatasi:
     lea rsi, [rip+__h_sayi]
     mov edx, __h_sayi_son - __h_sayi
@@ -1347,6 +1687,9 @@ __ac: .ascii "["
 __kapa: .ascii "]"
 __virgul: .ascii ", "
 __tirnak: .byte 34
+__sus_ac: .ascii "{"
+__sus_kapa: .ascii "}"
+__iki_nokta: .ascii ": "
 __h_ara: .ascii ": çalışma hatası: "
 __h_ara_son:
 __h_sifir: .ascii "sıfıra bölme\n"
@@ -1355,6 +1698,8 @@ __h_dizin: .ascii "dizin sınırların dışında\n"
 __h_dizin_son:
 __h_sayi: .ascii "metin sayıya çevrilemiyor\n"
 __h_sayi_son:
+__h_anahtar: .ascii "anahtar sözlükte yok\n"
+__h_anahtar_son:
 __h_bellek: .ascii "bellek tükendi\n"
 __h_bellek_son:
 
@@ -1386,6 +1731,8 @@ class KodÜretici:
         # Değişken kayıtları: [yer, tür|None, ilk atamanın konumu, okundu mu]
         self.küreseller = {}      # ad -> kayıt (yer = etiket)
         self.metinler = []        # bayt dizileri
+        self.tür_etiketleri = {}  # yapısal tür anahtarı -> tanımın etiketi
+        self.tür_tanımları = []   # rodata satırları
         self.etiket_no = 0
         self.çıktı = []
         self.işlev_kodu = []      # derlenmiş işlevlerin satırları
@@ -1444,7 +1791,26 @@ class KodÜretici:
             son.append("    .section .bss")
             for ad, kayıt in self.küreseller.items():
                 son.append(f"{kayıt[0]}: .skip 8    # {ad}")
-        return "\n".join(map(str, baş + self.çıktı + self.işlev_kodu + son)) + "\n"
+        kod = [f"    lea {x.yazmaç}, [rip+{self.tür_etiketi(x.tür)}]"
+               if isinstance(x, TürKoduSatırı) else x for x in self.çıktı + self.işlev_kodu]
+        if self.tür_tanımları:
+            son += ["    .section .rodata", "    .balign 8"] + self.tür_tanımları
+        return "\n".join(baş + kod + son) + "\n"
+
+    def tür_etiketi(self, tür):
+        """Türün çalışma zamanı tanımını (gerekirse üreterek) verir. Derlemenin
+        sonunda hâlâ bilinmeyen bir tür yalnızca boş kaplarda olabilir; sayı sayılır."""
+        tür = bilinen(tür)
+        if isinstance(tür, (Liste, Sözlük)):
+            alt = [self.tür_etiketi(p) for p in tür.parametreler()]
+            anahtar = (2 if isinstance(tür, Liste) else 3, *alt)
+        else:
+            anahtar = (1 if tür == "metin" else 0,)
+        if anahtar not in self.tür_etiketleri:
+            self.tür_etiketleri[anahtar] = f"t{len(self.tür_etiketleri)}"
+            alanlar = [str(a) for a in anahtar] + ["0"] * (3 - len(anahtar))
+            self.tür_tanımları.append(f"{self.tür_etiketleri[anahtar]}: .quad {', '.join(alanlar)}")
+        return self.tür_etiketleri[anahtar]
 
     def okunmayanları_bildir(self, değişkenler):
         """Bir işlev adına çok benzeyen ve hiç okunmayan değişken büyük olasılıkla
@@ -1457,7 +1823,7 @@ class KodÜretici:
             sınır = 1 if len(ad) < 8 else 2
             adaylar = sorted(set(self.işlevler) | set(YERLEŞİKLER) | set(ANAHTARLAR))
             yakın = [a for a in adaylar
-                     if len(ad) >= 3 and len(a) >= 3 and uzaklık(ad, a) <= sınır]
+                     if len(ad) >= 4 and len(a) >= 3 and uzaklık(ad, a) <= sınır]
             if yakın:
                 self.uyarılar.append((konum, f"'{ad}' yeni bir değişken olarak tanımlandı "
                                              f"ama hiç okunmuyor",
@@ -1559,7 +1925,7 @@ class KodÜretici:
     def hedef(self, h, tür, döngü_başı=None):
         önceki, self.konum = self.konum, h[-1]
         try:
-            return self.hedef_üret(h, tür, döngü_başı)
+            return self.hedef_üret(h, çöz(tür), döngü_başı)
         finally:
             self.konum = önceki
 
@@ -1625,8 +1991,15 @@ class KodÜretici:
                 self.etiket_koy(son)
                 self.yaz("add rsp, 24")
                 return tür
+            if isinstance(tür, Sözlük):    # anahtarların o anki listesi üzerinde dönülür
+                if tür.anahtar is None:
+                    raise NehirHatası(BOŞ_SÖZLÜK_HATASI, satır)
+                self.yaz("mov rdi, rax")
+                self.yaz("mov esi, 16")
+                self.yaz("call __sozluk_liste")
+                tür = Liste(tür.anahtar)
             if not isinstance(tür, Liste):
-                raise NehirHatası(f"'her' içine bir liste ya da metin akmalı, {tür} bulundu", satır)
+                raise NehirHatası(f"'her' içine bir liste, sözlük ya da metin akmalı, {tür} bulundu", satır)
             if tür.eleman is None:
                 raise NehirHatası(BOŞ_LİSTE_HATASI, satır)
             self.yaz("push rax")                 # [rsp+8] = liste
@@ -1657,18 +2030,26 @@ class KodÜretici:
                 self.yaz("pop rax")
             return tür
         if tip == "eleman":
+            self.yaz("push rax")                    # [rsp] = yazılacak değer
+            kap = self.ifade(h[1])
+            if not isinstance(kap, (Liste, Sözlük)):
+                raise NehirHatası(f"'[ ]' ile yalnızca liste ve sözlüklere yazılabilir, {kap} bulundu", satır)
             self.yaz("push rax")
-            liste_türü = self.ifade(("değişken", h[1], satır))
-            if not isinstance(liste_türü, Liste):
-                raise NehirHatası(f"'{h[1]}' bir liste değil", satır)
-            if not birleştir(liste_türü, Liste(tür)):
-                raise NehirHatası(f"'{h[1]}' bir {liste_türü}; içine {tür} akamaz", satır)
-            self.yaz("push rax")
-            self.sayı_olmalı(self.ifade(h[2]), "liste dizini", satır)
+            dizin_türü = self.ifade(h[2])
             self.yaz("mov rsi, rax")
             self.yaz("pop rdi")
-            self.yaz("mov rdx, [rsp]")
-            self.yaz("call __liste_koy")
+            if isinstance(kap, Liste):
+                self.sayı_olmalı(dizin_türü, "liste dizini", satır)
+                if not birleştir(kap, Liste(tür)):
+                    raise NehirHatası(f"{kap} içine {tür} akamaz", satır)
+                self.yaz("mov rdx, [rsp]")
+                self.yaz("call __liste_koy")
+            else:
+                self.anahtar_türü(kap, dizin_türü, satır)
+                if not birleştir(kap._değer, tür):
+                    raise NehirHatası(f"{kap} içine değer olarak {tür} akamaz", satır)
+                self.yaz("mov rcx, [rsp]")
+                self.yaz("call __sozluk_koy")
             self.yaz("pop rax")
             return tür
         # tip == "ad": işlevse akan değer ilk argüman olur, değilse değişkene atanır
@@ -1680,6 +2061,14 @@ class KodÜretici:
             raise self.işlev_yok(ad, satır)
         self.ata(ad, tür, satır)
         return tür
+
+    def anahtar_türü(self, sözlük, anahtar, satır):
+        """Anahtarın türünü sözlüğünkiyle eşitler ve tür kodunu edx'e yükler."""
+        if anahtar not in ("sayı", "metin"):
+            raise NehirHatası(f"sözlük anahtarı sayı ya da metin olmalı, {anahtar} bulundu", satır)
+        if not birleştir(sözlük._anahtar, anahtar):
+            raise NehirHatası(f"bu sözlüğün anahtarları {sözlük.anahtar}; {anahtar} verildi", satır)
+        self.yaz(f"mov edx, {0 if anahtar == 'sayı' else 1}")
 
     def bilinen_değişkenler(self):
         adlar = [ad for ad, k in self.küreseller.items() if k[1] is not None]
@@ -1753,10 +2142,31 @@ class KodÜretici:
                               f"({', '.join(map(str, türler))}) verildi", satır)
 
         ilk_liste = bool(türler) and isinstance(türler[0], Liste)
+        ilk_sözlük = bool(türler) and isinstance(türler[0], Sözlük)
+        if asıl in ("var", "sil") and ilk_sözlük and len(türler) == 2:
+            self.yaz("pop rsi")
+            self.yaz("pop rdi")
+            self.anahtar_türü(türler[0], türler[1], satır)
+            if asıl == "var":
+                self.yaz("call __sozluk_ara")
+                self.yaz("not rax")             # dizin >= 0 ise 1, -1 ise 0
+                self.yaz("shr rax, 63")
+                return "sayı"
+            self.yaz("call __sozluk_sil")
+            return çöz(türler[0]._değer)
+        if asıl == "var":
+            yanlış("sözlük, anahtar")
+        if asıl in ("anahtarlar", "değerler"):
+            if len(türler) != 1 or not ilk_sözlük:
+                yanlış("sözlük")
+            self.yaz("pop rdi")
+            self.yaz(f"mov esi, {16 if asıl == 'anahtarlar' else 24}")
+            self.yaz("call __sozluk_liste")
+            return Liste(türler[0]._anahtar if asıl == "anahtarlar" else türler[0]._değer)
         if asıl == "uzunluk":
-            if len(türler) != 1 or not (ilk_liste or türler[0] == "metin"):
-                yanlış("liste ya da metin")
-            if ilk_liste:
+            if len(türler) != 1 or not (ilk_liste or ilk_sözlük or türler[0] == "metin"):
+                yanlış("liste, sözlük ya da metin")
+            if ilk_liste or ilk_sözlük:
                 self.yaz("pop rax")
                 self.yaz("mov rax, [rax]")
             else:
@@ -1799,7 +2209,7 @@ class KodÜretici:
         if asıl == "ekle":
             if len(türler) != 2 or not ilk_liste:
                 yanlış("liste, eleman")
-            if içerir(türler[1], türler[0].kök()):
+            if türler[1] is türler[0]:
                 raise NehirHatası("bir liste kendi içine eklenemez", satır)
             if not birleştir(türler[0], Liste(türler[1])):
                 raise NehirHatası(f"{türler[0]} içine {türler[1]} eklenemez", satır)
@@ -1815,7 +2225,7 @@ class KodÜretici:
             self.yaz("pop rsi")
             self.yaz("pop rdi")
             self.yaz("call __liste_dilim" if ilk_liste else "call __metin_dilim")
-            return Liste(türler[0].eleman) if ilk_liste else "metin"
+            return türler[0] if ilk_liste else "metin"
         if asıl == "bul":
             if türler == ["metin", "metin"]:
                 self.yaz("pop rsi")
@@ -1824,22 +2234,20 @@ class KodÜretici:
                 return "sayı"
             if len(türler) != 2 or not ilk_liste:
                 yanlış("metin, aranan metin  ya da  liste, aranan eleman")
-            if not birleştir(türler[0], Liste(türler[1])):
+            if not birleştir(türler[0], Liste(türler[1])) or sözlük_içerir(türler[1]):
                 raise NehirHatası(f"{türler[0]} içinde {türler[1]} aranamaz", satır)
             self.yaz("pop rsi")
             self.yaz("pop rdi")
-            self.çıktı.append(TürKoduSatırı(türler[1], "edx"))
+            self.çıktı.append(TürKoduSatırı(türler[1], "rdx"))
             self.yaz("call __liste_bul")
             return "sayı"
         if asıl == "sil":
             if len(türler) != 2 or not ilk_liste or türler[1] != "sayı":
-                yanlış("liste, dizin")
-            if türler[0].eleman is None:
-                raise NehirHatası(BOŞ_LİSTE_HATASI, satır)
+                yanlış("liste, dizin  ya da  sözlük, anahtar")
             self.yaz("pop rsi")
             self.yaz("pop rdi")
             self.yaz("call __liste_sil")
-            return türler[0].eleman
+            return çöz(türler[0]._eleman)
         if asıl == "böl":
             if türler != ["metin", "metin"]:
                 yanlış("metin, ayraç")
@@ -1863,6 +2271,10 @@ class KodÜretici:
         return Liste("sayı")
 
     def sayı_olmalı(self, tür, ne, satır):
+        tür = çöz(tür)
+        if isinstance(tür, TürDeğişkeni):   # türü bilinmeyen değer burada sayı olarak kullanılıyor
+            tür.bağ = "sayı"
+            return
         if tür != "sayı":
             raise NehirHatası(f"{ne} sayı olmalı, {tür} bulundu", satır)
 
@@ -1870,7 +2282,7 @@ class KodÜretici:
     def ifade(self, e):
         önceki, self.konum = self.konum, e[-1]
         try:
-            return self.ifade_üret(e)
+            return çöz(self.ifade_üret(e))
         finally:
             self.konum = önceki
 
@@ -1919,15 +2331,39 @@ class KodÜretici:
         if tip == "dizin":
             kap = self.ifade(e[1])
             if kap == "sayı":
-                raise NehirHatası("'[ ]' ile yalnızca liste ve metinlere erişilebilir", satır)
-            if isinstance(kap, Liste) and kap.eleman is None:
-                raise NehirHatası(BOŞ_LİSTE_HATASI, satır)
+                raise NehirHatası("'[ ]' ile yalnızca liste, sözlük ve metinlere erişilebilir", satır)
             self.yaz("push rax")
-            self.sayı_olmalı(self.ifade(e[2]), "dizin", satır)
+            dizin_türü = self.ifade(e[2])
             self.yaz("mov rsi, rax")
             self.yaz("pop rdi")
+            if isinstance(kap, Sözlük):
+                self.anahtar_türü(kap, dizin_türü, satır)
+                self.yaz("call __sozluk_al")
+                return kap._değer       # henüz bilinmiyorsa kullanıldığı yerden anlaşılır
+            if not isinstance(kap, Liste) and kap != "metin":
+                raise NehirHatası(f"'[ ]' ile yalnızca liste, sözlük ve metinlere erişilebilir, "
+                                  f"{kap} bulundu", satır)
+            self.sayı_olmalı(dizin_türü, "dizin", satır)
             self.yaz("call __metin_al" if kap == "metin" else "call __liste_al")
-            return "metin" if kap == "metin" else kap.eleman
+            return "metin" if kap == "metin" else kap._eleman
+        if tip == "sözlük":
+            self.yaz("call __sozluk_yeni")
+            self.yaz("push rax")
+            tür = Sözlük()
+            for anahtar, değer in e[1]:
+                anahtar_türü = self.ifade(anahtar)
+                self.yaz("push rax")
+                değer_türü = self.ifade(değer)
+                self.yaz("mov rcx, rax")
+                self.yaz("pop rsi")
+                self.yaz("mov rdi, [rsp]")
+                self.anahtar_türü(tür, anahtar_türü, anahtar[-1])
+                if not birleştir(tür._değer, değer_türü):
+                    raise NehirHatası(f"sözlüğün değerleri aynı türde olmalı: "
+                                      f"{tür.değer} ve {değer_türü} karışmış", değer[-1])
+                self.yaz("call __sozluk_koy")
+            self.yaz("pop rax")
+            return tür
         if tip == "tekli":
             self.sayı_olmalı(self.ifade(e[2]), f"'{e[1]}' işlecinin işleneni", satır)
             if e[1] == "-":
@@ -1960,6 +2396,16 @@ class KodÜretici:
         sağ_türü = self.ifade(sağ)
         self.yaz("mov rcx, rax")
         self.yaz("pop rax")
+        # Türü henüz bilinmeyen bir işlenen (boş sözlükten okunan değer gibi)
+        # türünü öbür işlenenden ya da işleçten alır.
+        sol_türü, sağ_türü = çöz(sol_türü), çöz(sağ_türü)
+        if isinstance(sol_türü, TürDeğişkeni) or isinstance(sağ_türü, TürDeğişkeni):
+            if iş == "+" or iş in KARŞILAŞTIRMA:
+                if isinstance(sol_türü, TürDeğişkeni) and isinstance(sağ_türü, TürDeğişkeni):
+                    raise NehirHatası(f"'{iş}' işlecinin iki tarafının da türü henüz belli değil", satır,
+                                      "kabın içine önce bir değer akmalı")
+                birleştir(sol_türü, sağ_türü)
+                sol_türü, sağ_türü = çöz(sol_türü), çöz(sağ_türü)
         if sol_türü == sağ_türü == "metin" and (iş == "+" or iş in KARŞILAŞTIRMA):
             self.yaz("mov rdi, rax")
             self.yaz("mov rsi, rcx")
@@ -1972,7 +2418,7 @@ class KodÜretici:
             self.yaz("movzx eax, al")
             return "sayı"
         if isinstance(sol_türü, Liste) and isinstance(sağ_türü, Liste) and iş in ("+", "==", "!="):
-            if not birleştir(sol_türü, sağ_türü):
+            if not birleştir(sol_türü, sağ_türü) or (iş != "+" and sözlük_içerir(sol_türü)):
                 raise NehirHatası(f"{sol_türü} ile {sağ_türü} "
                                   + ("birleştirilemez" if iş == "+" else "karşılaştırılamaz"), satır)
             self.yaz("mov rdi, rax")
@@ -1980,11 +2426,13 @@ class KodÜretici:
             if iş == "+":
                 self.yaz("call __liste_birlestir")
                 return sol_türü
-            self.çıktı.append(TürKoduSatırı(sol_türü, "edx"))
+            self.çıktı.append(TürKoduSatırı(sol_türü, "rdx"))
             self.yaz("call __deger_esit")
             if iş == "!=":
                 self.yaz("xor eax, 1")
             return "sayı"
+        if isinstance(sol_türü, Sözlük) and isinstance(sağ_türü, Sözlük) and iş in ("==", "!="):
+            raise NehirHatası("sözlükler '==' ve '!=' ile karşılaştırılamaz", satır)
         if isinstance(sol_türü, Liste) and iş == "+":
             raise NehirHatası(f"listeye '+' ile eleman eklenemez", satır,
                               "eleman eklemek için:  liste -> ekle(eleman)")

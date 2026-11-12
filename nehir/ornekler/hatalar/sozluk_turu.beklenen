@@ -1,0 +1,3 @@
+ornekler/hatalar/sozluk_turu.nehir:1:15: hata: sözlüğün değerleri aynı türde olmalı: sayı ve metin karışmış
+    1 | {"a": 1, "b": "iki"} -> yazdır
+      |               ^^^^^
