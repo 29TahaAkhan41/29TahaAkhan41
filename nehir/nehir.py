@@ -43,6 +43,8 @@ YERLEŞİKLER = {
     "aralık": "aralık", "aralik": "aralık", "range": "aralık",
     "metne": "metne", "str": "metne",
     "sayıya": "sayıya", "sayiya": "sayıya", "num": "sayıya",
+    "oku": "oku", "read": "oku",
+    "girdi_var": "girdi_var", "has_input": "girdi_var",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -728,6 +730,63 @@ __metinden_sayi:                # rdi = metin -> rax = sayı
     neg rax
 2:  ret
 
+__girdi_doldur:                 # tamponu stdin'den doldurur -> rax = 1, girdi bittiyse 0
+    xor eax, eax
+    xor edi, edi
+    lea rsi, [rip+__g_tampon]
+    mov edx, 65536
+    syscall
+    test rax, rax
+    jle 1f
+    mov [rip+__g_son], rax
+    mov qword ptr [rip+__g_konum], 0
+    mov eax, 1
+    ret
+1:  xor eax, eax
+    ret
+
+__girdi_var:                    # -> rax = okunacak girdi kaldıysa 1, yoksa 0
+    mov rax, [rip+__g_konum]
+    cmp rax, [rip+__g_son]
+    jae __girdi_doldur
+    mov eax, 1
+    ret
+
+__oku:                          # -> rax = bir satır (satır sonu olmadan); girdi bittiyse ""
+    push rbx
+    push r12
+    mov rbx, [rip+__yigin_uc]   # metin doğrudan yığının ucunda büyütülür
+    add rbx, 8
+    xor r12, r12
+1:  mov rax, [rip+__g_konum]
+    cmp rax, [rip+__g_son]
+    jb 2f
+    call __girdi_doldur
+    test rax, rax
+    jz 3f
+    mov rax, [rip+__g_konum]
+2:  lea rcx, [rip+__g_tampon]
+    movzx edx, byte ptr [rcx+rax]
+    inc rax
+    mov [rip+__g_konum], rax
+    cmp edx, 10
+    je 3f
+    lea rcx, [rbx+r12]
+    lea rax, [rip+__yigin_son]
+    cmp rcx, rax
+    jae __bellek_bitti
+    mov [rcx], dl
+    inc r12
+    jmp 1b
+3:  mov [rbx-8], r12
+    lea rax, [rbx+r12+7]
+    and rax, -8
+    mov [rip+__yigin_uc], rax
+    mov rax, rbx
+    pop r12
+    pop rbx
+    ret
+
 __sifira_bolme:
     lea rsi, [rip+__h_sifir]
     mov edx, __h_sifir_son - __h_sifir
@@ -772,6 +831,10 @@ __yigin_uc: .quad __yigin
     .balign 16
 __yigin: .skip YIGIN_BOYUTU
 __yigin_son:
+    .skip 64                    # __oku'nun başlık ve yuvarlama payı
+__g_tampon: .skip 65536
+__g_konum: .skip 8
+__g_son: .skip 8
 """.replace("YIGIN_BOYUTU", str(YIĞIN_BOYUTU))
 
 
@@ -1087,6 +1150,21 @@ class KodÜretici:
             else:
                 self.yaz("pop rdi")
                 self.yaz("call __metin_uzunluk")
+            return "sayı"
+        if asıl == "oku":
+            # Akan ya da verilen metin, satır sonu eklenmeden istem olarak yazılır.
+            if türler not in ([], ["metin"]):
+                raise NehirHatası(f"'{ad}' ya argümansız çağrılır ya da istem olarak bir metin alır; "
+                                  f"({', '.join(türler)}) verildi", satır)
+            if türler:
+                self.yaz("pop rsi")
+                self.yaz("mov rdx, [rsi-8]")
+                self.yaz("call __ham_yaz")
+            self.yaz("call __oku")
+            return "metin"
+        if asıl == "girdi_var":
+            imza()
+            self.yaz("call __girdi_var")
             return "sayı"
         if asıl == "metne":
             imza(("sayı", "metin"))

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ornekler/ altındaki her .nehir dosyasını derler, çalıştırır ve çıktısını
-yanındaki .beklenen dosyasıyla karşılaştırır.
+yanındaki .beklenen dosyasıyla karşılaştırır. Aynı adlı bir .girdi dosyası varsa
+programa standart girdi olarak verilir.
 
   python3 test.py              sınamaları çalıştır
   python3 test.py --güncelle   .beklenen dosyalarını şimdiki çıktıyla yeniden yaz
@@ -21,10 +22,15 @@ def ana():
         for kaynak in sorted(glob.glob(os.path.join(KÖK, "ornekler", "*.nehir"))):
             ad = os.path.splitext(os.path.basename(kaynak))[0]
             beklenen_yolu = os.path.splitext(kaynak)[0] + ".beklenen"
+            try:
+                with open(os.path.splitext(kaynak)[0] + ".girdi", encoding="utf-8") as f:
+                    girdi = f.read()
+            except FileNotFoundError:
+                girdi = ""
             sonuç = subprocess.run(
                 [sys.executable, os.path.join(KÖK, "nehir.py"), kaynak,
                  "-o", os.path.join(geçici, ad), "--run"],
-                capture_output=True, text=True)
+                input=girdi, capture_output=True, text=True, encoding="utf-8")
             çıktı = sonuç.stdout + sonuç.stderr
             if güncelle:
                 with open(beklenen_yolu, "w", encoding="utf-8") as f:

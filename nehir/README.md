@@ -28,6 +28,9 @@ l -> her (e) { e * e -> yazdır }        # her eleman e'ye akar
 
 "Cevap: " + metne(6 * 7) -> yazdır      # Cevap: 42
 "nehir" -> her (k) { k -> yazdır }      # karakterler tek tek akar
+
+"Adın ne? " -> oku -> ad                # istem oku'ya akar, yazılan satır geri akar
+"Merhaba, " + ad + "!" -> yazdır
 ```
 
 ## Derleyici
@@ -104,6 +107,15 @@ Metinlerde `+` birleştirir, karşılaştırma işleçleri sözlük sırasına g
 | `aralık(a, b)` | `range` | `[a, a+1, ..., b-1]` listesini üretir |
 | `metne(n)` | `str` | sayıyı metne çevirir |
 | `sayıya(m)` | `num` | metni sayıya çevirir; metin geçerli bir tam sayı değilse program hatayla durur |
+| `oku()` | `read` | standart girdiden bir satır okur (satır sonu olmadan); girdi bittiyse `""` verir |
+| `oku(istem)` | `read` | önce `istem` metnini satır sonu eklemeden yazar, sonra bir satır okur |
+| `girdi_var()` | `has_input` | okunacak girdi kaldıysa 1, bittiyse 0 verir |
+
+Girdinin tamamını okumak için koşulu döngüye akıtmak yeter:
+
+```nehir
+girdi_var() -> iken { oku() -> sayıya -> n   toplam + n -> toplam }
+```
 
 Metinler UTF-8'dir; uzunluk ve dizinler bayt değil karakter sayar (`"çığlık"` 6 karakterdir).
 Metin ile sayı doğrudan toplanamaz: `"a" + metne(5)`.
@@ -124,10 +136,11 @@ python3 test.py
 ```
 
 Her örnek derlenir, çalıştırılır ve çıktısı yanındaki `.beklenen` dosyasıyla karşılaştırılır.
+Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
 
 ## Şimdilik olmayanlar
 
 - Metinler değiştirilemez; alt metin alma, arama, büyük/küçük harf çevirme yok
 - Listeler yalnızca tam sayı tutar
 - Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
-- Kullanıcıdan girdi alma, ondalıklı sayı, döngüden erken çıkma yok
+- Ondalıklı sayı, döngüden erken çıkma, dosya okuma/yazma yok

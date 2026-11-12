@@ -1,0 +1,14 @@
+# Girdi: istem metni 'oku'ya akar, kullanıcının yazdığı satır geri akar.
+"Adın ne? " -> oku -> ad
+"Merhaba, " + ad + "!" -> yazdır
+
+# Kalan satırlardaki sayıları topla. Girdi sürdükçe döngü döner.
+0 -> toplam
+0 -> adet
+girdi_var() -> iken {
+    oku() -> sayıya -> n
+    toplam + n -> toplam
+    adet + 1 -> adet
+}
+metne(adet) + " sayının toplamı: " + metne(toplam) -> yazdır
+adet > 0 -> eğer { "Ortalama: " + metne(toplam / adet) -> yazdır }
