@@ -1,0 +1,15 @@
+Nokta(x: 3, y: 4)
+25
+Nokta(x: 10, y: 4)
+99
+1
+0
+25
+[Nokta(x: 1, y: 0), Nokta(x: 4, y: 4), Nokta(x: 7, y: 8)]
+Nokta(x: 1, y: 7)
+Düğüm(değer: 1, sonraki: Düğüm(değer: 4, sonraki: Düğüm(değer: 9, sonraki: Düğüm(değer: 16, sonraki: Düğüm(değer: 25, sonraki: yok)))))
+55
+9
+20
+Expr(op: "+", value: 0, left: Expr(op: "num", value: 2, left: yok, right: yok), right: Expr(op: "num", value: 3, left: yok, right: yok))
+{"ada": Öğrenci(ad: "Ada", notlar: [90, 85, 100])}

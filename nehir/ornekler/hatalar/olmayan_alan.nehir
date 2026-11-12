@@ -1,0 +1,3 @@
+kayıt Nokta { x, y }
+Nokta(1, 2) -> n
+n.z -> yazdır

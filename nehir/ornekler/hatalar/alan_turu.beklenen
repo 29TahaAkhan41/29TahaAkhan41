@@ -1,0 +1,3 @@
+ornekler/hatalar/alan_turu.nehir:2:1: hata: 'Nokta.y' alanı sayı türünde; metin verildi
+    2 | Nokta(1, "iki") -> n
+      | ^^^^^

@@ -1,0 +1,4 @@
+ornekler/hatalar/olmayan_alan.nehir:3:3: hata: 'Nokta' kaydında 'z' adında bir alan yok
+    3 | n.z -> yazdır
+      |   ^
+      = ipucu: alanları: x, y

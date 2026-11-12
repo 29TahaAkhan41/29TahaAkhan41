@@ -1,0 +1,70 @@
+# Kayıtlar: adlandırılmış alanları olan değerler
+kayıt Nokta { x, y }
+
+Nokta(3, 4) -> n -> yazdır
+n.x * n.x + n.y * n.y -> yazdır
+10 -> n.x                       # alana yazma
+n -> yazdır
+
+# Kayıtlar kopyalanmaz, paylaşılır: m ve n aynı kayıttır.
+n -> m
+99 -> m.y
+n.y -> yazdır
+m == n -> yazdır
+Nokta(10, 99) == n -> yazdır    # içerik aynı olsa da başka bir kayıt
+
+# Kayıt listeleri ve işlevler
+işlev uzaklık(a, b) {
+    a.x - b.x -> dx
+    a.y - b.y -> dy
+    dx * dx + dy * dy -> döndür
+}
+[Nokta(0, 0), Nokta(3, 4), Nokta(6, 8)] -> yol
+yol[1] -> uzaklık(yol[2]) -> yazdır
+yol -> her (p) { p.x + 1 -> p.x }
+yol -> yazdır
+7 -> yol[0].y
+yol[0] -> yazdır
+
+# Alan türleri yazılabilir; kayıt kendine gönderme yapabilir.
+# `yok`, kayıt bekleyen her yere konabilen "kayıt yok" değeridir.
+kayıt Düğüm { değer: sayı, sonraki: Düğüm }
+
+yok -> liste
+5 -> i
+i > 0 -> iken {
+    Düğüm(i * i, liste) -> liste        # başa ekle
+    i - 1 -> i
+}
+liste -> yazdır
+
+işlev topla(d) {
+    0 -> toplam
+    d != yok -> iken {
+        toplam + d.değer -> toplam
+        d.sonraki -> d
+    }
+    toplam -> döndür
+}
+liste -> topla -> yazdır
+liste.sonraki.sonraki.değer -> yazdır
+
+# İfade ağacı: (2 + 3) * 4
+record Expr { op: text, value: number, left: Expr, right: Expr }
+
+fn leaf(n) { Expr("num", n, none, none) -> return }
+fn eval(e) {
+    e.op == "num" -> if { e.value -> return }
+    e.op == "+" -> if { eval(e.left) + eval(e.right) -> return }
+    eval(e.left) * eval(e.right) -> return
+}
+Expr("*", 0, Expr("+", 0, leaf(2), leaf(3)), leaf(4)) -> tree
+tree -> eval -> print
+tree.left -> print
+
+# Sözlük ve liste alanları
+kayıt Öğrenci { ad, notlar: [sayı] }
+{} -> sınıf
+Öğrenci("Ada", [90, 85]) -> sınıf["ada"]
+sınıf["ada"].notlar -> ekle(100)
+sınıf -> yazdır

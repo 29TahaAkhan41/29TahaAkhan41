@@ -1,0 +1,2 @@
+kayıt Nokta { x: sayı, y: sayı }
+Nokta(1, "iki") -> n

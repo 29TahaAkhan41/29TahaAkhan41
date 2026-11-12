@@ -19,6 +19,8 @@
     "dur": "dur", "break": "dur",
     "devam": "devam", "continue": "devam",
     "işlev": "işlev", "islev": "işlev", "fonksiyon": "işlev", "fn": "işlev",
+    "kayıt": "kayıt", "kayit": "kayıt", "record": "kayıt",
+    "yok": "yok", "none": "yok",
     "döndür": "döndür", "dondur": "döndür", "return": "döndür",
     "yazdır": "yazdır", "yazdir": "yazdır", "print": "yazdır",
     "doğru": "doğru", "dogru": "doğru", "true": "doğru",
@@ -30,7 +32,7 @@
 
 # İki karakterli işleçler önce gelir ki "->" yerine "-" eşleşmesin.
 ["->", "→", "==", "!=", "<=", ">=",
- "+", "-", "*", "/", "%", "<", ">", "(", ")", "{", "}", "[", "]", ",", "|", ":"] -> İŞLEÇLER
+ "+", "-", "*", "/", "%", "<", ">", "(", ")", "{", "}", "[", "]", ",", "|", ":", "."] -> İŞLEÇLER
 
 {"n": "\n", "t": "\t", "r": "\r", "\"": "\"", "\\": "\\"} -> KAÇIŞLAR
 

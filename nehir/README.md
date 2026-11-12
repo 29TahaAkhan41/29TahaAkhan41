@@ -39,6 +39,10 @@ stok["elma"] + 1 -> stok["elma"]
 "günlük.txt" -> dosya_oku -> böl("\n") -> satırlar     # dosya okuma
 satırlar -> birleş("\n") -> dosya_yaz("kopya.txt")     # içerik dosyaya akar
 
+kayıt Nokta { x, y }                    # kayıt
+Nokta(3, 4) -> n
+n.x + 1 -> n.x                          # alan okuma ve alana yazma
+
 "Adın ne? " -> oku -> ad                # istem oku'ya akar, yazılan satır geri akar
 "Merhaba, " + ad + "!" -> yazdır
 ```
@@ -88,7 +92,7 @@ Nehir'de bilinmeyen bir ada akan değer yeni bir değişken oluşturduğu için,
 yazım hatası (`5 -> kere`) hata değildir. Derleyici, bir işlev ya da anahtar kelimeye çok
 benzeyen ve hiç okunmayan değişkenler için uyarı verir. Uyarılar derlemeyi durdurmaz.
 
-Çalışma zamanı hataları (sıfıra bölme, sınır dışı dizin, olmayan anahtar, sayıya çevrilemeyen metin,
+Çalışma zamanı hataları (sıfıra bölme, sınır dışı dizin, olmayan anahtar, `yok`'un alanına erişme, sayıya çevrilemeyen metin,
 açılamayan dosya, biten bellek)
 programı 1 çıkış koduyla durdurur ve hatanın olduğu kaynak satırını bildirir:
 
@@ -112,6 +116,7 @@ Terminalde mesajlar renklidir; `NO_COLOR` ortam değişkeni renkleri kapatır.
 | `her (x) { }` | akan listenin her elemanı (metnin her karakteri, sözlüğün her anahtarı) sırayla `x`'e akar ve blok çalışır |
 | `liste[i]` | değeri listenin `i`. gözüne yazar (ilk göz 0) |
 | `sözlük[a]` | değeri sözlükte `a` anahtarına yazar; anahtar yoksa eklenir |
+| `kayıt.alan` | değeri kaydın alanına yazar |
 | `(a \| b \| c)` | **çatal:** aynı değer her kola ayrı ayrı akar, sonra değişmeden yoluna devam eder |
 | `döndür` | değeri işlevden döndürür |
 
@@ -126,6 +131,8 @@ Terminalde mesajlar renklidir; `NO_COLOR` ortam değişkeni renkleri kapatır.
 | `dur` | | `break` |
 | `devam` | | `continue` |
 | `işlev`, `fonksiyon` | `islev` | `fn` |
+| `kayıt` | `kayit` | `record` |
+| `yok` | | `none` |
 | `döndür` | `dondur` | `return` |
 | `yazdır` | `yazdir` | `print` |
 | `doğru` / `yanlış` | `dogru` / `yanlis` | `true` / `false` |
@@ -213,7 +220,38 @@ Olmayan bir anahtarı okumak çalışma zamanı hatasıdır; önce `var` ile sor
 sayılar -> yazdır           # {"su": 2, "akar": 1, "bulur": 1}
 ```
 
-**Türler:** 64 bit tam sayılar, metinler, listeler ve sözlükler. Bir listenin bütün elemanları aynı türdendir:
+**Kayıtlar** adlandırılmış alanları olan değerlerdir. Tanım en üst düzeyde yapılır; kayıt, adı
+işlev gibi çağrılarak kurulur ve değerler alanlara tanımdaki sırayla verilir:
+
+```nehir
+kayıt Nokta { x, y }
+
+Nokta(3, 4) -> n
+n.x * n.x + n.y * n.y -> yazdır     # 25
+10 -> n.x                           # alana yazma
+n -> yazdır                         # Nokta(x: 10, y: 4)
+```
+
+Kayıtlar kopyalanmaz, paylaşılır: `n -> m` dedikten sonra `m.x`'e yazmak `n.x`'i de değiştirir.
+`==` iki değerin *aynı kayıt* olup olmadığına bakar, içeriklerine değil.
+
+Alan türleri çoğu zaman kullanımdan çıkarılır, ama tanımda da yazılabilir:
+`sayı`, `metin`, bir kayıt adı, `[Tür]` (liste) ya da `{Tür: Tür}` (sözlük). Kendine gönderme
+yapan kayıtlarda türü yazmak gerekir. `yok`, kayıt beklenen her yere konabilen "kayıt yok" değeridir;
+`yok`'un alanına erişmek çalışma zamanı hatasıdır.
+
+```nehir
+kayıt Düğüm { değer: sayı, sonraki: Düğüm }
+
+Düğüm(1, Düğüm(2, yok)) -> liste
+liste -> d
+d != yok -> iken {
+    d.değer -> yazdır
+    d.sonraki -> d
+}
+```
+
+**Türler:** 64 bit tam sayılar, metinler, listeler, sözlükler ve kayıtlar. Bir listenin bütün elemanları aynı türdendir:
 sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listenin (`[]`) türü,
 içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
 çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır.
@@ -231,6 +269,7 @@ o zamana kadar asıl derleyici olarak kalır ve yeni parçaların doğruluğu on
 | Aşama | Dosya | Durum |
 | --- | --- | --- |
 | Sözcükleyici | `kendi/sozcukleyici.nehir` | tamam: bütün örneklerde ve kendi kaynağında `nehir.py` ile aynı sözcükleri üretiyor |
+| Kayıtlar (sözdizimi ağacı için) | | tamam |
 | Ayrıştırıcı | | sırada |
 | Kod üretici | | bekliyor |
 
@@ -267,5 +306,7 @@ Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
 - Ondalıklı sayı yok
+- Kayıtlar kurulurken değerler yalnızca sırayla verilir (`Nokta(x: 3, y: 4)` yazılamaz); kayıtların yöntemi yok
+- `yok` yalnızca kayıtlar içindir; "sayı yok" ya da "metin yok" diye bir değer yok
 - Dosyalar yalnızca bütün olarak okunur ve yazılır; dizin listeleme ya da oluşturma yok
 - Çalışma zamanı hataları yakalanamaz

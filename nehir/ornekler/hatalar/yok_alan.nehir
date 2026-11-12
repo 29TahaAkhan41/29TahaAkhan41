@@ -1,0 +1,4 @@
+kayıt Düğüm { değer: sayı, sonraki: Düğüm }
+Düğüm(1, yok) -> d
+d.değer -> yazdır
+d.sonraki.değer -> yazdır
