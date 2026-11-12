@@ -80,6 +80,7 @@ YERLEŞİKLER = {
     "dosya_sil": "dosya_sil", "delete_file": "dosya_sil",
     "argümanlar": "argümanlar", "argumanlar": "argümanlar", "args": "argümanlar",
     "çık": "çık", "cik": "çık", "exit": "çık",
+    "uyar": "uyar", "warn": "uyar",
     "oku": "oku", "read": "oku",
     "girdi_var": "girdi_var", "has_input": "girdi_var",
 }
@@ -87,7 +88,7 @@ YERLEŞİKLER = {
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
             "+", "-", "*", "/", "%", "<", ">", "(", ")", "{", "}", "[", "]", ",", "|", ":"]
 
-KAÇIŞLAR = {"n": "\n", "t": "\t", '"': '"', "\\": "\\"}
+KAÇIŞLAR = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\"}
 
 
 def uzaklık(a, b):
@@ -160,7 +161,7 @@ def sözcükle(kaynak):
                     j += 1
                     if j >= n or kaynak[j] not in KAÇIŞLAR:
                         raise NehirHatası("geçersiz kaçış dizisi", konum(j - 1, j + 1),
-                                          "geçerli olanlar: \\n  \\t  \\\"  \\\\")
+                                          "geçerli olanlar: \\n  \\t  \\r  \\\"  \\\\")
                     parçalar.append(KAÇIŞLAR[kaynak[j]])
                 else:
                     parçalar.append(kaynak[j])
@@ -598,7 +599,7 @@ RİSKLİ = {"jz __sifira_bolme"} | {"call " + ad for ad in (
     "__metin_dilim", "__liste_dilim", "__liste_birlestir", "__liste_sil",
     "__metin_bol", "__liste_birles", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
     "__sozluk_sil", "__sozluk_liste", "__dosya_oku", "__dosya_yaz", "__dosya_sil",
-    "__argumanlar")}
+    "__argumanlar", "__metin_karakter")}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -950,6 +951,47 @@ __metin_al:                     # rdi = metin, rsi = karakter dizini -> rax = o 
     rep movsb
     pop r12
     pop rbx
+    ret
+
+__metin_karakter:               # rdi = metin, rsi = bayt konumu -> rax = oradaki karakter (metin),
+    push rbx                    #                                  rdx = sonraki karakterin bayt konumu
+    push r12
+    push r13
+    mov rbx, rdi
+    mov r12, rsi
+    mov rcx, [rbx-8]
+    lea r13, [r12+1]
+1:  cmp r13, rcx
+    jae 2f
+    movzx eax, byte ptr [rbx+r13]
+    and eax, 0xC0
+    cmp eax, 0x80
+    jne 2f
+    inc r13
+    jmp 1b
+2:  mov rdi, r13
+    sub rdi, r12
+    call __metin_yeni
+    mov rdi, rax
+    lea rsi, [rbx+r12]
+    mov rcx, r13
+    sub rcx, r12
+    rep movsb
+    mov rdx, r13
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__uyar:                         # rdi = metin; stderr'e satır olarak yazar -> rax = metin
+    push rdi
+    mov rsi, rdi
+    mov rdx, [rdi-8]
+    call __hata_yaz
+    lea rsi, [rip+__yeni_satir]
+    mov edx, 1
+    call __hata_yaz
+    pop rax
     ret
 
 __sayidan_metin:                # rdi = sayı -> rax = metin
@@ -2155,24 +2197,21 @@ class KodÜretici:
         if tip == "her":
             baş, artır, son = self.yeni_etiket(), self.yeni_etiket(), self.yeni_etiket()
             if tür == "metin":      # her karakter sırayla değişkene akar
-                self.yaz("push rax")                 # [rsp+16] = metin
-                self.yaz("mov rdi, rax")
-                self.yaz("call __metin_uzunluk")
-                self.yaz("push rax")                 # [rsp+8]  = karakter sayısı
-                self.yaz("push 0")                   # [rsp]    = dizin
+                self.yaz("push rax")                 # [rsp+8] = metin
+                self.yaz("push 0")                   # [rsp]   = sıradaki karakterin bayt konumu
                 self.etiket_koy(baş)
                 self.yaz("mov rsi, [rsp]")
-                self.yaz("cmp rsi, [rsp+8]")
+                self.yaz("mov rdi, [rsp+8]")
+                self.yaz("cmp rsi, [rdi-8]")
                 self.yaz(f"jge {son}")
-                self.yaz("mov rdi, [rsp+16]")
-                self.yaz("call __metin_al")
+                self.yaz("call __metin_karakter")
+                self.yaz("mov [rsp], rdx")
                 self.ata(h[1], "metin", satır)
                 self.döngü_gövdesi(h[2], artır, son)
                 self.etiket_koy(artır)
-                self.yaz("inc qword ptr [rsp]")
                 self.yaz(f"jmp {baş}")
                 self.etiket_koy(son)
-                self.yaz("add rsp, 24")
+                self.yaz("add rsp, 16")
                 return tür
             if isinstance(tür, Sözlük):    # anahtarların o anki listesi üzerinde dönülür
                 if tür.anahtar is None:
@@ -2380,6 +2419,12 @@ class KodÜretici:
             # O_WRONLY | O_CREAT ve üstüne yazmak için O_TRUNC, eklemek için O_APPEND
             self.yaz(f"mov edx, {0x241 if asıl == 'dosya_yaz' else 0x441}")
             self.yaz("call __dosya_yaz")
+            return "metin"
+        if asıl == "uyar":
+            if türler != ["metin"]:
+                yanlış("metin")
+            self.yaz("pop rdi")
+            self.yaz("call __uyar")
             return "metin"
         if asıl == "argümanlar":
             if türler:
@@ -2681,6 +2726,21 @@ def derle(kaynak, dosya_adı="<girdi>"):
     return üretici.üret(), üretici.uyarılar
 
 
+def sözcük_dökümü(kaynak):
+    """Sözcükleri satır satır metne döker. Nehir ile yazılmış sözcükleyicinin
+    (kendi/sozcukleyici.nehir) çıktısı bununla bire bir aynı olmalıdır."""
+    satırlar = []
+    for s in sözcükle(kaynak):
+        satır = f"{int(s.satır)}:{s.satır.sütun}:{s.satır.uzunluk} {int(s.yeni_satır)} {s.tür}"
+        if s.tür != "SON":
+            değer = str(s.değer)
+            for ham, kaçış in (("\\", "\\\\"), ("\n", "\\n"), ("\t", "\\t"), ("\r", "\\r")):
+                değer = değer.replace(ham, kaçış)
+            satır += " " + değer
+        satırlar.append(satır)
+    return "\n".join(satırlar) + "\n"
+
+
 def bildir(dosya, kaynak, düzey, mesaj, konum=None, ipucu=None):
     """Hata ya da uyarıyı, kaynak satırı ve altı çizili yeriyle stderr'e yazar:
 
@@ -2721,12 +2781,13 @@ KULLANIM = """kullanım: nehir.py <dosya.nehir> [seçenekler]
   -o <ad>            çıktı dosyasının adı (varsayılan: kaynak dosya adı, uzantısız)
   --asm              yalnızca assembly (.s) üret, derlemeyi orada bırak
   --çalıştır, --run  derledikten sonra programı çalıştır
+  --sözcükler        derlemeden yalnızca sözcükleri dök
   -- <argümanlar>    --çalıştır ile birlikte: sonrası programa argüman olarak verilir
 """
 
 
 def ana(argv):
-    girdi, çıktı, yalnız_asm, çalıştır = None, None, False, False
+    girdi, çıktı, yalnız_asm, çalıştır, yalnız_sözcükler = None, None, False, False, False
     program_argümanları = []
     if "--" in argv:
         ayraç = argv.index("--")
@@ -2739,6 +2800,8 @@ def ana(argv):
             çıktı = argv[i]
         elif a == "--asm":
             yalnız_asm = True
+        elif a in ("--sözcükler", "--sozcukler", "--tokens"):
+            yalnız_sözcükler = True
         elif a in ("--çalıştır", "--calistir", "--run"):
             çalıştır = True
         elif a.startswith("-") or girdi is not None:
@@ -2755,6 +2818,9 @@ def ana(argv):
     try:
         with open(girdi, encoding="utf-8") as f:
             kaynak = f.read()
+        if yalnız_sözcükler:
+            sys.stdout.write(sözcük_dökümü(kaynak))
+            return 0
         asm, uyarılar = derle(kaynak, girdi)
     except OSError as h:
         bildir(girdi, None, "hata", f"dosya okunamadı: {h.strerror}")

@@ -1,0 +1,11 @@
+# Sözcükleyici için zor durumlar
+"kaçışlar: \n \t \r \" \\ son" -> yazdır
+1_000_000 + 007 - 0 -> x; x → y;;y->z
+9223372036854775807 -> en_büyük
+a<=b>=c==d!=e<f>g
+	sekmeyle	 başlayan   # yorum "tırnak" -> if
+[1,2]|{"a":1}(x)%
+İSTANBUL ığdır çöğüş _alt_çizgi x2y
+if else while each break continue fn return print true false and or not
+eger degilse islev fonksiyon dondur yazdir dogru yanlis degil
+""

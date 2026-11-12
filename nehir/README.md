@@ -60,6 +60,7 @@ python3 nehir.py ornekler/merhaba.nehir --asm
 | --- | --- |
 | `-o <ad>` | çıktı dosyasının adı |
 | `--asm` | yalnızca assembly (`.s`) üret |
+| `--sözcükler` | derlemeden yalnızca sözcükleri dök |
 | `--çalıştır`, `--run` | derledikten sonra çalıştır |
 | `-- <argümanlar>` | `--çalıştır` ile birlikte: sonrası programa argüman olarak verilir |
 
@@ -184,6 +185,7 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `dosya_sil(yol)` | `delete_file` | dosyayı siler |
 | `argümanlar()` | `args` | programa verilen komut satırı argümanlarının listesi (program adı hariç) |
 | `çık(kod)` | `exit` | programı verilen çıkış koduyla hemen bitirir |
+| `uyar(m)` | `warn` | metni standart hataya (stderr) bir satır olarak yazar |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
@@ -221,6 +223,29 @@ içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı g
 **Satırlar:** Deyimler arasında ayırıcı gerekmez. Tek kural: çağrı `f(...)` ve eleman erişimi
 `l[...]` için parantez adla aynı satırda olmalıdır. Aynı satıra birden çok deyim yazarken `;` kullanılabilir.
 
+## Kendi kendini derleme
+
+Hedef, Nehir derleyicisini Nehir ile yazmak. `kendi/` dizini bu çalışmayı tutar; `nehir.py`
+o zamana kadar asıl derleyici olarak kalır ve yeni parçaların doğruluğu ona karşı sınanır.
+
+| Aşama | Dosya | Durum |
+| --- | --- | --- |
+| Sözcükleyici | `kendi/sozcukleyici.nehir` | tamam: bütün örneklerde ve kendi kaynağında `nehir.py` ile aynı sözcükleri üretiyor |
+| Ayrıştırıcı | | sırada |
+| Kod üretici | | bekliyor |
+
+```bash
+python3 nehir.py kendi/sozcukleyici.nehir -o sozcukleyici
+```
+
+```bash
+./sozcukleyici ornekler/merhaba.nehir
+```
+
+Aynı dökümü Python'daki sözcükleyiciden almak için: `python3 nehir.py ornekler/merhaba.nehir --sözcükler`.
+Bilinen tek fark: Nehir sürümü ASCII dışındaki her karakteri harf sayar; Python sürümü Unicode'un
+harf tanımını kullanır (yalnızca adların içinde harf olmayan ASCII dışı simgeler kullanılırsa fark eder).
+
 ## Sınamalar
 
 ```bash
@@ -229,6 +254,8 @@ python3 test.py
 
 Her örnek derlenir, çalıştırılır ve çıktısı yanındaki `.beklenen` dosyasıyla karşılaştırılır.
 `ornekler/hatalar/` altındaki programlar bilerek hatalıdır; onların beklenen çıktısı hata mesajlarıdır.
+Son olarak Nehir ile yazılmış sözcükleyici derlenir ve bütün `.nehir` dosyalarında (`kendi/sinamalar/`
+altındaki zor ve hatalı girdiler dahil) Python'daki sözcükleyiciyle aynı çıktıyı verdiği doğrulanır.
 Aynı adlı bir `.girdi` dosyası varsa programa standart girdi olarak verilir.
 
 ## Şimdilik olmayanlar

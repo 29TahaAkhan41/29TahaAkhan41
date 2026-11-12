@@ -3,6 +3,9 @@
 ve çıktısını (hata mesajları dahil) yanındaki .beklenen dosyasıyla karşılaştırır. Aynı adlı bir .girdi dosyası varsa
 programa standart girdi olarak verilir.
 
+Ardından Nehir ile yazılmış sözcükleyiciyi (kendi/sozcukleyici.nehir) derler ve
+bütün .nehir dosyalarında Python'daki sözcükleyiciyle aynı çıktıyı verdiğini sınar.
+
   python3 test.py              sınamaları çalıştır
   python3 test.py --güncelle   .beklenen dosyalarını şimdiki çıktıyla yeniden yaz
 """
@@ -54,7 +57,42 @@ def ana():
                 print(f"BAŞARISIZ {ad}")
                 print("  beklenen:", repr(beklenen))
                 print("  çıkan:   ", repr(çıktı))
+        if not güncelle:
+            başarısız += kendi_sözcükleyiciyi_sına(geçici, kaynaklar)
     return 1 if başarısız else 0
+
+
+def kendi_sözcükleyiciyi_sına(geçici, kaynaklar):
+    """Nehir ile yazılmış sözcükleyici, her dosyada Python'dakiyle aynı sözcükleri
+    (hatalı dosyalarda aynı ilk hata satırını ve çıkış kodunu) vermelidir."""
+    def çalıştır(komut):
+        s = subprocess.run(komut, cwd=KÖK, capture_output=True, text=True, encoding="utf-8")
+        ilk_hata = s.stderr.split("\n")[0]
+        return s.returncode, s.stdout, ilk_hata
+
+    ikili = os.path.join(geçici, "sozcukleyici")
+    kod, _, hata = çalıştır([sys.executable, "nehir.py", "kendi/sozcukleyici.nehir", "-o", ikili])
+    if kod != 0:
+        print("BAŞARISIZ kendi/sozcukleyici derlenemedi:", hata)
+        return 1
+    başarısız = 0
+    kaynaklar = kaynaklar + sorted(glob.glob(os.path.join(KÖK, "kendi", "*.nehir"))) + \
+        sorted(glob.glob(os.path.join(KÖK, "kendi", "sinamalar", "*.nehir")))
+    for kaynak in kaynaklar:
+        göreli = os.path.relpath(kaynak, KÖK).replace(os.sep, "/")
+        beklenen = çalıştır([sys.executable, "nehir.py", göreli, "--sözcükler"])
+        çıkan = çalıştır([ikili, göreli])
+        if çıkan != beklenen:
+            başarısız += 1
+            print(f"BAŞARISIZ kendi sözcükleyici: {göreli}")
+            for b, ç in zip(beklenen, çıkan):
+                if b != ç:
+                    print("  beklenen:", repr(b)[:300])
+                    print("  çıkan:   ", repr(ç)[:300])
+                    break
+    if not başarısız:
+        print(f"geçti     kendi sözcükleyici ({len(kaynaklar)} dosyada Python ile aynı çıktı)")
+    return başarısız
 
 
 if __name__ == "__main__":

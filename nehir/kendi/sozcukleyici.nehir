@@ -1,0 +1,228 @@
+# Nehir sözcükleyicisi — Nehir ile yazılmış.
+#
+# nehir.py içindeki `sözcükle` işlevinin karşılığıdır ve aynı sözcükleri üretir.
+# Kendi kendini derleyen derleyicinin ilk aşaması.
+#
+#   kullanım: sozcukleyici <dosya.nehir>
+#
+# Her sözcüğü bir satır olarak yazar (nehir.py --sözcükler ile aynı biçim):
+#   satır:sütun:uzunluk  satırın_ilk_sözcüğü_mü  TÜR  değer
+
+# ── tablolar ──
+
+# Her anahtar kelimenin Türkçe, ASCII-Türkçe ve İngilizce yazımı aynı şeye çıkar.
+{
+    "eğer": "eğer", "eger": "eğer", "if": "eğer",
+    "değilse": "değilse", "degilse": "değilse", "else": "değilse",
+    "iken": "iken", "while": "iken",
+    "her": "her", "each": "her",
+    "dur": "dur", "break": "dur",
+    "devam": "devam", "continue": "devam",
+    "işlev": "işlev", "islev": "işlev", "fonksiyon": "işlev", "fn": "işlev",
+    "döndür": "döndür", "dondur": "döndür", "return": "döndür",
+    "yazdır": "yazdır", "yazdir": "yazdır", "print": "yazdır",
+    "doğru": "doğru", "dogru": "doğru", "true": "doğru",
+    "yanlış": "yanlış", "yanlis": "yanlış", "false": "yanlış",
+    "ve": "ve", "and": "ve",
+    "veya": "veya", "or": "veya",
+    "değil": "değil", "degil": "değil", "not": "değil"
+} -> ANAHTARLAR
+
+# İki karakterli işleçler önce gelir ki "->" yerine "-" eşleşmesin.
+["->", "→", "==", "!=", "<=", ">=",
+ "+", "-", "*", "/", "%", "<", ">", "(", ")", "{", "}", "[", "]", ",", "|", ":"] -> İŞLEÇLER
+
+{"n": "\n", "t": "\t", "r": "\r", "\"": "\"", "\\": "\\"} -> KAÇIŞLAR
+
+# ── durum ──
+# Nehir'de kayıt (struct) olmadığı için sözcükler koşut listelerde tutulur:
+# i. sözcüğün türü s_tür[i], değeri s_değer[i], ...
+
+[] -> s_tür         # "SAYI", "METİN", "AD", "ANAHTAR", "İŞLEÇ", "SON"
+[] -> s_değer       # metin olarak; sayılar için onluk yazımı
+[] -> s_satır
+[] -> s_sütun
+[] -> s_uzunluk
+[] -> s_yeni        # sözcük, satırının ilk sözcüğü mü?
+
+"" -> l_dosya
+1 -> l_satır
+0 -> l_satır_başı   # geçerli satırın ilk karakterinin dizini
+0 -> l_son_satır    # en son sözcüğün satırı; ';' sıfırlar
+
+# ── yardımcılar ──
+
+işlev rakam_mı(k) { k >= "0" ve k <= "9" -> döndür }
+
+# ASCII dışındaki her karakter harf sayılır (ç, ğ, ı, ...). Python'daki
+# sözcükleyici burada Unicode'un harf tanımını kullanır; fark yalnızca
+# harf olmayan ASCII dışı simgelerde ortaya çıkar.
+işlev harf_mi(k) {
+    (k >= "a" ve k <= "z") veya (k >= "A" ve k <= "Z") veya k == "_" veya k > "~" -> döndür
+}
+
+işlev hata(mesaj, baş) {
+    l_dosya + ":" + metne(l_satır) + ":" + metne(baş - l_satır_başı + 1) + ": hata: " + mesaj -> uyar
+    çık(1)
+}
+
+işlev sözcük_ekle(tür, değer, baş, son) {
+    son - baş -> u
+    u < 1 -> eğer { 1 -> u }
+    s_tür -> ekle(tür)
+    s_değer -> ekle(değer)
+    s_satır -> ekle(l_satır)
+    s_sütun -> ekle(baş - l_satır_başı + 1)
+    s_uzunluk -> ekle(u)
+    s_yeni -> ekle(l_satır != l_son_satır)
+    l_satır -> l_son_satır
+}
+
+# Rakam dizisini onluk yazıma indirger ("007" -> "7"); 64 bite sığmıyorsa "" verir.
+işlev sayı_değeri(rakamlar) {
+    0 -> b
+    b < uzunluk(rakamlar) - 1 ve rakamlar[b] == "0" -> iken { b + 1 -> b }
+    rakamlar -> dilim(b, uzunluk(rakamlar)) -> sade
+    uzunluk(sade) > 19 veya (uzunluk(sade) == 19 ve sade > "9223372036854775807") -> eğer {
+        "" -> döndür
+    }
+    sade -> döndür
+}
+
+# ── sözcükleyici ──
+
+işlev sözcükle(kaynak) {
+    # Metinde dizinle erişim baştan saymayı gerektirir; karakter listesinde anlıktır.
+    [] -> kr
+    kaynak -> her (k) { kr -> ekle(k) }
+    uzunluk(kr) -> n
+
+    0 -> i
+    i < n -> iken {
+        kr[i] -> c
+
+        c == "\n" -> eğer {
+            l_satır + 1 -> l_satır
+            i + 1 -> i
+            i -> l_satır_başı
+            devam
+        }
+        c == " " veya c == "\t" veya c == "\r" -> eğer { i + 1 -> i   devam }
+        c == ";" -> eğer {              # ';' de deyimleri ayırır
+            0 -> l_son_satır
+            i + 1 -> i
+            devam
+        }
+        c == "#" -> eğer {
+            i < n ve kr[i] != "\n" -> iken { i + 1 -> i }
+            devam
+        }
+
+        rakam_mı(c) -> eğer {
+            i -> j
+            "" -> rakamlar
+            j < n ve (rakam_mı(kr[j]) veya kr[j] == "_") -> iken {
+                kr[j] != "_" -> eğer { rakamlar + kr[j] -> rakamlar }
+                j + 1 -> j
+            }
+            rakamlar -> sayı_değeri -> değer
+            değer == "" -> eğer { hata("sayı çok büyük; en fazla 9223372036854775807 olabilir", i) }
+            sözcük_ekle("SAYI", değer, i, j)
+            j -> i
+            devam
+        }
+
+        c == "\"" -> eğer {
+            i + 1 -> j
+            [] -> parçalar
+            doğru -> iken {
+                j >= n -> eğer { hata("metin kapatılmamış", i) }
+                kr[j] == "\n" -> eğer { hata("metin kapatılmamış", i) }
+                kr[j] == "\"" -> eğer { dur }
+                kr[j] == "\\" -> eğer {
+                    j + 1 -> j
+                    j >= n -> eğer { hata("geçersiz kaçış dizisi", j - 1) }
+                    değil var(KAÇIŞLAR, kr[j]) -> eğer { hata("geçersiz kaçış dizisi", j - 1) }
+                    parçalar -> ekle(KAÇIŞLAR[kr[j]])
+                } değilse {
+                    parçalar -> ekle(kr[j])
+                }
+                j + 1 -> j
+            }
+            sözcük_ekle("METİN", birleş(parçalar, ""), i, j + 1)
+            j + 1 -> i
+            devam
+        }
+
+        # "→" ASCII dışı olduğu için harf sayılmadan önce işleç olarak yakalanmalı.
+        harf_mi(c) ve c != "→" -> eğer {
+            i -> j
+            j < n ve (harf_mi(kr[j]) veya rakam_mı(kr[j])) ve kr[j] != "→" -> iken { j + 1 -> j }
+            kr -> dilim(i, j) -> birleş("") -> ad
+            ANAHTARLAR -> var(ad) -> eğer {
+                sözcük_ekle("ANAHTAR", ANAHTARLAR[ad], i, j)
+            } değilse {
+                sözcük_ekle("AD", ad, i, j)
+            }
+            j -> i
+            devam
+        }
+
+        "" -> işleç
+        İŞLEÇLER -> her (aday) {
+            uzunluk(aday) -> u
+            i + u <= n -> eğer {
+                birleş(dilim(kr, i, i + u), "") == aday -> eğer {
+                    aday -> işleç
+                    dur
+                }
+            }
+        }
+        işleç == "" -> eğer {
+            c == "=" -> eğer { hata("Nehir'de '=' ile atama yok", i) }
+            hata("tanınmayan karakter: '" + c + "'", i)
+        }
+        işleç == "→" -> eğer {
+            sözcük_ekle("İŞLEÇ", "->", i, i + 1)
+        } değilse {
+            sözcük_ekle("İŞLEÇ", işleç, i, i + uzunluk(işleç))
+        }
+        i + uzunluk(işleç) -> i
+    }
+    sözcük_ekle("SON", "", n, n)
+}
+
+# ── döküm ──
+
+işlev kaçır(m) {
+    m -> böl("\\") -> birleş("\\\\") -> böl("\n") -> birleş("\\n")
+      -> böl("\t") -> birleş("\\t") -> böl("\r") -> birleş("\\r") -> döndür
+}
+
+işlev dök() {
+    0 -> i
+    i < uzunluk(s_tür) -> iken {
+        metne(s_satır[i]) + ":" + metne(s_sütun[i]) + ":" + metne(s_uzunluk[i])
+            + " " + metne(s_yeni[i]) + " " + s_tür[i] -> satır
+        s_tür[i] != "SON" -> eğer { satır + " " + kaçır(s_değer[i]) -> satır }
+        satır -> yazdır
+        i + 1 -> i
+    }
+}
+
+işlev ana() {
+    argümanlar() -> a
+    uzunluk(a) != 1 -> eğer {
+        "kullanım: sozcukleyici <dosya.nehir>" -> uyar
+        çık(2)
+    }
+    a[0] -> l_dosya
+    değil dosya_var(l_dosya) -> eğer {
+        l_dosya + ": hata: dosya okunamadı" -> uyar
+        çık(1)
+    }
+    l_dosya -> dosya_oku -> sözcükle
+    dök()
+}
+
+ana()
