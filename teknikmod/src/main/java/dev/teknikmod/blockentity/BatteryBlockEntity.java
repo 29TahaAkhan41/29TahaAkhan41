@@ -23,11 +23,13 @@ public class BatteryBlockEntity extends MachineBlockEntity {
 
     public IEnergyStorage getEnergy(@Nullable Direction side) {
         if (side == null) return energy;
+        if (tier.creative) return output; // yaratici batarya her yuzunden enerji verir
         return side == getBlockState().getValue(BatteryBlock.FACING) ? output : input;
     }
 
     @Override
     public void serverTick(Level level, BlockPos pos, BlockState state) {
-        EnergyUtil.push(level, pos, energy, tier.batteryIo, state.getValue(BatteryBlock.FACING));
+        if (tier.creative) EnergyUtil.push(level, pos, energy, tier.batteryIo, Direction.values());
+        else EnergyUtil.push(level, pos, energy, tier.batteryIo, state.getValue(BatteryBlock.FACING));
     }
 }

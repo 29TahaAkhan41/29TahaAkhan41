@@ -32,7 +32,7 @@ modunun 9x9 Ultimate masasindadir ve yalnizca o mod yukluyken etkinlesir (mod zo
 moddan veya `/give` ile alinir). Tarifler `tools/gen_resources.py` icindeki `ec_table` cagrilariyla uretilir.
 
 - Jenerator ve gunes paneli: yakit/gunes gerektirmez, 10.000.000 FE/t'ye kadar verir.
-- Batarya: hic bosalmaz, enerji kabul etmez.
+- Batarya: hic bosalmaz, enerji kabul etmez, her yuzunden enerji verir.
 - Elektrikli firin ve ogutucu: enerji harcamaz, her islem 1 tick surer.
 - Kablo: aktarim siniri yoktur.
 
@@ -60,7 +60,7 @@ beslenir, onlarin jenerator ve kablolari da bizim batarya ve kablolarimiza enerj
 ## Derleme
 
 ```bash
-./gradlew build        # build/libs/teknikmod-0.6.0.jar
+./gradlew build        # build/libs/teknikmod-0.6.1.jar
 ./gradlew runClient    # oyunu modla ac
 ./gradlew runServer    # test sunucusu
 ```
