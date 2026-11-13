@@ -4,7 +4,7 @@ import json, os, shutil, sys
 from PIL import Image, ImageDraw
 R = sys.argv[1]
 M = "teknikmod"
-for d in (f"assets/{M}", f"data/{M}", "data/minecraft"):
+for d in (f"assets/{M}", f"data/{M}", "data/minecraft", "data/c"):
     shutil.rmtree(os.path.join(R, d), ignore_errors=True)
 def w(path, obj):
     p = os.path.join(R, path); os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -117,6 +117,35 @@ for ti, (pre, accent, en_pre, tr_pre, upgrade) in enumerate(TIERS):
     save(img, f"block/{pre}battery_front")
 
 
+    # elektrikli firin on yuz: camin arkasinda isitici rezistanslar
+    for lit in (False, True):
+        img = casing(); rect(img, 3, 3, 12, 4, GLASS)
+        px(img, 4, 3, accent); px(img, 5, 3, accent); px(img, 4, 4, dim(accent, .5)); px(img, 5, 4, dim(accent, .5))
+        px(img, 11, 4, (90, 240, 120) if lit else (255, 90, 60))
+        rect(img, 3, 6, 12, 13, EDGE); rect(img, 4, 7, 11, 12, (60, 22, 14) if lit else GLASS)
+        for y in (8, 10, 12):
+            for x in range(4, 12):
+                px(img, x, y, ((255, 120, 40) if (x + y // 2) % 4 else (255, 214, 110)) if lit else (62, 44, 42))
+            if lit:
+                for x in range(4, 12): px(img, x, y - 1, lerp((60, 22, 14), (255, 120, 40), .35))
+        px(img, 4, 7, (70, 76, 92))
+        save(img, f"block/{pre}electric_furnace_front" + ("_on" if lit else ""))
+    # ogutucu on yuz: birbirine gecen iki sira disli
+    for lit in (False, True):
+        img = casing(); rect(img, 3, 3, 12, 4, GLASS)
+        px(img, 4, 3, accent); px(img, 5, 3, accent); px(img, 4, 4, dim(accent, .5)); px(img, 5, 4, dim(accent, .5))
+        px(img, 11, 4, (90, 240, 120) if lit else (255, 90, 60))
+        rect(img, 3, 6, 12, 13, EDGE); rect(img, 4, 7, 11, 12, GLASS)
+        steel, steel_hi = ((176, 184, 200), (236, 240, 248)) if lit else ((112, 118, 132), (150, 156, 170))
+        for x in range(4, 12):
+            up = (x % 2 == 0)
+            px(img, x, 7, steel); px(img, x, 12, dim(steel, .8))
+            if up: px(img, x, 8, steel_hi); px(img, x, 9, steel)
+            else: px(img, x, 11, steel); px(img, x, 10, steel_hi)
+        if lit:
+            for (x, y) in ((5, 10), (8, 9), (10, 10)): px(img, x, y, accent)   # kivilcim
+        save(img, f"block/{pre}crusher_front" + ("_on" if lit else ""))
+
     cg, sp, bt = pre + "coal_generator", pre + "solar_panel", pre + "battery"
     w(f"assets/{M}/blockstates/{cg}.json", {"variants": {
         f"facing={f},lit={str(l).lower()}": {"model": B + cg + ("_on" if l else ""), **({"y": y} if y else {})}
@@ -136,16 +165,27 @@ for ti, (pre, accent, en_pre, tr_pre, upgrade) in enumerate(TIERS):
         "facing=up": {"model": B + bt, "x": 270}, "facing=down": {"model": B + bt, "x": 90}}})
     w(f"assets/{M}/models/block/{bt}.json", {"parent": "minecraft:block/orientable", "textures": {
         "top": B + bt + "_side", "front": B + bt + "_front", "side": B + bt + "_side"}})
-    for b, en_name, tr_name in ((cg, "Coal Generator", "Kömür Jeneratörü"), (sp, "Solar Panel", "Güneş Paneli"), (bt, "Battery", "Batarya")):
+    ef, cr = pre + "electric_furnace", pre + "crusher"
+    for m in (ef, cr):
+        w(f"assets/{M}/blockstates/{m}.json", {"variants": {
+            f"facing={f},lit={str(l).lower()}": {"model": B + m + ("_on" if l else ""), **({"y": y} if y else {})}
+            for f, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)) for l in (False, True)}})
+        for sfx in ("", "_on"):
+            w(f"assets/{M}/models/block/{m}{sfx}.json", {"parent": "minecraft:block/orientable", "textures": {
+                "top": B + top, "front": B + m + "_front" + sfx, "side": B + side}})
+    for b, en_name, tr_name in ((cg, "Coal Generator", "Kömür Jeneratörü"), (sp, "Solar Panel", "Güneş Paneli"), (bt, "Battery", "Batarya"),
+                                (ef, "Electric Furnace", "Elektrikli Fırın"), (cr, "Crusher", "Öğütücü")):
         w(f"assets/{M}/models/item/{b}.json", {"parent": B + b})
         blocks.append(b); en[f"block.{M}.{b}"] = en_pre + en_name; tr[f"block.{M}.{b}"] = tr_pre + tr_name
     if upgrade is None:
         shaped(cg, ["III", "IFI", "CRC"], {"I": I, "F": "minecraft:furnace", "C": C, "R": RS})
         shaped(sp, ["GGG", "LRL", "ICI"], {"G": "#c:glass_blocks", "L": "#c:gems/lapis", "R": RS, "I": I, "C": C})
         shaped(bt, ["ICI", "IRI", "IRI"], {"I": I, "C": C, "R": "#c:storage_blocks/redstone"})
+        shaped(ef, ["ICI", "RFR", "ICI"], {"I": I, "C": C, "R": RS, "F": "minecraft:furnace"})
+        shaped(cr, ["IFI", "PRP", "ICI"], {"I": I, "C": C, "R": RS, "F": "minecraft:flint", "P": "minecraft:piston"})
     else:  # onceki kademenin etrafina 4 yukseltme malzemesi
         prev = TIERS[ti - 1][0]
-        for kind in ("coal_generator", "solar_panel", "battery"):
+        for kind in ("coal_generator", "solar_panel", "battery", "electric_furnace", "crusher"):
             shaped(pre + kind, [" U ", "UMU", " U "], {"U": upgrade, "M": f"{M}:{prev}{kind}"})
 
 # --- kablolar ---
@@ -201,13 +241,71 @@ inset(151, 16, 14, 54, fill=(12, 20, 26, 255))   # enerji cubugu
 inset(80, 25, 16, 16, fill=(22, 18, 16, 255))    # yanma gostergesi
 save(g, "gui/coal_generator")
 
+# islem makinesi arayuzu: giris yuvasi -> ilerleme seridi -> cikis yuvasi
+g2 = g.copy(); d = ImageDraw.Draw(g2)
+d.rectangle([76, 22, 100, 64], fill=(46, 50, 60, 255))            # jenerator yuvalarini sil
+inset(52, 34, 18, 18); inset(102, 30, 26, 26); inset(76, 39, 24, 8, fill=(18, 20, 26, 255))
+p = os.path.join(R, f"assets/{M}/textures/gui/processing.png"); g2.save(p)
+
+# --- tozlar ---
+DUSTS = [("iron", (214, 206, 198), "Iron Dust", "Demir Tozu", "minecraft:iron_ingot"),
+         ("gold", (250, 212, 72), "Gold Dust", "Altın Tozu", "minecraft:gold_ingot"),
+         ("copper", (226, 130, 86), "Copper Dust", "Bakır Tozu", "minecraft:copper_ingot")]
+HEAP = ["................", "................", "................", "................", "................", "......##........",
+        ".....####..#....", "....######.##...", "...#########....", "..###########...", ".#############..", ".##############.",
+        "################", ".##############.", "................", "................"]
+for metal, col, en_name, tr_name, ingot in DUSTS:
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y, row in enumerate(HEAP):
+        for x, ch in enumerate(row):
+            if ch != "#": continue
+            edge = y == 13 or x == 0 or row[x - 1] != "#" or x == 15 or row[x + 1] != "#" or HEAP[y - 1][x] != "#"
+            c = lerp(col, (255, 255, 255), .35) if HEAP[y - 1][x] != "#" else dim(col, .62) if (y >= 12 or (edge and x > 8)) else col
+            if (x * 7 + y * 13) % 5 == 0 and HEAP[y - 1][x] == "#": c = dim(c, .82)      # taneli gorunum
+            px(img, x, y, c)
+    name = metal + "_dust"
+    p = os.path.join(R, f"assets/{M}/textures/item/{name}.png"); os.makedirs(os.path.dirname(p), exist_ok=True); img.save(p)
+    w(f"assets/{M}/models/item/{name}.json", {"parent": "minecraft:item/generated", "textures": {"layer0": f"{M}:item/{name}"}})
+    en[f"item.{M}.{name}"] = en_name; tr[f"item.{M}.{name}"] = tr_name
+    w(f"data/c/tags/item/dusts/{metal}.json", {"replace": False, "values": [f"{M}:{name}"]})
+    for kind, t in (("smelting", 200), ("blasting", 100)):
+        w(f"data/{M}/recipe/{metal}_ingot_from_dust_{kind}.json", {"type": f"minecraft:{kind}", "category": "misc", "group": f"{metal}_ingot",
+            "ingredient": {"tag": f"c:dusts/{metal}"}, "result": {"id": ingot}, "experience": 0.7, "cookingtime": t})
+w("data/c/tags/item/dusts.json", {"replace": False, "values": [f"#c:dusts/{m[0]}" for m in DUSTS]})
+
+# --- ogutme tarifleri ---
+def crush(name, inp, out, count=1, time=200):
+    w(f"data/{M}/recipe/crushing/{name}.json", {"type": f"{M}:crushing",
+        "ingredient": {"tag": inp[1:]} if inp.startswith("#") else {"item": inp},
+        "result": {"id": out, "count": count}, "time": time})
+for metal in ("iron", "gold", "copper"):
+    dust = f"{M}:{metal}_dust"
+    crush(f"{metal}_dust_from_raw", f"#c:raw_materials/{metal}", dust, 2)
+    crush(f"{metal}_dust_from_ore", f"#c:ores/{metal}", dust, 3, 300)
+    crush(f"{metal}_dust_from_raw_block", f"#c:storage_blocks/raw_{metal}", dust, 18, 1200)
+    crush(f"{metal}_dust_from_ingot", f"#c:ingots/{metal}", dust, 1, 100)
+for name, inp, out, n in (("coal", "#c:ores/coal", "minecraft:coal", 3), ("diamond", "#c:ores/diamond", "minecraft:diamond", 2),
+                          ("emerald", "#c:ores/emerald", "minecraft:emerald", 2), ("redstone", "#c:ores/redstone", "minecraft:redstone", 8),
+                          ("lapis", "#c:ores/lapis", "minecraft:lapis_lazuli", 12), ("quartz", "#c:ores/quartz", "minecraft:quartz", 3)):
+    crush(f"{name}_from_ore", inp, out, n, 300)
+for name, inp, out, n in (("cobblestone", "minecraft:stone", "minecraft:cobblestone", 1), ("gravel", "minecraft:cobblestone", "minecraft:gravel", 1),
+                          ("sand", "minecraft:gravel", "minecraft:sand", 1), ("sand_from_sandstone", "minecraft:sandstone", "minecraft:sand", 4),
+                          ("red_sand_from_red_sandstone", "minecraft:red_sandstone", "minecraft:red_sand", 4),
+                          ("bone_meal", "minecraft:bone", "minecraft:bone_meal", 6), ("blaze_powder", "minecraft:blaze_rod", "minecraft:blaze_powder", 4),
+                          ("glowstone_dust", "minecraft:glowstone", "minecraft:glowstone_dust", 4), ("quartz_from_block", "minecraft:quartz_block", "minecraft:quartz", 4),
+                          ("string", "#minecraft:wool", "minecraft:string", 4), ("flint", "minecraft:gravel", "minecraft:flint", 1)):
+    if name == "flint": continue   # cakil -> kum ile cakisir
+    crush(name, inp, out, n, 100)
+
 # --- dil ---
 en.update({"itemGroup.teknikmod": "Teknik Mod", "message.teknikmod.energy": "Energy: %s / %s FE", "message.teknikmod.rate": "Generating: %s FE/t",
            "tooltip.teknikmod.generation": "Generation: %s FE/t", "tooltip.teknikmod.capacity": "Capacity: %s FE", "tooltip.teknikmod.transfer": "Transfer: %s FE/t",
-           "tooltip.teknikmod.coal_fuel": "Fuel: Coal, Charcoal, Block of Coal"})
+           "tooltip.teknikmod.coal_fuel": "Fuel: Coal, Charcoal, Block of Coal",
+           "tooltip.teknikmod.speed": "Speed: %sx", "tooltip.teknikmod.usage": "Usage: %s FE/t", "message.teknikmod.progress": "Progress: %s%% (%s FE/t)"})
 tr.update({"itemGroup.teknikmod": "Teknik Mod", "message.teknikmod.energy": "Enerji: %s / %s FE", "message.teknikmod.rate": "Üretim: %s FE/t",
            "tooltip.teknikmod.generation": "Üretim: %s FE/t", "tooltip.teknikmod.capacity": "Kapasite: %s FE", "tooltip.teknikmod.transfer": "Aktarım: %s FE/t",
-           "tooltip.teknikmod.coal_fuel": "Yakıt: Kömür, Odun Kömürü, Kömür Bloğu"})
+           "tooltip.teknikmod.coal_fuel": "Yakıt: Kömür, Odun Kömürü, Kömür Bloğu",
+           "tooltip.teknikmod.speed": "Hız: %sx", "tooltip.teknikmod.usage": "Tüketim: %s FE/t", "message.teknikmod.progress": "İlerleme: %%%s (%s FE/t)"})
 w(f"assets/{M}/lang/en_us.json", en); w(f"assets/{M}/lang/tr_tr.json", tr)
 
 # --- loot + etiketler ---

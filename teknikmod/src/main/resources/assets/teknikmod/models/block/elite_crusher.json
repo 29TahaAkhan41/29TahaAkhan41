@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "teknikmod:block/elite_machine_top",
+    "front": "teknikmod:block/elite_crusher_front",
+    "side": "teknikmod:block/elite_machine_side"
+  }
+}

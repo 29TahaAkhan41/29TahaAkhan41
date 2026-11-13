@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "tag": "c:storage_blocks/raw_copper"
+  },
+  "result": {
+    "id": "teknikmod:copper_dust",
+    "count": 18
+  },
+  "time": 1200
+}

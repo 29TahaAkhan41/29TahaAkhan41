@@ -14,6 +14,8 @@ Her cihazin uc kademesi vardir: Temel, Gelismis (`advanced_`) ve Elit (`elite_`)
 | Gunes Paneli: uretim (yagmurda yarisi) | 8 FE/t | 32 FE/t | 128 FE/t |
 | Batarya: depo | 200.000 FE | 1.000.000 FE | 5.000.000 FE |
 | Batarya: giris/cikis | 500 FE/t | 2.000 FE/t | 8.000 FE/t |
+| Elektrikli Firin / Ogutucu: hiz | 2x | 4x | 8x |
+| Elektrikli Firin / Ogutucu: tuketim | 40 FE/t | 80 FE/t | 160 FE/t |
 
 | Kablo | Aktarim |
 |---|---|
@@ -26,6 +28,11 @@ Yukseltme tarifi: onceki kademenin dort yanina altin kulce (Gelismis) veya elmas
 - Komur jeneratoru yalnizca komur, odun komuru ve komur blogu yakar (`teknikmod:coal_generator_fuel` etiketi); yakit ayni surede yanar, ust kademe ayni yakittan daha cok enerji cikarir.
 - Gunes paneli gunduz ve gokyuzunu goruyorsa calisir; ustunden kablo baglanmaz.
 - Batarya on yuzunden enerji verir, diger yuzlerinden alir.
+- Elektrikli firin tum normal firin tariflerini pisirir (esya basina 4.000 FE). Hiz, normal firina goredir.
+- Ogutucu `teknikmod:crushing` tariflerini isler: ham maden -> 2 toz, cevher blogu -> 3 toz, tas -> kirik tas -> cakil -> kum vb.
+  Tozlar firinda kulceye doner. Yeni tarif eklemek icin `data/<ad>/recipe/` altina su bicimde JSON koymak yeterli:
+  `{"type": "teknikmod:crushing", "ingredient": {"item": "..."}, "result": {"id": "...", "count": 2}, "time": 200}`
+- Iki makinede de huni/borular esyayi giris yuvasina koyar, cikis yuvasindan alir.
 - Kablolar enerji depolamaz; bir kabloya giren enerji agdaki tum alicilara esit paylastirilir.
   Hiz siniri, enerjinin aga girdigi kabloya gore uygulanir.
 
@@ -40,7 +47,7 @@ beslenir, onlarin jenerator ve kablolari da bizim batarya ve kablolarimiza enerj
 ## Derleme
 
 ```bash
-./gradlew build        # build/libs/teknikmod-0.3.0.jar
+./gradlew build        # build/libs/teknikmod-0.4.0.jar
 ./gradlew runClient    # oyunu modla ac
 ./gradlew runServer    # test sunucusu
 ```

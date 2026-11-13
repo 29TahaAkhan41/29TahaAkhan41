@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "item": "minecraft:sandstone"
+  },
+  "result": {
+    "id": "minecraft:sand",
+    "count": 4
+  },
+  "time": 100
+}

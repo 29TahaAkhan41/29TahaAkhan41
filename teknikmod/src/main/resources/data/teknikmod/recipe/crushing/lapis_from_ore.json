@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "tag": "c:ores/lapis"
+  },
+  "result": {
+    "id": "minecraft:lapis_lazuli",
+    "count": 12
+  },
+  "time": 300
+}

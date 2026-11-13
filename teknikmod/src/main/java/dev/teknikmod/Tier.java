@@ -2,10 +2,7 @@ package dev.teknikmod;
 
 /** Cihaz kademeleri ve denge degerleri (FE = Forge Energy, /t = tick basina). */
 public enum Tier {
-    //        onek          komur: uretim, depo, cikis   gunes: uretim, depo, cikis   batarya: depo, giris/cikis
-    BASIC(    "",           40,  20_000,   200,          8,   2_000,   32,            200_000,     500),
-    ADVANCED( "advanced_",  120, 60_000,   600,          32,  8_000,   128,           1_000_000,   2_000),
-    ELITE(    "elite_",     360, 180_000,  1_800,        128, 32_000,  512,           5_000_000,   8_000);
+    BASIC("", 1), ADVANCED("advanced_", 2), ELITE("elite_", 3);
 
     public static final int COPPER_CABLE_RATE = 250;
     public static final int GOLD_CABLE_RATE = 1_000;
@@ -13,20 +10,40 @@ public enum Tier {
 
     /** Kayit adlarinin oneki, or. "advanced_coal_generator". */
     public final String prefix;
-    public final int coalRate, coalCapacity, coalOutput;
-    public final int solarRate, solarCapacity, solarOutput;
-    public final int batteryCapacity, batteryIo;
 
-    Tier(String prefix, int coalRate, int coalCapacity, int coalOutput,
-         int solarRate, int solarCapacity, int solarOutput, int batteryCapacity, int batteryIo) {
+    // Komur jeneratoru: uretim, depo, cikis
+    public final int coalRate, coalCapacity, coalOutput;
+    // Gunes paneli: uretim, depo, cikis
+    public final int solarRate, solarCapacity, solarOutput;
+    // Batarya: depo, giris/cikis
+    public final int batteryCapacity, batteryIo;
+    /**
+     * Islem makineleri (elektrikli firin, ogutucu): hiz carpani, tuketim, depo, giris.
+     * Islem suresi = tarif suresi / machineSpeed. Hiz ve tuketim birlikte arttigi icin
+     * esya basina enerji her kademede aynidir (firinda 4.000 FE).
+     */
+    public final int machineSpeed, machineUse, machineCapacity, machineInput;
+
+    Tier(String prefix, int level) {
         this.prefix = prefix;
-        this.coalRate = coalRate;
-        this.coalCapacity = coalCapacity;
-        this.coalOutput = coalOutput;
-        this.solarRate = solarRate;
-        this.solarCapacity = solarCapacity;
-        this.solarOutput = solarOutput;
-        this.batteryCapacity = batteryCapacity;
-        this.batteryIo = batteryIo;
+        int x3 = level == 1 ? 1 : level == 2 ? 3 : 9;    // 1, 3, 9
+        int x4 = level == 1 ? 1 : level == 2 ? 4 : 16;   // 1, 4, 16
+        int x2 = 1 << (level - 1);                       // 1, 2, 4
+
+        coalRate = 40 * x3;            // 40, 120, 360
+        coalCapacity = 20_000 * x3;
+        coalOutput = 200 * x3;
+
+        solarRate = 8 * x4;            // 8, 32, 128
+        solarCapacity = 2_000 * x4;
+        solarOutput = 32 * x4;
+
+        batteryCapacity = level == 1 ? 200_000 : level == 2 ? 1_000_000 : 5_000_000;
+        batteryIo = 500 * x4;          // 500, 2.000, 8.000
+
+        machineSpeed = 2 * x2;         // 2x, 4x, 8x (normal firina gore)
+        machineUse = 40 * x2;          // 40, 80, 160
+        machineCapacity = 20_000 * x2;
+        machineInput = 200 * x2;
     }
 }

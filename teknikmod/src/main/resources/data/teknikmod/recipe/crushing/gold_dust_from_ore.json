@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "tag": "c:ores/gold"
+  },
+  "result": {
+    "id": "teknikmod:gold_dust",
+    "count": 3
+  },
+  "time": 300
+}

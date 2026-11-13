@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "tag": "c:ores/copper"
+  },
+  "result": {
+    "id": "teknikmod:copper_dust",
+    "count": 3
+  },
+  "time": 300
+}

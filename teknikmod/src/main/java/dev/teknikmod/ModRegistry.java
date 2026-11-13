@@ -3,12 +3,23 @@ package dev.teknikmod;
 import dev.teknikmod.block.BatteryBlock;
 import dev.teknikmod.block.CableBlock;
 import dev.teknikmod.block.CoalGeneratorBlock;
+import dev.teknikmod.block.ProcessingBlock;
 import dev.teknikmod.block.SolarPanelBlock;
 import dev.teknikmod.blockentity.BatteryBlockEntity;
 import dev.teknikmod.blockentity.CableBlockEntity;
 import dev.teknikmod.blockentity.CoalGeneratorBlockEntity;
+import dev.teknikmod.blockentity.CrusherBlockEntity;
+import dev.teknikmod.blockentity.ElectricFurnaceBlockEntity;
 import dev.teknikmod.blockentity.SolarPanelBlockEntity;
 import dev.teknikmod.menu.CoalGeneratorMenu;
+import dev.teknikmod.menu.ProcessingMenu;
+import dev.teknikmod.recipe.CrushingRecipe;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
@@ -42,7 +53,7 @@ public final class ModRegistry {
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, TeknikMod.MODID);
 
     /** Yaratici sekmede gosterilecek sira. */
-    private static final List<DeferredBlock<?>> TAB_ORDER = new ArrayList<>();
+    private static final List<ItemLike> TAB_ORDER = new ArrayList<>();
 
     private static BlockBehaviour.Properties machineProps() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.5F, 6.0F)
@@ -82,9 +93,33 @@ public final class ModRegistry {
             (props, tier) -> new SolarPanelBlock(props.noOcclusion(), tier));
     public static final Map<Tier, DeferredBlock<BatteryBlock>> BATTERIES = tiered("battery", BatteryBlock::new);
 
+    public static final Map<Tier, DeferredBlock<ProcessingBlock>> ELECTRIC_FURNACES = tiered("electric_furnace",
+            (props, tier) -> new ProcessingBlock(props.lightLevel(s -> s.getValue(BlockStateProperties.LIT) ? 10 : 0), tier, ElectricFurnaceBlockEntity::new));
+    public static final Map<Tier, DeferredBlock<ProcessingBlock>> CRUSHERS = tiered("crusher",
+            (props, tier) -> new ProcessingBlock(props, tier, CrusherBlockEntity::new));
+
     public static final DeferredBlock<CableBlock> COPPER_CABLE = cable("copper_cable", MapColor.COLOR_ORANGE, Tier.COPPER_CABLE_RATE);
     public static final DeferredBlock<CableBlock> GOLD_CABLE = cable("gold_cable", MapColor.GOLD, Tier.GOLD_CABLE_RATE);
     public static final DeferredBlock<CableBlock> DIAMOND_CABLE = cable("diamond_cable", MapColor.DIAMOND, Tier.DIAMOND_CABLE_RATE);
+
+    // --- Esyalar ---
+    public static final DeferredItem<Item> IRON_DUST = item("iron_dust");
+    public static final DeferredItem<Item> GOLD_DUST = item("gold_dust");
+    public static final DeferredItem<Item> COPPER_DUST = item("copper_dust");
+
+    private static DeferredItem<Item> item(String name) {
+        DeferredItem<Item> item = ITEMS.registerSimpleItem(name);
+        TAB_ORDER.add(item);
+        return item;
+    }
+
+    // --- Tarif turleri ---
+    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, TeknikMod.MODID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, TeknikMod.MODID);
+    public static final DeferredHolder<RecipeType<?>, RecipeType<CrushingRecipe>> CRUSHING = RECIPE_TYPES.register("crushing",
+            () -> RecipeType.simple(ResourceLocation.fromNamespaceAndPath(TeknikMod.MODID, "crushing")));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CrushingRecipe>> CRUSHING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("crushing", CrushingRecipe.Serializer::new);
 
     // --- Block entity'ler (her cihaz turunun tum kademeleri ayni tipi kullanir) ---
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR_BE =
@@ -96,6 +131,12 @@ public final class ModRegistry {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BatteryBlockEntity>> BATTERY_BE =
             BLOCK_ENTITIES.register("battery", () -> BlockEntityType.Builder
                     .of(BatteryBlockEntity::new, all(BATTERIES)).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricFurnaceBlockEntity>> ELECTRIC_FURNACE_BE =
+            BLOCK_ENTITIES.register("electric_furnace", () -> BlockEntityType.Builder
+                    .of(ElectricFurnaceBlockEntity::new, all(ELECTRIC_FURNACES)).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CrusherBlockEntity>> CRUSHER_BE =
+            BLOCK_ENTITIES.register("crusher", () -> BlockEntityType.Builder
+                    .of(CrusherBlockEntity::new, all(CRUSHERS)).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CableBlockEntity>> CABLE_BE =
             BLOCK_ENTITIES.register("cable", () -> BlockEntityType.Builder
                     .of(CableBlockEntity::new, COPPER_CABLE.get(), GOLD_CABLE.get(), DIAMOND_CABLE.get()).build(null));
@@ -104,12 +145,19 @@ public final class ModRegistry {
     public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR_MENU =
             MENUS.register("coal_generator", () -> IMenuTypeExtension.create(CoalGeneratorMenu::new));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<ProcessingMenu>> ELECTRIC_FURNACE_MENU =
+            MENUS.register("electric_furnace", () -> IMenuTypeExtension.create(
+                    (id, inv, buf) -> new ProcessingMenu(ModRegistry.ELECTRIC_FURNACE_MENU.get(), id, inv)));
+    public static final DeferredHolder<MenuType<?>, MenuType<ProcessingMenu>> CRUSHER_MENU =
+            MENUS.register("crusher", () -> IMenuTypeExtension.create(
+                    (id, inv, buf) -> new ProcessingMenu(ModRegistry.CRUSHER_MENU.get(), id, inv)));
+
     // --- Yaratici sekme ---
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.teknikmod"))
                     .icon(() -> COAL_GENERATORS.get(Tier.BASIC).asItem().getDefaultInstance())
-                    .displayItems((params, out) -> TAB_ORDER.forEach(b -> out.accept(b.asItem())))
+                    .displayItems((params, out) -> TAB_ORDER.forEach(out::accept))
                     .build());
 
     static void register(IEventBus bus) {
@@ -118,6 +166,8 @@ public final class ModRegistry {
         BLOCK_ENTITIES.register(bus);
         MENUS.register(bus);
         TABS.register(bus);
+        RECIPE_TYPES.register(bus);
+        RECIPE_SERIALIZERS.register(bus);
     }
 
     private ModRegistry() {}

@@ -12,6 +12,8 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModRegistry.COAL_GENERATOR_MENU.get(), CoalGeneratorScreen::new);
+        event.register(ModRegistry.ELECTRIC_FURNACE_MENU.get(), ProcessingScreen::new);
+        event.register(ModRegistry.CRUSHER_MENU.get(), ProcessingScreen::new);
     }
 
     private ClientSetup() {}

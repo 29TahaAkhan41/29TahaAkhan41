@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "item": "minecraft:glowstone"
+  },
+  "result": {
+    "id": "minecraft:glowstone_dust",
+    "count": 4
+  },
+  "time": 100
+}

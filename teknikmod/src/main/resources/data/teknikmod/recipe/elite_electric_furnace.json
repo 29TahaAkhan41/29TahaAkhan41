@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " U ",
+    "UMU",
+    " U "
+  ],
+  "key": {
+    "U": {
+      "tag": "c:gems/diamond"
+    },
+    "M": {
+      "item": "teknikmod:advanced_electric_furnace"
+    }
+  },
+  "result": {
+    "id": "teknikmod:elite_electric_furnace",
+    "count": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "tag": "c:ores/diamond"
+  },
+  "result": {
+    "id": "minecraft:diamond",
+    "count": 2
+  },
+  "time": 300
+}

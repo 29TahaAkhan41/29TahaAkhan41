@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "tag": "c:ingots/copper"
+  },
+  "result": {
+    "id": "teknikmod:copper_dust",
+    "count": 1
+  },
+  "time": 100
+}

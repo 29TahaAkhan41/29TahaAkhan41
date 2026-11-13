@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " U ",
+    "UMU",
+    " U "
+  ],
+  "key": {
+    "U": {
+      "tag": "c:gems/diamond"
+    },
+    "M": {
+      "item": "teknikmod:advanced_crusher"
+    }
+  },
+  "result": {
+    "id": "teknikmod:elite_crusher",
+    "count": 1
+  }
+}

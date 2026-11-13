@@ -1,0 +1,11 @@
+{
+  "type": "teknikmod:crushing",
+  "ingredient": {
+    "item": "minecraft:blaze_rod"
+  },
+  "result": {
+    "id": "minecraft:blaze_powder",
+    "count": 4
+  },
+  "time": 100
+}
