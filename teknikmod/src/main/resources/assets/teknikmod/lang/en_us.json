@@ -16,5 +16,6 @@
   "message.teknikmod.rate": "Generating: %s FE/t",
   "tooltip.teknikmod.generation": "Generation: %s FE/t",
   "tooltip.teknikmod.capacity": "Capacity: %s FE",
-  "tooltip.teknikmod.transfer": "Transfer: %s FE/t"
+  "tooltip.teknikmod.transfer": "Transfer: %s FE/t",
+  "tooltip.teknikmod.coal_fuel": "Fuel: Coal, Charcoal, Block of Coal"
 }

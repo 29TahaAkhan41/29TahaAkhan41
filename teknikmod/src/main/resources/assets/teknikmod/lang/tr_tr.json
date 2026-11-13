@@ -16,5 +16,6 @@
   "message.teknikmod.rate": "Üretim: %s FE/t",
   "tooltip.teknikmod.generation": "Üretim: %s FE/t",
   "tooltip.teknikmod.capacity": "Kapasite: %s FE",
-  "tooltip.teknikmod.transfer": "Aktarım: %s FE/t"
+  "tooltip.teknikmod.transfer": "Aktarım: %s FE/t",
+  "tooltip.teknikmod.coal_fuel": "Yakıt: Kömür, Odun Kömürü, Kömür Bloğu"
 }

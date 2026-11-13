@@ -23,7 +23,7 @@ Her cihazin uc kademesi vardir: Temel, Gelismis (`advanced_`) ve Elit (`elite_`)
 
 Yukseltme tarifi: onceki kademenin dort yanina altin kulce (Gelismis) veya elmas (Elit).
 
-- Komur jeneratoru firin yakitlarini yakar; yakit ayni surede yanar, ust kademe ayni yakittan daha cok enerji cikarir.
+- Komur jeneratoru yalnizca komur, odun komuru ve komur blogu yakar (`teknikmod:coal_generator_fuel` etiketi); yakit ayni surede yanar, ust kademe ayni yakittan daha cok enerji cikarir.
 - Gunes paneli gunduz ve gokyuzunu goruyorsa calisir; ustunden kablo baglanmaz.
 - Batarya on yuzunden enerji verir, diger yuzlerinden alir.
 - Kablolar enerji depolamaz; bir kabloya giren enerji agdaki tum alicilara esit paylastirilir.
@@ -40,7 +40,7 @@ beslenir, onlarin jenerator ve kablolari da bizim batarya ve kablolarimiza enerj
 ## Derleme
 
 ```bash
-./gradlew build        # build/libs/teknikmod-0.2.0.jar
+./gradlew build        # build/libs/teknikmod-0.3.0.jar
 ./gradlew runClient    # oyunu modla ac
 ./gradlew runServer    # test sunucusu
 ```

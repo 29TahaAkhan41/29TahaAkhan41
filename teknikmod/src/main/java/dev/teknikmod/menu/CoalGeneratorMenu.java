@@ -34,7 +34,12 @@ public class CoalGeneratorMenu extends AbstractContainerMenu {
         super(ModRegistry.COAL_GENERATOR_MENU.get(), id);
         this.data = data;
         this.access = access;
-        addSlot(new SlotItemHandler(items, 0, 80, 44));
+        addSlot(new SlotItemHandler(items, 0, 80, 44) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return CoalGeneratorBlockEntity.isFuel(stack) && super.mayPlace(stack);
+            }
+        });
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));

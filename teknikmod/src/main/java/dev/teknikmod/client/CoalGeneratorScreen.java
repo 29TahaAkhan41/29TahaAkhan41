@@ -25,13 +25,20 @@ public class CoalGeneratorScreen extends AbstractContainerScreen<CoalGeneratorMe
         int filled = menu.maxEnergy() == 0 ? 0 : (int) ((long) menu.energy() * BAR_H / menu.maxEnergy());
         if (filled > 0) {
             g.fillGradient(leftPos + BAR_X, topPos + BAR_Y + BAR_H - filled,
-                    leftPos + BAR_X + BAR_W, topPos + BAR_Y + BAR_H, 0xFFFF5A3C, 0xFFB01E1E);
+                    leftPos + BAR_X + BAR_W, topPos + BAR_Y + BAR_H, 0xFF5CF2F5, 0xFF1C8FB4);
         }
         // Yanma gostergesi (yakit yuvasinin ustunde, asagidan yukari azalir)
         if (menu.burnTime() > 0 && menu.burnTimeTotal() > 0) {
             int h = Math.max(1, menu.burnTime() * 14 / menu.burnTimeTotal());
             g.fillGradient(leftPos + 81, topPos + 26 + 14 - h, leftPos + 95, topPos + 40, 0xFFFFD83C, 0xFFFF7A00);
         }
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
+        // Koyu arka plan icin acik renkli yazi
+        g.drawString(font, title, titleLabelX, titleLabelY, 0xFFE2E6EE, false);
+        g.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF9AA2B2, false);
     }
 
     @Override

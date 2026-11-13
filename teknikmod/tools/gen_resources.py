@@ -1,6 +1,6 @@
 """Dokulari, modelleri, dil dosyalarini, tarifleri ve loot tablolarini uretir.
 Kullanim: python3 tools/gen_resources.py src/main/resources   (Pillow gerekir)"""
-import json, os, random, shutil, sys
+import json, os, shutil, sys
 from PIL import Image, ImageDraw
 R = sys.argv[1]
 M = "teknikmod"
@@ -12,30 +12,39 @@ def w(path, obj):
 def save(img, name):
     p = os.path.join(R, f"assets/{M}/textures/{name}.png"); os.makedirs(os.path.dirname(p), exist_ok=True); img.save(p)
 
-# kademe: onek, vurgu rengi (None = sade), EN/TR ad oneki, yukseltme malzemesi
-TIERS = [("", None, "", "", None),
-         ("advanced_", (240, 196, 60), "Advanced ", "Gelişmiş ", "#c:ingots/gold"),
-         ("elite_", (80, 220, 215), "Elite ", "Elit ", "#c:gems/diamond")]
+# kademe: onek, LED rengi, EN/TR ad oneki, yukseltme malzemesi
+TIERS = [("", (200, 210, 226), "", "", None),
+         ("advanced_", (255, 200, 50), "Advanced ", "Gelişmiş ", "#c:ingots/gold"),
+         ("elite_", (50, 225, 235), "Elite ", "Elit ", "#c:gems/diamond")]
 
-def noisy(base, var=8, size=16):
-    img = Image.new("RGBA", (size, size))
-    for x in range(size):
-        for y in range(size):
-            d = random.randint(-var, var)
-            img.putpixel((x, y), tuple(max(0, min(255, c + d)) for c in base) + (255,))
+# --- palet: koyu, mat metal ---
+EDGE, DEEP, GLASS = (27, 29, 35), (20, 22, 27), (16, 18, 24)
+def lerp(a, b, t): return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
+def dim(c, f): return tuple(round(v * f) for v in c)
+def px(img, x, y, c): img.putpixel((x, y), tuple(c) + (255,))
+def rect(img, x0, y0, x1, y1, c):
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1): px(img, x, y, c)
+def casing(accent=None):
+    """Duz, hafif gecisli govde plakasi: koyu dis cizgi, ustte isik, altta golge."""
+    img = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16): px(img, x, y, lerp((72, 77, 90), (52, 56, 67), y / 15))
+    for i in range(16):
+        for (x, y) in ((i, 0), (i, 15), (0, i), (15, i)): px(img, x, y, EDGE)
+    for i in range(1, 15):
+        px(img, i, 1, (108, 114, 131)); px(img, 1, i, (90, 96, 111))
+        px(img, i, 14, (38, 41, 49)); px(img, 14, i, (44, 47, 56))
     return img
-def casing(accent):
-    img = noisy((132, 136, 142)); d = ImageDraw.Draw(img)
-    light, dark = (176, 180, 186, 255), (84, 87, 92, 255)
-    d.line([(0, 0), (15, 0)], fill=light); d.line([(0, 0), (0, 15)], fill=light)
-    d.line([(0, 15), (15, 15)], fill=dark); d.line([(15, 0), (15, 15)], fill=dark)
-    rivet = accent + (255,) if accent else dark
-    for p in [(2, 2), (13, 2), (2, 13), (13, 13)]: img.putpixel(p, rivet)  # percinler
-    if accent:  # kademe seridi: koselerde renkli L seklinde kenar
-        a = accent + (255,)
-        for (x, y, dx, dy) in [(1, 1, 1, 1), (14, 1, -1, 1), (1, 14, 1, -1), (14, 14, -1, -1)]:
-            d.line([(x, y), (x + 2 * dx, y)], fill=a); d.line([(x, y), (x, y + 2 * dy)], fill=a)
-    return img
+def led(img, x0, x1, y, accent):
+    """Isikli serit: parlak cizgi + altinda soluk yansima."""
+    for x in range(x0, x1 + 1): px(img, x, y, accent); px(img, x, y + 1, lerp(dim(accent, .45), (52, 56, 67), .35))
+    px(img, x0, y, lerp(accent, (255, 255, 255), .6))
+def vents(img, y0, n, x0=4, x1=11):
+    for k in range(n):
+        y = y0 + 2 * k
+        for x in range(x0, x1 + 1): px(img, x, y, DEEP)
+        for x in range(x0, x1 + 1): px(img, x, y + 1, (86, 92, 107))
 
 B = f"{M}:block/"
 blocks, en, tr = [], {}, {}
@@ -44,39 +53,69 @@ def shaped(name, pattern, key, count=1):
         "key": {k: ({"tag": v[1:]} if v.startswith("#") else {"item": v}) for k, v in key.items()},
         "result": {"id": f"{M}:{name}", "count": count}})
 I, C, G, RS = "#c:ingots/iron", "#c:ingots/copper", "#c:ingots/gold", "#c:dusts/redstone"
+SOLAR_CELLS = [((70, 110, 190), (20, 36, 84)), ((70, 150, 235), (16, 50, 120)), ((90, 225, 245), (8, 70, 130))]
 
 for ti, (pre, accent, en_pre, tr_pre, upgrade) in enumerate(TIERS):
-    random.seed(41 + ti)
     side, top = pre + "machine_side", pre + "machine_top"
-    save(casing(accent), "block/" + side)
-    img = casing(accent); ImageDraw.Draw(img).rectangle([5, 5, 10, 10], outline=(84, 87, 92, 255), fill=(110, 113, 118, 255)); save(img, "block/" + top)
-    # komur jeneratoru
+    img = casing(); vents(img, 4, 2); led(img, 3, 12, 10, accent); save(img, "block/" + side)
+    # ust: fan izgarasi + kose isiklari
+    img = casing(); rect(img, 4, 4, 11, 11, EDGE); rect(img, 5, 5, 10, 10, DEEP)
+    for y in range(5, 11):
+        for x in range(5, 11):
+            if (x + y) % 2 == 0: px(img, x, y, (48, 52, 62))
+    rect(img, 7, 7, 8, 8, (96, 102, 118))
+    for (x, y) in ((3, 3), (12, 3), (3, 12), (12, 12)): px(img, x, y, accent)
+    save(img, "block/" + top)
+    # komur jeneratoru on yuz: durum ekrani + camli yanma odasi
     for lit in (False, True):
-        img = casing(accent); d = ImageDraw.Draw(img)
-        d.rectangle([3, 3, 12, 6], fill=(60, 62, 66, 255))           # havalandirma
-        for x in range(4, 12, 2): d.line([(x, 4), (x, 5)], fill=(30, 30, 32, 255))
-        d.rectangle([4, 8, 11, 13], fill=(40, 40, 42, 255))          # yanma odasi
+        img = casing()
+        rect(img, 3, 3, 12, 4, GLASS)
+        px(img, 4, 3, accent); px(img, 5, 3, accent); px(img, 4, 4, dim(accent, .5)); px(img, 5, 4, dim(accent, .5))
+        for x in (8, 10): px(img, x, 3, accent if lit else dim(accent, .3))
+        px(img, 11, 4, (255, 90, 60) if not lit else (90, 240, 120))
+        rect(img, 3, 6, 12, 13, EDGE); rect(img, 4, 7, 11, 12, GLASS)
         if lit:
-            d.rectangle([5, 10, 10, 13], fill=(255, 120, 20, 255)); d.rectangle([6, 11, 9, 13], fill=(255, 210, 60, 255)); d.point((7, 9), fill=(255, 120, 20, 255))
+            for y in range(7, 13):
+                for x in range(4, 12): px(img, x, y, lerp((96, 30, 12), (255, 150, 30), (y - 7) / 5))
+            for (x, h) in ((5, 2), (6, 4), (7, 3), (8, 5), (9, 3), (10, 2)):   # alev dilleri
+                for k in range(h): px(img, x, 12 - k, lerp((255, 236, 130), (255, 170, 40), k / max(1, h - 1)))
         else:
-            d.rectangle([5, 12, 10, 13], fill=(24, 24, 26, 255))
+            for x in range(5, 11): px(img, x, 12, (46, 30, 26))
+            px(img, 6, 12, (120, 52, 24)); px(img, 9, 12, (96, 40, 20)); px(img, 7, 11, (40, 30, 28))
+        px(img, 4, 7, (70, 76, 92)); px(img, 5, 7, (44, 48, 58))                 # cam yansimasi
         save(img, f"block/{pre}coal_generator_front" + ("_on" if lit else ""))
-    # gunes paneli: kademe arttikca hucreler aciklasir, cerceve kademe rengini alir
-    cell = [(28, 52, 120), (30, 70, 150), (24, 96, 170)][ti]
-    grid = (accent or (150, 160, 175)) + (255,)
-    img = noisy(cell, 5); d = ImageDraw.Draw(img)
-    for i in (0, 5, 10, 15): d.line([(i, 0), (i, 15)], fill=grid); d.line([(0, i), (15, i)], fill=grid)
-    for (x, y) in [(2, 2), (7, 7), (12, 12), (12, 2)]: img.putpixel((x, y), tuple(min(255, c + 70) for c in cell) + (255,))
+    # gunes paneli: 2x2 cam hucre, capraz gecis ve parlama
+    hi, lo = SOLAR_CELLS[ti]
+    img = Image.new("RGBA", (16, 16)); rect(img, 0, 0, 15, 15, (18, 21, 30))
+    frame = lerp(accent, (150, 158, 174), .35)
+    for i in range(16):
+        for (x, y) in ((i, 0), (i, 15), (0, i), (15, i)): px(img, x, y, frame)
+    for (cx, cy) in ((1, 1), (9, 1), (1, 9), (9, 9)):
+        for y in range(6):
+            for x in range(6):
+                c = lerp(hi, lo, min(1, (x + y) / 8))
+                if x + y == 3: c = lerp(c, (255, 255, 255), .28)             # capraz parlama
+                if y == 3: c = lerp(c, (200, 215, 240), .12)                  # iletken cizgi
+                px(img, cx + x, cy + y, c)
     save(img, f"block/{pre}solar_panel_top")
-    img = casing(accent); ImageDraw.Draw(img).line([(0, 0), (15, 0)], fill=cell + (255,)); save(img, f"block/{pre}solar_panel_side")
-    # batarya
-    img = casing(accent); d = ImageDraw.Draw(img)
-    d.rectangle([6, 3, 9, 12], fill=(30, 30, 32, 255))
-    for y, c in zip((10, 7, 4), ((200, 40, 40), (230, 170, 40), (70, 200, 80))): d.rectangle([7, y, 8, y + 1], fill=c + (255,))
+    img = casing(); rect(img, 0, 0, 15, 0, lerp(hi, lo, .4)); rect(img, 0, 1, 15, 1, frame)
+    rect(img, 1, 2, 14, 5, (56, 60, 72)); led(img, 3, 12, 3, accent); rect(img, 0, 2, 0, 5, EDGE); rect(img, 15, 2, 15, 5, EDGE)
+    save(img, f"block/{pre}solar_panel_side")
+    # batarya yan: dikey sarj gostergesi
+    img = casing(); rect(img, 5, 2, 10, 13, EDGE); rect(img, 6, 3, 9, 12, GLASS)
+    for k, y in enumerate((10, 7, 4)):
+        c = accent if k < 2 else dim(accent, .35)
+        rect(img, 6, y, 9, y + 1, c); px(img, 6, y, lerp(c, (255, 255, 255), .5)); rect(img, 6, y + 1, 9, y + 1, dim(c, .7))
+    for y in (4, 7, 10): px(img, 3, y, (108, 114, 131)); px(img, 12, y, (38, 41, 49))
     save(img, f"block/{pre}battery_side")
-    img = casing(accent); d = ImageDraw.Draw(img)
-    d.rectangle([5, 5, 10, 10], fill=(40, 40, 42, 255)); d.rectangle([6, 6, 9, 9], fill=(214, 120, 60, 255)); d.rectangle([7, 7, 8, 8], fill=(250, 200, 120, 255))
+    # batarya on: cikis soketi
+    img = casing(); rect(img, 5, 4, 10, 11, EDGE); rect(img, 4, 5, 11, 10, EDGE); rect(img, 5, 5, 10, 10, GLASS)
+    for i in range(6, 10):
+        px(img, i, 5, accent); px(img, i, 10, dim(accent, .6)); px(img, 5, i, accent); px(img, 10, i, dim(accent, .6))
+    rect(img, 7, 7, 8, 8, lerp(accent, (255, 255, 255), .7)); px(img, 8, 8, accent)
+    for (x, y) in ((3, 3), (12, 3), (3, 12), (12, 12)): px(img, x, y, (38, 41, 49))
     save(img, f"block/{pre}battery_front")
+
 
     cg, sp, bt = pre + "coal_generator", pre + "solar_panel", pre + "battery"
     w(f"assets/{M}/blockstates/{cg}.json", {"variants": {
@@ -110,13 +149,21 @@ for ti, (pre, accent, en_pre, tr_pre, upgrade) in enumerate(TIERS):
             shaped(pre + kind, [" U ", "UMU", " U "], {"U": upgrade, "M": f"{M}:{prev}{kind}"})
 
 # --- kablolar ---
-random.seed(7)
 rot = {"north": {}, "east": {"y": 90}, "south": {"y": 180}, "west": {"y": 270}, "up": {"x": 270}, "down": {"x": 90}}
-CABLES = [("copper_cable", (196, 108, 70), "Copper Cable", "Bakır Kablo"), ("gold_cable", (238, 200, 60), "Gold Cable", "Altın Kablo"),
-          ("diamond_cable", (96, 220, 214), "Diamond Cable", "Elmas Kablo")]
+CABLES = [("copper_cable", (232, 132, 78), "Copper Cable", "Bakır Kablo"), ("gold_cable", (255, 206, 64), "Gold Cable", "Altın Kablo"),
+          ("diamond_cable", (72, 228, 232), "Diamond Cable", "Elmas Kablo")]
 for c, base, en_name, tr_name in CABLES:
-    img = noisy(base, 10); d = ImageDraw.Draw(img); edge = tuple(int(v * .7) for v in base) + (255,)
-    for i in (0, 15): d.line([(i, 0), (i, 15)], fill=edge); d.line([(0, i), (15, i)], fill=edge)
+    # Kablo kollari dokunun ortasindaki 6 piksellik dikey/yatay bandi, cekirdek ise ortadaki 6x6 kareyi kullanir:
+    # koyu yalitim + ortada parlak iletken cizgi.
+    prof = [EDGE, (58, 62, 74), lerp(base, (255, 255, 255), .45), base, (44, 47, 57), EDGE]
+    img = Image.new("RGBA", (16, 16)); rect(img, 0, 0, 15, 15, (44, 47, 57))
+    for i in range(16):
+        for k in range(6): px(img, 5 + k, i, prof[k])
+    for i in range(16):
+        if not 5 <= i <= 10:
+            for k in range(6): px(img, i, 5 + k, prof[k])
+    rect(img, 5, 5, 10, 10, EDGE); rect(img, 6, 6, 9, 9, (58, 62, 74)); rect(img, 7, 7, 8, 8, base)   # baglanti kutusu
+    px(img, 7, 7, lerp(base, (255, 255, 255), .5)); px(img, 6, 6, (90, 96, 111))
     save(img, "block/" + c)
     t = {"texture": "#cable"}
     w(f"assets/{M}/models/block/{c}_core.json", {"parent": "minecraft:block/block", "textures": {"cable": B + c, "particle": B + c},
@@ -134,36 +181,40 @@ shaped("copper_cable", ["CCC"], {"C": C}, 6)
 shaped("gold_cable", ["GRG"], {"G": G, "R": RS}, 6)
 shaped("diamond_cable", ["DRD"], {"D": "#c:gems/diamond", "R": RS}, 6)
 
-# --- GUI ---
+# --- GUI (koyu tema) ---
 g = Image.new("RGBA", (256, 256), (0, 0, 0, 0)); d = ImageDraw.Draw(g)
-BG, LI, DK, BLK = (198, 198, 198, 255), (255, 255, 255, 255), (85, 85, 85, 255), (0, 0, 0, 255)
-d.rectangle([0, 0, 175, 165], fill=BLK); d.rectangle([1, 1, 174, 164], fill=BG)
-d.rectangle([1, 1, 173, 2], fill=LI); d.rectangle([1, 1, 2, 163], fill=LI)
-d.rectangle([2, 163, 174, 164], fill=DK); d.rectangle([173, 2, 174, 164], fill=DK)
+d.rectangle([0, 0, 175, 165], fill=(14, 15, 19, 255)); d.rectangle([1, 1, 174, 164], fill=(46, 50, 60, 255))
+d.rectangle([1, 1, 174, 1], fill=(92, 98, 114, 255)); d.rectangle([1, 1, 1, 164], fill=(74, 80, 94, 255))
+d.rectangle([1, 164, 174, 164], fill=(28, 30, 37, 255)); d.rectangle([174, 1, 174, 164], fill=(32, 35, 42, 255))
+d.rectangle([7, 15, 168, 15], fill=(50, 225, 235, 255)); d.rectangle([7, 16, 168, 16], fill=(30, 80, 92, 255))   # baslik alti isik seridi
+d.rectangle([7, 78, 168, 78], fill=(34, 37, 45, 255))
 for p in [(0, 0), (175, 0), (0, 165), (175, 165)]: g.putpixel(p, (0, 0, 0, 0))
-def inset(x, y, wd, ht, fill=(139, 139, 139, 255)):
+def inset(x, y, wd, ht, fill=(27, 29, 36, 255)):
     d.rectangle([x, y, x + wd - 1, y + ht - 1], fill=fill)
-    d.line([(x, y), (x + wd - 2, y)], fill=(55, 55, 55, 255)); d.line([(x, y), (x, y + ht - 2)], fill=(55, 55, 55, 255))
-    d.line([(x + 1, y + ht - 1), (x + wd - 1, y + ht - 1)], fill=LI); d.line([(x + wd - 1, y + 1), (x + wd - 1, y + ht - 1)], fill=LI)
+    d.line([(x, y), (x + wd - 1, y)], fill=(16, 17, 22, 255)); d.line([(x, y), (x, y + ht - 1)], fill=(16, 17, 22, 255))
+    d.line([(x + 1, y + ht - 1), (x + wd - 1, y + ht - 1)], fill=(78, 84, 98, 255)); d.line([(x + wd - 1, y + 1), (x + wd - 1, y + ht - 1)], fill=(78, 84, 98, 255))
 inset(79, 43, 18, 18)
 for r in range(3):
     for c in range(9): inset(7 + c * 18, 83 + r * 18, 18, 18)
 for c in range(9): inset(7 + c * 18, 141, 18, 18)
-inset(151, 16, 14, 54, fill=(40, 16, 16, 255))   # enerji cubugu
-inset(80, 25, 16, 16, fill=(70, 70, 70, 255))    # yanma gostergesi
+inset(151, 16, 14, 54, fill=(12, 20, 26, 255))   # enerji cubugu
+inset(80, 25, 16, 16, fill=(22, 18, 16, 255))    # yanma gostergesi
 save(g, "gui/coal_generator")
 
 # --- dil ---
 en.update({"itemGroup.teknikmod": "Teknik Mod", "message.teknikmod.energy": "Energy: %s / %s FE", "message.teknikmod.rate": "Generating: %s FE/t",
-           "tooltip.teknikmod.generation": "Generation: %s FE/t", "tooltip.teknikmod.capacity": "Capacity: %s FE", "tooltip.teknikmod.transfer": "Transfer: %s FE/t"})
+           "tooltip.teknikmod.generation": "Generation: %s FE/t", "tooltip.teknikmod.capacity": "Capacity: %s FE", "tooltip.teknikmod.transfer": "Transfer: %s FE/t",
+           "tooltip.teknikmod.coal_fuel": "Fuel: Coal, Charcoal, Block of Coal"})
 tr.update({"itemGroup.teknikmod": "Teknik Mod", "message.teknikmod.energy": "Enerji: %s / %s FE", "message.teknikmod.rate": "Üretim: %s FE/t",
-           "tooltip.teknikmod.generation": "Üretim: %s FE/t", "tooltip.teknikmod.capacity": "Kapasite: %s FE", "tooltip.teknikmod.transfer": "Aktarım: %s FE/t"})
+           "tooltip.teknikmod.generation": "Üretim: %s FE/t", "tooltip.teknikmod.capacity": "Kapasite: %s FE", "tooltip.teknikmod.transfer": "Aktarım: %s FE/t",
+           "tooltip.teknikmod.coal_fuel": "Yakıt: Kömür, Odun Kömürü, Kömür Bloğu"})
 w(f"assets/{M}/lang/en_us.json", en); w(f"assets/{M}/lang/tr_tr.json", tr)
 
 # --- loot + etiketler ---
 for b in blocks:
     w(f"data/{M}/loot_table/blocks/{b}.json", {"type": "minecraft:block", "pools": [{"rolls": 1,
         "entries": [{"type": "minecraft:item", "name": f"{M}:{b}"}], "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
+w(f"data/{M}/tags/item/coal_generator_fuel.json", {"replace": False, "values": ["#minecraft:coals", "minecraft:coal_block"]})
 w("data/minecraft/tags/block/mineable/pickaxe.json", {"replace": False, "values": [f"{M}:{b}" for b in blocks]})
 w("data/minecraft/tags/block/needs_stone_tool.json", {"replace": False, "values": [f"{M}:{b}" for b in blocks if "cable" not in b]})
 print(len(blocks), "blok")

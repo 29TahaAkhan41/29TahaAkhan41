@@ -2,6 +2,7 @@ package dev.teknikmod.blockentity;
 
 import dev.teknikmod.block.MachineBlock;
 import dev.teknikmod.ModRegistry;
+import dev.teknikmod.TeknikMod;
 import dev.teknikmod.block.CoalGeneratorBlock;
 import dev.teknikmod.energy.EnergyUtil;
 import dev.teknikmod.menu.CoalGeneratorMenu;
@@ -15,6 +16,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -24,12 +29,19 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
-/** Firin yakitlarini yakarak enerji uretir. */
+/** Komur yakarak enerji uretir; kabul edilen yakitlar {@link #FUEL} etiketiyle belirlenir. */
 public class CoalGeneratorBlockEntity extends MachineBlockEntity implements MenuProvider {
+    /** Varsayilan: komur, odun komuru, komur blogu. Veri paketiyle degistirilebilir. */
+    public static final TagKey<Item> FUEL = ItemTags.create(ResourceLocation.fromNamespaceAndPath(TeknikMod.MODID, "coal_generator_fuel"));
+
+    public static boolean isFuel(ItemStack stack) {
+        return stack.is(FUEL) && stack.getBurnTime(RecipeType.SMELTING) > 0;
+    }
+
     private final ItemStackHandler items = new ItemStackHandler(1) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return stack.getBurnTime(RecipeType.SMELTING) > 0;
+            return isFuel(stack);
         }
 
         @Override
@@ -86,11 +98,11 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
         // Yakit bittiyse ve depoda yer varsa yeni yakit yak.
         if (burnTime <= 0 && energy.getEnergyStored() + tier.coalRate <= energy.getMaxEnergyStored()) {
             ItemStack fuel = items.getStackInSlot(0);
-            int time = fuel.getBurnTime(RecipeType.SMELTING);
+            int time = isFuel(fuel) ? fuel.getBurnTime(RecipeType.SMELTING) : 0;
             if (time > 0) {
                 ItemStack remainder = fuel.getCraftingRemainingItem();
                 fuel.shrink(1);
-                if (fuel.isEmpty()) items.setStackInSlot(0, remainder); // or. lav kovasi -> bos kova
+                if (fuel.isEmpty()) items.setStackInSlot(0, remainder);
                 burnTime = burnTimeTotal = time;
                 setChanged();
             }
