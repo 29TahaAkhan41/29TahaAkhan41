@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "GGG",
+    "LRL",
+    "ICI"
+  ],
+  "key": {
+    "G": {
+      "tag": "c:glass_blocks"
+    },
+    "L": {
+      "tag": "c:gems/lapis"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "C": {
+      "tag": "c:ingots/copper"
+    }
+  },
+  "result": {
+    "id": "teknikmod:solar_panel",
+    "count": 1
+  }
+}

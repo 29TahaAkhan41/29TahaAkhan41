@@ -1,0 +1,10 @@
+{
+  "itemGroup.teknikmod": "Teknik Mod",
+  "block.teknikmod.coal_generator": "Kömür Jeneratörü",
+  "block.teknikmod.solar_panel": "Güneş Paneli",
+  "block.teknikmod.battery": "Batarya",
+  "block.teknikmod.copper_cable": "Bakır Kablo",
+  "block.teknikmod.gold_cable": "Altın Kablo",
+  "message.teknikmod.energy": "Enerji: %s / %s FE",
+  "message.teknikmod.rate": "Üretim: %s FE/t"
+}

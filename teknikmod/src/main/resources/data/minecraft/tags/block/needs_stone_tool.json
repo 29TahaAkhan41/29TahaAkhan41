@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "teknikmod:coal_generator",
+    "teknikmod:solar_panel",
+    "teknikmod:battery"
+  ]
+}

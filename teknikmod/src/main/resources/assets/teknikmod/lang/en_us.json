@@ -1,0 +1,10 @@
+{
+  "itemGroup.teknikmod": "Teknik Mod",
+  "block.teknikmod.coal_generator": "Coal Generator",
+  "block.teknikmod.solar_panel": "Solar Panel",
+  "block.teknikmod.battery": "Battery",
+  "block.teknikmod.copper_cable": "Copper Cable",
+  "block.teknikmod.gold_cable": "Gold Cable",
+  "message.teknikmod.energy": "Energy: %s / %s FE",
+  "message.teknikmod.rate": "Generating: %s FE/t"
+}
