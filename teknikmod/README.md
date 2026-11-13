@@ -25,17 +25,17 @@ Her cihazin uc kademesi vardir: Temel, Gelismis (`advanced_`) ve Elit (`elite_`)
 
 Yukseltme tarifi: onceki kademenin dort yanina altin kulce (Gelismis) veya elmas (Elit).
 
-### Yaratici kademe ()
+### Yaratici kademe (`creative_`)
 
 Her cihazin ve kablonun bir de Yaratici kademesi vardir. Su an tarifi yoktur (ileride ozel masalarda uretilecek);
-yaratici moddan veya  ile alinir.
+yaratici moddan veya `/give` ile alinir.
 
 - Jenerator ve gunes paneli: yakit/gunes gerektirmez, 10.000.000 FE/t'ye kadar verir.
 - Batarya: hic bosalmaz, enerji kabul etmez.
 - Elektrikli firin ve ogutucu: enerji harcamaz, her islem 1 tick surer.
 - Kablo: aktarim siniri yoktur.
 
- icine yeni bir cihaz eklenince dort kademe de kendiliginden olusur.
+`Tier.java` icine yeni bir cihaz eklenince dort kademe de kendiliginden olusur.
 
 - Komur jeneratoru yalnizca komur, odun komuru ve komur blogu yakar (`teknikmod:coal_generator_fuel` etiketi); yakit ayni surede yanar, ust kademe ayni yakittan daha cok enerji cikarir.
 - Gunes paneli gunduz ve gokyuzunu goruyorsa calisir; ustunden kablo baglanmaz.
