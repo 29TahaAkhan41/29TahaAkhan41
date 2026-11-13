@@ -1,0 +1,45 @@
+{
+  "type": "extendedcrafting:shaped_table",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "extendedcrafting"
+    }
+  ],
+  "tier": 4,
+  "pattern": [
+    "CCCCCCCCC",
+    "CXXXXXXXC",
+    "CXUNNNUXC",
+    "CXNKKKNXC",
+    "CXNKMKNXC",
+    "CXNKKKNXC",
+    "CXUNNNUXC",
+    "CXXXXXXXC",
+    "CCCCCCCCC"
+  ],
+  "key": {
+    "C": {
+      "item": "extendedcrafting:crystaltine_ingot"
+    },
+    "X": {
+      "item": "extendedcrafting:enhanced_ender_ingot"
+    },
+    "U": {
+      "item": "extendedcrafting:the_ultimate_ingot"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "K": {
+      "tag": "c:storage_blocks/coal"
+    },
+    "M": {
+      "item": "teknikmod:elite_coal_generator"
+    }
+  },
+  "result": {
+    "id": "teknikmod:creative_coal_generator",
+    "count": 1
+  }
+}

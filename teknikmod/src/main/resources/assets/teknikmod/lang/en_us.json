@@ -36,5 +36,6 @@
   "tooltip.teknikmod.speed": "Speed: %sx",
   "tooltip.teknikmod.usage": "Usage: %s FE/t",
   "message.teknikmod.progress": "Progress: %s%% (%s FE/t)",
-  "tooltip.teknikmod.creative": "Creative tier: unlimited, needs no fuel or power"
+  "tooltip.teknikmod.creative": "Creative tier: unlimited, needs no fuel or power",
+  "tooltip.teknikmod.creative_recipe": "Crafted in the Extended Crafting Ultimate Table"
 }

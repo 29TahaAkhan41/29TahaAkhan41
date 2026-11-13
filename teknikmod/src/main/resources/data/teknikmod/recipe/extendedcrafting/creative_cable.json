@@ -1,0 +1,42 @@
+{
+  "type": "extendedcrafting:shaped_table",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "extendedcrafting"
+    }
+  ],
+  "tier": 4,
+  "pattern": [
+    "CCCCCCCCC",
+    "CDDDDDDDC",
+    "CDXXXXXDC",
+    "CDXNNNXDC",
+    "CDXNUNXDC",
+    "CDXNNNXDC",
+    "CDXXXXXDC",
+    "CDDDDDDDC",
+    "CCCCCCCCC"
+  ],
+  "key": {
+    "C": {
+      "item": "extendedcrafting:crystaltine_ingot"
+    },
+    "X": {
+      "item": "extendedcrafting:enhanced_ender_ingot"
+    },
+    "U": {
+      "item": "extendedcrafting:the_ultimate_ingot"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "D": {
+      "item": "teknikmod:diamond_cable"
+    }
+  },
+  "result": {
+    "id": "teknikmod:creative_cable",
+    "count": 16
+  }
+}

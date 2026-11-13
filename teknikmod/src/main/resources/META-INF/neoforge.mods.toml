@@ -21,3 +21,11 @@ modId="minecraft"
 versionRange="[${minecraft_version}]"
 ordering="NONE"
 side="BOTH"
+
+# Istege bagli: yukluyse yaratici kademe tarifleri etkinlesir
+[[dependencies.${mod_id}]]
+type="optional"
+modId="extendedcrafting"
+versionRange="[7,)"
+ordering="NONE"
+side="BOTH"

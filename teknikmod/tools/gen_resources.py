@@ -298,17 +298,39 @@ for name, inp, out, n in (("cobblestone", "minecraft:stone", "minecraft:cobblest
     if name == "flint": continue   # cakil -> kum ile cakisir
     crush(name, inp, out, n, 100)
 
+# --- Yaratici kademe: Extended Crafting'in 9x9 (Ultimate) masasinda uretilir ---
+# Tarifler yalnizca Extended Crafting yukluyken etkinlesir.
+EC = "extendedcrafting:"
+def ec_table(name, pattern, key, count=1):
+    assert len(pattern) == 9 and all(len(r) == 9 for r in pattern), name
+    w(f"data/{M}/recipe/extendedcrafting/{name}.json", {"type": EC + "shaped_table",
+        "neoforge:conditions": [{"type": "neoforge:mod_loaded", "modid": "extendedcrafting"}],
+        "tier": 4, "pattern": pattern,
+        "key": {k: ({"tag": v[1:]} if v.startswith("#") else {"item": v}) for k, v in key.items()},
+        "result": {"id": f"{M}:{name}", "count": count}})
+EC_FRAME = {"C": EC + "crystaltine_ingot", "X": EC + "enhanced_ender_ingot", "U": EC + "the_ultimate_ingot", "N": "minecraft:nether_star"}
+# K: cihaza ozgu malzeme (8 adet), M: cihazin Elit kademesi (ortada)
+for kind, special in (("coal_generator", "#c:storage_blocks/coal"), ("solar_panel", "minecraft:daylight_detector"),
+                      ("battery", "#c:storage_blocks/redstone"), ("electric_furnace", "minecraft:blast_furnace"),
+                      ("crusher", "#c:storage_blocks/diamond")):
+    ec_table("creative_" + kind, ["CCCCCCCCC", "CXXXXXXXC", "CXUNNNUXC", "CXNKKKNXC", "CXNKMKNXC", "CXNKKKNXC", "CXUNNNUXC", "CXXXXXXXC", "CCCCCCCCC"],
+             {**EC_FRAME, "K": special, "M": f"{M}:elite_{kind}"})
+ec_table("creative_cable", ["CCCCCCCCC", "CDDDDDDDC", "CDXXXXXDC", "CDXNNNXDC", "CDXNUNXDC", "CDXNNNXDC", "CDXXXXXDC", "CDDDDDDDC", "CCCCCCCCC"],
+         {**EC_FRAME, "D": f"{M}:diamond_cable"}, 16)
+
 # --- dil ---
 en.update({"itemGroup.teknikmod": "Teknik Mod", "message.teknikmod.energy": "Energy: %s / %s FE", "message.teknikmod.rate": "Generating: %s FE/t",
            "tooltip.teknikmod.generation": "Generation: %s FE/t", "tooltip.teknikmod.capacity": "Capacity: %s FE", "tooltip.teknikmod.transfer": "Transfer: %s FE/t",
            "tooltip.teknikmod.coal_fuel": "Fuel: Coal, Charcoal, Block of Coal",
            "tooltip.teknikmod.speed": "Speed: %sx", "tooltip.teknikmod.usage": "Usage: %s FE/t", "message.teknikmod.progress": "Progress: %s%% (%s FE/t)",
-           "tooltip.teknikmod.creative": "Creative tier: unlimited, needs no fuel or power"})
+           "tooltip.teknikmod.creative": "Creative tier: unlimited, needs no fuel or power",
+           "tooltip.teknikmod.creative_recipe": "Crafted in the Extended Crafting Ultimate Table"})
 tr.update({"itemGroup.teknikmod": "Teknik Mod", "message.teknikmod.energy": "Enerji: %s / %s FE", "message.teknikmod.rate": "Üretim: %s FE/t",
            "tooltip.teknikmod.generation": "Üretim: %s FE/t", "tooltip.teknikmod.capacity": "Kapasite: %s FE", "tooltip.teknikmod.transfer": "Aktarım: %s FE/t",
            "tooltip.teknikmod.coal_fuel": "Yakıt: Kömür, Odun Kömürü, Kömür Bloğu",
            "tooltip.teknikmod.speed": "Hız: %sx", "tooltip.teknikmod.usage": "Tüketim: %s FE/t", "message.teknikmod.progress": "İlerleme: %%%s (%s FE/t)",
-           "tooltip.teknikmod.creative": "Yaratıcı kademe: sınırsız, yakıt ve enerji gerektirmez"})
+           "tooltip.teknikmod.creative": "Yaratıcı kademe: sınırsız, yakıt ve enerji gerektirmez",
+           "tooltip.teknikmod.creative_recipe": "Extended Crafting Ultimate Masasında üretilir"})
 w(f"assets/{M}/lang/en_us.json", en); w(f"assets/{M}/lang/tr_tr.json", tr)
 
 # --- loot + etiketler ---

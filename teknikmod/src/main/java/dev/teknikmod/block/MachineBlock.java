@@ -34,6 +34,7 @@ public abstract class MachineBlock extends Block implements EntityBlock {
     protected boolean creativeTooltip(java.util.List<Component> tooltip) {
         if (!tier.creative) return false;
         tooltip.add(Component.translatable("tooltip.teknikmod.creative").withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
+        tooltip.add(Component.translatable("tooltip.teknikmod.creative_recipe").withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
         return true;
     }
 

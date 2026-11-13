@@ -36,5 +36,6 @@
   "tooltip.teknikmod.speed": "Hız: %sx",
   "tooltip.teknikmod.usage": "Tüketim: %s FE/t",
   "message.teknikmod.progress": "İlerleme: %%%s (%s FE/t)",
-  "tooltip.teknikmod.creative": "Yaratıcı kademe: sınırsız, yakıt ve enerji gerektirmez"
+  "tooltip.teknikmod.creative": "Yaratıcı kademe: sınırsız, yakıt ve enerji gerektirmez",
+  "tooltip.teknikmod.creative_recipe": "Extended Crafting Ultimate Masasında üretilir"
 }

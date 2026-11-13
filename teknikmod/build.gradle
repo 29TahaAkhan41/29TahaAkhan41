@@ -36,6 +36,19 @@ neoForge {
     }
 }
 
+repositories {
+    // Extended Crafting (yaratici kademe tarifleri icin; yalnizca gelistirme ortaminda yuklenir)
+    maven {
+        url = 'https://maven.blakesmods.com'
+        content { includeGroup 'com.blakebr0.cucumber'; includeGroup 'com.blakebr0.extendedcrafting' }
+    }
+}
+
+dependencies {
+    runtimeOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
+    runtimeOnly "com.blakebr0.extendedcrafting:ExtendedCrafting:${extendedcrafting_version}"
+}
+
 processResources {
     def props = [mod_id: mod_id, mod_name: mod_name, mod_version: mod_version,
                  minecraft_version: minecraft_version, neo_version: neo_version]
