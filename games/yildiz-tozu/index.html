@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yıldız Tozu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: three-column observatory console — star to click | generators | upgrades + supernova. Stacks on phones. Single deliberate night-sky look. */
+:root {
+  --bg: #0e0c22;
+  --panel: #17143a;
+  --panel-2: #201c4c;
+  --line: #3a3570;
+  --fg: #ece9ff;
+  --muted: #9c96cc;
+  --gold: #f4c86a;
+  --gold-dim: #8a6d33;
+  --nova: #ff7a93;
+  --nova-dim: #6e2a46;
+  --ok: #7be0b0;
+  --f-display: "Chakra Petch", "Trebuchet MS", system-ui, sans-serif;
+  --f-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-num: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #fff8 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 9%, #fff6 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 38% 64%, #fff5 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 52%, #fff7 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 88%, #fff5 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 34%, #fff4 50%, transparent 51%),
+    radial-gradient(900px 500px at 15% -10%, #2a2163 0%, transparent 70%),
+    radial-gradient(700px 500px at 110% 110%, #3a1740 0%, transparent 70%);
+  background-attachment: fixed;
+  color: var(--fg);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 18px;
+}
+header.top {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px;
+  border-bottom: 1px solid var(--line); padding-bottom: 14px;
+}
+h1 {
+  font-family: var(--f-display); font-weight: 700; font-size: 1.9rem; margin: 0; letter-spacing: .02em;
+  text-wrap: balance;
+}
+h1 span { color: var(--gold); }
+.tagline { color: var(--muted); margin: 2px 0 0; font-size: .9rem; }
+.top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+
+.grid {
+  display: grid; gap: 18px;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr) minmax(260px, 340px);
+  align-items: start;
+}
+@media (max-width: 1020px) { .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .col-star { grid-column: 1 / -1; } }
+@media (max-width: 680px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+section.panel {
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  min-width: 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+h2 {
+  font-family: var(--f-display); font-size: .82rem; font-weight: 700; margin: 0;
+  text-transform: uppercase; letter-spacing: .14em; color: var(--muted);
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+
+/* Star column */
+.col-star { align-items: center; text-align: center; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 1020px) { .col-star { position: static; } }
+.dust-amount { font-size: clamp(1.8rem, 5vw, 2.4rem); font-weight: 700; color: var(--gold); line-height: 1.1; word-break: break-all; }
+.dust-label { color: var(--muted); font-size: .85rem; }
+.rate { color: var(--fg); font-size: .95rem; }
+.star-btn {
+  position: relative; width: 210px; height: 210px; max-width: 100%; aspect-ratio: 1; border-radius: 50%;
+  border: none; cursor: pointer; margin: 8px auto;
+  background:
+    radial-gradient(circle at 42% 38%, #fff8e0 0%, #ffe6a6 14%, var(--gold) 34%, #c8812f 62%, #6b2f2a 86%, transparent 88%);
+  box-shadow: 0 0 40px 6px #f4c86a55, 0 0 120px 30px #ff7a9322;
+  transition: transform .08s ease;
+  animation: breathe 4s ease-in-out infinite;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.star-btn:active { transform: scale(.94); }
+.star-btn:focus-visible { outline: 3px solid var(--fg); outline-offset: 6px; }
+@keyframes breathe { 50% { box-shadow: 0 0 56px 12px #f4c86a66, 0 0 150px 40px #ff7a9333; } }
+.click-info { color: var(--muted); font-size: .85rem; }
+.click-info b { color: var(--fg); }
+.floater {
+  position: fixed; pointer-events: none; z-index: 50;
+  font-family: var(--f-num); font-weight: 700; color: var(--gold); text-shadow: 0 0 8px #000;
+  animation: floatUp .9s ease-out forwards;
+}
+@keyframes floatUp { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -70px); } }
+
+.stats { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: .82rem; text-align: left; border-top: 1px solid var(--line); padding-top: 10px; }
+.stats dt { color: var(--muted); }
+.stats dd { margin: 0; text-align: right; }
+
+/* Buttons */
+button { font: inherit; color: inherit; }
+.chip {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 5px 12px; cursor: pointer; font-size: .82rem; font-weight: 600;
+}
+.chip:hover { border-color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--gold); color: #2a1d05; border-color: var(--gold); }
+.chip.danger { color: var(--nova); }
+.chip.danger.armed { background: var(--nova); color: #2a0712; border-color: var(--nova); }
+.chip:focus-visible, .row:focus-visible, .upg:focus-visible, .nova-btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+/* Generator rows */
+.buy-amt { display: flex; gap: 6px; }
+.gen-list { display: flex; flex-direction: column; gap: 8px; }
+.row {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 4px 12px; align-items: center;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; cursor: pointer; text-align: left; width: 100%;
+  transition: border-color .15s, background .15s;
+}
+.row:hover:not([disabled]) { border-color: var(--gold-dim); background: #272259; }
+.row[disabled] { cursor: not-allowed; opacity: .55; }
+.row.locked { opacity: .35; }
+.glyph {
+  width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center;
+  background: #0e0c22; border: 1px solid var(--line);
+}
+.glyph svg { width: 26px; height: 26px; }
+.gname { font-weight: 700; font-size: .98rem; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.gname .owned { font-family: var(--f-num); color: var(--gold); font-size: .9rem; }
+.gsub { color: var(--muted); font-size: .8rem; }
+.gsub .mile { color: var(--ok); }
+.gcost { text-align: right; font-size: .85rem; }
+.gcost .price { color: var(--gold); font-weight: 700; display: block; }
+.gcost .qty { color: var(--muted); font-size: .75rem; }
+.row.poor .gcost .price { color: var(--nova); }
+
+/* Upgrades */
+.upg-list { display: flex; flex-direction: column; gap: 8px; }
+.upg {
+  text-align: left; width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 12px; cursor: pointer; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 10px;
+}
+.upg:hover:not([disabled]) { border-color: var(--gold-dim); }
+.upg[disabled] { cursor: not-allowed; opacity: .55; }
+.upg .uname { font-weight: 700; font-size: .92rem; }
+.upg .udesc { color: var(--muted); font-size: .78rem; grid-column: 1 / 2; }
+.upg .uprice { font-family: var(--f-num); color: var(--gold); font-size: .82rem; grid-row: 1 / 3; grid-column: 2; align-self: center; text-align: right; }
+.upg.bought { opacity: .45; cursor: default; }
+.upg.bought .uprice { color: var(--ok); }
+.empty { color: var(--muted); font-size: .85rem; }
+
+/* Supernova (prestige) */
+.nova { border-color: var(--nova-dim); background: linear-gradient(180deg, #2a1235cc, var(--panel)); }
+.nova h2 { color: var(--nova); }
+.neutrons { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.neutrons .big { font-size: 1.8rem; font-weight: 700; color: var(--nova); }
+.nova p { margin: 0; font-size: .84rem; color: var(--muted); }
+.nova p b { color: var(--fg); }
+.meter { height: 8px; border-radius: 999px; background: #0e0c22; border: 1px solid var(--nova-dim); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--nova-dim), var(--nova)); transition: width .3s; }
+.nova-btn {
+  border: 1px solid var(--nova); background: transparent; color: var(--nova);
+  border-radius: 10px; padding: 11px 14px; cursor: pointer;
+  font-family: var(--f-display); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: .92rem;
+}
+.nova-btn:hover:not([disabled]) { background: #ff7a9322; }
+.nova-btn.armed { background: var(--nova); color: #2a0712; }
+.nova-btn[disabled] { opacity: .4; cursor: not-allowed; }
+.nova .upg { border-color: var(--nova-dim); background: #1f1236; }
+.nova .upg .uprice { color: var(--nova); }
+.nova .upg .lvl { font-family: var(--f-num); color: var(--nova); font-size: .78rem; }
+
+.flash {
+  position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: 0;
+  background: radial-gradient(circle at 50% 50%, #fff 0%, var(--nova) 30%, transparent 70%);
+}
+.flash.go { animation: boom 1.2s ease-out; }
+@keyframes boom { 0% { opacity: 0; } 15% { opacity: .9; } 100% { opacity: 0; } }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 16px;
+  font-size: .88rem; z-index: 70; max-width: calc(100% - 32px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-btn { animation: none; }
+  .floater { display: none; }
+  .flash.go { animation-duration: .01s; }
+  .meter i { transition: none; }
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Yıldız <span>Tozu</span></h1>
+      <p class="tagline">Toz topla, evren kur, yıldızını süpernovaya çevir ve daha güçlü baştan başla.</p>
+    </div>
+    <div class="top-actions">
+      <button class="chip" id="saveBtn" type="button">Kaydet</button>
+      <button class="chip danger" id="wipeBtn" type="button">Her şeyi sıfırla</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="panel col-star" aria-label="Yıldız">
+      <div>
+        <div class="dust-amount num" id="dust">0</div>
+        <div class="dust-label">yıldız tozu</div>
+      </div>
+      <div class="rate"><span class="num" id="dps">0</span> / saniye</div>
+      <button class="star-btn" id="star" type="button" aria-label="Yıldıza dokun, toz topla"></button>
+      <div class="click-info">Her dokunuş: <b class="num" id="clickPow">1</b> toz</div>
+      <dl class="stats">
+        <dt>Bu turda toplanan</dt><dd class="num" id="stRun">0</dd>
+        <dt>Toplam toplanan</dt><dd class="num" id="stTotal">0</dd>
+        <dt>Dokunuş sayısı</dt><dd class="num" id="stClicks">0</dd>
+        <dt>Süpernova sayısı</dt><dd class="num" id="stNovas">0</dd>
+        <dt>Genel çarpan</dt><dd class="num" id="stMult">×1</dd>
+      </dl>
+    </section>
+
+    <section class="panel" aria-label="Üreticiler">
+      <h2>Üreticiler
+        <span class="buy-amt" role="group" aria-label="Satın alma miktarı">
+          <button class="chip" type="button" data-amt="1">×1</button>
+          <button class="chip" type="button" data-amt="10">×10</button>
+          <button class="chip" type="button" data-amt="max">Maks</button>
+        </span>
+      </h2>
+      <div class="gen-list" id="gens"></div>
+      <p class="empty">Her üreticiden 25, 50, 75… adete ulaştığında o üreticinin üretimi ikiye katlanır.</p>
+    </section>
+
+    <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+      <section class="panel" aria-label="Geliştirmeler">
+        <h2>Geliştirmeler</h2>
+        <div class="upg-list" id="upgs"></div>
+      </section>
+
+      <section class="panel nova" aria-label="Süpernova">
+        <h2>Süpernova <span class="num" id="novaCount" style="letter-spacing:0">0×</span></h2>
+        <div class="neutrons"><span class="big num" id="neut">0</span><span>nötron</span></div>
+        <p>Harcanmamış her nötron tüm üretime <b>+%10</b> verir. Şu anki bonus: <b class="num" id="neutBonus">+%0</b></p>
+        <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+        <p id="novaInfo">Süpernova için bu turda 1 M toz topla.</p>
+        <button class="nova-btn" id="novaBtn" type="button" disabled>Süpernova</button>
+        <p>Süpernova tozu, üreticileri ve geliştirmeleri sıfırlar. Nötronlar ve aşağıdaki kalıcı geliştirmeler kalır.</p>
+        <h2 style="margin-top:4px">Nötron atölyesi</h2>
+        <div class="upg-list" id="pupgs"></div>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="flash" id="flash"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const SAVE_KEY = "yildiz-tozu-v1";
+  const OFFLINE_CAP = 8 * 3600; // seconds
+
+  const GENS = [
+    { name: "Kıvılcım",        desc: "Boşlukta sönmeyen küçük ışık",  base: 15,     prod: 0.1,  color: "#f4c86a" },
+    { name: "Toz Bulutu",      desc: "Yavaşça dönen soğuk gaz",        base: 100,    prod: 1,    color: "#9fd3ff" },
+    { name: "Kuyrukluyıldız",  desc: "Arkasında toz izi bırakır",       base: 1100,   prod: 8,    color: "#7be0b0" },
+    { name: "Gezegen",         desc: "Yörüngesinden toz süpürür",       base: 12000,  prod: 47,   color: "#c9a2ff" },
+    { name: "Kırmızı Dev",     desc: "Dış katmanlarını savurur",        base: 130000, prod: 260,  color: "#ff9a6b" },
+    { name: "Nebula",          desc: "Yıldızların doğduğu bulut",       base: 1.4e6,  prod: 1400, color: "#ff7a93" },
+    { name: "Galaksi",         desc: "Yüz milyar yıldızın dansı",        base: 2e7,    prod: 7800, color: "#ece9ff" },
+    { name: "Kuasar",          desc: "Evrenin en parlak motoru",        base: 3.3e8,  prod: 44000, color: "#ffe6a6" }
+  ];
+  const GROWTH = 1.15;
+
+  const UPGRADES = [
+    { id: "c1", name: "Güçlü Dokunuş",   desc: "Dokunuş gücü ×2",                    cost: 100,   req: s => true },
+    { id: "g1", name: "Kıvılcım Ateşi",  desc: "Kıvılcımlar ×3",                     cost: 500,   req: s => s.gens[0] >= 10 },
+    { id: "c2", name: "Kozmik Eller",    desc: "Dokunuş gücü ×3",                    cost: 5000,  req: s => s.clicks >= 100 },
+    { id: "g2", name: "Yoğun Bulut",     desc: "Toz Bulutları ×3",                   cost: 8000,  req: s => s.gens[1] >= 10 },
+    { id: "c3", name: "Yıldız Bağı",     desc: "Dokunuş, saniyelik üretimin %3'ünü ekler", cost: 40000, req: s => s.gens[2] >= 5 },
+    { id: "g3", name: "Buzlu Çekirdek",  desc: "Kuyrukluyıldızlar ×3",               cost: 90000, req: s => s.gens[2] >= 10 },
+    { id: "a1", name: "Toz Fırtınası",   desc: "Tüm üretim ×2",                      cost: 1e6,   req: s => s.gens[3] >= 5 },
+    { id: "g4", name: "Halka Sistemi",   desc: "Gezegenler ×3",                      cost: 1.5e6, req: s => s.gens[3] >= 10 },
+    { id: "a2", name: "Kara Madde",      desc: "Tüm üretim ×3",                      cost: 1e8,   req: s => s.gens[5] >= 5 },
+    { id: "a3", name: "Zaman Bükülmesi", desc: "Tüm üretim ×4",                      cost: 5e10,  req: s => s.gens[7] >= 5 }
+  ];
+  const GEN_UPG = { g1: 0, g2: 1, g3: 2, g4: 3 };
+
+  const PUPS = [
+    { id: "click", name: "Kütle Çekimi",     desc: "Dokunuş gücü ×2 (seviye başına)", base: 1, scale: 3,   max: 20 },
+    { id: "auto",  name: "Yörünge Uydusu",   desc: "Saniyede 2 otomatik dokunuş (seviye başına)", base: 2, scale: 2.5, max: 20 },
+    { id: "cheap", name: "Hafif Element",    desc: "Üretici fiyatları −%5 (seviye başına)", base: 3, scale: 3, max: 6 },
+    { id: "mult",  name: "Yıldız Çekirdeği", desc: "Tüm üretim ×1.5 (seviye başına)", base: 5, scale: 3,   max: 30 },
+    { id: "start", name: "Kalıntı Toz",      desc: "Her tura 10× daha fazla tozla başla (1. seviye: 1 K)", base: 2, scale: 4, max: 8 }
+  ];
+
+  const fresh = () => ({
+    dust: 0, runEarned: 0, totalEarned: 0, clicks: 0,
+    gens: GENS.map(() => 0), ups: {},
+    neutrons: 0, neutronsEarned: 0, pups: {}, novas: 0,
+    buyAmt: "1", last: Date.now()
+  });
+  let S = fresh();
+
+  /* ---------- number formatting ---------- */
+  const SUFFIX = ["", " K", " M", " B", " T", " Qa", " Qi", " Sx", " Sp", " Oc", " No", " Dc"];
+  function fmt(n, dec) {
+    if (!isFinite(n)) return "∞";
+    if (n < 0) return "−" + fmt(-n, dec);
+    if (n < 1000) {
+      if (dec && n < 100 && n % 1 !== 0) return n.toFixed(n < 10 ? 2 : 1).replace(".", ",");
+      return Math.floor(n).toLocaleString("tr-TR");
+    }
+    const e = Math.floor(Math.log10(n) / 3);
+    if (e < SUFFIX.length) {
+      const v = n / Math.pow(1000, e);
+      return v.toFixed(v < 10 ? 2 : v < 100 ? 1 : 0).replace(".", ",") + SUFFIX[e];
+    }
+    return n.toExponential(2).replace(".", ",").replace("e+", "e");
+  }
+
+  /* ---------- formulas ---------- */
+  const plvl = id => S.pups[id] || 0;
+  const costMult = () => Math.pow(0.95, plvl("cheap"));
+  const genCost = (i, owned, n) => {
+    const b = GENS[i].base * costMult() * Math.pow(GROWTH, owned);
+    return b * (Math.pow(GROWTH, n) - 1) / (GROWTH - 1);
+  };
+  const maxBuy = i => {
+    const b = GENS[i].base * costMult() * Math.pow(GROWTH, S.gens[i]);
+    if (S.dust < b) return 0;
+    return Math.floor(Math.log(S.dust * (GROWTH - 1) / b + 1) / Math.log(GROWTH));
+  };
+  const globalMult = () => {
+    let m = 1 + 0.1 * S.neutrons;
+    m *= Math.pow(1.5, plvl("mult"));
+    if (S.ups.a1) m *= 2;
+    if (S.ups.a2) m *= 3;
+    if (S.ups.a3) m *= 4;
+    return m;
+  };
+  const genMult = i => {
+    let m = Math.pow(2, Math.floor(S.gens[i] / 25));
+    for (const [id, gi] of Object.entries(GEN_UPG)) if (gi === i && S.ups[id]) m *= 3;
+    return m;
+  };
+  const genProd = i => S.gens[i] * GENS[i].prod * genMult(i) * globalMult();
+  const baseDps = () => GENS.reduce((a, _, i) => a + genProd(i), 0);
+  const clickPower = () => {
+    let c = 1;
+    if (S.ups.c1) c *= 2;
+    if (S.ups.c2) c *= 3;
+    c *= Math.pow(2, plvl("click"));
+    c *= 1 + 0.1 * S.neutrons;
+    if (S.ups.c3) c += baseDps() * 0.03;
+    return c;
+  };
+  const autoRate = () => plvl("auto") * 2;
+  const totalDps = () => baseDps() + autoRate() * clickPower();
+  const NOVA_MIN = 1e6;
+  const novaGain = () => Math.floor(Math.sqrt(S.runEarned / NOVA_MIN));
+  const nextNovaAt = () => Math.pow(novaGain() + 1, 2) * NOVA_MIN;
+  const pupCost = p => Math.ceil(p.base * Math.pow(p.scale, plvl(p.id)));
+  const startDust = () => plvl("start") ? Math.pow(10, plvl("start") + 2) : 0;
+
+  function earn(x) { S.dust += x; S.runEarned += x; S.totalEarned += x; }
+
+  /* ---------- DOM ---------- */
+  const $ = id => document.getElementById(id);
+  const glyph = (i, color) => {
+    const shapes = [
+      `<circle cx="12" cy="12" r="3" fill="${color}"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>`,
+      `<ellipse cx="12" cy="13" rx="9" ry="5" fill="${color}" opacity=".35"/><ellipse cx="10" cy="11" rx="5" ry="3.5" fill="${color}" opacity=".7"/>`,
+      `<circle cx="16" cy="8" r="3.5" fill="${color}"/><path d="M13.5 10.5L4 20M14.5 11.5L7 20M12.5 9.5L4 16" stroke="${color}" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>`,
+      `<circle cx="12" cy="12" r="5.5" fill="${color}"/><ellipse cx="12" cy="12" rx="10" ry="3" fill="none" stroke="${color}" stroke-width="1.4" transform="rotate(-20 12 12)"/>`,
+      `<circle cx="12" cy="12" r="9" fill="${color}" opacity=".25"/><circle cx="12" cy="12" r="6" fill="${color}"/>`,
+      `<path d="M4 15c3-8 8-2 10-7s6 2 6 6-6 6-9 5-8 2-7-4z" fill="${color}" opacity=".6"/><circle cx="10" cy="12" r="1.3" fill="#fff"/><circle cx="15" cy="10" r="1" fill="#fff"/>`,
+      `<path d="M12 12c0-4 5-5 7-2M12 12c0 4-5 5-7 2M12 12c4 0 5 5 2 7M12 12c-4 0-5-5-2-7" stroke="${color}" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="2" fill="${color}"/>`,
+      `<circle cx="12" cy="12" r="3" fill="${color}"/><path d="M12 2v20" stroke="${color}" stroke-width="2" stroke-linecap="round"/><ellipse cx="12" cy="12" rx="7" ry="2.5" fill="none" stroke="${color}" stroke-width="1.2" opacity=".6"/>`
+    ];
+    return `<svg viewBox="0 0 24 24" aria-hidden="true">${shapes[i]}</svg>`;
+  };
+
+  const genEls = GENS.map((g, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "row"; b.id = "gen-" + i;
+    b.innerHTML = `<span class="glyph">${glyph(i, g.color)}</span>
+      <span style="min-width:0"><span class="gname"><span class="nm"></span><span class="owned"></span></span>
+      <span class="gsub"></span></span>
+      <span class="gcost"><span class="price num"></span><span class="qty"></span></span>`;
+    b.addEventListener("click", () => buyGen(i));
+    $("gens").appendChild(b);
+    return { b, nm: b.querySelector(".nm"), owned: b.querySelector(".owned"), sub: b.querySelector(".gsub"), price: b.querySelector(".price"), qty: b.querySelector(".qty") };
+  });
+
+  function buyGen(i) {
+    let n = S.buyAmt === "max" ? maxBuy(i) : +S.buyAmt;
+    if (n < 1) return;
+    const c = genCost(i, S.gens[i], n);
+    if (c > S.dust) return;
+    S.dust -= c; S.gens[i] += n;
+    render(true);
+  }
+
+  document.querySelectorAll("[data-amt]").forEach(b => b.addEventListener("click", () => { S.buyAmt = b.dataset.amt; render(true); }));
+
+  /* clicking the star */
+  const star = $("star");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  star.addEventListener("click", e => {
+    const p = clickPower();
+    earn(p); S.clicks++;
+    if (!reduce) {
+      const f = document.createElement("span");
+      f.className = "floater";
+      const r = star.getBoundingClientRect();
+      const x = e.clientX || r.left + r.width / 2, y = e.clientY || r.top + r.height / 2;
+      f.style.left = (x + (Math.random() * 30 - 15)) + "px";
+      f.style.top = (y - 10) + "px";
+      f.textContent = "+" + fmt(p, true);
+      document.body.appendChild(f);
+      setTimeout(() => f.remove(), 900);
+    }
+    render();
+  });
+
+  /* upgrades */
+  let upgSig = "";
+  function renderUpgrades() {
+    const list = UPGRADES.filter(u => !S.ups[u.id] && u.req(S));
+    const sig = list.map(u => u.id).join(",");
+    if (sig !== upgSig) {
+      upgSig = sig;
+      const box = $("upgs"); box.innerHTML = "";
+      if (!list.length) box.innerHTML = `<p class="empty">Yeni geliştirmeler üretici sayın arttıkça açılır.</p>`;
+      list.forEach(u => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "upg"; b.dataset.id = u.id;
+        b.innerHTML = `<span class="uname">${u.name}</span><span class="uprice num">${fmt(u.cost)}</span><span class="udesc">${u.desc}</span>`;
+        b.addEventListener("click", () => {
+          if (S.dust < u.cost || S.ups[u.id]) return;
+          S.dust -= u.cost; S.ups[u.id] = true; toast(u.name + " alındı");
+          render(true);
+        });
+        box.appendChild(b);
+      });
+    }
+    $("upgs").querySelectorAll(".upg").forEach(b => {
+      const u = UPGRADES.find(x => x.id === b.dataset.id);
+      b.disabled = S.dust < u.cost;
+    });
+  }
+
+  /* prestige shop */
+  const pEls = PUPS.map(p => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "upg";
+    b.innerHTML = `<span class="uname">${p.name} <span class="lvl"></span></span><span class="uprice num"></span><span class="udesc">${p.desc}</span>`;
+    b.addEventListener("click", () => {
+      const c = pupCost(p);
+      if (plvl(p.id) >= p.max || S.neutrons < c) return;
+      S.neutrons -= c; S.pups[p.id] = plvl(p.id) + 1;
+      if (p.id === "start" && S.runEarned === 0 && S.dust < startDust()) S.dust = startDust();
+      toast(`${p.name} seviye ${plvl(p.id)}`);
+      render(true);
+    });
+    $("pupgs").appendChild(b);
+    return { b, lvl: b.querySelector(".lvl"), price: b.querySelector(".uprice") };
+  });
+
+  /* supernova */
+  const novaBtn = $("novaBtn");
+  let novaArmed = 0;
+  novaBtn.addEventListener("click", () => {
+    const g = novaGain();
+    if (g < 1) return;
+    if (!novaArmed) {
+      novaArmed = setTimeout(() => { novaArmed = 0; render(true); }, 3000);
+      render(true); return;
+    }
+    clearTimeout(novaArmed); novaArmed = 0;
+    const keep = { neutrons: S.neutrons + g, neutronsEarned: S.neutronsEarned + g, pups: S.pups, novas: S.novas + 1, totalEarned: S.totalEarned, clicks: S.clicks, buyAmt: S.buyAmt };
+    S = Object.assign(fresh(), keep);
+    S.dust = startDust();
+    upgSig = "";
+    const fl = $("flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
+    toast(`Süpernova! +${fmt(g)} nötron`);
+    save(); render(true);
+  });
+
+  /* wipe */
+  const wipeBtn = $("wipeBtn");
+  let wipeArmed = 0;
+  wipeBtn.addEventListener("click", () => {
+    if (!wipeArmed) {
+      wipeBtn.classList.add("armed"); wipeBtn.textContent = "Emin misin? Tekrar bas";
+      wipeArmed = setTimeout(() => { wipeArmed = 0; wipeBtn.classList.remove("armed"); wipeBtn.textContent = "Her şeyi sıfırla"; }, 3000);
+      return;
+    }
+    clearTimeout(wipeArmed); wipeArmed = 0;
+    wipeBtn.classList.remove("armed"); wipeBtn.textContent = "Her şeyi sıfırla";
+    S = fresh(); upgSig = "";
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    toast("Oyun sıfırlandı"); render(true);
+  });
+
+  $("saveBtn").addEventListener("click", () => { toast(save() ? "Kaydedildi" : "Bu tarayıcı kayda izin vermiyor"); });
+
+  let toastT = 0;
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2200);
+  }
+
+  /* ---------- render ---------- */
+  let lastFull = 0;
+  function render(full) {
+    const now = performance.now();
+    $("dust").textContent = fmt(S.dust);
+    if (!full && now - lastFull < 100) return;
+    lastFull = now;
+
+    const dps = totalDps();
+    $("dps").textContent = fmt(dps, true);
+    $("clickPow").textContent = fmt(clickPower(), true);
+    $("stRun").textContent = fmt(S.runEarned);
+    $("stTotal").textContent = fmt(S.totalEarned);
+    $("stClicks").textContent = fmt(S.clicks);
+    $("stNovas").textContent = fmt(S.novas);
+    $("stMult").textContent = "×" + fmt(globalMult(), true);
+
+    document.querySelectorAll("[data-amt]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.amt === S.buyAmt)));
+
+    GENS.forEach((g, i) => {
+      const el = genEls[i];
+      const visible = i === 0 || S.gens[i] > 0 || S.gens[i - 1] > 0 || S.dust >= g.base * costMult() * 0.5;
+      el.b.classList.toggle("locked", !visible);
+      let n = S.buyAmt === "max" ? Math.max(1, maxBuy(i)) : +S.buyAmt;
+      const c = genCost(i, S.gens[i], n);
+      const afford = c <= S.dust;
+      el.b.disabled = !visible || !afford;
+      el.b.classList.toggle("poor", !afford);
+      el.nm.textContent = visible ? g.name : "???";
+      el.owned.textContent = S.gens[i] ? S.gens[i] : "";
+      const mult = genMult(i);
+      el.sub.innerHTML = visible
+        ? (S.gens[i]
+            ? `${fmt(genProd(i), true)}/sn · tanesi ${fmt(g.prod * mult * globalMult(), true)}/sn` + (mult > 1 ? ` <span class="mile">×${fmt(mult)}</span>` : "")
+            : g.desc)
+        : "Daha fazla toz topla";
+      el.price.textContent = fmt(c);
+      el.qty.textContent = "×" + n;
+      el.b.setAttribute("aria-label", visible ? `${g.name} satın al, ${n} adet, fiyat ${fmt(c)} toz` : "Kilitli üretici");
+    });
+
+    renderUpgrades();
+
+    const gain = novaGain();
+    $("neut").textContent = fmt(S.neutrons);
+    $("neutBonus").textContent = "+%" + fmt(S.neutrons * 10);
+    $("novaCount").textContent = S.novas + "×";
+    if (gain < 1) {
+      $("novaInfo").innerHTML = `Süpernova için bu turda <b>${fmt(NOVA_MIN)}</b> toz topla.`;
+      $("meter").style.width = Math.min(100, S.runEarned / NOVA_MIN * 100) + "%";
+    } else {
+      const prev = Math.pow(gain, 2) * NOVA_MIN, next = nextNovaAt();
+      $("novaInfo").innerHTML = `Şimdi patlarsan <b>+${fmt(gain)}</b> nötron kazanırsın. Bir sonraki nötron <b>${fmt(next)}</b> tozda.`;
+      $("meter").style.width = Math.min(100, (S.runEarned - prev) / (next - prev) * 100) + "%";
+    }
+    novaBtn.disabled = gain < 1;
+    novaBtn.classList.toggle("armed", !!novaArmed);
+    novaBtn.textContent = novaArmed ? `Eminim, patlat (+${fmt(gain)})` : (gain >= 1 ? `Süpernova (+${fmt(gain)} nötron)` : "Süpernova");
+
+    PUPS.forEach((p, i) => {
+      const el = pEls[i], l = plvl(p.id), maxed = l >= p.max, c = pupCost(p);
+      el.lvl.textContent = `Sv ${l}${maxed ? " (maks)" : ""}`;
+      el.price.textContent = maxed ? "—" : fmt(c) + " n";
+      el.b.disabled = maxed || S.neutrons < c;
+    });
+  }
+
+  /* ---------- save / load ---------- */
+  function save() {
+    S.last = Date.now();
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); return true; } catch (e) { return false; }
+  }
+  function load(data) {
+    let d = data;
+    if (!d) { try { const raw = localStorage.getItem(SAVE_KEY); if (raw) d = JSON.parse(raw); } catch (e) {} }
+    if (!d || typeof d !== "object") return;
+    const base = fresh();
+    S = Object.assign(base, d);
+    S.gens = GENS.map((_, i) => (Array.isArray(d.gens) && +d.gens[i]) || 0);
+    S.ups = d.ups || {}; S.pups = d.pups || {};
+    const away = Math.min(OFFLINE_CAP, Math.max(0, (Date.now() - (+d.last || Date.now())) / 1000));
+    if (away > 30) {
+      const got = totalDps() * away;
+      if (got > 0) { earn(got); setTimeout(() => toast(`Sen yokken ${fmt(got)} toz toplandı`), 400); }
+    }
+  }
+
+  /* ---------- loop ---------- */
+  let lastTick = Date.now();
+  function tick() {
+    const now = Date.now();
+    const dt = Math.min(OFFLINE_CAP, (now - lastTick) / 1000);
+    lastTick = now;
+    const d = totalDps() * dt;
+    if (d > 0) earn(d);
+    render();
+  }
+
+  function start(data) {
+    load(data && data.S);
+    lastTick = Date.now();
+    render(true);
+    setInterval(tick, 50);
+    setInterval(save, 10000);
+    addEventListener("visibilitychange", () => { if (document.hidden) save(); });
+    addEventListener("pagehide", save);
+  }
+
+  window.claude?.hot?.snapshot?.(() => ({ S: Object.assign({}, S, { last: Date.now() }) }));
+  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
+</body>
+</html>
