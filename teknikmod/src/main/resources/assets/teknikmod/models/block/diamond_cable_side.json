@@ -1,0 +1,38 @@
+{
+  "textures": {
+    "cable": "teknikmod:block/diamond_cable",
+    "particle": "teknikmod:block/diamond_cable"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        5,
+        0
+      ],
+      "to": [
+        11,
+        11,
+        5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#cable",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#cable"
+        },
+        "down": {
+          "texture": "#cable"
+        },
+        "east": {
+          "texture": "#cable"
+        },
+        "west": {
+          "texture": "#cable"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "teknikmod:block/advanced_battery_side",
+    "front": "teknikmod:block/advanced_battery_front",
+    "side": "teknikmod:block/advanced_battery_side"
+  }
+}

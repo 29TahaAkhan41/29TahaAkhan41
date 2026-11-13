@@ -1,6 +1,6 @@
 package dev.teknikmod.blockentity;
 
-import dev.teknikmod.Config;
+import dev.teknikmod.block.MachineBlock;
 import dev.teknikmod.ModRegistry;
 import dev.teknikmod.block.CoalGeneratorBlock;
 import dev.teknikmod.energy.EnergyUtil;
@@ -38,6 +38,7 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
         }
     };
     private final IEnergyStorage output = energy.outputOnly();
+    public static final int DATA_COUNT = 7;
     private int burnTime;
     private int burnTimeTotal;
 
@@ -50,17 +51,20 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
                 case 1 -> burnTimeTotal;
                 case 2 -> energy.getEnergyStored() & 0xFFFF;
                 case 3 -> energy.getEnergyStored() >>> 16;
+                case 4 -> tier.coalCapacity & 0xFFFF;
+                case 5 -> tier.coalCapacity >>> 16;
+                case 6 -> tier.coalRate;
                 default -> 0;
             };
         }
 
         @Override public void set(int i, int value) {}
-        @Override public int getCount() { return 4; }
+        @Override public int getCount() { return DATA_COUNT; }
     };
 
     public CoalGeneratorBlockEntity(BlockPos pos, BlockState state) {
         super(ModRegistry.COAL_GENERATOR_BE.get(), pos, state,
-                Config.COAL_GENERATOR_CAPACITY, 0, Config.COAL_GENERATOR_OUTPUT);
+                MachineBlock.tierOf(state).coalCapacity, 0, MachineBlock.tierOf(state).coalOutput);
     }
 
     public ItemStackHandler getItems() {
@@ -76,11 +80,11 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
         boolean wasLit = burnTime > 0;
         if (burnTime > 0) {
             burnTime--;
-            energy.generate(Config.COAL_GENERATOR_RATE);
+            energy.generate(tier.coalRate);
             setChanged();
         }
         // Yakit bittiyse ve depoda yer varsa yeni yakit yak.
-        if (burnTime <= 0 && energy.getEnergyStored() + Config.COAL_GENERATOR_RATE <= energy.getMaxEnergyStored()) {
+        if (burnTime <= 0 && energy.getEnergyStored() + tier.coalRate <= energy.getMaxEnergyStored()) {
             ItemStack fuel = items.getStackInSlot(0);
             int time = fuel.getBurnTime(RecipeType.SMELTING);
             if (time > 0) {
@@ -95,7 +99,7 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
         if (lit != wasLit) {
             level.setBlock(pos, state.setValue(CoalGeneratorBlock.LIT, lit), 3);
         }
-        EnergyUtil.push(level, pos, energy, Config.COAL_GENERATOR_OUTPUT, Direction.values());
+        EnergyUtil.push(level, pos, energy, tier.coalOutput, Direction.values());
     }
 
     @Override
@@ -116,7 +120,7 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("block.teknikmod.coal_generator");
+        return getBlockState().getBlock().getName();
     }
 
     @Override

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " U ",
+    "UMU",
+    " U "
+  ],
+  "key": {
+    "U": {
+      "tag": "c:gems/diamond"
+    },
+    "M": {
+      "item": "teknikmod:advanced_solar_panel"
+    }
+  },
+  "result": {
+    "id": "teknikmod:elite_solar_panel",
+    "count": 1
+  }
+}

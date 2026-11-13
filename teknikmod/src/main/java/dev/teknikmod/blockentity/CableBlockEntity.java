@@ -23,7 +23,7 @@ public class CableBlockEntity extends BlockEntity {
     private int usedThisTick;
 
     public CableBlockEntity(BlockPos pos, BlockState state) {
-        super(ModRegistry.COPPER_CABLE_BE.get(), pos, state);
+        super(ModRegistry.CABLE_BE.get(), pos, state);
         for (Direction d : Direction.values()) sides.put(d, new SideHandler(d));
     }
 

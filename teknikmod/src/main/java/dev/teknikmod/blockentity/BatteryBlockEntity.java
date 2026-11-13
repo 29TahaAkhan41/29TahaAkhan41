@@ -1,6 +1,6 @@
 package dev.teknikmod.blockentity;
 
-import dev.teknikmod.Config;
+import dev.teknikmod.block.MachineBlock;
 import dev.teknikmod.ModRegistry;
 import dev.teknikmod.block.BatteryBlock;
 import dev.teknikmod.energy.EnergyUtil;
@@ -18,7 +18,7 @@ public class BatteryBlockEntity extends MachineBlockEntity {
 
     public BatteryBlockEntity(BlockPos pos, BlockState state) {
         super(ModRegistry.BATTERY_BE.get(), pos, state,
-                Config.BATTERY_CAPACITY, Config.BATTERY_IO, Config.BATTERY_IO);
+                MachineBlock.tierOf(state).batteryCapacity, MachineBlock.tierOf(state).batteryIo, MachineBlock.tierOf(state).batteryIo);
     }
 
     public IEnergyStorage getEnergy(@Nullable Direction side) {
@@ -28,6 +28,6 @@ public class BatteryBlockEntity extends MachineBlockEntity {
 
     @Override
     public void serverTick(Level level, BlockPos pos, BlockState state) {
-        EnergyUtil.push(level, pos, energy, Config.BATTERY_IO, state.getValue(BatteryBlock.FACING));
+        EnergyUtil.push(level, pos, energy, tier.batteryIo, state.getValue(BatteryBlock.FACING));
     }
 }

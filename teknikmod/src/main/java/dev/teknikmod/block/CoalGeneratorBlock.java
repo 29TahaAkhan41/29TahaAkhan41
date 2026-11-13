@@ -1,6 +1,13 @@
 package dev.teknikmod.block;
 
 import dev.teknikmod.blockentity.CoalGeneratorBlockEntity;
+import dev.teknikmod.Tier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
@@ -21,8 +28,8 @@ public class CoalGeneratorBlock extends MachineBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
-    public CoalGeneratorBlock(Properties props) {
-        super(props);
+    public CoalGeneratorBlock(Properties props, Tier tier) {
+        super(props, tier);
         registerDefaultState(stateDefinition.any().setValue(FACING, net.minecraft.core.Direction.NORTH).setValue(LIT, false));
     }
 
@@ -55,5 +62,11 @@ public class CoalGeneratorBlock extends MachineBlock {
             Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), be.getItems().getStackInSlot(0));
         }
         super.onRemove(state, level, pos, newState, moved);
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.translatable("tooltip.teknikmod.generation", tier.coalRate).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable("tooltip.teknikmod.capacity", tier.coalCapacity).withStyle(ChatFormatting.GRAY));
     }
 }

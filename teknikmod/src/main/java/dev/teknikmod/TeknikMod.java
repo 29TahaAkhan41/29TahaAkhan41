@@ -27,7 +27,7 @@ public class TeknikMod {
                 SolarPanelBlockEntity::getEnergy);
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModRegistry.BATTERY_BE.get(),
                 BatteryBlockEntity::getEnergy);
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModRegistry.COPPER_CABLE_BE.get(),
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ModRegistry.CABLE_BE.get(),
                 CableBlockEntity::getEnergy);
     }
 }

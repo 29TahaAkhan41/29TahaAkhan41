@@ -4,7 +4,14 @@
     "teknikmod:coal_generator",
     "teknikmod:solar_panel",
     "teknikmod:battery",
+    "teknikmod:advanced_coal_generator",
+    "teknikmod:advanced_solar_panel",
+    "teknikmod:advanced_battery",
+    "teknikmod:elite_coal_generator",
+    "teknikmod:elite_solar_panel",
+    "teknikmod:elite_battery",
     "teknikmod:copper_cable",
-    "teknikmod:gold_cable"
+    "teknikmod:gold_cable",
+    "teknikmod:diamond_cable"
   ]
 }

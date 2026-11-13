@@ -1,6 +1,6 @@
 package dev.teknikmod.blockentity;
 
-import dev.teknikmod.Config;
+import dev.teknikmod.block.MachineBlock;
 import dev.teknikmod.ModRegistry;
 import dev.teknikmod.energy.EnergyUtil;
 import net.minecraft.core.BlockPos;
@@ -18,7 +18,7 @@ public class SolarPanelBlockEntity extends MachineBlockEntity {
 
     public SolarPanelBlockEntity(BlockPos pos, BlockState state) {
         super(ModRegistry.SOLAR_PANEL_BE.get(), pos, state,
-                Config.SOLAR_PANEL_CAPACITY, 0, Config.SOLAR_PANEL_OUTPUT);
+                MachineBlock.tierOf(state).solarCapacity, 0, MachineBlock.tierOf(state).solarOutput);
     }
 
     /** Ust yuzey panel oldugu icin oradan baglanti verilmez. */
@@ -27,15 +27,15 @@ public class SolarPanelBlockEntity extends MachineBlockEntity {
         return side == Direction.UP ? null : output;
     }
 
-    public static int currentRate(Level level, BlockPos pos) {
+    private int currentRate(Level level, BlockPos pos) {
         if (!level.dimensionType().hasSkyLight() || !level.isDay() || !level.canSeeSky(pos.above())) return 0;
-        return level.isRaining() ? Config.SOLAR_PANEL_RATE / 2 : Config.SOLAR_PANEL_RATE;
+        return level.isRaining() ? tier.solarRate / 2 : tier.solarRate;
     }
 
     @Override
     public void serverTick(Level level, BlockPos pos, BlockState state) {
         int rate = currentRate(level, pos);
         if (rate > 0) energy.generate(rate);
-        EnergyUtil.push(level, pos, energy, Config.SOLAR_PANEL_OUTPUT, OUTPUTS);
+        EnergyUtil.push(level, pos, energy, tier.solarOutput, OUTPUTS);
     }
 }

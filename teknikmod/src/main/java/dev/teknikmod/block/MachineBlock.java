@@ -1,5 +1,6 @@
 package dev.teknikmod.block;
 
+import dev.teknikmod.Tier;
 import dev.teknikmod.blockentity.MachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -18,8 +19,19 @@ import javax.annotation.Nullable;
 
 /** Sunucu tarafinda her tick calisan, enerji tutan cihazlarin ortak blogu. */
 public abstract class MachineBlock extends Block implements EntityBlock {
-    protected MachineBlock(Properties props) {
+    protected final Tier tier;
+
+    protected MachineBlock(Properties props, Tier tier) {
         super(props);
+        this.tier = tier;
+    }
+
+    public Tier tier() {
+        return tier;
+    }
+
+    public static Tier tierOf(BlockState state) {
+        return state.getBlock() instanceof MachineBlock machine ? machine.tier : Tier.BASIC;
     }
 
     @Nullable

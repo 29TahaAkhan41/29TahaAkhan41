@@ -1,5 +1,7 @@
 package dev.teknikmod.blockentity;
 
+import dev.teknikmod.Tier;
+import dev.teknikmod.block.MachineBlock;
 import dev.teknikmod.energy.ModEnergyStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -11,10 +13,12 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class MachineBlockEntity extends BlockEntity {
     protected final ModEnergyStorage energy;
+    protected final Tier tier;
 
     protected MachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state,
                                  int capacity, int maxReceive, int maxExtract) {
         super(type, pos, state);
+        this.tier = MachineBlock.tierOf(state);
         this.energy = new ModEnergyStorage(capacity, maxReceive, maxExtract, this::setChanged);
     }
 

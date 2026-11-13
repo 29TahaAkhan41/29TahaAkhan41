@@ -1,6 +1,5 @@
 package dev.teknikmod.client;
 
-import dev.teknikmod.Config;
 import dev.teknikmod.TeknikMod;
 import dev.teknikmod.menu.CoalGeneratorMenu;
 import net.minecraft.client.gui.GuiGraphics;
@@ -43,7 +42,7 @@ public class CoalGeneratorScreen extends AbstractContainerScreen<CoalGeneratorMe
             g.renderTooltip(font, Component.translatable("message.teknikmod.energy", menu.energy(), menu.maxEnergy()), mouseX, mouseY);
         } else if (isHovering(81, 26, 14, 14, mouseX, mouseY)) {
             g.renderTooltip(font, Component.translatable("message.teknikmod.rate",
-                    menu.burnTime() > 0 ? Config.COAL_GENERATOR_RATE : 0), mouseX, mouseY);
+                    menu.burnTime() > 0 ? menu.rate() : 0), mouseX, mouseY);
         }
     }
 }

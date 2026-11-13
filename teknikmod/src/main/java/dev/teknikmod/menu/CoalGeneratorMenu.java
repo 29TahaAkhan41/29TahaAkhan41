@@ -1,6 +1,6 @@
 package dev.teknikmod.menu;
 
-import dev.teknikmod.Config;
+import dev.teknikmod.block.CoalGeneratorBlock;
 import dev.teknikmod.ModRegistry;
 import dev.teknikmod.blockentity.CoalGeneratorBlockEntity;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -22,7 +22,7 @@ public class CoalGeneratorMenu extends AbstractContainerMenu {
 
     /** Istemci tarafi. */
     public CoalGeneratorMenu(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
-        this(id, inv, new ItemStackHandler(1), new SimpleContainerData(4), ContainerLevelAccess.NULL);
+        this(id, inv, new ItemStackHandler(1), new SimpleContainerData(CoalGeneratorBlockEntity.DATA_COUNT), ContainerLevelAccess.NULL);
     }
 
     /** Sunucu tarafi. */
@@ -47,7 +47,8 @@ public class CoalGeneratorMenu extends AbstractContainerMenu {
     public int burnTime() { return data.get(0); }
     public int burnTimeTotal() { return data.get(1); }
     public int energy() { return (data.get(2) & 0xFFFF) | (data.get(3) << 16); }
-    public int maxEnergy() { return Config.COAL_GENERATOR_CAPACITY; }
+    public int maxEnergy() { return (data.get(4) & 0xFFFF) | (data.get(5) << 16); }
+    public int rate() { return data.get(6); }
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
@@ -67,6 +68,7 @@ public class CoalGeneratorMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ModRegistry.COAL_GENERATOR.get());
+        return access.evaluate((level, pos) -> level.getBlockState(pos).getBlock() instanceof CoalGeneratorBlock
+                && player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0, true);
     }
 }

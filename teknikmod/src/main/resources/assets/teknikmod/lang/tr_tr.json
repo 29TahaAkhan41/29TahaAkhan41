@@ -1,10 +1,20 @@
 {
-  "itemGroup.teknikmod": "Teknik Mod",
   "block.teknikmod.coal_generator": "Kömür Jeneratörü",
   "block.teknikmod.solar_panel": "Güneş Paneli",
   "block.teknikmod.battery": "Batarya",
+  "block.teknikmod.advanced_coal_generator": "Gelişmiş Kömür Jeneratörü",
+  "block.teknikmod.advanced_solar_panel": "Gelişmiş Güneş Paneli",
+  "block.teknikmod.advanced_battery": "Gelişmiş Batarya",
+  "block.teknikmod.elite_coal_generator": "Elit Kömür Jeneratörü",
+  "block.teknikmod.elite_solar_panel": "Elit Güneş Paneli",
+  "block.teknikmod.elite_battery": "Elit Batarya",
   "block.teknikmod.copper_cable": "Bakır Kablo",
   "block.teknikmod.gold_cable": "Altın Kablo",
+  "block.teknikmod.diamond_cable": "Elmas Kablo",
+  "itemGroup.teknikmod": "Teknik Mod",
   "message.teknikmod.energy": "Enerji: %s / %s FE",
-  "message.teknikmod.rate": "Üretim: %s FE/t"
+  "message.teknikmod.rate": "Üretim: %s FE/t",
+  "tooltip.teknikmod.generation": "Üretim: %s FE/t",
+  "tooltip.teknikmod.capacity": "Kapasite: %s FE",
+  "tooltip.teknikmod.transfer": "Aktarım: %s FE/t"
 }

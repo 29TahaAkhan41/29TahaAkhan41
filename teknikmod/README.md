@@ -5,21 +5,42 @@ bu yuzden diger modlarin makineleri ve kablolariyla uyumludur.
 
 ## Icerik
 
-| Blok | Islev |
-|---|---|
-| Komur Jeneratoru | Firin yakitlarini yakar, 40 FE/t uretir. 20.000 FE depo, arayuzu var. |
-| Gunes Paneli | Gunduz ve gokyuzunu goruyorsa 8 FE/t (yagmurda 4). Ustunden kablo baglanmaz. |
-| Batarya | 200.000 FE depolar. On yuzunden enerji verir, diger yuzlerinden alir (500 FE/t). |
-| Bakir Kablo | 250 FE/t tasir. |
-| Altin Kablo | 1.000 FE/t tasir. |
+Her cihazin uc kademesi vardir: Temel, Gelismis (`advanced_`) ve Elit (`elite_`).
 
-Kablolar enerji depolamaz; bir kabloya giren enerji agdaki tum alicilara esit paylastirilir.
-Hiz siniri, enerjinin aga girdigi kabloya gore uygulanir. Denge degerleri `Config.java` icindedir.
+| Cihaz | Temel | Gelismis | Elit |
+|---|---|---|---|
+| Komur Jeneratoru: uretim | 40 FE/t | 120 FE/t | 360 FE/t |
+| Komur Jeneratoru: depo | 20.000 FE | 60.000 FE | 180.000 FE |
+| Gunes Paneli: uretim (yagmurda yarisi) | 8 FE/t | 32 FE/t | 128 FE/t |
+| Batarya: depo | 200.000 FE | 1.000.000 FE | 5.000.000 FE |
+| Batarya: giris/cikis | 500 FE/t | 2.000 FE/t | 8.000 FE/t |
+
+| Kablo | Aktarim |
+|---|---|
+| Bakir | 250 FE/t |
+| Altin | 1.000 FE/t |
+| Elmas | 4.000 FE/t |
+
+Yukseltme tarifi: onceki kademenin dort yanina altin kulce (Gelismis) veya elmas (Elit).
+
+- Komur jeneratoru firin yakitlarini yakar; yakit ayni surede yanar, ust kademe ayni yakittan daha cok enerji cikarir.
+- Gunes paneli gunduz ve gokyuzunu goruyorsa calisir; ustunden kablo baglanmaz.
+- Batarya on yuzunden enerji verir, diger yuzlerinden alir.
+- Kablolar enerji depolamaz; bir kabloya giren enerji agdaki tum alicilara esit paylastirilir.
+  Hiz siniri, enerjinin aga girdigi kabloya gore uygulanir.
+
+Denge degerleri `Tier.java` icindedir. Dokular ve JSON dosyalari `tools/gen_resources.py` ile uretilir.
+
+## Diger modlarla uyum
+
+Tum bloklar NeoForge'un standart enerji yetenegini (`Capabilities.EnergyStorage.BLOCK`, FE) sunar ve komsulara
+ayni yetenek uzerinden enerji iter. Bu yuzden FE kullanan modlarin makineleri bizim jenerator/kablolarimizdan
+beslenir, onlarin jenerator ve kablolari da bizim batarya ve kablolarimiza enerji verebilir.
 
 ## Derleme
 
 ```bash
-./gradlew build        # build/libs/teknikmod-0.1.0.jar
+./gradlew build        # build/libs/teknikmod-0.2.0.jar
 ./gradlew runClient    # oyunu modla ac
 ./gradlew runServer    # test sunucusu
 ```

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " U ",
+    "UMU",
+    " U "
+  ],
+  "key": {
+    "U": {
+      "tag": "c:ingots/gold"
+    },
+    "M": {
+      "item": "teknikmod:coal_generator"
+    }
+  },
+  "result": {
+    "id": "teknikmod:advanced_coal_generator",
+    "count": 1
+  }
+}

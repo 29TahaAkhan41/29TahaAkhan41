@@ -2,6 +2,12 @@ package dev.teknikmod.block;
 
 import dev.teknikmod.blockentity.CableBlockEntity;
 import dev.teknikmod.energy.CableNetwork;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -114,5 +120,10 @@ public class CableBlock extends Block implements EntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new CableBlockEntity(pos, state);
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.translatable("tooltip.teknikmod.transfer", transferRate).withStyle(ChatFormatting.GRAY));
     }
 }

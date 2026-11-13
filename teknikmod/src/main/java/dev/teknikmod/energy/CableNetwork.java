@@ -23,7 +23,9 @@ public final class CableNetwork {
 
     /** Bir kablo eklendiginde/kaldirildiginda veya komsusu degistiginde artar; onbellekleri gecersiz kilar. */
     private static int version;
-    private static boolean distributing;
+    /** Ic ice dagitim derinligi; baska modlarin kablolariyla sonsuz donguyu onler. */
+    private static final int MAX_DEPTH = 3;
+    private static int depth;
 
     public record Sink(BlockPos pos, Direction side) {}
 
@@ -60,8 +62,8 @@ public final class CableNetwork {
 
     /** Enerjiyi alicilara esit paylastirir; kabul edilen miktari dondurur. */
     public static int distribute(Level level, List<Sink> sinks, BlockPos source, int amount, boolean simulate) {
-        if (distributing || amount <= 0) return 0;
-        distributing = true;
+        if (depth >= MAX_DEPTH || amount <= 0) return 0;
+        depth++;
         try {
             List<IEnergyStorage> targets = new ArrayList<>();
             for (Sink sink : sinks) {
@@ -80,7 +82,7 @@ public final class CableNetwork {
             }
             return amount - remaining;
         } finally {
-            distributing = false;
+            depth--;
         }
     }
 

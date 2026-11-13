@@ -12,8 +12,8 @@ import dev.teknikmod.menu.CoalGeneratorMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -23,8 +23,13 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
 
 public final class ModRegistry {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TeknikMod.MODID);
@@ -36,49 +41,64 @@ public final class ModRegistry {
     public static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, TeknikMod.MODID);
 
+    /** Yaratici sekmede gosterilecek sira. */
+    private static final List<DeferredBlock<?>> TAB_ORDER = new ArrayList<>();
+
     private static BlockBehaviour.Properties machineProps() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.5F, 6.0F)
                 .sound(SoundType.METAL).requiresCorrectToolForDrops();
     }
 
-    private static BlockBehaviour.Properties cableProps(MapColor color) {
-        return BlockBehaviour.Properties.of().mapColor(color).strength(0.8F).sound(SoundType.COPPER).noOcclusion();
+    private static <B extends Block> DeferredBlock<B> block(String name, java.util.function.Supplier<B> factory) {
+        DeferredBlock<B> block = BLOCKS.register(name, factory);
+        ITEMS.registerSimpleBlockItem(block);
+        TAB_ORDER.add(block);
+        return block;
+    }
+
+    /** Bir cihazin her kademesi icin blok kaydeder: coal_generator, advanced_coal_generator, elite_coal_generator. */
+    private static <B extends Block> Map<Tier, DeferredBlock<B>> tiered(
+            String name, BiFunction<BlockBehaviour.Properties, Tier, B> factory) {
+        Map<Tier, DeferredBlock<B>> map = new EnumMap<>(Tier.class);
+        for (Tier tier : Tier.values()) {
+            map.put(tier, block(tier.prefix + name, () -> factory.apply(machineProps(), tier)));
+        }
+        return map;
+    }
+
+    private static DeferredBlock<CableBlock> cable(String name, MapColor color, int rate) {
+        return block(name, () -> new CableBlock(BlockBehaviour.Properties.of().mapColor(color).strength(0.8F)
+                .sound(SoundType.COPPER).noOcclusion(), rate));
+    }
+
+    private static Block[] all(Map<Tier, ? extends DeferredBlock<? extends Block>> map) {
+        return map.values().stream().map(DeferredBlock::get).toArray(Block[]::new);
     }
 
     // --- Bloklar ---
-    public static final DeferredBlock<CoalGeneratorBlock> COAL_GENERATOR = BLOCKS.register("coal_generator",
-            () -> new CoalGeneratorBlock(machineProps()
-                    .lightLevel(s -> s.getValue(BlockStateProperties.LIT) ? 13 : 0)));
-    public static final DeferredBlock<SolarPanelBlock> SOLAR_PANEL = BLOCKS.register("solar_panel",
-            () -> new SolarPanelBlock(machineProps().noOcclusion()));
-    public static final DeferredBlock<BatteryBlock> BATTERY = BLOCKS.register("battery",
-            () -> new BatteryBlock(machineProps()));
-    public static final DeferredBlock<CableBlock> COPPER_CABLE = BLOCKS.register("copper_cable",
-            () -> new CableBlock(cableProps(MapColor.COLOR_ORANGE), Config.COPPER_CABLE_RATE));
-    public static final DeferredBlock<CableBlock> GOLD_CABLE = BLOCKS.register("gold_cable",
-            () -> new CableBlock(cableProps(MapColor.GOLD), Config.GOLD_CABLE_RATE));
+    public static final Map<Tier, DeferredBlock<CoalGeneratorBlock>> COAL_GENERATORS = tiered("coal_generator",
+            (props, tier) -> new CoalGeneratorBlock(props.lightLevel(s -> s.getValue(BlockStateProperties.LIT) ? 13 : 0), tier));
+    public static final Map<Tier, DeferredBlock<SolarPanelBlock>> SOLAR_PANELS = tiered("solar_panel",
+            (props, tier) -> new SolarPanelBlock(props.noOcclusion(), tier));
+    public static final Map<Tier, DeferredBlock<BatteryBlock>> BATTERIES = tiered("battery", BatteryBlock::new);
 
-    // --- Itemler ---
-    public static final DeferredItem<BlockItem> COAL_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(COAL_GENERATOR);
-    public static final DeferredItem<BlockItem> SOLAR_PANEL_ITEM = ITEMS.registerSimpleBlockItem(SOLAR_PANEL);
-    public static final DeferredItem<BlockItem> BATTERY_ITEM = ITEMS.registerSimpleBlockItem(BATTERY);
-    public static final DeferredItem<BlockItem> COPPER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(COPPER_CABLE);
-    public static final DeferredItem<BlockItem> GOLD_CABLE_ITEM = ITEMS.registerSimpleBlockItem(GOLD_CABLE);
+    public static final DeferredBlock<CableBlock> COPPER_CABLE = cable("copper_cable", MapColor.COLOR_ORANGE, Tier.COPPER_CABLE_RATE);
+    public static final DeferredBlock<CableBlock> GOLD_CABLE = cable("gold_cable", MapColor.GOLD, Tier.GOLD_CABLE_RATE);
+    public static final DeferredBlock<CableBlock> DIAMOND_CABLE = cable("diamond_cable", MapColor.DIAMOND, Tier.DIAMOND_CABLE_RATE);
 
-    // --- Block entity'ler ---
+    // --- Block entity'ler (her cihaz turunun tum kademeleri ayni tipi kullanir) ---
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR_BE =
             BLOCK_ENTITIES.register("coal_generator", () -> BlockEntityType.Builder
-                    .of(CoalGeneratorBlockEntity::new, COAL_GENERATOR.get()).build(null));
+                    .of(CoalGeneratorBlockEntity::new, all(COAL_GENERATORS)).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SolarPanelBlockEntity>> SOLAR_PANEL_BE =
             BLOCK_ENTITIES.register("solar_panel", () -> BlockEntityType.Builder
-                    .of(SolarPanelBlockEntity::new, SOLAR_PANEL.get()).build(null));
+                    .of(SolarPanelBlockEntity::new, all(SOLAR_PANELS)).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BatteryBlockEntity>> BATTERY_BE =
             BLOCK_ENTITIES.register("battery", () -> BlockEntityType.Builder
-                    .of(BatteryBlockEntity::new, BATTERY.get()).build(null));
-    /** Tum kablo kademeleri ayni block entity tipini kullanir. */
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CableBlockEntity>> COPPER_CABLE_BE =
+                    .of(BatteryBlockEntity::new, all(BATTERIES)).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CableBlockEntity>> CABLE_BE =
             BLOCK_ENTITIES.register("cable", () -> BlockEntityType.Builder
-                    .of(CableBlockEntity::new, COPPER_CABLE.get(), GOLD_CABLE.get()).build(null));
+                    .of(CableBlockEntity::new, COPPER_CABLE.get(), GOLD_CABLE.get(), DIAMOND_CABLE.get()).build(null));
 
     // --- Menuler ---
     public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR_MENU =
@@ -88,14 +108,9 @@ public final class ModRegistry {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.teknikmod"))
-                    .icon(() -> COAL_GENERATOR_ITEM.get().getDefaultInstance())
-                    .displayItems((params, out) -> {
-                        out.accept(COAL_GENERATOR_ITEM.get());
-                        out.accept(SOLAR_PANEL_ITEM.get());
-                        out.accept(BATTERY_ITEM.get());
-                        out.accept(COPPER_CABLE_ITEM.get());
-                        out.accept(GOLD_CABLE_ITEM.get());
-                    }).build());
+                    .icon(() -> COAL_GENERATORS.get(Tier.BASIC).asItem().getDefaultInstance())
+                    .displayItems((params, out) -> TAB_ORDER.forEach(b -> out.accept(b.asItem())))
+                    .build());
 
     static void register(IEventBus bus) {
         BLOCKS.register(bus);
