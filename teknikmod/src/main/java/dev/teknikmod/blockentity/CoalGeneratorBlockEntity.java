@@ -50,7 +50,7 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
         }
     };
     private final IEnergyStorage output = energy.outputOnly();
-    public static final int DATA_COUNT = 7;
+    public static final int DATA_COUNT = 8;
     private int burnTime;
     private int burnTimeTotal;
 
@@ -65,7 +65,8 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
                 case 3 -> energy.getEnergyStored() >>> 16;
                 case 4 -> tier.coalCapacity & 0xFFFF;
                 case 5 -> tier.coalCapacity >>> 16;
-                case 6 -> tier.coalRate;
+                case 6 -> tier.coalRate & 0xFFFF;
+                case 7 -> tier.coalRate >>> 16;
                 default -> 0;
             };
         }
@@ -89,6 +90,12 @@ public class CoalGeneratorBlockEntity extends MachineBlockEntity implements Menu
 
     @Override
     public void serverTick(Level level, BlockPos pos, BlockState state) {
+        if (tier.creative) { // yakitsiz, surekli calisir
+            burnTime = burnTimeTotal = 1;
+            if (!state.getValue(CoalGeneratorBlock.LIT)) level.setBlock(pos, state.setValue(CoalGeneratorBlock.LIT, true), 3);
+            EnergyUtil.push(level, pos, energy, tier.coalOutput, Direction.values());
+            return;
+        }
         boolean wasLit = burnTime > 0;
         if (burnTime > 0) {
             burnTime--;

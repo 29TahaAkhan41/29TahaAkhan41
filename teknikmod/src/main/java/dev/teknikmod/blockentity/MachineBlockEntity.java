@@ -19,7 +19,8 @@ public abstract class MachineBlockEntity extends BlockEntity {
                                  int capacity, int maxReceive, int maxExtract) {
         super(type, pos, state);
         this.tier = MachineBlock.tierOf(state);
-        this.energy = new ModEnergyStorage(capacity, maxReceive, maxExtract, this::setChanged);
+        this.energy = new ModEnergyStorage(capacity, maxReceive, maxExtract, this::setChanged, MachineBlock.tierOf(state).creative,
+                () -> level != null ? level.getGameTime() : 0L);
     }
 
     public ModEnergyStorage energy() {

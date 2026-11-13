@@ -115,8 +115,8 @@ public abstract class ProcessingBlockEntity extends MachineBlockEntity implement
         boolean running = false;
         if (job != null && !job.output().isEmpty() && fitsOutput(job.output())) {
             maxProgress = Math.max(1, job.baseTime() / tier.machineSpeed);
-            if (energy.getEnergyStored() >= tier.machineUse) {
-                energy.setEnergy(energy.getEnergyStored() - tier.machineUse);
+            if (tier.creative || energy.getEnergyStored() >= tier.machineUse) {
+                if (!tier.creative) energy.setEnergy(energy.getEnergyStored() - tier.machineUse);
                 running = true;
                 if (++progress >= maxProgress) {
                     progress = 0;

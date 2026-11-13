@@ -66,6 +66,7 @@ public class CoalGeneratorBlock extends MachineBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+        if (creativeTooltip(tooltip)) return;
         tooltip.add(Component.translatable("tooltip.teknikmod.generation", tier.coalRate).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.teknikmod.capacity", tier.coalCapacity).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.teknikmod.coal_fuel").withStyle(ChatFormatting.DARK_GRAY));

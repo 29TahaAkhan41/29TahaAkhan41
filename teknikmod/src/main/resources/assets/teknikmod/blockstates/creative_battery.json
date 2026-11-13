@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "teknikmod:block/creative_battery"
+    },
+    "facing=east": {
+      "model": "teknikmod:block/creative_battery",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "teknikmod:block/creative_battery",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "teknikmod:block/creative_battery",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "teknikmod:block/creative_battery",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "teknikmod:block/creative_battery",
+      "x": 90
+    }
+  }
+}

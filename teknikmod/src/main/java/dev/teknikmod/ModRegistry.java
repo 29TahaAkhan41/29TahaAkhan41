@@ -16,6 +16,7 @@ import dev.teknikmod.menu.ProcessingMenu;
 import dev.teknikmod.recipe.CrushingRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
@@ -60,9 +61,9 @@ public final class ModRegistry {
                 .sound(SoundType.METAL).requiresCorrectToolForDrops();
     }
 
-    private static <B extends Block> DeferredBlock<B> block(String name, java.util.function.Supplier<B> factory) {
+    private static <B extends Block> DeferredBlock<B> block(String name, boolean creative, java.util.function.Supplier<B> factory) {
         DeferredBlock<B> block = BLOCKS.register(name, factory);
-        ITEMS.registerSimpleBlockItem(block);
+        ITEMS.registerSimpleBlockItem(block, new Item.Properties().rarity(creative ? Rarity.EPIC : Rarity.COMMON));
         TAB_ORDER.add(block);
         return block;
     }
@@ -72,13 +73,13 @@ public final class ModRegistry {
             String name, BiFunction<BlockBehaviour.Properties, Tier, B> factory) {
         Map<Tier, DeferredBlock<B>> map = new EnumMap<>(Tier.class);
         for (Tier tier : Tier.values()) {
-            map.put(tier, block(tier.prefix + name, () -> factory.apply(machineProps(), tier)));
+            map.put(tier, block(tier.prefix + name, tier.creative, () -> factory.apply(machineProps(), tier)));
         }
         return map;
     }
 
     private static DeferredBlock<CableBlock> cable(String name, MapColor color, int rate) {
-        return block(name, () -> new CableBlock(BlockBehaviour.Properties.of().mapColor(color).strength(0.8F)
+        return block(name, rate == Tier.CREATIVE_CABLE_RATE, () -> new CableBlock(BlockBehaviour.Properties.of().mapColor(color).strength(0.8F)
                 .sound(SoundType.COPPER).noOcclusion(), rate));
     }
 
@@ -101,6 +102,8 @@ public final class ModRegistry {
     public static final DeferredBlock<CableBlock> COPPER_CABLE = cable("copper_cable", MapColor.COLOR_ORANGE, Tier.COPPER_CABLE_RATE);
     public static final DeferredBlock<CableBlock> GOLD_CABLE = cable("gold_cable", MapColor.GOLD, Tier.GOLD_CABLE_RATE);
     public static final DeferredBlock<CableBlock> DIAMOND_CABLE = cable("diamond_cable", MapColor.DIAMOND, Tier.DIAMOND_CABLE_RATE);
+
+    public static final DeferredBlock<CableBlock> CREATIVE_CABLE = cable("creative_cable", MapColor.COLOR_MAGENTA, Tier.CREATIVE_CABLE_RATE);
 
     // --- Esyalar ---
     public static final DeferredItem<Item> IRON_DUST = item("iron_dust");
@@ -139,7 +142,7 @@ public final class ModRegistry {
                     .of(CrusherBlockEntity::new, all(CRUSHERS)).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CableBlockEntity>> CABLE_BE =
             BLOCK_ENTITIES.register("cable", () -> BlockEntityType.Builder
-                    .of(CableBlockEntity::new, COPPER_CABLE.get(), GOLD_CABLE.get(), DIAMOND_CABLE.get()).build(null));
+                    .of(CableBlockEntity::new, COPPER_CABLE.get(), GOLD_CABLE.get(), DIAMOND_CABLE.get(), CREATIVE_CABLE.get()).build(null));
 
     // --- Menuler ---
     public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR_MENU =

@@ -16,8 +16,14 @@
     "teknikmod:elite_battery",
     "teknikmod:elite_electric_furnace",
     "teknikmod:elite_crusher",
+    "teknikmod:creative_coal_generator",
+    "teknikmod:creative_solar_panel",
+    "teknikmod:creative_battery",
+    "teknikmod:creative_electric_furnace",
+    "teknikmod:creative_crusher",
     "teknikmod:copper_cable",
     "teknikmod:gold_cable",
-    "teknikmod:diamond_cable"
+    "teknikmod:diamond_cable",
+    "teknikmod:creative_cable"
   ]
 }

@@ -28,6 +28,7 @@ public class SolarPanelBlockEntity extends MachineBlockEntity {
     }
 
     private int currentRate(Level level, BlockPos pos) {
+        if (tier.creative) return tier.solarRate;
         if (!level.dimensionType().hasSkyLight() || !level.isDay() || !level.canSeeSky(pos.above())) return 0;
         return level.isRaining() ? tier.solarRate / 2 : tier.solarRate;
     }

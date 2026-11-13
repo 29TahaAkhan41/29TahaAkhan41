@@ -15,7 +15,8 @@ def save(img, name):
 # kademe: onek, LED rengi, EN/TR ad oneki, yukseltme malzemesi
 TIERS = [("", (200, 210, 226), "", "", None),
          ("advanced_", (255, 200, 50), "Advanced ", "Gelişmiş ", "#c:ingots/gold"),
-         ("elite_", (50, 225, 235), "Elite ", "Elit ", "#c:gems/diamond")]
+         ("elite_", (50, 225, 235), "Elite ", "Elit ", "#c:gems/diamond"),
+         ("creative_", (224, 72, 255), "Creative ", "Yaratıcı ", False)]   # False: tarifi yok
 
 # --- palet: koyu, mat metal ---
 EDGE, DEEP, GLASS = (27, 29, 35), (20, 22, 27), (16, 18, 24)
@@ -53,7 +54,7 @@ def shaped(name, pattern, key, count=1):
         "key": {k: ({"tag": v[1:]} if v.startswith("#") else {"item": v}) for k, v in key.items()},
         "result": {"id": f"{M}:{name}", "count": count}})
 I, C, G, RS = "#c:ingots/iron", "#c:ingots/copper", "#c:ingots/gold", "#c:dusts/redstone"
-SOLAR_CELLS = [((70, 110, 190), (20, 36, 84)), ((70, 150, 235), (16, 50, 120)), ((90, 225, 245), (8, 70, 130))]
+SOLAR_CELLS = [((70, 110, 190), (20, 36, 84)), ((70, 150, 235), (16, 50, 120)), ((90, 225, 245), (8, 70, 130)), ((236, 150, 255), (70, 16, 120))]
 
 for ti, (pre, accent, en_pre, tr_pre, upgrade) in enumerate(TIERS):
     side, top = pre + "machine_side", pre + "machine_top"
@@ -183,7 +184,7 @@ for ti, (pre, accent, en_pre, tr_pre, upgrade) in enumerate(TIERS):
         shaped(bt, ["ICI", "IRI", "IRI"], {"I": I, "C": C, "R": "#c:storage_blocks/redstone"})
         shaped(ef, ["ICI", "RFR", "ICI"], {"I": I, "C": C, "R": RS, "F": "minecraft:furnace"})
         shaped(cr, ["IFI", "PRP", "ICI"], {"I": I, "C": C, "R": RS, "F": "minecraft:flint", "P": "minecraft:piston"})
-    else:  # onceki kademenin etrafina 4 yukseltme malzemesi
+    elif upgrade:  # onceki kademenin etrafina 4 yukseltme malzemesi
         prev = TIERS[ti - 1][0]
         for kind in ("coal_generator", "solar_panel", "battery", "electric_furnace", "crusher"):
             shaped(pre + kind, [" U ", "UMU", " U "], {"U": upgrade, "M": f"{M}:{prev}{kind}"})
@@ -191,7 +192,7 @@ for ti, (pre, accent, en_pre, tr_pre, upgrade) in enumerate(TIERS):
 # --- kablolar ---
 rot = {"north": {}, "east": {"y": 90}, "south": {"y": 180}, "west": {"y": 270}, "up": {"x": 270}, "down": {"x": 90}}
 CABLES = [("copper_cable", (232, 132, 78), "Copper Cable", "Bakır Kablo"), ("gold_cable", (255, 206, 64), "Gold Cable", "Altın Kablo"),
-          ("diamond_cable", (72, 228, 232), "Diamond Cable", "Elmas Kablo")]
+          ("diamond_cable", (72, 228, 232), "Diamond Cable", "Elmas Kablo"), ("creative_cable", (224, 72, 255), "Creative Cable", "Yaratıcı Kablo")]
 for c, base, en_name, tr_name in CABLES:
     # Kablo kollari dokunun ortasindaki 6 piksellik dikey/yatay bandi, cekirdek ise ortadaki 6x6 kareyi kullanir:
     # koyu yalitim + ortada parlak iletken cizgi.
@@ -301,11 +302,13 @@ for name, inp, out, n in (("cobblestone", "minecraft:stone", "minecraft:cobblest
 en.update({"itemGroup.teknikmod": "Teknik Mod", "message.teknikmod.energy": "Energy: %s / %s FE", "message.teknikmod.rate": "Generating: %s FE/t",
            "tooltip.teknikmod.generation": "Generation: %s FE/t", "tooltip.teknikmod.capacity": "Capacity: %s FE", "tooltip.teknikmod.transfer": "Transfer: %s FE/t",
            "tooltip.teknikmod.coal_fuel": "Fuel: Coal, Charcoal, Block of Coal",
-           "tooltip.teknikmod.speed": "Speed: %sx", "tooltip.teknikmod.usage": "Usage: %s FE/t", "message.teknikmod.progress": "Progress: %s%% (%s FE/t)"})
+           "tooltip.teknikmod.speed": "Speed: %sx", "tooltip.teknikmod.usage": "Usage: %s FE/t", "message.teknikmod.progress": "Progress: %s%% (%s FE/t)",
+           "tooltip.teknikmod.creative": "Creative tier: unlimited, needs no fuel or power"})
 tr.update({"itemGroup.teknikmod": "Teknik Mod", "message.teknikmod.energy": "Enerji: %s / %s FE", "message.teknikmod.rate": "Üretim: %s FE/t",
            "tooltip.teknikmod.generation": "Üretim: %s FE/t", "tooltip.teknikmod.capacity": "Kapasite: %s FE", "tooltip.teknikmod.transfer": "Aktarım: %s FE/t",
            "tooltip.teknikmod.coal_fuel": "Yakıt: Kömür, Odun Kömürü, Kömür Bloğu",
-           "tooltip.teknikmod.speed": "Hız: %sx", "tooltip.teknikmod.usage": "Tüketim: %s FE/t", "message.teknikmod.progress": "İlerleme: %%%s (%s FE/t)"})
+           "tooltip.teknikmod.speed": "Hız: %sx", "tooltip.teknikmod.usage": "Tüketim: %s FE/t", "message.teknikmod.progress": "İlerleme: %%%s (%s FE/t)",
+           "tooltip.teknikmod.creative": "Yaratıcı kademe: sınırsız, yakıt ve enerji gerektirmez"})
 w(f"assets/{M}/lang/en_us.json", en); w(f"assets/{M}/lang/tr_tr.json", tr)
 
 # --- loot + etiketler ---

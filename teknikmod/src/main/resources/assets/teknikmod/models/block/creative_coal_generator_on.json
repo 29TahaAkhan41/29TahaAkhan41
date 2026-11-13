@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "teknikmod:block/creative_machine_top",
+    "front": "teknikmod:block/creative_coal_generator_front_on",
+    "side": "teknikmod:block/creative_machine_side"
+  }
+}

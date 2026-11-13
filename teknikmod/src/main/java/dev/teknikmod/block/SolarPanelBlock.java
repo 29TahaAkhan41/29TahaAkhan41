@@ -35,6 +35,7 @@ public class SolarPanelBlock extends MachineBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+        if (creativeTooltip(tooltip)) return;
         tooltip.add(Component.translatable("tooltip.teknikmod.generation", tier.solarRate).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.teknikmod.capacity", tier.solarCapacity).withStyle(ChatFormatting.GRAY));
     }

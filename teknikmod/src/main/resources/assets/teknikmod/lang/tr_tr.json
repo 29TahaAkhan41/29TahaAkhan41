@@ -14,9 +14,15 @@
   "block.teknikmod.elite_battery": "Elit Batarya",
   "block.teknikmod.elite_electric_furnace": "Elit Elektrikli Fırın",
   "block.teknikmod.elite_crusher": "Elit Öğütücü",
+  "block.teknikmod.creative_coal_generator": "Yaratıcı Kömür Jeneratörü",
+  "block.teknikmod.creative_solar_panel": "Yaratıcı Güneş Paneli",
+  "block.teknikmod.creative_battery": "Yaratıcı Batarya",
+  "block.teknikmod.creative_electric_furnace": "Yaratıcı Elektrikli Fırın",
+  "block.teknikmod.creative_crusher": "Yaratıcı Öğütücü",
   "block.teknikmod.copper_cable": "Bakır Kablo",
   "block.teknikmod.gold_cable": "Altın Kablo",
   "block.teknikmod.diamond_cable": "Elmas Kablo",
+  "block.teknikmod.creative_cable": "Yaratıcı Kablo",
   "item.teknikmod.iron_dust": "Demir Tozu",
   "item.teknikmod.gold_dust": "Altın Tozu",
   "item.teknikmod.copper_dust": "Bakır Tozu",
@@ -29,5 +35,6 @@
   "tooltip.teknikmod.coal_fuel": "Yakıt: Kömür, Odun Kömürü, Kömür Bloğu",
   "tooltip.teknikmod.speed": "Hız: %sx",
   "tooltip.teknikmod.usage": "Tüketim: %s FE/t",
-  "message.teknikmod.progress": "İlerleme: %%%s (%s FE/t)"
+  "message.teknikmod.progress": "İlerleme: %%%s (%s FE/t)",
+  "tooltip.teknikmod.creative": "Yaratıcı kademe: sınırsız, yakıt ve enerji gerektirmez"
 }

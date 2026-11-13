@@ -30,6 +30,13 @@ public abstract class MachineBlock extends Block implements EntityBlock {
         return tier;
     }
 
+    /** Yaratici kademede sayilar yerine tek satir aciklama ekler. */
+    protected boolean creativeTooltip(java.util.List<Component> tooltip) {
+        if (!tier.creative) return false;
+        tooltip.add(Component.translatable("tooltip.teknikmod.creative").withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
+        return true;
+    }
+
     public static Tier tierOf(BlockState state) {
         return state.getBlock() instanceof MachineBlock machine ? machine.tier : Tier.BASIC;
     }

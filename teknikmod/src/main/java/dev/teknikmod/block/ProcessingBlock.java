@@ -75,6 +75,7 @@ public class ProcessingBlock extends MachineBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+        if (creativeTooltip(tooltip)) return;
         tooltip.add(Component.translatable("tooltip.teknikmod.speed", tier.machineSpeed).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.teknikmod.usage", tier.machineUse).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.teknikmod.capacity", tier.machineCapacity).withStyle(ChatFormatting.GRAY));

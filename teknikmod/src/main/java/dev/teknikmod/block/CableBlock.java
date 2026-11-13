@@ -124,6 +124,10 @@ public class CableBlock extends Block implements EntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+        if (transferRate == Integer.MAX_VALUE) {
+            tooltip.add(Component.translatable("tooltip.teknikmod.creative").withStyle(ChatFormatting.LIGHT_PURPLE));
+            return;
+        }
         tooltip.add(Component.translatable("tooltip.teknikmod.transfer", transferRate).withStyle(ChatFormatting.GRAY));
     }
 }

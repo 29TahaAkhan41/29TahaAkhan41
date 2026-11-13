@@ -53,7 +53,7 @@ public class CoalGeneratorMenu extends AbstractContainerMenu {
     public int burnTimeTotal() { return data.get(1); }
     public int energy() { return (data.get(2) & 0xFFFF) | (data.get(3) << 16); }
     public int maxEnergy() { return (data.get(4) & 0xFFFF) | (data.get(5) << 16); }
-    public int rate() { return data.get(6); }
+    public int rate() { return (data.get(6) & 0xFFFF) | (data.get(7) << 16); }
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {

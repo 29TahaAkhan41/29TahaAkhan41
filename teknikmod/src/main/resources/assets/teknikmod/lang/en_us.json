@@ -14,9 +14,15 @@
   "block.teknikmod.elite_battery": "Elite Battery",
   "block.teknikmod.elite_electric_furnace": "Elite Electric Furnace",
   "block.teknikmod.elite_crusher": "Elite Crusher",
+  "block.teknikmod.creative_coal_generator": "Creative Coal Generator",
+  "block.teknikmod.creative_solar_panel": "Creative Solar Panel",
+  "block.teknikmod.creative_battery": "Creative Battery",
+  "block.teknikmod.creative_electric_furnace": "Creative Electric Furnace",
+  "block.teknikmod.creative_crusher": "Creative Crusher",
   "block.teknikmod.copper_cable": "Copper Cable",
   "block.teknikmod.gold_cable": "Gold Cable",
   "block.teknikmod.diamond_cable": "Diamond Cable",
+  "block.teknikmod.creative_cable": "Creative Cable",
   "item.teknikmod.iron_dust": "Iron Dust",
   "item.teknikmod.gold_dust": "Gold Dust",
   "item.teknikmod.copper_dust": "Copper Dust",
@@ -29,5 +35,6 @@
   "tooltip.teknikmod.coal_fuel": "Fuel: Coal, Charcoal, Block of Coal",
   "tooltip.teknikmod.speed": "Speed: %sx",
   "tooltip.teknikmod.usage": "Usage: %s FE/t",
-  "message.teknikmod.progress": "Progress: %s%% (%s FE/t)"
+  "message.teknikmod.progress": "Progress: %s%% (%s FE/t)",
+  "tooltip.teknikmod.creative": "Creative tier: unlimited, needs no fuel or power"
 }
