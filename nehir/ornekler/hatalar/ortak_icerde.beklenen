@@ -1,0 +1,4 @@
+ornekler/hatalar/ortak_icerde.nehir:2:16: hata: 'ortak' yalnızca en üst düzeyde, değişken tanımlanırken yazılır
+    2 |     1 -> ortak x
+      |                ^
+      = ipucu: 'x' zaten ortaksa işlev içinde doğrudan atanır:  değer -> x

@@ -20,6 +20,7 @@
     "işlev": "işlev", "islev": "işlev", "fonksiyon": "işlev", "fn": "işlev",
     "kayıt": "kayıt", "kayit": "kayıt", "record": "kayıt",
     "kullan": "kullan", "use": "kullan", "import": "kullan",
+    "ortak": "ortak", "shared": "ortak",
     "yok": "yok", "none": "yok",
     "döndür": "döndür", "dondur": "döndür", "return": "döndür",
     "yazdır": "yazdır", "yazdir": "yazdır", "print": "yazdır",
@@ -48,11 +49,11 @@
 [] -> s_uzunluk
 [] -> s_yeni        # sözcük, satırının ilk sözcüğü mü?
 
-"" -> l_dosya
-[""] -> l_kr        # kaynağın karakterleri
-1 -> l_satır
-0 -> l_satır_başı   # geçerli satırın ilk karakterinin dizini
-0 -> l_son_satır    # en son sözcüğün satırı; ';' sıfırlar
+"" -> ortak l_dosya
+[""] -> ortak l_kr        # kaynağın karakterleri
+1 -> ortak l_satır
+0 -> ortak l_satır_başı   # geçerli satırın ilk karakterinin dizini
+0 -> ortak l_son_satır    # en son sözcüğün satırı; ';' sıfırlar
 
 # ── yardımcılar ──
 

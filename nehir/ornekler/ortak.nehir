@@ -1,0 +1,41 @@
+# İşlevler üst düzey değişkenleri okuyabilir ama onlara atama yapamaz:
+# işlev içindeki atama her zaman yerel bir değişken oluşturur. Böylece bir
+# işlevin içindeki `i` ya da `toplam`, programın aynı adlı değişkenini bozmaz.
+
+0 -> i
+işlev kareler_toplamı(n) {
+    0 -> toplam
+    0 -> i                  # bu i yereldir; üstteki i değişmez
+    i < n -> iken {
+        toplam + i * i -> toplam
+        i + 1 -> i
+    }
+    toplam -> döndür
+}
+i < 3 -> iken {
+    kareler_toplamı(4) -> yazdır
+    i + 1 -> i
+}
+i -> yazdır
+
+# İşlevlerin değiştirmesi istenen durum `ortak` ile açıkça tanımlanır.
+0 -> ortak sayaç
+"" -> ortak günlük
+
+işlev say(olay) {
+    sayaç + 1 -> sayaç
+    günlük + metne(sayaç) + ". " + olay + "\n" -> günlük
+}
+say("başladı")
+say("çalışıyor")
+say("bitti")
+sayaç -> yazdır
+günlük -> yazdır
+
+# Listeler, sözlükler ve kayıtlar paylaşıldığı için içlerini değiştirmek için
+# `ortak` gerekmez; yalnızca değişkenin kendisine yeni değer atamak için gerekir.
+[] -> kayıtlar
+işlev kaydet(m) { kayıtlar -> ekle(m) }
+kaydet("a")
+kaydet("b")
+kayıtlar -> yazdır

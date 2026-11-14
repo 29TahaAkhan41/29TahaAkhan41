@@ -1,0 +1,5 @@
+0
+ornekler/hatalar/ortak_golge.nehir:3:10: uyarı: 'toplam' burada yerel bir değişken oluşturuyor ve hiç okunmuyor; aynı adlı üst düzey değişken değişmez
+    3 |     n -> toplam
+      |          ^^^^^^
+      = ipucu: üst düzey değişkeni değiştirmek için onu 'ortak' ile tanımlayın:  değer -> ortak toplam

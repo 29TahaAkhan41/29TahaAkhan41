@@ -134,6 +134,7 @@ Terminalde mesajlar renklidir; `NO_COLOR` ortam değişkeni renkleri kapatır.
 | `işlev`, `fonksiyon` | `islev` | `fn` |
 | `kayıt` | `kayit` | `record` |
 | `kullan` | | `use`, `import` |
+| `ortak` | | `shared` |
 | `yok` | | `none` |
 | `döndür` | `dondur` | `return` |
 | `yazdır` | `yazdir` | `print` |
@@ -298,7 +299,18 @@ ona gider; bir parametre de aynı adlı işlevi o işlevin içinde gölgeler. Te
 ya da işlev içinde *atamayla* doğan bir değişkene yerleşik işlev adı verilemez, çünkü
 `değer -> uzunluk` yazımı değeri işleve akıtmak demektir.
 
-**Kapsam:** En üst düzeyde atanan değişkenler küreseldir. İşlev içinde ilk kez atanan adlar yereldir.
+**Kapsam:** En üst düzeyde atanan değişkenler küreseldir ve işlevler onları okuyabilir. İşlev içindeki
+atama ise her zaman yerel bir değişken oluşturur; böylece bir işlevin `i`'si ya da `toplam`'ı programın
+aynı adlı değişkenini bozmaz. İşlevlerin değiştirmesi istenen üst düzey değişkenler `ortak` ile tanımlanır:
+
+```nehir
+0 -> ortak sayaç
+işlev say() { sayaç + 1 -> sayaç }      # ortak olmasaydı derleme hatası olurdu
+```
+
+Bir işlev üst düzey bir değişkeni okuyup sonra aynı ada atama yaparsa (büyük olasılıkla `ortak` unutulmuştur)
+derleyici hata verir. Listelerin, sözlüklerin ve kayıtların *içini* değiştirmek (`ekle`, `l[i]`, `k.alan`)
+için `ortak` gerekmez; yalnızca değişkenin kendisine yeni değer atamak için gerekir.
 
 **Satırlar:** Deyimler arasında ayırıcı gerekmez. Tek kural: çağrı `f(...)` ve eleman erişimi
 `l[...]` için parantez adla aynı satırda olmalıdır. Aynı satıra birden çok deyim yazarken `;` kullanılabilir.

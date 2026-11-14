@@ -1,0 +1,4 @@
+işlev f() {
+    1 -> ortak x
+}
+f()

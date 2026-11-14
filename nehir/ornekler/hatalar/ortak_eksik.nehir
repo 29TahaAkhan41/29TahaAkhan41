@@ -1,0 +1,7 @@
+0 -> sayaç
+
+işlev artır() {
+    sayaç + 1 -> sayaç
+}
+artır()
+sayaç -> yazdır

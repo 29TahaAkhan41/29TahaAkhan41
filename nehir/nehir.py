@@ -55,6 +55,7 @@ ANAHTARLAR = {
     "işlev": "işlev", "islev": "işlev", "fonksiyon": "işlev", "fn": "işlev",
     "kayıt": "kayıt", "kayit": "kayıt", "record": "kayıt",
     "kullan": "kullan", "use": "kullan", "import": "kullan",
+    "ortak": "ortak", "shared": "ortak",
     "yok": "yok", "none": "yok",
     "döndür": "döndür", "dondur": "döndür", "return": "döndür",
     "yazdır": "yazdır", "yazdir": "yazdır", "print": "yazdır",
@@ -216,6 +217,7 @@ def sözcükle(kaynak, dosya=0):
 #   ("yazdır", satır)  ("döndür", satır)  ("ad", ad, argümanlar|None, satır)
 #   ("eleman", kap_ifadesi, dizin_ifadesi, satır) değer -> liste[dizin], değer -> sözlük[anahtar]
 #   ("alan_yaz", kayıt_ifadesi, alan_adı, satır)  değer -> kayıt.alan
+#   ("ortak", ad, satır)                          değer -> ortak ad
 #   ("eğer", blok, değilse_blok|None, satır)  ("iken", blok, satır)
 #   ("her", değişken, blok, satır)                liste -> her (x) { ... }
 #   ("çatal", [[hedefler], [hedefler], ...], satır)   değer -> (a | b -> c)
@@ -376,6 +378,9 @@ class Ayrıştırıcı:
             return ("yazdır", s.satır)
         if self.al("ANAHTAR", "döndür"):
             return ("döndür", s.satır)
+        if self.al("ANAHTAR", "ortak"):
+            ad = self.bekle("AD")
+            return ("ortak", ad.değer, ad.satır)
         if self.al("ANAHTAR", "eğer"):
             blok = self.blok()
             değilse = self.blok() if self.al("ANAHTAR", "değilse") else None
@@ -537,6 +542,8 @@ class Ayrıştırıcı:
                      + ("liste" if s.değer == "her" else "koşul" if s.değer in ("eğer", "iken") else "değer")
                      + f" -> {s.yazım}" + (" (x) { ... }" if s.değer == "her" else
                                            " { ... }" if s.değer in ("eğer", "iken") else ""))
+        elif s.tür == "ANAHTAR" and s.değer == "ortak":
+            ipucu = f"'{s.yazım}' bir hedefin başına yazılır:  değer -> {s.yazım} ad"
         elif s.tür == "ANAHTAR" and s.değer in ("kullan", "işlev", "kayıt"):
             ipucu = f"'{s.yazım}' yalnızca dosyanın en üst düzeyinde kullanılabilir"
         elif s.tür == "ANAHTAR" and s.değer == "değilse":
@@ -2167,6 +2174,8 @@ class KodÜretici:
                     değişti = True
         # Değişken kayıtları: [yer, tür|None, ilk atamanın konumu, okundu mu]
         self.küreseller = {}      # ad -> kayıt (yer = etiket)
+        self.ortaklar = set()     # işlevlerin de atayabildiği (`ortak` ile tanımlanmış) küreseller
+        self.okunan_küreseller = {}   # derlenen işlevde okunan küreseller: ad -> ilk okunduğu yer
         self.metinler = []        # bayt dizileri
         self.tür_etiketleri = {}  # yapısal tür anahtarı -> tanımın etiketi
         self.tür_tanımları = []   # rodata satırları
@@ -2401,6 +2410,12 @@ class KodÜretici:
         for ad, (_, _, konum, okundu) in değişkenler.items():
             if okundu or konum is None:
                 continue
+            if değişkenler is not self.küreseller and ad in self.küreseller:
+                self.uyarılar.append((
+                    konum, f"'{ad}' burada yerel bir değişken oluşturuyor ve hiç okunmuyor; "
+                           f"aynı adlı üst düzey değişken değişmez",
+                    f"üst düzey değişkeni değiştirmek için onu 'ortak' ile tanımlayın:  değer -> ortak {ad}"))
+                continue
             # Yanlış alarm vermemek için yalnızca çok yakın adlar sayılır:
             # 'sayılar' ile 'sayıya' benzer ama kasıtlı bir değişken adıdır.
             sınır = 1 if len(ad) < 8 else 2
@@ -2432,6 +2447,9 @@ class KodÜretici:
                 self.küreselleri_topla(h[2] or [])
             elif h[0] == "iken":
                 self.küreselleri_topla(h[1])
+            elif h[0] == "ortak":
+                küresel(h[1])
+                self.ortaklar.add(h[1])
             elif h[0] == "her":
                 küresel(h[1])
                 self.küreselleri_topla(h[2])
@@ -2445,18 +2463,18 @@ class KodÜretici:
         b = self.bilgi[ad]
         n = len(parametreler)
         saklanan = (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
-                    self.döngüler, self.çatal_derinliği)
+                    self.döngüler, self.çatal_derinliği, self.okunan_küreseller)
         # Argümanlar soldan sağa itilir: ilk argüman en derinde durur.
         self.yereller = {p: [16 + 8 * (n - 1 - i), b["türler"][i], None, True]
                          for i, p in enumerate(parametreler)}
         self.çıktı, self.geçerli, self.yerel_sayısı = [], ad, 0
-        self.döngüler, self.çatal_derinliği = [], 0
+        self.döngüler, self.çatal_derinliği, self.okunan_küreseller = [], 0, {}
         for d in gövde:
             self.deyim(d)
         gövde_kodu, yerel_sayısı = self.çıktı, self.yerel_sayısı
         self.okunmayanları_bildir(self.yereller)
         (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
-         self.döngüler, self.çatal_derinliği) = saklanan
+         self.döngüler, self.çatal_derinliği, self.okunan_küreseller) = saklanan
 
         if b["dönüş"] is None:
             b["dönüş"] = "sayı"     # hiç 'döndür' yok: işlev 0 döndürür
@@ -2630,6 +2648,14 @@ class KodÜretici:
                 self.yaz("call __sozluk_koy")
             self.yaz("pop rax")
             return tür
+        if tip == "ortak":
+            if self.geçerli is not None:
+                raise NehirHatası("'ortak' yalnızca en üst düzeyde, değişken tanımlanırken yazılır", satır,
+                                  f"'{h[1]}' zaten ortaksa işlev içinde doğrudan atanır:  değer -> {h[1]}")
+            if self.çağrılabilir(h[1]):
+                raise NehirHatası(f"'{h[1]}' bir işlev ya da kayıt adı; değişken adı olamaz", satır)
+            self.ata(h[1], tür, satır)
+            return tür
         if tip == "alan_yaz":
             self.yaz("push rax")                    # [rsp] = yazılacak değer
             sıra, alan_türü = self.alan_bul(self.ifade(h[1]), h[2], satır)
@@ -2692,8 +2718,18 @@ class KodÜretici:
         return None, None
 
     def ata(self, ad, tür, satır):
+        # İşlev içindeki atama yerel değişken oluşturur. Tek istisna `ortak` ile
+        # tanımlanmış üst düzey değişkenlerdir: onlara işlevler de atayabilir.
+        if self.yereller is not None and ad not in self.yereller and ad not in self.ortaklar:
+            if ad in self.okunan_küreseller:
+                raise NehirHatası(
+                    f"'{ad}' bu işlevde üst düzey değişken olarak okundu; ona burada atanamaz", satır,
+                    f"işlevlerin değiştirebildiği değişkenler 'ortak' ile tanımlanır:  değer -> ortak {ad}",
+                    ilgili=self.küreseller[ad][2], ilgili_not=f"'{ad}' burada tanımlanmış")
+            self.yerel_sayısı += 1
+            self.yereller[ad] = [-8 * self.yerel_sayısı, None, None, False]
         kayıt, adres = self.değişken_kaydı(ad)
-        if kayıt is None:       # işlev içinde ilk kez atanan ad: yeni yerel
+        if kayıt is None:       # (yalnızca en üst düzeyde olmaz; küreseller önceden toplanır)
             self.yerel_sayısı += 1
             self.yereller[ad] = [-8 * self.yerel_sayısı, None, None, False]
             kayıt, adres = self.değişken_kaydı(ad)
@@ -2968,6 +3004,8 @@ class KodÜretici:
                 raise NehirHatası(f"'{e[1]}' adında bir değişken yok", satır,
                                   benzerler(e[1], self.bilinen_değişkenler()))
             kayıt[3] = True
+            if self.yereller is not None and e[1] not in self.yereller:
+                self.okunan_küreseller.setdefault(e[1], satır)
             self.yaz(f"mov rax, {adres}")
             return kayıt[1]
         if tip == "çağrı":
@@ -3239,6 +3277,8 @@ def ağaç_dökümü(kaynak):
             return (t, "", 0, [ifade(h[1]), ifade(h[2])], k)
         if t == "alan_yaz":
             return (t, h[2], 0, [ifade(h[1])], k)
+        if t == "ortak":
+            return (t, h[1], 0, [], k)
         if t == "eğer":
             return (t, "", 0, [blok(h[1], k)] + ([] if h[2] is None else [blok(h[2], k)]), k)
         if t == "iken":

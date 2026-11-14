@@ -1,0 +1,6 @@
+0 -> toplam
+işlev ekle_toplam(n) {
+    n -> toplam
+}
+ekle_toplam(5)
+toplam -> yazdır
