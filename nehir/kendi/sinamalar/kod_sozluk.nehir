@@ -1,0 +1,37 @@
+# Sözlükler: yazım, okuma, yazma, her, yerleşikler, iç içe türler
+{"elma": 3, "armut": 5} -> stok -> yazdır
+stok["elma"] + 1 -> stok["elma"]
+7 -> stok["kiraz"]
+stok -> uzunluk -> yazdır
+stok -> var("muz") -> yazdır
+stok -> var("kiraz") -> yazdır
+stok -> sil("armut") -> yazdır
+stok -> anahtarlar -> yazdır
+stok -> değerler -> yazdır
+stok -> her (m) { m + "=" + metne(stok[m]) -> yazdır }
+{} -> boş
+boş -> yazdır
+{} -> sayılar
+"su akar su" -> böl(" ") -> her (k) {
+    sayılar -> var(k) -> eğer { sayılar[k] + 1 -> sayılar[k] } değilse { 1 -> sayılar[k] }
+}
+sayılar -> yazdır
+{1: ["a"], 2: []} -> gruplar
+gruplar[2] -> ekle("b")
+"c" -> gruplar[1][0]
+gruplar -> yazdır
+{"x": {"y": [1, 2]}} -> derin
+9 -> derin["x"]["y"][1]
+derin -> yazdır
+[{"a": 1}, {}] -> liste_sözlük -> yazdır
+liste_sözlük[1] -> uzunluk -> yazdır
+{"k": 1,} -> sonda_virgül -> yazdır
+işlev ters(d) {
+    {} -> s
+    d -> her (k) { k -> s[d[k]] }
+    s -> döndür
+}
+{"bir": 1, "iki": 2} -> ters -> yazdır
+{} -> geç
+geç["a"] -> x
+x + 1 -> yazdır_değil
