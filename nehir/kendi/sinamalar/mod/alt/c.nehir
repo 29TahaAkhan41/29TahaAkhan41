@@ -1,0 +1,5 @@
+kullan "../b.nehir"
+kayıt Nokta { x: sayı, y: sayı }
+işlev c_işlevi(n) { n + 1 -> döndür }
+işlev böl_c(a, b) { a / b -> döndür }
+"c yüklendi" -> yazdır

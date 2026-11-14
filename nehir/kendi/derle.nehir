@@ -20,10 +20,11 @@ işlev ana() {
     a[0] -> l_dosya
     [l_dosya, çalışma_zamanı_yolu] -> her (yol) {
         değil dosya_var(yol) -> eğer {
-            yol + ": hata: dosya okunamadı" -> uyar
+            yol + ": hata: dosya okunamadı: dosya bulunamadı" -> uyar
             çık(1)
         }
     }
+    doğru -> a_modül_yükle
     l_dosya -> dosya_oku -> sözcükle
     program() -> üret(dosya_oku(çalışma_zamanı_yolu)) -> dosya_yaz(a[1])
 }

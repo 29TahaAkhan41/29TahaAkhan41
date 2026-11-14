@@ -22,29 +22,32 @@ kullan "sozcukleyici.nehir"
 
 kayıt Düğüm {
     tür: metin, ad: metin, sayı: sayı, çocuklar: [Düğüm],
-    satır: sayı, sütun: sayı, uzunluk: sayı
+    satır: sayı, sütun: sayı, uzunluk: sayı, dosya: sayı
 }
 
 # ── durum ──
 
 0 -> ortak a_k            # sıradaki sözcüğün dizini
+[] -> a_dosyalar          # derlemedeki dosyalar, numaralarına göre (0 ana dosya)
+{} -> a_yüklenen          # yüklenmiş dosyalar (normalleştirilmiş yol)
+yanlış -> ortak a_modül_yükle   # `kullan` modülü yüklesin mi, yoksa düğüm olarak mı kalsın
 [] -> a_işlevler    # işlev düğümleri, tanımlanma sırasıyla
 [] -> a_kayıtlar    # kayıt düğümleri
 {} -> a_adlar       # tanımlı ad -> "işlev" ya da "kayıt"
 
 # ── yardımcılar ──
 
-işlev hata_yer(mesaj, satır, sütun) {
-    l_dosya + ":" + metne(satır) + ":" + metne(sütun) + ": hata: " + mesaj -> uyar
+işlev hata_yer(mesaj, dosya, satır, sütun) {
+    a_dosyalar[dosya] + ":" + metne(satır) + ":" + metne(sütun) + ": hata: " + mesaj -> uyar
     çık(1)
 }
 
 # k. sözcüğün konumunda hata verir.
-işlev hata_sözcükte(mesaj, k) { hata_yer(mesaj, s_satır[k], s_sütun[k]) }
+işlev hata_sözcükte(mesaj, k) { hata_yer(mesaj, s_dosya[k], s_satır[k], s_sütun[k]) }
 
 # Konumu k. sözcükten alan, çocuksuz yeni bir düğüm.
 işlev düğüm(tür, ad, k) {
-    Düğüm(tür, ad, 0, [], s_satır[k], s_sütun[k], s_uzunluk[k]) -> döndür
+    Düğüm(tür, ad, 0, [], s_satır[k], s_sütun[k], s_uzunluk[k], s_dosya[k]) -> döndür
 }
 
 işlev bulunan() {
@@ -289,7 +292,7 @@ işlev dal(konum_k) {
     değil sonlandıran_mı(h.tür) -> eğer { zincir(d) }
     d.çocuklar -> her (x) {
         x.tür == "iken" veya x.tür == "her" -> eğer {
-            hata_yer("çatalın kolunda '" + x.tür + "' kullanılamaz", x.satır, x.sütun)
+            hata_yer("çatalın kolunda '" + x.tür + "' kullanılamaz", x.dosya, x.satır, x.sütun)
         }
     }
     d -> döndür
@@ -456,10 +459,22 @@ işlev birincil() {
 # ── program ──
 
 # Bütün dosyayı ayrıştırır. Kök düğümün çocukları: önce kayıtlar, sonra işlevler,
-# sonra üst düzey deyimler. `kullan` burada yalnızca bir düğümdür; modülleri
-# yüklemek sonraki aşamanın işidir.
+# sonra üst düzey deyimler. a_modül_yükle doğruysa `kullan` edilen modüller o noktada
+# yüklenir: işlevleri ve kayıtları ortak listelere girer, üst düzey deyimleri araya
+# eklenir. Değilse (ağaç dökümünde) `kullan` yalnızca bir düğüm olarak kalır.
 işlev program() {
-    Düğüm("program", "", 0, [], 0, 0, 0) -> kök
+    uzunluk(a_dosyalar) == 0 -> eğer {
+        a_dosyalar -> ekle(l_dosya)
+        1 -> a_yüklenen[normal_yol(l_dosya)]
+    }
+    Düğüm("program", "", 0, [], 0, 0, 0, 0) -> kök
+    üst_düzey() -> deyimler
+    a_kayıtlar + a_işlevler + deyimler -> kök.çocuklar
+    kök -> döndür
+}
+
+# Sıradaki sözcükten dosyanın SON'una dek üst düzeyi ayrıştırır; deyimleri verir.
+işlev üst_düzey() {
     [] -> deyimler
     değil bak("SON", "") -> iken {
         bak("ANAHTAR", "işlev") -> eğer {
@@ -473,13 +488,91 @@ işlev program() {
         a_k -> k
         al("ANAHTAR", "kullan") -> eğer {
             bekle("METİN", "") -> yol_k
-            deyimler -> ekle(düğüm("kullan", s_değer[yol_k], yol_k))
+            a_modül_yükle -> eğer { deyimler + modül_yükle(s_değer[yol_k], yol_k) -> deyimler } değilse {
+                deyimler -> ekle(düğüm("kullan", s_değer[yol_k], yol_k))
+            }
             devam
         }
         deyimler -> ekle(deyim())
     }
-    a_kayıtlar + a_işlevler + deyimler -> kök.çocuklar
-    kök -> döndür
+    deyimler -> döndür
+}
+
+# ── modüller ──
+
+# Modülü yükler ve üst düzey deyimlerini verir. Yol, `kullan` yazan dosyanın dizinine
+# göredir. Her modül bir kez yüklenir; modüller birbirini karşılıklı kullanabilir.
+işlev modül_yükle(ad, k) {
+    normal_yol(yol_birleştir(dizin_adı(a_dosyalar[s_dosya[k]]), ad)) -> yol
+    a_yüklenen -> var(yol) -> eğer { [] -> döndür }
+    1 -> a_yüklenen[yol]
+    değil dosya_var(yol) -> eğer { hata_sözcükte("'" + yol + "' modülü okunamadı: dosya bulunamadı", k) }
+
+    a_k -> saklı_k
+    l_dosya -> saklı_dosya
+    yol -> l_dosya
+    uzunluk(a_dosyalar) -> l_dosya_no
+    a_dosyalar -> ekle(yol)
+    uzunluk(s_tür) -> a_k                # modülün sözcükleri listelerin sonuna eklenir
+    yol -> dosya_oku -> sözcükle
+    üst_düzey() -> deyimler
+    saklı_k -> a_k
+    saklı_dosya -> l_dosya
+    deyimler -> döndür
+}
+
+# Yol işlemleri (Python'un posixpath.dirname, join ve normpath'inin karşılıkları)
+
+işlev dizin_adı(yol) {
+    -1 -> son
+    0 -> i
+    yol -> her (k) {
+        k == "/" -> eğer { i -> son }
+        i + 1 -> i
+    }
+    dilim(yol, 0, son + 1) -> baş
+    # Sondaki '/'ler atılır; yalnızca '/'den oluşuyorsa (kök) olduğu gibi kalır.
+    uzunluk(baş) -> n
+    n > 0 -> eğer {
+        doğru -> hep_ayraç
+        baş -> her (k) { k != "/" -> eğer { yanlış -> hep_ayraç } }
+        değil hep_ayraç -> eğer {
+            n > 0 ve baş[n - 1] == "/" -> iken { n - 1 -> n }
+            dilim(baş, 0, n) -> baş
+        }
+    }
+    baş -> döndür
+}
+
+işlev yol_birleştir(a, b) {
+    dilim(b, 0, 1) == "/" -> eğer { b -> döndür }
+    a == "" -> eğer { b -> döndür }
+    dilim(a, uzunluk(a) - 1, uzunluk(a)) == "/" -> eğer { a + b -> döndür }
+    a + "/" + b -> döndür
+}
+
+işlev normal_yol(yol) {
+    yol == "" -> eğer { "." -> döndür }
+    0 -> başta
+    dilim(yol, 0, 1) == "/" -> eğer {
+        1 -> başta
+        dilim(yol, 0, 2) == "//" ve dilim(yol, 0, 3) != "///" -> eğer { 2 -> başta }
+    }
+    [] -> parçalar
+    yol -> böl("/") -> her (p) {
+        p == "" veya p == "." -> eğer { devam }
+        p != ".." veya (başta == 0 ve uzunluk(parçalar) == 0)
+            veya (uzunluk(parçalar) > 0 ve parçalar[uzunluk(parçalar) - 1] == "..") -> eğer {
+            parçalar -> ekle(p)
+        } değilse {
+            uzunluk(parçalar) > 0 -> eğer { parçalar -> sil(uzunluk(parçalar) - 1) }
+        }
+    }
+    birleş(parçalar, "/") -> sonuç
+    başta == 1 -> eğer { "/" + sonuç -> sonuç }
+    başta == 2 -> eğer { "//" + sonuç -> sonuç }
+    sonuç == "" -> eğer { "." -> döndür }
+    sonuç -> döndür
 }
 
 # ── döküm ──

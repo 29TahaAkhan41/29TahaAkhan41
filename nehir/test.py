@@ -107,19 +107,10 @@ def kendi_derleyiciyi_sına(geçici, kaynaklar):
 
 def kendini_derlemeyi_sına(geçici):
     """Nehir ile yazılmış derleyici kendini derleyebilmelidir:
-      1. nehir.py derleyicinin kaynağını derler                          -> derle1
-      2. derle1 aynı kaynağı derler; çıktı nehir.py'ninkiyle aynı olmalı   -> derle2
-      3. derle2 aynı kaynağı yeniden derler; çıktı değişmemeli (sabit nokta)
-    Modüller henüz taşınmadığı için derleyicinin dosyaları `kullan` satırları
-    olmadan tek dosyada birleştirilir."""
-    parçalar = ["sozcukleyici.nehir", "ayristirici.nehir", "kod_uretici.nehir", "derle.nehir"]
-    kaynak = ""
-    for parça in parçalar:
-        with open(os.path.join(KÖK, "kendi", parça), encoding="utf-8") as f:
-            kaynak += "".join(satır for satır in f if not satır.startswith("kullan "))
-    yol = os.path.join(geçici, "derle_tek.nehir")
-    with open(yol, "w", encoding="utf-8") as f:
-        f.write(kaynak)
+      1. nehir.py, kendi/derle.nehir'i (ve kullandığı modülleri) derler      -> derle1
+      2. derle1 aynı kaynağı derler; çıktı nehir.py'ninkiyle aynı olmalı     -> derle2
+      3. derle2 aynı kaynağı yeniden derler; çıktı değişmemeli (sabit nokta)"""
+    kaynak = "kendi/derle.nehir"
     çz = os.path.join(KÖK, "calisma_zamani.s")
 
     def çevir(s_dosyası, ikili):
@@ -131,7 +122,7 @@ def kendini_derlemeyi_sına(geçici):
             return f.read()
 
     s1, s2, s3 = (os.path.join(geçici, f"derle{i}.s") for i in (1, 2, 3))
-    p = subprocess.run([sys.executable, "nehir.py", yol, "--asm", "-o", s1], cwd=KÖK,
+    p = subprocess.run([sys.executable, "nehir.py", kaynak, "--asm", "-o", s1], cwd=KÖK,
                        capture_output=True, text=True, encoding="utf-8")
     if p.returncode != 0:
         print("BAŞARISIZ kendini derleme: nehir.py derleyicinin kaynağını derleyemedi:", p.stderr.split("\n")[0])
@@ -139,7 +130,7 @@ def kendini_derlemeyi_sına(geçici):
     for kaynak_s, ikili, hedef_s in ((s1, "derle1", s2), (s2, "derle2", s3)):
         ikili = os.path.join(geçici, ikili)
         çevir(kaynak_s, ikili)
-        n = subprocess.run([ikili, yol, hedef_s, çz], capture_output=True, text=True, encoding="utf-8")
+        n = subprocess.run([ikili, kaynak, hedef_s, çz], cwd=KÖK, capture_output=True, text=True, encoding="utf-8")
         if n.returncode != 0:
             print(f"BAŞARISIZ kendini derleme: {os.path.basename(ikili)} kendi kaynağını derleyemedi:",
                   n.stderr.split("\n")[0])

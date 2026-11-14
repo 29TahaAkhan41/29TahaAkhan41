@@ -17,7 +17,8 @@
 #   - bütün yerleşik işlevler
 #   - kayıtlar: tanım (alan türü yazımları dahil), kurma, alan okuma ve yazma, yok
 #   - işlev değerleri: değer olarak verme, değişken üzerinden çağrı, kimlikle karşılaştırma
-# Henüz yok: modüller; derleyici uyarıları.
+#   - modüller (yükleme ayrıştırıcıda yapılır)
+# Henüz yok: derleyici uyarıları.
 #
 #   kullan "kod_uretici.nehir"
 #   l_dosya -> dosya_oku -> sözcükle
@@ -306,10 +307,10 @@ işlev ham_listesi(türler) {
 
 # ── yardımcılar ──
 
-işlev k_hata(mesaj, d) { hata_yer(mesaj, d.satır, d.sütun) }
+işlev k_hata(mesaj, d) { hata_yer(mesaj, d.dosya, d.satır, d.sütun) }
 
 işlev desteklenmiyor(ne, d) {
-    l_dosya + ":" + metne(d.satır) + ":" + metne(d.sütun) + ": henüz desteklenmiyor: " + ne -> uyar
+    a_dosyalar[d.dosya] + ":" + metne(d.satır) + ":" + metne(d.sütun) + ": henüz desteklenmiyor: " + ne -> uyar
     çık(3)
 }
 
@@ -320,9 +321,10 @@ işlev etiket_koy(etiket) { k_kod -> ekle(etiket + ":") }
 # da rdx) yüklenir. Etiket derlemenin sonunda konur; o zamana dek satırda işaret durur.
 işlev tür_satırı(yazmaç, tür) { k_kod -> ekle("§TÜR§" + yazmaç + tür) }
 
-# Hata verebilen çalışma zamanı işlemlerinden önce r15'e d'nin kaynak satırı yüklenir.
+# Hata verebilen çalışma zamanı işlemlerinden önce r15'e d'nin kaynak dosyası (üst yarı)
+# ve satırı (alt yarı) yüklenir.
 işlev komut(satır, d) {
-    RİSKLİ -> var(satır) -> eğer { yaz("mov r15, " + metne(d.satır)) }
+    RİSKLİ -> var(satır) -> eğer { yaz("mov r15, " + metne(d.dosya * 4294967296 + d.satır)) }
     yaz(satır)
 }
 
@@ -1564,7 +1566,9 @@ işlev üret(kök, çalışma_zamanı) {
     satırlar -> ekle(çz)
     satırlar -> ekle("    .section .rodata")
     satırlar -> ekle("    .balign 8")
-    satırlar -> ekle("__dosyalar: .quad " + metin_etiketi(l_dosya))
+    [] -> dosya_etiketleri
+    a_dosyalar -> her (yol) { dosya_etiketleri -> ekle(metin_etiketi(yol)) }
+    satırlar -> ekle("__dosyalar: .quad " + birleş(dosya_etiketleri, ", "))
 
     satırlar -> ekle("    .section .rodata")
     0 -> i

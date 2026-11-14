@@ -343,58 +343,51 @@ için `ortak` gerekmez; yalnızca değişkenin kendisine yeni değer atamak içi
 
 ## Kendi kendini derleme
 
-Hedef, Nehir derleyicisini Nehir ile yazmak. `kendi/` dizini bu çalışmayı tutar; `nehir.py`
-o zamana kadar asıl derleyici olarak kalır ve yeni parçaların doğruluğu ona karşı sınanır.
+Nehir derleyicisi Nehir ile de yazılmıştır ve kendini derler. `kendi/` dizini bu derleyiciyi tutar:
 
-| Aşama | Dosya | Durum |
-| --- | --- | --- |
-| Sözcükleyici | `kendi/sozcukleyici.nehir` | tamam |
-| Ayrıştırıcı | `kendi/ayristirici.nehir` | tamam |
-| Tür denetimi ve kod üretici | `kendi/kod_uretici.nehir` | tamam: modüller dışında her şey |
-| Modül yükleme | | sırada |
-| Hata gösterimi (kaynak satırı, ipuçları), uyarılar | | bekliyor |
+| Aşama | Dosya |
+| --- | --- |
+| Sözcükleyici | `kendi/sozcukleyici.nehir` |
+| Ayrıştırıcı ve modül yükleme | `kendi/ayristirici.nehir` |
+| Tür denetimi ve kod üretici | `kendi/kod_uretici.nehir` |
+| Derleyici programı | `kendi/derle.nehir` |
 
-**Derleyici kendini derliyor.** Nehir ile yazılmış derleyicinin dört dosyası (modüller henüz
-taşınmadığı için `kullan` satırları olmadan tek dosyada birleştirilerek) önce `nehir.py` ile derlenir.
-Ortaya çıkan derleyici aynı kaynağı derlediğinde `nehir.py` ile bayt bayt aynı assembly'yi üretir;
-böylece kendi kendini derlemiş derleyici de aynı kaynağı yeniden derlediğinde çıktı değişmez (sabit nokta).
-Testler bu zinciri her çalıştırmada kurar ve sınar.
-
-Her aşama bir modüldür ve Python'daki karşılığıyla aynı çıktıyı verdiği, bütün `.nehir` dosyalarında
-(örnekler, hatalı programlar, `kendi/sinamalar/` altındaki zor girdiler ve aşamaların kendi kaynak
-kodları) sınanır. Hatalı dosyalarda ilk hata satırı ve çıkış kodu da aynı olmalıdır.
-
-| Program | Ne döker | Python'daki karşılığı |
-| --- | --- | --- |
-| `kendi/sozcuk_dok.nehir` | sözcükler | `nehir.py <dosya> --sözcükler` |
-| `kendi/agac_dok.nehir` | sözdizimi ağacı | `nehir.py <dosya> --ağaç` |
-| `kendi/derle.nehir` | assembly (`.s`) | `nehir.py <dosya> --asm -o <çıktı.s>` |
-
-```bash
-python3 nehir.py kendi/agac_dok.nehir -o agac_dok
-```
-
-```bash
-./agac_dok ornekler/fibonacci.nehir
-```
-
-**Nehir ile yazılmış derleyici.** `kendi/derle.nehir` bir kaynak dosyayı ayrıştırıp assembly'ye
-çevirir; çıktısı Python'daki derleyicinin ürettiğiyle bayt bayt aynıdır. İşlevler, özyineleme ve dönüş türü
-çıkarımı, listeler ve sözlükler (iç içe olanlar ve türü sonradan öğrenilenler dahil), kayıtlar ve `yok`, `her` ve
-bütün yerleşik işlevler ve işlev değerleri taşındı. Henüz taşınmamış bir yapıyla (modüller) karşılaşırsa
-"henüz desteklenmiyor" der ve 3 koduyla çıkar; testler kaç dosyanın taşındığını sayar.
+Nehir ile yazılmış derleyici, dilin bütün yapılarını `nehir.py` ile **bayt bayt aynı** assembly'ye çevirir;
+hatalı programlarda aynı hatayı verir. `nehir.py` artık yalnızca ilk derleme için gereklidir:
 
 ```bash
 python3 nehir.py kendi/derle.nehir -o derle
 ```
 
+Bundan sonra derleyici Python olmadan kendini derler:
+
 ```bash
-./derle ornekler/merhaba.nehir merhaba.s
+./derle kendi/derle.nehir derle2.s
 ```
 
 ```bash
-as -o merhaba.o merhaba.s && ld -o merhaba merhaba.o && ./merhaba
+as -o derle2.o derle2.s && ld -o derle2 derle2.o
 ```
+
+`derle2` de aynı kaynağı derlediğinde çıktı değişmez (sabit nokta). Herhangi bir programı derlemek için:
+
+```bash
+./derle ornekler/fibonacci.nehir fibonacci.s
+```
+
+```bash
+as -o fibonacci.o fibonacci.s && ld -o fibonacci fibonacci.o && ./fibonacci
+```
+
+Testler her çalıştırmada bu zinciri kurar; ayrıca her aşamayı bütün `.nehir` dosyalarında (örnekler,
+hatalı programlar, `kendi/sinamalar/` altındaki zor girdiler ve derleyicinin kendi kaynakları)
+Python'daki karşılığıyla karşılaştırır:
+
+| Program | Ne üretir | Python'daki karşılığı |
+| --- | --- | --- |
+| `kendi/sozcuk_dok.nehir` | sözcükler | `nehir.py <dosya> --sözcükler` |
+| `kendi/agac_dok.nehir` | sözdizimi ağacı | `nehir.py <dosya> --ağaç` |
+| `kendi/derle.nehir` | assembly (`.s`) | `nehir.py <dosya> --asm -o <çıktı.s>` |
 
 Çalışma zamanı (üretilen her programa eklenen assembly) `calisma_zamani.s` dosyasındadır; iki derleyici de onu okur.
 

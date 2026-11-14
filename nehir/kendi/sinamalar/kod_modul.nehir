@@ -1,0 +1,9 @@
+# Modüller: karşılıklı kullanım, yollar, kayıtlar, sıra, modülde çalışma hatası
+"başla" -> yazdır
+kullan "mod/a.nehir"
+kullan "mod/alt/c.nehir"
+kullan "./mod/b.nehir"
+a_işlevi(4) -> yazdır
+Nokta(1, 2) -> yazdır
+böl_c(10, 2) -> yazdır
+böl_c(1, 0) -> yazdır

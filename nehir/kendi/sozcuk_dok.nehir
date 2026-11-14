@@ -14,7 +14,7 @@ işlev ana() {
     }
     a[0] -> l_dosya
     değil dosya_var(l_dosya) -> eğer {
-        l_dosya + ": hata: dosya okunamadı" -> uyar
+        l_dosya + ": hata: dosya okunamadı: dosya bulunamadı" -> uyar
         çık(1)
     }
     l_dosya -> dosya_oku -> sözcükle

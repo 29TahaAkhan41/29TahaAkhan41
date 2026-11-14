@@ -1,0 +1,5 @@
+# a ve b birbirini kullanır; a, alt/c.nehir'yi ../ ile geri dönen bir yoldan da kullanır
+kullan "b.nehir"
+kullan "./alt/c.nehir"
+işlev a_işlevi(n) { n -> b_işlevi -> döndür }
+"a yüklendi" -> yazdır

@@ -48,8 +48,10 @@
 [] -> s_sütun
 [] -> s_uzunluk
 [] -> s_yeni        # sözcük, satırının ilk sözcüğü mü?
+[] -> s_dosya       # sözcüğün geldiği dosyanın numarası (0 ana dosya, sonrakiler modüller)
 
 "" -> ortak l_dosya
+0 -> ortak l_dosya_no
 [""] -> ortak l_kr        # kaynağın karakterleri
 1 -> ortak l_satır
 0 -> ortak l_satır_başı   # geçerli satırın ilk karakterinin dizini
@@ -81,6 +83,7 @@ işlev sözcük_ekle(tür, değer, baş, son) {
     s_sütun -> ekle(baş - l_satır_başı + 1)
     s_uzunluk -> ekle(u)
     s_yeni -> ekle(l_satır != l_son_satır)
+    s_dosya -> ekle(l_dosya_no)
     l_satır -> l_son_satır
 }
 
@@ -97,7 +100,11 @@ işlev sayı_değeri(rakamlar) {
 
 # ── sözcükleyici ──
 
+# Kaynağın sözcüklerini s_* listelerinin sonuna ekler; her dosya SON ile biter.
 işlev sözcükle(kaynak) {
+    1 -> l_satır
+    0 -> l_satır_başı
+    0 -> l_son_satır
     # Karakter listesinde hem dizin hem dilim anlıktır; metinde dilim baştan sayar.
     [] -> kr
     kaynak -> her (k) { kr -> ekle(k) }

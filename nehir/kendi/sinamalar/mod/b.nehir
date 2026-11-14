@@ -1,0 +1,4 @@
+kullan "a.nehir"
+kullan "alt/../alt/c.nehir"
+işlev b_işlevi(n) { n * 10 + c_işlevi(n) -> döndür }
+"b yüklendi" -> yazdır

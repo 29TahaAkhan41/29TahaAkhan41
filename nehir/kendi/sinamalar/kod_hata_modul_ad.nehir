@@ -1,0 +1,2 @@
+kullan "mod/ad.nehir"
+işlev ortak_ad() { 2 -> döndür }
