@@ -1,0 +1,7 @@
+ornekler/hatalar/golgelenen_yerlesik.nehir:3:14: hata: 'uzunluk' işlevi 2 argüman bekliyor, 1 verildi
+    3 | "merhaba" -> uzunluk -> yazdır
+      |              ^^^^^^^
+      = ipucu: tanımı: uzunluk(a, b); akıştan gelen değer ilk argüman sayılır
+ornekler/hatalar/golgelenen_yerlesik.nehir:1:7: not: yerleşik 'uzunluk' işlevini gölgeleyen tanım burada
+    1 | işlev uzunluk(a, b) { a - b -> döndür }
+      |       ^^^^^^^

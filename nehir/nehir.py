@@ -25,12 +25,13 @@ class Konum(int):
 
 
 class NehirHatası(Exception):
-    def __init__(self, mesaj, satır=None, ipucu=None, ilgili=None):
+    def __init__(self, mesaj, satır=None, ipucu=None, ilgili=None, ilgili_not="ilk tanım burada"):
         super().__init__(mesaj)
         self.mesaj = mesaj
         self.satır = satır
         self.ipucu = ipucu
-        self.ilgili = ilgili    # hatayla ilgili ikinci bir yer (örneğin ilk tanım)
+        self.ilgili = ilgili            # hatayla ilgili ikinci bir yer (örneğin ilk tanım)
+        self.ilgili_not = ilgili_not    # o yerin yanına yazılacak açıklama
 
 
 def benzerler(ad, adaylar):
@@ -277,21 +278,21 @@ class Ayrıştırıcı:
                 deyimler.append(self.deyim())
         return deyimler
 
-    def yeni_ad(self, sözcük, ne):
+    def yeni_ad(self, sözcük):
+        """Yeni bir işlev ya da kayıt adı. Yerleşik bir işlevle aynı olabilir; o zaman
+        programın kendi tanımı yerleşik olanı gölgeler."""
         ad = sözcük.değer
         if ad in self.işlevler or ad in self.kayıtlar:
             ilk = self.işlevler[ad][2] if ad in self.işlevler else self.kayıtlar[ad][1]
             raise NehirHatası(f"'{ad}' adı zaten bir {'işlev' if ad in self.işlevler else 'kayıt'} "
                               f"için kullanılmış", sözcük.satır, ilgili=ilk)
-        if ad in YERLEŞİKLER:
-            raise NehirHatası(f"'{ad}' yerleşik bir işlevdir, {ne} adı olamaz", sözcük.satır)
         return ad
 
     def kayıt_tanımı(self):
         """kayıt Ad { alan, alan: Tür, ... }"""
         self.bekle("ANAHTAR", "kayıt")
         ad_sözcüğü = self.bekle("AD")
-        ad = self.yeni_ad(ad_sözcüğü, "kayıt")
+        ad = self.yeni_ad(ad_sözcüğü)
         self.bekle("İŞLEÇ", "{")
         alanlar = []
         while not self.bak("İŞLEÇ", "}"):
@@ -326,7 +327,7 @@ class Ayrıştırıcı:
     def işlev_tanımı(self):
         self.bekle("ANAHTAR", "işlev")
         ad_sözcüğü = self.bekle("AD")
-        ad, satır = self.yeni_ad(ad_sözcüğü, "işlev"), ad_sözcüğü.satır
+        ad, satır = self.yeni_ad(ad_sözcüğü), ad_sözcüğü.satır
         self.bekle("İŞLEÇ", "(")
         parametreler = []
         if not self.bak("İŞLEÇ", ")"):
@@ -2524,15 +2525,25 @@ class KodÜretici:
             self.yaz(f"mov [rax+{8 * sıra}], rcx")
             self.yaz("pop rax")
             return tür
-        # tip == "ad": işlevse akan değer ilk argüman olur, değilse değişkene atanır
+        # tip == "ad": işlevse akan değer ilk argüman olur, değilse değişkene atanır.
+        # Parametreler aynı adlı işlevleri gölgeler: parametreye akan değer ona atanır.
         _, ad, argümanlar, _ = h
-        if ad in self.işlevler or ad in YERLEŞİKLER or ad in self.kayıtlar:
+        yerel = self.yereller is not None and ad in self.yereller
+        if argümanlar is not None or (not yerel and self.çağrılabilir(ad)):
             self.yaz("push rax")
-            return self.çağır(ad, argümanlar or [], satır, akan=tür)
-        if argümanlar is not None:
-            raise self.işlev_yok(ad, satır)
+            try:
+                return self.çağır(ad, argümanlar or [], satır, akan=tür)
+            except NehirHatası as hata:
+                if argümanlar is None and ad in YERLEŞİKLER and ad not in self.işlevler \
+                        and hata.ipucu is None:
+                    hata.ipucu = (f"'{ad}' yerleşik bir işlevdir; akan değer ona argüman olur. "
+                                  f"Değişkene başka bir ad verin")
+                raise
         self.ata(ad, tür, satır)
         return tür
+
+    def çağrılabilir(self, ad):
+        return ad in self.işlevler or ad in self.kayıtlar or ad in YERLEŞİKLER
 
     def anahtar_türü(self, sözlük, anahtar, satır):
         """Anahtarın türünü sözlüğünkiyle eşitler ve tür kodunu edx'e yükler."""
@@ -2583,8 +2594,13 @@ class KodÜretici:
         for a in argümanlar:
             türler.append(self.ifade(a))
             self.yaz("push rax")
-        if ad in YERLEŞİKLER:
-            return self.yerleşik(YERLEŞİKLER[ad], ad, türler, satır)
+        # Ad çözümleme sırası: parametre/yerel değişken, programın kendi kayıt ve
+        # işlevleri, en son yerleşik işlevler. Böylece program yerleşik bir adı
+        # kendi tanımıyla gölgeleyebilir.
+        if self.yereller is not None and ad in self.yereller:
+            raise NehirHatası(f"'{ad}' bir değişken, işlev değil", satır,
+                              f"'{ad}' adlı parametre ya da yerel değişken, aynı adlı işlevi gölgeliyor"
+                              if self.çağrılabilir(ad) else None)
         if ad in self.kayıtlar:
             kayıt = self.kayıtlar[ad]
             if len(türler) != len(kayıt.alanlar):
@@ -2600,20 +2616,27 @@ class KodÜretici:
                 self.yaz(f"mov [rax+{8 * sıra}], rcx")
             return kayıt
         if ad not in self.işlevler:
+            if ad in YERLEŞİKLER:
+                return self.yerleşik(YERLEŞİKLER[ad], ad, türler, satır)
             raise self.işlev_yok(ad, satır)
 
         b = self.bilgi[ad]
         beklenen = len(self.işlevler[ad][0])
+        # Çağrı tutmuyorsa ve ad yerleşik bir işlevin de adıysa, çağıran büyük
+        # olasılıkla yerleşik olanı kastetmiştir; gölgeleyen tanım gösterilir.
+        gölge = {"ilgili": self.işlevler[ad][2],
+                 "ilgili_not": f"yerleşik '{ad}' işlevini gölgeleyen tanım burada"} \
+            if ad in YERLEŞİKLER else {}
         if len(türler) != beklenen:
             raise NehirHatası(f"'{ad}' işlevi {beklenen} argüman bekliyor, {len(türler)} verildi", satır,
                               f"tanımı: {ad}({', '.join(self.işlevler[ad][0])})"
-                              + ("; akıştan gelen değer ilk argüman sayılır" if akan else ""))
+                              + ("; akıştan gelen değer ilk argüman sayılır" if akan else ""), **gölge)
         if b["türler"] is None:
             b["türler"] = türler
             self.işlevi_derle(ad)
         elif not all(birleştir(x, y) for x, y in zip(b["türler"], türler)):
             raise NehirHatası(f"'{ad}' işlevi ({', '.join(map(str, b['türler']))}) ile çağrılmıştı; "
-                              f"şimdi ({', '.join(map(str, türler))}) veriliyor", satır)
+                              f"şimdi ({', '.join(map(str, türler))}) veriliyor", satır, **gölge)
         self.yaz(f"call {b['etiket']}")
         if türler:
             self.yaz(f"add rsp, {8 * len(türler)}")
@@ -3235,7 +3258,7 @@ def ana(argv):
     except NehirHatası as h:
         bildir_konumla("hata", h.mesaj, h.satır, h.ipucu)
         if h.ilgili is not None:
-            bildir_konumla("not", "ilk tanım burada", h.ilgili)
+            bildir_konumla("not", h.ilgili_not, h.ilgili)
         return 1
     for satır, mesaj, ipucu in uyarılar:
         bildir_konumla("uyarı", mesaj, satır, ipucu)

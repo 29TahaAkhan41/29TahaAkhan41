@@ -25,18 +25,6 @@ kayıt Düğüm {
     satır: sayı, sütun: sayı, uzunluk: sayı
 }
 
-# Yerleşik işlev adları; işlev ve kayıtlara bu adlar verilemez.
-{
-    "uzunluk": 1, "len": 1, "ekle": 1, "push": 1, "aralık": 1, "aralik": 1, "range": 1, "metne": 1,
-    "str": 1, "sayıya": 1, "sayiya": 1, "num": 1, "dilim": 1, "slice": 1, "bul": 1, "find": 1,
-    "sil": 1, "remove": 1, "böl": 1, "bol": 1, "split": 1, "birleş": 1, "birles": 1, "join": 1,
-    "var": 1, "has": 1, "anahtarlar": 1, "keys": 1, "değerler": 1, "degerler": 1, "values": 1,
-    "dosya_oku": 1, "read_file": 1, "dosya_yaz": 1, "write_file": 1, "dosya_ekle": 1,
-    "append_file": 1, "dosya_var": 1, "file_exists": 1, "dosya_sil": 1, "delete_file": 1,
-    "argümanlar": 1, "argumanlar": 1, "args": 1, "çık": 1, "cik": 1, "exit": 1, "uyar": 1,
-    "warn": 1, "oku": 1, "read": 1, "girdi_var": 1, "has_input": 1
-} -> YERLEŞİK_ADLAR
-
 # ── durum ──
 
 0 -> a_k            # sıradaki sözcüğün dizini
@@ -100,13 +88,12 @@ işlev sonlandıran_mı(tür) {
 
 # ── tanımlar ──
 
-işlev yeni_ad(k, ne) {
+# Yeni bir işlev ya da kayıt adı. Yerleşik bir işlevle aynı olabilir; o zaman
+# programın kendi tanımı yerleşik olanı gölgeler.
+işlev yeni_ad(k) {
     s_değer[k] -> ad
     a_adlar -> var(ad) -> eğer {
         hata_sözcükte("'" + ad + "' adı zaten bir " + a_adlar[ad] + " için kullanılmış", k)
-    }
-    YERLEŞİK_ADLAR -> var(ad) -> eğer {
-        hata_sözcükte("'" + ad + "' yerleşik bir işlevdir, " + ne + " adı olamaz", k)
     }
     ad -> döndür
 }
@@ -137,7 +124,7 @@ işlev tür_ifadesi() {
 işlev kayıt_tanımı() {
     bekle("ANAHTAR", "kayıt")
     bekle("AD", "") -> ad_k
-    yeni_ad(ad_k, "kayıt") -> ad
+    yeni_ad(ad_k) -> ad
     bekle("İŞLEÇ", "{")
     düğüm("kayıt", ad, ad_k) -> kayıt_d
     {} -> görülen
@@ -161,7 +148,7 @@ işlev kayıt_tanımı() {
 işlev işlev_tanımı() {
     bekle("ANAHTAR", "işlev")
     bekle("AD", "") -> ad_k
-    yeni_ad(ad_k, "işlev") -> ad
+    yeni_ad(ad_k) -> ad
     bekle("İŞLEÇ", "(")
     düğüm("işlev", ad, ad_k) -> işlev_d
     {} -> görülen

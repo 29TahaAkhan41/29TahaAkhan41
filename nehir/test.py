@@ -77,16 +77,6 @@ def kendi_derleyiciyi_sına(geçici, kaynaklar):
         kaynaklar += sorted(glob.glob(os.path.join(KÖK, *kalıp.split("/"))))
 
     başarısız = 0
-    # Ayrıştırıcının bildiği yerleşik ad listesi derleyicininkiyle aynı kalmalı.
-    sys.path.insert(0, KÖK)
-    import nehir
-    with open(os.path.join(KÖK, "kendi", "ayristirici.nehir"), encoding="utf-8") as f:
-        ayrıştırıcı_kaynağı = f.read()
-    eksik = [ad for ad in nehir.YERLEŞİKLER if f'"{ad}": 1' not in ayrıştırıcı_kaynağı]
-    if eksik:
-        başarısız += 1
-        print("BAŞARISIZ kendi/ayristirici.nehir şu yerleşik adları bilmiyor:", ", ".join(eksik))
-
     for aşama, program, seçenek in (("sözcükleyici", "kendi/sozcuk_dok.nehir", "--sözcükler"),
                                    ("ayrıştırıcı", "kendi/agac_dok.nehir", "--ağaç")):
         ikili = os.path.join(geçici, os.path.splitext(os.path.basename(program))[0])

@@ -1,0 +1,27 @@
+# Yerleşik adlar ayrılmış değildir: programın kendi işlevi, kaydı ya da parametresi
+# yerleşik bir işlevle aynı adı taşıyabilir. O zaman programın tanımı geçerli olur.
+
+# Yerleşik `böl` metin böler; bu program o adı tam sayı bölmesi için kullanıyor.
+işlev böl(a, b) {
+    b == 0 -> eğer { 0 -> döndür }
+    a / b -> döndür
+}
+böl(10, 2) -> yazdır
+10 -> böl(0) -> yazdır
+
+# Parametreler de yerleşik adları (ve programın işlevlerini) gölgeler.
+işlev topla(değerler) {
+    0 -> toplam
+    değerler -> her (d) { toplam + d -> toplam }
+    toplam -> döndür
+}
+[1, 2, 3] -> topla -> yazdır
+
+işlev iki_kat(böl) { böl * 2 -> böl -> döndür }     # burada böl bir sayıdır
+iki_kat(21) -> yazdır
+
+# Gölgelenmeyen yerleşikler her zamanki gibi çalışır.
+"a,b" -> split(",") -> uzunluk -> yazdır
+
+kayıt args { program, sayı }
+args("nehir", 3) -> yazdır

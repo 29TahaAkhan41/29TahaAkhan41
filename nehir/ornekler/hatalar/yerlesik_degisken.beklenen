@@ -1,0 +1,4 @@
+ornekler/hatalar/yerlesik_degisken.nehir:2:11: hata: 'değerler' (sözlük) bekliyor; (sayı listesi) verildi
+    2 | [1, 2] -> değerler
+      |           ^^^^^^^^
+      = ipucu: 'değerler' yerleşik bir işlevdir; akan değer ona argüman olur. Değişkene başka bir ad verin

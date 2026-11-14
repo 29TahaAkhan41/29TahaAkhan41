@@ -1,0 +1,5 @@
+işlev f(kare) {
+    kare(2) -> döndür
+}
+işlev kare(n) { n * n -> döndür }
+f(3) -> yazdır

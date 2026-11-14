@@ -1,0 +1,3 @@
+işlev uzunluk(a, b) { a - b -> döndür }
+
+"merhaba" -> uzunluk -> yazdır

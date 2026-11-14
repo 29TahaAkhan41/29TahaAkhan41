@@ -274,6 +274,13 @@ sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listeni
 içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
 çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır. Birbirini çağıran işlevlerin dönüş türleri de çıkarılır.
 
+**Adların çözülmesi.** Yerleşik işlev adları ayrılmış değildir. Bir ad şu sırayla aranır:
+parametreler ve yerel değişkenler, programın kendi işlev ve kayıtları, en son yerleşik işlevler.
+Yani program `böl` adında kendi işlevini tanımlarsa (hangi modülde olursa olsun) her `böl` çağrısı
+ona gider; bir parametre de aynı adlı işlevi o işlevin içinde gölgeler. Tek kısıt: en üst düzeyde
+ya da işlev içinde *atamayla* doğan bir değişkene yerleşik işlev adı verilemez, çünkü
+`değer -> uzunluk` yazımı değeri işleve akıtmak demektir.
+
 **Kapsam:** En üst düzeyde atanan değişkenler küreseldir. İşlev içinde ilk kez atanan adlar yereldir.
 
 **Satırlar:** Deyimler arasında ayırıcı gerekmez. Tek kural: çağrı `f(...)` ve eleman erişimi
@@ -327,7 +334,7 @@ Python'daki karşılıklarıyla aynı çıktıyı verdikleri doğrulanır.
 - Metinler değiştirilemez; büyük/küçük harf çevirme yok
 - Listeler `<` ve `>` ile karşılaştırılamaz; yerleşik sıralama işlevi yok
 - Sözlükler `==` ile karşılaştırılamaz; anahtar olarak liste kullanılamaz
-- Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken ya da işlev adı olarak kullanılamaz
+- Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken adı olamaz (işlev, kayıt ve parametre adı olabilir)
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
 - Ondalıklı sayı yok

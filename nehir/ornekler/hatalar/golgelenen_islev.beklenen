@@ -1,0 +1,4 @@
+ornekler/hatalar/golgelenen_islev.nehir:2:5: hata: 'kare' bir değişken, işlev değil
+    2 |     kare(2) -> döndür
+      |     ^^^^
+      = ipucu: 'kare' adlı parametre ya da yerel değişken, aynı adlı işlevi gölgeliyor
