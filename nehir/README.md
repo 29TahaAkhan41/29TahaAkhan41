@@ -197,6 +197,10 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `çık(kod)` | `exit` | programı verilen çıkış koduyla hemen bitirir |
 | `uyar(m)` | `warn` | metni standart hataya (stderr) bir satır olarak yazar |
 | `baytlar(m)` | `bytes` | metnin UTF-8 baytlarının sayı listesi |
+| `karakter(kod)` | `char` | Unicode kod noktasındaki karakter (`karakter(231)` = `"ç"`) |
+| `uçbirim_mi(fd)` | `is_terminal` | dosya tanıtıcısı (0 girdi, 1 çıktı, 2 hata) bir uçbirime bağlıysa 1 |
+| `ortam_var(ad)` | `has_env` | ortam değişkeni tanımlıysa (boş olsa da) 1 |
+| `dosya_hatası(yol)` | `file_error` | dosya okunmak için açılabiliyorsa 0, açılamıyorsa işletim sisteminin hata kodu (dizinler için 21) |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
@@ -392,10 +396,13 @@ Python'daki karşılığıyla karşılaştırır:
 Çalışma zamanı (üretilen her programa eklenen assembly) `calisma_zamani.s` dosyasındadır; iki derleyici de onu okur.
 
 Hata mesajları (kaynak satırı, altı çizili yer, ipucu ve "ilk tanım burada" gibi notlarıyla),
-yazım hatası önerileri ve uyarılar da iki derleyicide birebir aynıdır; testler standart hatanın tamamını
-karşılaştırır. Bilinen farklar: Nehir sürümü mesajları terminalde renklendirmez, ASCII dışındaki her
-karakteri harf sayar (Python sürümü Unicode'un harf tanımını kullanır), geçerli UTF-8 olmayan ya da
-okunamayan (örneğin dizin olan) modül dosyalarını ayrıca tanımaz.
+yazım hatası önerileri, uyarılar ve renkler de iki derleyicide birebir aynıdır; testler standart hatanın
+tamamını, renkleri de bir sözde uçbirimde karşılaştırır. Nehir ile yazılmış sözcükleyici, Python'daki gibi
+harf, rakam ve boşluk için Unicode tanımlarını, okunamayan karakterler için Python'un `repr` yazımını
+kullanır ve dosyaları Python'un metin kipindeki gibi okur (katı UTF-8, `\r\n` ve `\r` satır sonları `\n`
+olur). Bunun için gereken Unicode tabloları ve işletim sistemi hata metinleri `kendi/veri.nehir`
+dosyasındadır; bu dosya `python3 kendi/veri_uret.py` ile çalışan Python'dan üretilir ve testler güncel
+olduğunu denetler.
 
 ## Sınamalar
 

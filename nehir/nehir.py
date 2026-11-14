@@ -90,6 +90,10 @@ YERLEŞİKLER = {
     "çık": "çık", "cik": "çık", "exit": "çık",
     "uyar": "uyar", "warn": "uyar",
     "baytlar": "baytlar", "bytes": "baytlar",
+    "karakter": "karakter", "char": "karakter",
+    "uçbirim_mi": "uçbirim_mi", "ucbirim_mi": "uçbirim_mi", "is_terminal": "uçbirim_mi",
+    "ortam_var": "ortam_var", "has_env": "ortam_var",
+    "dosya_hatası": "dosya_hatası", "dosya_hatasi": "dosya_hatası", "file_error": "dosya_hatası",
     "oku": "oku", "read": "oku",
     "girdi_var": "girdi_var", "has_input": "girdi_var",
 }
@@ -148,9 +152,9 @@ def sözcükle(kaynak, dosya=0):
         elif c == "#":
             while i < n and kaynak[i] != "\n":
                 i += 1
-        elif c.isdigit():
+        elif c in "0123456789":     # yalnızca ASCII rakamları (int() '²' gibi rakamları çeviremez)
             j = i
-            while j < n and (kaynak[j].isdigit() or kaynak[j] == "_"):
+            while j < n and (kaynak[j] in "0123456789" or kaynak[j] == "_"):
                 j += 1
             değer = int(kaynak[i:j].replace("_", ""))
             if değer >= 2 ** 63:
@@ -748,7 +752,7 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__liste_al", "__liste_koy", "__metin_al", "__metinden_sayi", "__liste_yeni",
     "__liste_ekle", "__aralik", "__metin_birlestir", "__sayidan_metin", "__oku",
     "__metin_dilim", "__liste_dilim", "__liste_birlestir", "__liste_sil",
-    "__metin_bol", "__liste_birles", "__metin_baytlar", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
+    "__metin_bol", "__liste_birles", "__metin_baytlar", "__karakter", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
     "__sozluk_sil", "__sozluk_liste", "__dosya_oku", "__dosya_yaz", "__dosya_sil",
     "__argumanlar", "__metin_karakter")}
 
@@ -1545,6 +1549,21 @@ class KodÜretici:
             self.yaz("pop rdi")
             self.yaz("call __metin_baytlar")
             return Liste("sayı")
+        if asıl == "karakter":
+            if türler != ["sayı"]:
+                yanlış("karakter kodu")
+            self.yaz("pop rdi")
+            self.yaz("call __karakter")
+            return "metin"
+        if asıl in ("uçbirim_mi", "ortam_var", "dosya_hatası"):
+            beklenen = {"uçbirim_mi": "sayı", "ortam_var": "metin", "dosya_hatası": "metin"}[asıl]
+            if türler != [beklenen]:
+                yanlış({"uçbirim_mi": "dosya tanıtıcısı", "ortam_var": "ortam değişkeninin adı",
+                        "dosya_hatası": "dosya yolu"}[asıl])
+            self.yaz("pop rdi")
+            self.yaz({"uçbirim_mi": "call __ucbirim_mi", "ortam_var": "call __ortam_var",
+                      "dosya_hatası": "call __dosya_hata_kodu"}[asıl])
+            return "sayı"
         if asıl == "uyar":
             if türler != ["metin"]:
                 yanlış("metin")

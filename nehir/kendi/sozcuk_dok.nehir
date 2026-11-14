@@ -13,11 +13,12 @@ işlev ana() {
         çık(2)
     }
     a[0] -> l_dosya
-    değil dosya_var(l_dosya) -> eğer {
-        l_dosya + ": hata: dosya okunamadı: dosya bulunamadı" -> uyar
+    kaynağı_oku(l_dosya) -> okuma_hatası
+    okuma_hatası != "" -> eğer {
+        konumsuz_bildir("hata", "dosya okunamadı: " + okuma_hatası, l_dosya)
         çık(1)
     }
-    l_dosya -> dosya_oku -> sözcükle
+    l_okunan -> sözcükle
     dök()
 }
 

@@ -7,6 +7,8 @@
 #   "program.nehir" -> l_dosya
 #   l_dosya -> dosya_oku -> sözcükle        # sözcükler s_* listelerine dolar
 
+kullan "veri.nehir"
+
 # ── tablolar ──
 
 # Her anahtar kelimenin Türkçe, ASCII-Türkçe ve İngilizce yazımı aynı şeye çıkar.
@@ -63,22 +65,208 @@
 
 işlev rakam_mı(k) { k >= "0" ve k <= "9" -> döndür }
 
-# ASCII dışındaki her karakter harf sayılır (ç, ğ, ı, ...). Python'daki
-# sözcükleyici burada Unicode'un harf tanımını kullanır; fark yalnızca
-# harf olmayan ASCII dışı simgelerde ortaya çıkar.
+# ── Unicode ──
+# Harf, harf ya da rakam ve boşluk, Python'daki str.isalpha, isalnum ve isspace ile
+# aynı tanımlanır; ASCII dışı karakterler için kendi/veri.nehir'deki aralıklara bakılır.
+
+[] -> ortak l_harf
+[] -> ortak l_harf_rakam
+[] -> ortak l_boşluk
+[] -> ortak l_yazdırılamaz
+
+işlev aralıkları_çöz(m) {
+    [] -> sonuç
+    m -> böl(",") -> her (a) { a -> böl("-") -> her (s) { sonuç -> ekle(sayıya(s)) } }
+    sonuç -> döndür
+}
+
+işlev tabloları_yükle() {
+    uzunluk(l_harf) == 0 -> eğer {
+        aralıkları_çöz(U_HARF) -> l_harf
+        aralıkları_çöz(U_HARF_RAKAM) -> l_harf_rakam
+        aralıkları_çöz(U_BOŞLUK) -> l_boşluk
+        aralıkları_çöz(U_YAZDIRILAMAZ) -> l_yazdırılamaz
+    }
+}
+
+# Kod noktası, [baş, son, baş, son, ...] aralıklarından birinde mi? (ikili arama)
+işlev aralıkta(kod, aralıklar) {
+    0 -> alt
+    uzunluk(aralıklar) / 2 -> üst
+    alt < üst -> iken {
+        (alt + üst) / 2 -> orta
+        kod < aralıklar[2 * orta] -> eğer { orta -> üst } değilse {
+            kod <= aralıklar[2 * orta + 1] -> eğer { doğru -> döndür }
+            orta + 1 -> alt
+        }
+    }
+    yanlış -> döndür
+}
+
+# Tek karakterlik metnin Unicode kod noktası (UTF-8 çözülerek).
+işlev kod_noktası(k) {
+    baytlar(k) -> b
+    uzunluk(b) == 1 -> eğer { b[0] -> döndür }
+    uzunluk(b) == 2 -> eğer { (b[0] % 32) * 64 + b[1] % 64 -> döndür }
+    uzunluk(b) == 3 -> eğer { ((b[0] % 16) * 64 + b[1] % 64) * 64 + b[2] % 64 -> döndür }
+    (((b[0] % 8) * 64 + b[1] % 64) * 64 + b[2] % 64) * 64 + b[3] % 64 -> döndür
+}
+
+işlev ascii_mi(k) { k <= "~" -> döndür }
+
 işlev harf_mi(k) {
-    (k >= "a" ve k <= "z") veya (k >= "A" ve k <= "Z") veya k == "_" veya k > "~" -> döndür
+    ascii_mi(k) -> eğer { (k >= "a" ve k <= "z") veya (k >= "A" ve k <= "Z") -> döndür }
+    tabloları_yükle()
+    aralıkta(kod_noktası(k), l_harf) -> döndür
+}
+
+işlev harf_rakam_mı(k) {
+    ascii_mi(k) -> eğer { (k >= "a" ve k <= "z") veya (k >= "A" ve k <= "Z") veya rakam_mı(k) -> döndür }
+    tabloları_yükle()
+    aralıkta(kod_noktası(k), l_harf_rakam) -> döndür
+}
+
+işlev boşluk_mu(k) {
+    k == " " veya k == "\t" -> eğer { doğru -> döndür }
+    k > " " ve k <= "~" -> eğer { yanlış -> döndür }
+    tabloları_yükle()
+    aralıkta(kod_noktası(k), l_boşluk) -> döndür
+}
+
+# Karakterin Python'daki repr yazımı: '&', "'", '\\', '\x01', '\u200b', '€'
+işlev temsil(k) {
+    k == "'" -> eğer { "\"'\"" -> döndür }
+    k == "\\" -> eğer { "'\\\\'" -> döndür }
+    k == "\t" -> eğer { "'\\t'" -> döndür }
+    k == "\n" -> eğer { "'\\n'" -> döndür }
+    k == "\r" -> eğer { "'\\r'" -> döndür }
+    kod_noktası(k) -> kod
+    tabloları_yükle()
+    kod < 32 veya kod == 127 veya (kod >= 128 ve aralıkta(kod, l_yazdırılamaz)) -> eğer {
+        kod < 256 -> eğer { "'\\x" + onaltılık(kod, 2) + "'" -> döndür }
+        kod < 65536 -> eğer { "'\\u" + onaltılık(kod, 4) + "'" -> döndür }
+        "'\\U" + onaltılık(kod, 8) + "'" -> döndür
+    }
+    "'" + k + "'" -> döndür
+}
+
+işlev onaltılık(sayı, basamak) {
+    "" -> m
+    0 -> i
+    i < basamak -> iken {
+        dilim("0123456789abcdef", sayı % 16, sayı % 16 + 1) + m -> m
+        sayı / 16 -> sayı
+        i + 1 -> i
+    }
+    m -> döndür
+}
+
+# ── kaynak dosyaları ──
+
+"" -> ortak l_okunan
+
+# Kaynak dosyayı Python'un metin kipindeki gibi okur: UTF-8 olmalıdır ve satır sonları
+# ("\r\n", "\r") "\n"e çevrilir. İçeriği l_okunan'a yazar; okunamazsa nedenini verir
+# (nehir.py'deki okuma_hatası ile aynı metinler), okunursa "".
+işlev kaynağı_oku(yol) {
+    dosya_hatası(yol) -> kod
+    kod == 2 -> eğer { "dosya bulunamadı" -> döndür }
+    kod == 13 -> eğer { "erişim izni yok" -> döndür }
+    kod == 21 -> eğer { "bu bir dizin, dosya değil" -> döndür }
+    kod != 0 -> eğer {
+        SİSTEM_HATALARI -> var(kod) -> eğer { SİSTEM_HATALARI[kod] -> döndür }
+        "Unknown error " + metne(kod) -> döndür
+    }
+    dosya_oku(yol) -> içerik
+    değil geçerli_utf8(içerik) -> eğer { "geçerli UTF-8 değil" -> döndür }
+    içerik -> böl("\r\n") -> birleş("\n") -> böl("\r") -> birleş("\n") -> l_okunan
+    "" -> döndür
+}
+
+# Baytlar katı UTF-8 mi? (eksik dizi, fazla uzun yazım, vekil ve U+10FFFF ötesi geçersiz)
+işlev geçerli_utf8(m) {
+    baytlar(m) -> b
+    uzunluk(b) -> n
+    0 -> i
+    i < n -> iken {
+        b[i] -> x
+        x < 128 -> eğer {
+            i + 1 -> i
+            devam
+        }
+        0 -> ek
+        128 -> alt
+        191 -> üst
+        x >= 194 ve x <= 223 -> eğer { 1 -> ek }
+        x == 224 -> eğer {
+            2 -> ek
+            160 -> alt
+        }
+        (x >= 225 ve x <= 236) veya x == 238 veya x == 239 -> eğer { 2 -> ek }
+        x == 237 -> eğer {
+            2 -> ek
+            159 -> üst
+        }
+        x == 240 -> eğer {
+            3 -> ek
+            144 -> alt
+        }
+        x >= 241 ve x <= 243 -> eğer { 3 -> ek }
+        x == 244 -> eğer {
+            3 -> ek
+            143 -> üst
+        }
+        ek == 0 veya i + ek >= n -> eğer { yanlış -> döndür }
+        b[i + 1] < alt veya b[i + 1] > üst -> eğer { yanlış -> döndür }
+        2 -> j
+        j <= ek -> iken {
+            b[i + j] < 128 veya b[i + j] > 191 -> eğer { yanlış -> döndür }
+            j + 1 -> j
+        }
+        i + ek + 1 -> i
+    }
+    doğru -> döndür
 }
 
 # Hata, uyarı ya da notu kaynak satırı ve altı çizili yeriyle standart hataya yazar
-# (nehir.py'deki bildir ile aynı biçim; renksiz):
+# (nehir.py'deki bildir ile aynı biçim; standart hata bir uçbirimse ve NO_COLOR
+# tanımlı değilse renkli):
 #
 #     dosya:3:5: hata: 'x' adında bir değişken yok
 #         3 | y + x -> yazdır
 #           |     ^
 #           = ipucu: 'xs' mi demek istediniz?
+karakter(27) -> ESC
+-1 -> ortak l_renkli
+
+işlev renkli_mi() {
+    l_renkli < 0 -> eğer {
+        0 -> l_renkli
+        uçbirim_mi(2) ve değil ortam_var("NO_COLOR") -> eğer { 1 -> l_renkli }
+    }
+    l_renkli == 1 -> döndür
+}
+
+işlev boya(m, kod) {
+    renkli_mi() -> eğer { ESC + "[" + kod + "m" + m + ESC + "[0m" -> döndür }
+    m -> döndür
+}
+
+işlev düzey_rengi(düzey) {
+    düzey == "hata" -> eğer { "1;31" -> döndür }
+    düzey == "uyarı" -> eğer { "1;33" -> döndür }
+    "1;36" -> döndür
+}
+
+işlev başlık_satırı(yer, düzey, mesaj) {
+    boya(yer + ":", "1") + " " + boya(düzey + ":", düzey_rengi(düzey)) + " " + boya(mesaj, "1") -> uyar
+}
+
+# Konumu olmayan bir hata (örneğin okunamayan ana dosya).
+işlev konumsuz_bildir(düzey, mesaj, dosya_adı) { başlık_satırı(dosya_adı, düzey, mesaj) }
+
 işlev bildir(düzey, mesaj, dosya, satır, sütun, boy, ipucu) {
-    l_dosya_adları[dosya] + ":" + metne(satır) + ":" + metne(sütun) + ": " + düzey + ": " + mesaj -> uyar
+    başlık_satırı(l_dosya_adları[dosya] + ":" + metne(satır) + ":" + metne(sütun), düzey, mesaj)
     l_kaynaklar[dosya] -> böl("\n") -> satırlar
     satır >= 1 ve satır <= uzunluk(satırlar) -> eğer {
         satırlar[satır - 1] -> kaynak_satırı
@@ -97,10 +285,10 @@ işlev bildir(düzey, mesaj, dosya, satır, sütun, boy, ipucu) {
             işaret + "^" -> işaret
             i + 1 -> i
         }
-        sağa_yasla(metne(satır), 5) + " | " + kaynak_satırı -> uyar
-        "      | " + boşluk + işaret -> uyar
+        boya(sağa_yasla(metne(satır), 5) + " |", "34") + " " + kaynak_satırı -> uyar
+        "      " + boya("|", "34") + " " + boşluk + boya(işaret, düzey_rengi(düzey)) -> uyar
     }
-    ipucu != "" -> eğer { "      = ipucu: " + ipucu -> uyar }
+    ipucu != "" -> eğer { "      " + boya("=", "34") + " " + boya("ipucu:", "1") + " " + ipucu -> uyar }
 }
 
 işlev sağa_yasla(m, genişlik) {
@@ -166,7 +354,7 @@ işlev sözcükle(kaynak) {
             i -> l_satır_başı
             devam
         }
-        c == " " veya c == "\t" veya c == "\r" -> eğer { i + 1 -> i   devam }
+        boşluk_mu(c) -> eğer { i + 1 -> i   devam }
         c == ";" -> eğer {              # ';' de deyimleri ayırır
             0 -> l_son_satır
             i + 1 -> i
@@ -215,10 +403,9 @@ işlev sözcükle(kaynak) {
             devam
         }
 
-        # "→" ASCII dışı olduğu için harf sayılmadan önce işleç olarak yakalanmalı.
-        harf_mi(c) ve c != "→" -> eğer {
+        harf_mi(c) veya c == "_" -> eğer {
             i -> j
-            j < n ve (harf_mi(kr[j]) veya rakam_mı(kr[j])) ve kr[j] != "→" -> iken { j + 1 -> j }
+            j < n ve (harf_rakam_mı(kr[j]) veya kr[j] == "_") -> iken { j + 1 -> j }
             kr -> dilim(i, j) -> birleş("") -> ad
             ANAHTARLAR -> var(ad) -> eğer {
                 sözcük_ekle("ANAHTAR", ANAHTARLAR[ad], i, j)
@@ -243,7 +430,7 @@ işlev sözcükle(kaynak) {
             c == "=" -> eğer {
                 hata("Nehir'de '=' ile atama yok", i, i + 1, "değer soldan sağa akar: 5 -> x   (eşitlik sınaması için ==)")
             }
-            hata("tanınmayan karakter: '" + c + "'", i, i + 1, "")
+            hata("tanınmayan karakter: " + temsil(c), i, i + 1, "")
         }
         işleç == "→" -> eğer {
             sözcük_ekle("İŞLEÇ", "->", i, i + 1)

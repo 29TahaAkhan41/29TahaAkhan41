@@ -18,14 +18,17 @@ işlev ana() {
     "calisma_zamani.s" -> çalışma_zamanı_yolu
     uzunluk(a) == 3 -> eğer { a[2] -> çalışma_zamanı_yolu }
     a[0] -> l_dosya
-    [l_dosya, çalışma_zamanı_yolu] -> her (yol) {
-        değil dosya_var(yol) -> eğer {
-            yol + ": hata: dosya okunamadı: dosya bulunamadı" -> uyar
-            çık(1)
-        }
+    değil dosya_var(çalışma_zamanı_yolu) -> eğer {
+        konumsuz_bildir("hata", "çalışma zamanı okunamadı: dosya bulunamadı", çalışma_zamanı_yolu)
+        çık(1)
+    }
+    kaynağı_oku(l_dosya) -> okuma_hatası
+    okuma_hatası != "" -> eğer {
+        konumsuz_bildir("hata", "dosya okunamadı: " + okuma_hatası, l_dosya)
+        çık(1)
     }
     doğru -> a_modül_yükle
-    l_dosya -> dosya_oku -> sözcükle
+    l_okunan -> sözcükle
     program() -> üret(dosya_oku(çalışma_zamanı_yolu)) -> assembly
     uyarıları_yaz()
     assembly -> dosya_yaz(a[1])

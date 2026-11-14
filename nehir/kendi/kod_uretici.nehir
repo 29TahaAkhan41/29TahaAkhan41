@@ -41,7 +41,10 @@ kullan "ayristirici.nehir"
     "file_exists": "dosya_var", "dosya_sil": "dosya_sil", "delete_file": "dosya_sil",
     "argümanlar": "argümanlar", "argumanlar": "argümanlar", "args": "argümanlar", "çık": "çık",
     "cik": "çık", "exit": "çık", "uyar": "uyar", "warn": "uyar", "baytlar": "baytlar",
-    "bytes": "baytlar", "oku": "oku", "read": "oku", "girdi_var": "girdi_var",
+    "bytes": "baytlar", "karakter": "karakter", "char": "karakter", "uçbirim_mi": "uçbirim_mi",
+    "ucbirim_mi": "uçbirim_mi", "is_terminal": "uçbirim_mi", "ortam_var": "ortam_var",
+    "has_env": "ortam_var", "dosya_hatası": "dosya_hatası", "dosya_hatasi": "dosya_hatası",
+    "file_error": "dosya_hatası", "oku": "oku", "read": "oku", "girdi_var": "girdi_var",
     "has_input": "girdi_var"
 } -> YERLEŞİK_ADLAR
 
@@ -49,15 +52,14 @@ kullan "ayristirici.nehir"
 # nehir.py'deki RİSKLİ ile aynı olmalı.
 {
     "call __aralik": 1, "call __argumanlar": 1, "call __ayir": 1, "call __dosya_oku": 1,
-    "call __dosya_sil": 1, "call __dosya_yaz": 1, "call __liste_al": 1,
+    "call __dosya_sil": 1, "call __dosya_yaz": 1, "call __karakter": 1, "call __liste_al": 1,
     "call __liste_birles": 1, "call __liste_birlestir": 1, "call __liste_dilim": 1,
-    "call __liste_ekle": 1, "call __liste_koy": 1, "call __liste_sil": 1,
-    "call __liste_yeni": 1, "call __metin_al": 1, "call __metin_baytlar": 1,
-    "call __metin_birlestir": 1, "call __metin_bol": 1, "call __metin_dilim": 1,
-    "call __metin_karakter": 1, "call __metinden_sayi": 1, "call __oku": 1,
-    "call __sayidan_metin": 1, "call __sozluk_al": 1, "call __sozluk_koy": 1,
-    "call __sozluk_liste": 1, "call __sozluk_sil": 1, "call __sozluk_yeni": 1,
-    "jz __sifira_bolme": 1, "jz __yok_hatasi": 1
+    "call __liste_ekle": 1, "call __liste_koy": 1, "call __liste_sil": 1, "call __liste_yeni": 1,
+    "call __metin_al": 1, "call __metin_baytlar": 1, "call __metin_birlestir": 1,
+    "call __metin_bol": 1, "call __metin_dilim": 1, "call __metin_karakter": 1,
+    "call __metinden_sayi": 1, "call __oku": 1, "call __sayidan_metin": 1, "call __sozluk_al": 1,
+    "call __sozluk_koy": 1, "call __sozluk_liste": 1, "call __sozluk_sil": 1,
+    "call __sozluk_yeni": 1, "jz __sifira_bolme": 1, "jz __yok_hatasi": 1
 } -> RİSKLİ
 
 {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"} -> KARŞILAŞTIRMA
@@ -1125,6 +1127,30 @@ işlev yerleşik_çağır(ad, türler, d) {
         }
         komut("call __uyar", d)
         "metin" -> döndür
+    }
+    asıl == "karakter" -> eğer {
+        n != 1 veya t0 != "sayı" -> eğer { yanlış_argüman(ad, "karakter kodu", türler, d) }
+        yaz("pop rdi")
+        komut("call __karakter", d)
+        "metin" -> döndür
+    }
+    asıl == "uçbirim_mi" veya asıl == "ortam_var" veya asıl == "dosya_hatası" -> eğer {
+        "metin" -> beklenen
+        "dosya yolu" -> açıklama
+        "call __dosya_hata_kodu" -> komut_satırı
+        asıl == "uçbirim_mi" -> eğer {
+            "sayı" -> beklenen
+            "dosya tanıtıcısı" -> açıklama
+            "call __ucbirim_mi" -> komut_satırı
+        }
+        asıl == "ortam_var" -> eğer {
+            "ortam değişkeninin adı" -> açıklama
+            "call __ortam_var" -> komut_satırı
+        }
+        n != 1 veya t0 != beklenen -> eğer { yanlış_argüman(ad, açıklama, türler, d) }
+        yaz("pop rdi")
+        komut(komut_satırı, d)
+        "sayı" -> döndür
     }
     asıl == "argümanlar" -> eğer {
         n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }

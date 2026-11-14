@@ -101,7 +101,56 @@ def kendi_derleyiciyi_sına(geçici, kaynaklar):
         if not farklı:
             print(f"geçti     kendi {aşama} ({len(kaynaklar)} dosyada Python ile aynı çıktı)")
         başarısız += farklı
-    return başarısız + kendi_kod_üreticiyi_sına(geçici, kaynaklar) + kendini_derlemeyi_sına(geçici)
+    return (başarısız + kendi_kod_üreticiyi_sına(geçici, kaynaklar) + kendini_derlemeyi_sına(geçici)
+            + renkleri_sına(geçici))
+
+
+def uçbirimde_çalıştır(komut, ortam):
+    """Komutu, standart hatası bir sözde uçbirime (pty) bağlı olarak çalıştırır; o uçbirime
+    yazılanları bayt bayt verir."""
+    import pty
+    ana_uç, yan_uç = pty.openpty()
+    süreç = subprocess.Popen(komut, cwd=KÖK, stdout=subprocess.DEVNULL, stderr=yan_uç, env=ortam)
+    os.close(yan_uç)
+    çıktı = b""
+    while True:
+        try:
+            parça = os.read(ana_uç, 65536)
+        except OSError:         # yazan taraf kapandı
+            break
+        if not parça:
+            break
+        çıktı += parça
+    süreç.wait()
+    os.close(ana_uç)
+    return süreç.returncode, çıktı
+
+
+def renkleri_sına(geçici):
+    """Standart hata bir uçbirimse iki derleyici de hata ve uyarıları aynı renklerle yazmalı;
+    NO_COLOR tanımlıysa renksiz yazmalı."""
+    ikili = os.path.join(geçici, "derle")       # kendi_kod_üreticiyi_sına'nın derlediği
+    dosyalar = ["ornekler/hatalar/tanimsiz_degisken.nehir", "ornekler/hatalar/tanimsiz_islev.nehir",
+                "ornekler/hatalar/modul_ad_cakismasi.nehir", "ornekler/hatalar/kapanmamis_metin.nehir",
+                "kendi/sinamalar/tani_uyarilar.nehir", "kendi/sinamalar/tani_sekme.nehir",
+                "kendi/sinamalar/olmayan.nehir"]
+    başarısız = 0
+    for ortam_adı, ortam in (("renkli", {k: v for k, v in os.environ.items() if k != "NO_COLOR"}),
+                             ("NO_COLOR", dict(os.environ, NO_COLOR=""))):
+        for dosya in dosyalar:
+            beklenen = uçbirimde_çalıştır([sys.executable, "nehir.py", dosya, "--asm", "-o",
+                                           os.path.join(geçici, "r1.s")], ortam)
+            çıkan = uçbirimde_çalıştır([ikili, dosya, os.path.join(geçici, "r2.s")], ortam)
+            renk_var = b"\x1b[" in beklenen[1]
+            if çıkan != beklenen or renk_var != (ortam_adı == "renkli"):
+                başarısız += 1
+                print(f"BAŞARISIZ renkler ({ortam_adı}): {dosya}")
+                print("  beklenen:", repr(beklenen)[:300])
+                print("  çıkan:   ", repr(çıkan)[:300])
+    if not başarısız:
+        print(f"geçti     renkler ({len(dosyalar)} dosyada uçbirimde renkli, NO_COLOR ile renksiz; "
+              f"iki derleyici bayt bayt aynı)")
+    return başarısız
 
 
 def kendini_derlemeyi_sına(geçici):
@@ -163,6 +212,9 @@ def kendi_kod_üreticiyi_sına(geçici, kaynaklar):
         print("BAŞARISIZ kendi/kod_uretici.nehir'deki RİSKLİ tablosunda eksikler:", ", ".join(eksik))
     with open(os.path.join(KÖK, "kendi", "sozcukleyici.nehir"), encoding="utf-8") as f:
         sözcükleyici = f.read()
+    if subprocess.run([sys.executable, os.path.join(KÖK, "kendi", "veri_uret.py"), "--denetle"]).returncode:
+        başarısız += 1
+        print("BAŞARISIZ kendi/veri.nehir güncel değil: python3 kendi/veri_uret.py ile yeniden üretin")
     eksik = [ad for ad, asıl in nehir.ANAHTARLAR.items() if f'"{ad}": "{asıl}"' not in sözcükleyici]
     if eksik:
         başarısız += 1

@@ -551,8 +551,9 @@ işlev modül_yükle(ad, k) {
     normal_yol(yol_birleştir(dizin_adı(a_dosyalar[s_dosya[k]]), ad)) -> yol
     a_yüklenen -> var(yol) -> eğer { [] -> döndür }
     1 -> a_yüklenen[yol]
-    değil dosya_var(yol) -> eğer {
-        hata_sözcükte_i("'" + yol + "' modülü okunamadı: dosya bulunamadı", k,
+    kaynağı_oku(yol) -> okuma_hatası
+    okuma_hatası != "" -> eğer {
+        hata_sözcükte_i("'" + yol + "' modülü okunamadı: " + okuma_hatası, k,
                         "yol, 'kullan' yazan dosyanın bulunduğu dizine göredir")
     }
 
@@ -562,7 +563,7 @@ işlev modül_yükle(ad, k) {
     uzunluk(a_dosyalar) -> l_dosya_no
     a_dosyalar -> ekle(yol)
     uzunluk(s_tür) -> a_k                # modülün sözcükleri listelerin sonuna eklenir
-    yol -> dosya_oku -> sözcükle
+    l_okunan -> sözcükle
     üst_düzey() -> deyimler
     saklı_k -> a_k
     saklı_dosya -> l_dosya

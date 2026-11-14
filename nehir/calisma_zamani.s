@@ -477,6 +477,124 @@ __metin_baytlar:                # rdi = metin -> rax = UTF-8 baytlarının sayı
     pop rbx
     ret
 
+__karakter:                     # rdi = Unicode kod noktası -> rax = o karakter (UTF-8 metin)
+    push rbx
+    mov rbx, rdi
+    cmp rbx, 0x10FFFF           # geçersiz: eksi, 0x10FFFF'ten büyük ya da vekil (D800-DFFF)
+    ja __karakter_hatasi
+    mov rax, rbx
+    and rax, -2048
+    cmp rax, 0xD800
+    je __karakter_hatasi
+    mov edi, 1
+    cmp rbx, 0x80
+    jb 1f
+    mov edi, 2
+    cmp rbx, 0x800
+    jb 1f
+    mov edi, 3
+    cmp rbx, 0x10000
+    jb 1f
+    mov edi, 4
+1:  push rdi
+    call __metin_yeni
+    pop rcx
+    cmp rcx, 1
+    jne 2f
+    mov [rax], bl
+    jmp 5f
+2:  mov rdx, rbx                # son bayttan geriye: 10xxxxxx
+    lea r8, [rcx-1]
+3:  test r8, r8
+    jz 4f
+    mov r9, rdx
+    and r9, 0x3F
+    or r9, 0x80
+    mov [rax+r8], r9b
+    shr rdx, 6
+    dec r8
+    jmp 3b
+4:  mov r9, 0xF0                # ilk bayt: 110xxxxx, 1110xxxx ya da 11110xxx
+    cmp rcx, 4
+    je 6f
+    mov r9, 0xE0
+    cmp rcx, 3
+    je 6f
+    mov r9, 0xC0
+6:  or r9, rdx
+    mov [rax], r9b
+5:  pop rbx
+    ret
+
+__ucbirim_mi:                   # rdi = dosya tanıtıcısı -> rax = uçbirimse 1, değilse 0
+    sub rsp, 64                 # ioctl(fd, TCGETS, &termios) yalnızca uçbirimde başarılı olur
+    mov eax, 16
+    mov esi, 0x5401
+    mov rdx, rsp
+    syscall
+    add rsp, 64
+    test rax, rax
+    sete al
+    movzx eax, al
+    ret
+
+__ortam_var:                    # rdi = ad -> rax = ortamda "ad=..." varsa 1, yoksa 0
+    mov r8, [rip+__baslangic_sp]
+    mov rcx, [r8]               # argc; ortam, argv'den ve onun sonundaki 0'dan sonra başlar
+    lea r8, [r8+rcx*8+16]
+    mov r9, [rdi-8]
+1:  mov rsi, [r8]
+    test rsi, rsi
+    jz 4f
+    xor ecx, ecx
+2:  cmp rcx, r9
+    jae 3f
+    mov al, [rdi+rcx]
+    cmp al, [rsi+rcx]
+    jne 5f
+    inc rcx
+    jmp 2b
+3:  cmp byte ptr [rsi+rcx], 61  # '='
+    jne 5f
+    mov eax, 1
+    ret
+5:  add r8, 8
+    jmp 1b
+4:  xor eax, eax
+    ret
+
+__dosya_hata_kodu:              # rdi = yol -> rax = açılabiliyorsa 0, değilse hata kodu (errno);
+    push rbx                    # dizinler için EISDIR (21), Python'un open() işlevi gibi
+    mov eax, 2                  # open(yol, O_RDONLY)
+    xor esi, esi
+    xor edx, edx
+    syscall
+    test rax, rax
+    jns 1f
+    neg rax
+    pop rbx
+    ret
+1:  mov rbx, rax
+    sub rsp, 144                # fstat(fd, &st); st_mode 24. baytta
+    mov rdi, rbx
+    mov rsi, rsp
+    mov eax, 5
+    syscall
+    mov ecx, [rsp+24]
+    add rsp, 144
+    and ecx, 0xF000
+    mov rdi, rbx
+    mov eax, 3                  # close
+    push rcx
+    syscall
+    pop rcx
+    xor eax, eax
+    cmp ecx, 0x4000             # S_IFDIR
+    jne 2f
+    mov eax, 21
+2:  pop rbx
+    ret
+
 __uyar:                         # rdi = metin; stderr'e satır olarak yazar -> rax = metin
     push rdi
     mov rsi, rdi
@@ -1346,6 +1464,10 @@ __yok_hatasi:
     lea rsi, [rip+__h_yok_alan]
     mov edx, __h_yok_alan_son - __h_yok_alan
     jmp __hata
+__karakter_hatasi:
+    lea rsi, [rip+__h_karakter]
+    mov edx, __h_karakter_son - __h_karakter
+    jmp __hata
 __anahtar_hatasi:
     lea rsi, [rip+__h_anahtar]
     mov edx, __h_anahtar_son - __h_anahtar
@@ -1437,6 +1559,8 @@ __h_dosya_genel: .ascii "dosya işlemi başarısız"
 __h_dosya_genel_son:
 __h_yok_alan: .ascii "yok değerinin alanına erişilemez"
 __h_yok_alan_son:
+__h_karakter: .ascii "geçersiz karakter kodu"
+__h_karakter_son:
 __h_bellek: .ascii "bellek tükendi"
 __h_bellek_son:
 

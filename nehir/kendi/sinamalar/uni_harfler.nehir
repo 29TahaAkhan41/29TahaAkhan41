@@ -1,0 +1,7 @@
+# Unicode harfler ve rakamlar adlarda; ASCII dışı boşluklar
+5 -> çağlayan_ĞÜŞ
+çağlayan_ĞÜŞ -> x²
+x² -> yazdır
+π_٣ -> y_  # bölünmez boşluk
+　y_ -> z z -> yazdır
+αβγ -> yazdır
