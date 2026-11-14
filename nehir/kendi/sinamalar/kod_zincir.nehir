@@ -1,0 +1,5 @@
+# Değer zincirde birden çok hedeften geçer
+40 + 2 -> a -> b -> yazdır -> c
+a + b + c -> yazdır
+"x" -> s -> yazdır -> t
+s + t -> yazdır

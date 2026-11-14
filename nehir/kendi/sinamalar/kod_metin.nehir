@@ -1,0 +1,12 @@
+# Metinler: birleştirme, karşılaştırma, kaçışlar, aynı metnin tekrarı
+"Merhaba" -> a
+", " -> ara
+a + ara + "dünya" -> yazdır
+"elma" < "armut" -> yazdır
+"aynı" == "aynı" -> yazdır
+"a" != "b" -> yazdır
+"tab:\t son\\ \"tırnak\"" -> yazdır
+"" -> boş
+boş + a -> yazdır
+"Merhaba" -> yazdır
+"çğıöşü 𝄞" -> yazdır

@@ -3,8 +3,8 @@
 ve çıktısını (hata mesajları dahil) yanındaki .beklenen dosyasıyla karşılaştırır. Aynı adlı bir .girdi dosyası varsa
 programa standart girdi olarak verilir.
 
-Ardından Nehir ile yazılmış derleyici aşamalarını (kendi/ altındaki sözcükleyici ve
-ayrıştırıcı) derler ve bütün .nehir dosyalarında Python'daki karşılıklarıyla aynı
+Ardından Nehir ile yazılmış derleyici aşamalarını (kendi/ altındaki sözcükleyici,
+ayrıştırıcı ve kod üretici) derler ve bütün .nehir dosyalarında Python'daki karşılıklarıyla aynı
 çıktıyı verdiklerini sınar.
 
   python3 test.py              sınamaları çalıştır
@@ -101,6 +101,63 @@ def kendi_derleyiciyi_sına(geçici, kaynaklar):
         if not farklı:
             print(f"geçti     kendi {aşama} ({len(kaynaklar)} dosyada Python ile aynı çıktı)")
         başarısız += farklı
+    return başarısız + kendi_kod_üreticiyi_sına(geçici, kaynaklar)
+
+
+def kendi_kod_üreticiyi_sına(geçici, kaynaklar):
+    """Nehir ile yazılmış derleyici (kendi/derle.nehir), Python'daki derleyiciyle bayt bayt
+    aynı assembly'yi üretmelidir; hatalı dosyalarda aynı ilk hata satırını ve çıkış kodunu
+    vermelidir. Henüz taşınmamış yapıları içeren dosyalarda 3 koduyla çıkar; bunlar sayılır."""
+    başarısız = 0
+    with open(os.path.join(KÖK, "kendi", "kod_uretici.nehir"), encoding="utf-8") as f:
+        kod_üretici = f.read()
+    sys.path.insert(0, KÖK)
+    import nehir
+    eksik = [ad for ad in nehir.YERLEŞİKLER if f'"{ad}": 1' not in kod_üretici]
+    if eksik:
+        başarısız += 1
+        print("BAŞARISIZ kendi/kod_uretici.nehir şu yerleşik adları bilmiyor:", ", ".join(eksik))
+    if f'"{nehir.YIĞIN_BOYUTU}" -> YIĞIN_BOYUTU' not in kod_üretici:
+        başarısız += 1
+        print("BAŞARISIZ kendi/kod_uretici.nehir'deki YIĞIN_BOYUTU nehir.py'dekiyle aynı değil")
+
+    ikili = os.path.join(geçici, "derle")
+    s = subprocess.run([sys.executable, "nehir.py", "kendi/derle.nehir", "-o", ikili],
+                       cwd=KÖK, capture_output=True, text=True, encoding="utf-8")
+    if s.returncode != 0:
+        print("BAŞARISIZ kendi/derle.nehir derlenemedi:", s.stderr.split("\n")[0])
+        return başarısız + 1
+
+    aynı = desteklenmeyen = derlenen = 0
+    for kaynak in kaynaklar:
+        göreli = os.path.relpath(kaynak, KÖK).replace(os.sep, "/")
+        py_s, nh_s = os.path.join(geçici, "py.s"), os.path.join(geçici, "nh.s")
+        for yol in (py_s, nh_s):
+            if os.path.exists(yol):
+                os.remove(yol)
+        p = subprocess.run([sys.executable, "nehir.py", göreli, "--asm", "-o", py_s],
+                           cwd=KÖK, capture_output=True, text=True, encoding="utf-8")
+        n = subprocess.run([ikili, göreli, nh_s], cwd=KÖK, capture_output=True, text=True, encoding="utf-8")
+        if n.returncode == 3:
+            desteklenmeyen += 1
+            continue
+        beklenen = (p.returncode, p.stderr.split("\n")[0])
+        çıkan = (n.returncode, n.stderr.split("\n")[0])
+        if beklenen == çıkan and p.returncode == 0:
+            with open(py_s, "rb") as a, open(nh_s, "rb") as b:
+                if a.read() != b.read():
+                    çıkan = (n.returncode, "(assembly farklı)")
+        if beklenen != çıkan:
+            başarısız += 1
+            print(f"BAŞARISIZ kendi kod üretici: {göreli}")
+            print("  beklenen:", repr(beklenen)[:300])
+            print("  çıkan:   ", repr(çıkan)[:300])
+            continue
+        aynı += 1
+        derlenen += p.returncode == 0
+    if not başarısız:
+        print(f"geçti     kendi kod üretici ({aynı} dosyada Python ile aynı sonuç, {derlenen} tanesi "
+              f"bayt bayt aynı assembly; {desteklenmeyen} dosya henüz taşınmamış yapılar içeriyor)")
     return başarısız
 
 

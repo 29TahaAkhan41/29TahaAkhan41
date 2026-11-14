@@ -1,0 +1,395 @@
+# Nehir kod üreticisi — Nehir ile yazılmış.
+#
+# nehir.py içindeki `KodÜretici` sınıfının karşılığıdır: ayrıştırıcının kurduğu
+# sözdizimi ağacından x86-64 assembly üretir. Kendi kendini derleyen derleyicinin
+# üçüncü aşaması. Ürettiği assembly, Python'daki derleyicinin ürettiğiyle bayt bayt
+# aynıdır.
+#
+# Taşıma parça parça yapılıyor. Henüz taşınmamış bir yapıyla karşılaşınca
+# "henüz desteklenmiyor" der ve 3 koduyla çıkar. Şu an desteklenenler:
+#   - yalnızca üst düzey kod (işlev, kayıt ve modül yok)
+#   - sayılar, metinler, doğru/yanlış, değişkenler (sayı ve metin türünde)
+#   - + - * / % ve karşılaştırmalar, ve / veya / değil, tekli eksi; metin + metin
+#   - hedefler: yazdır, değişken, ortak, eğer/değilse, iken, çatal; dur, devam
+#
+#   kullan "kod_uretici.nehir"
+#   l_dosya -> dosya_oku -> sözcükle
+#   program() -> üret(çalışma_zamanı_metni) -> dosya_yaz("program.s")
+
+kullan "ayristirici.nehir"
+
+# Yerleşik işlev adları: bu adlara akan değer işleve argüman olur.
+{
+    "uzunluk": 1, "len": 1, "ekle": 1, "push": 1, "aralık": 1, "aralik": 1, "range": 1, "metne": 1,
+    "str": 1, "sayıya": 1, "sayiya": 1, "num": 1, "dilim": 1, "slice": 1, "bul": 1, "find": 1,
+    "sil": 1, "remove": 1, "böl": 1, "bol": 1, "split": 1, "birleş": 1, "birles": 1, "join": 1,
+    "var": 1, "has": 1, "anahtarlar": 1, "keys": 1, "değerler": 1, "degerler": 1, "values": 1,
+    "dosya_oku": 1, "read_file": 1, "dosya_yaz": 1, "write_file": 1, "dosya_ekle": 1,
+    "append_file": 1, "dosya_var": 1, "file_exists": 1, "dosya_sil": 1, "delete_file": 1,
+    "argümanlar": 1, "argumanlar": 1, "args": 1, "çık": 1, "cik": 1, "exit": 1, "uyar": 1,
+    "warn": 1, "baytlar": 1, "bytes": 1, "oku": 1, "read": 1, "girdi_var": 1, "has_input": 1
+} -> YERLEŞİK_ADLAR
+
+{"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"} -> KARŞILAŞTIRMA
+
+# Yığın için ayrılan bellek (bayt). nehir.py'deki YIĞIN_BOYUTU ile aynı olmalı.
+"268435456" -> YIĞIN_BOYUTU
+
+# ── durum ──
+
+[] -> k_kod                 # nehir_ana'nın assembly satırları
+[] -> k_metinler            # programdaki metinler, ilk görülme sırasıyla
+{} -> k_metin_no            # metin -> k_metinler'deki sırası
+[] -> k_küreseller          # üst düzey değişkenlerin adları, toplanma sırasıyla
+{} -> k_küresel_etiket      # ad -> bellekteki yerinin etiketi (g0, g1, ...)
+{} -> k_küresel_tür         # ad -> "sayı" | "metin" | "" (henüz değer akmadı)
+[] -> k_tür_tanımları       # çalışma zamanı tür tanımları (yazdırma için)
+{} -> k_tür_etiketi         # tür -> tanımının etiketi (t0, t1, ...)
+0 -> ortak k_etiket_no      # son üretilen .L etiketinin numarası
+0 -> ortak k_çatal          # o anda yığında bekleyen çatal değerlerinin sayısı
+
+# İç içe döngüler (koşut listeler): devam ve çıkış etiketleri, girildiği andaki çatal derinliği
+[] -> k_döngü_devam
+[] -> k_döngü_son
+[] -> k_döngü_çatal
+
+# ── yardımcılar ──
+
+işlev k_hata(mesaj, d) { hata_yer(mesaj, d.satır, d.sütun) }
+
+işlev desteklenmiyor(ne, d) {
+    l_dosya + ":" + metne(d.satır) + ":" + metne(d.sütun) + ": henüz desteklenmiyor: " + ne -> uyar
+    çık(3)
+}
+
+işlev yaz(satır) { k_kod -> ekle("    " + satır) }
+işlev etiket_koy(etiket) { k_kod -> ekle(etiket + ":") }
+
+# Hata verebilen çalışma zamanı işlemlerinden önce r15'e kaynak satırı yüklenir.
+işlev riskli(satır, d) {
+    yaz("mov r15, " + metne(d.satır))
+    yaz(satır)
+}
+
+işlev yeni_etiket() {
+    k_etiket_no + 1 -> k_etiket_no
+    ".L" + metne(k_etiket_no) -> döndür
+}
+
+işlev metin_etiketi(m) {
+    değil var(k_metin_no, m) -> eğer {
+        uzunluk(k_metinler) -> k_metin_no[m]
+        k_metinler -> ekle(m)
+    }
+    "m" + metne(k_metin_no[m]) -> döndür
+}
+
+işlev tür_etiketi(tür) {
+    değil var(k_tür_etiketi, tür) -> eğer {
+        "t" + metne(uzunluk(k_tür_tanımları)) -> etiket
+        etiket -> k_tür_etiketi[tür]
+        "0" -> kod
+        tür == "metin" -> eğer { "1" -> kod }
+        k_tür_tanımları -> ekle(etiket + ": .quad " + kod + ", 0, 0")
+    }
+    k_tür_etiketi[tür] -> döndür
+}
+
+işlev sayı_olmalı(tür, ne, d) {
+    tür != "sayı" -> eğer { k_hata(ne + " sayı olmalı, " + tür + " bulundu", d) }
+}
+
+# ── üst düzey değişkenler ──
+# En üst düzeyde (iç içe bloklar dahil) atanan her ad küresel değişkendir;
+# kod üretilmeden önce hepsi toplanır.
+
+işlev küresel(ad) {
+    değil var(k_küresel_etiket, ad) -> eğer {
+        "g" + metne(uzunluk(k_küreseller)) -> k_küresel_etiket[ad]
+        "" -> k_küresel_tür[ad]
+        k_küreseller -> ekle(ad)
+    }
+}
+
+işlev küreselleri_topla(deyimler) {
+    deyimler -> her (d) {
+        d.tür == "akış" -> eğer { hedeflerden_topla(dilim(d.çocuklar, 1, uzunluk(d.çocuklar))) }
+    }
+}
+
+işlev hedeflerden_topla(hedefler) {
+    hedefler -> her (h) {
+        h.tür == "hedef_ad" ve uzunluk(h.çocuklar) == 0 ve değil var(YERLEŞİK_ADLAR, h.ad) -> eğer {
+            küresel(h.ad)
+        }
+        h.tür == "eğer" -> eğer { h.çocuklar -> her (b) { küreselleri_topla(b.çocuklar) } }
+        h.tür == "iken" -> eğer { küreselleri_topla(h.çocuklar[0].çocuklar) }
+        h.tür == "ortak" -> eğer { küresel(h.ad) }
+        h.tür == "her" -> eğer {
+            küresel(h.ad)
+            küreselleri_topla(h.çocuklar[0].çocuklar)
+        }
+        h.tür == "çatal" -> eğer { h.çocuklar -> her (dal) { hedeflerden_topla(dal.çocuklar) } }
+    }
+}
+
+işlev ata(ad, tür, d) {
+    k_küresel_tür[ad] -> önceki
+    önceki == "" -> eğer { tür -> k_küresel_tür[ad] } değilse {
+        önceki != tür -> eğer { k_hata("'" + ad + "' değişkeni " + önceki + " türünde; " + tür + " atanamaz", d) }
+    }
+    yaz("mov [rip+" + k_küresel_etiket[ad] + "], rax")
+}
+
+# ── deyimler ──
+
+işlev blok_üret(b) { b.çocuklar -> her (d) { deyim_üret(d) } }
+
+işlev döngü_gövdesi(b, devam_etiketi, son_etiketi) {
+    k_döngü_devam -> ekle(devam_etiketi)
+    k_döngü_son -> ekle(son_etiketi)
+    k_döngü_çatal -> ekle(k_çatal)
+    blok_üret(b)
+    uzunluk(k_döngü_son) - 1 -> s
+    k_döngü_devam -> sil(s)
+    k_döngü_son -> sil(s)
+    k_döngü_çatal -> sil(s)
+}
+
+işlev deyim_üret(d) {
+    d.tür == "dur" veya d.tür == "devam" -> eğer {
+        uzunluk(k_döngü_son) == 0 -> eğer { k_hata("'" + d.tür + "' yalnızca döngü içinde kullanılabilir", d) }
+        uzunluk(k_döngü_son) - 1 -> s
+        k_çatal > k_döngü_çatal[s] -> eğer {      # çatalların yığında bıraktıklarını at
+            yaz("add rsp, " + metne(8 * (k_çatal - k_döngü_çatal[s])))
+        }
+        d.tür == "dur" -> eğer { yaz("jmp " + k_döngü_son[s]) } değilse { yaz("jmp " + k_döngü_devam[s]) }
+    } değilse {
+        d.tür != "akış" -> eğer { desteklenmiyor("'" + d.tür + "' deyimi", d) }
+        d.çocuklar -> c
+        uzunluk(c) -> n
+        "" -> döngü_başı
+        c[n - 1].tür == "iken" -> eğer {
+            # Koşul her turda yeniden aktığı için tüm zincir döngünün içindedir.
+            yeni_etiket() -> döngü_başı
+            etiket_koy(döngü_başı)
+        }
+        ifade_üret(c[0]) -> tür
+        1 -> i
+        i < n -> iken {
+            hedef_üret(c[i], tür, döngü_başı) -> tür
+            i + 1 -> i
+        }
+    }
+}
+
+işlev hedef_üret(h, tür, döngü_başı) {
+    h.tür == "yazdır" -> eğer {
+        yaz("push rax")
+        yaz("mov rdi, rax")
+        yaz("lea rsi, [rip+" + tür_etiketi(tür) + "]")
+        yaz("call __yaz_deger")
+        yaz("pop rax")              # değer akmaya devam eder
+        tür -> döndür
+    }
+    h.tür == "döndür" -> eğer { k_hata("'döndür' yalnızca işlev içinde kullanılabilir", h) }
+    h.tür == "eğer" -> eğer {
+        sayı_olmalı(tür, "'eğer' koşulu", h)
+        yeni_etiket() -> öteki
+        yeni_etiket() -> son
+        yaz("test rax, rax")
+        yaz("jz " + öteki)
+        blok_üret(h.çocuklar[0])
+        yaz("jmp " + son)
+        etiket_koy(öteki)
+        uzunluk(h.çocuklar) > 1 -> eğer { blok_üret(h.çocuklar[1]) }
+        etiket_koy(son)
+        tür -> döndür
+    }
+    h.tür == "iken" -> eğer {
+        sayı_olmalı(tür, "'iken' koşulu", h)
+        yeni_etiket() -> son
+        yaz("test rax, rax")
+        yaz("jz " + son)
+        döngü_gövdesi(h.çocuklar[0], döngü_başı, son)
+        yaz("jmp " + döngü_başı)
+        etiket_koy(son)
+        tür -> döndür
+    }
+    h.tür == "çatal" -> eğer {
+        # Aynı değer her kola ayrı ayrı akar; sonra olduğu gibi yoluna devam eder.
+        h.çocuklar -> her (dal) {
+            yaz("push rax")
+            k_çatal + 1 -> k_çatal
+            tür -> kol_türü
+            dal.çocuklar -> her (alt) { hedef_üret(alt, kol_türü, "") -> kol_türü }
+            k_çatal - 1 -> k_çatal
+            yaz("pop rax")
+        }
+        tür -> döndür
+    }
+    h.tür == "ortak" -> eğer {
+        YERLEŞİK_ADLAR -> var(h.ad) -> eğer {
+            k_hata("'" + h.ad + "' bir işlev ya da kayıt adı; değişken adı olamaz", h)
+        }
+        ata(h.ad, tür, h)
+        tür -> döndür
+    }
+    h.tür == "hedef_ad" -> eğer {
+        uzunluk(h.çocuklar) > 0 veya var(YERLEŞİK_ADLAR, h.ad) -> eğer { desteklenmiyor("işlev çağrısı", h) }
+        ata(h.ad, tür, h)
+        tür -> döndür
+    }
+    desteklenmiyor("'" + h.tür + "' hedefi", h)
+}
+
+# ── ifadeler ──
+# Her ifadenin sonucu rax'te kalır; işlev, ifadenin türünü verir.
+
+işlev ifade_üret(e) {
+    e.tür == "sayı" -> eğer {
+        yaz("mov rax, " + metne(e.sayı))
+        "sayı" -> döndür
+    }
+    e.tür == "metin" -> eğer {
+        yaz("lea rax, [rip+" + metin_etiketi(e.ad) + "]")
+        "metin" -> döndür
+    }
+    e.tür == "değişken" -> eğer {
+        k_küresel_etiket -> var(e.ad) -> eğer {
+            k_küresel_tür[e.ad] == "" -> eğer {
+                k_hata("'" + e.ad + "' değişkenine henüz bir değer akmadı", e)
+            }
+            yaz("mov rax, [rip+" + k_küresel_etiket[e.ad] + "]")
+            k_küresel_tür[e.ad] -> döndür
+        }
+        YERLEŞİK_ADLAR -> var(e.ad) -> eğer {
+            k_hata("'" + e.ad + "' yerleşik bir işlev; yerleşik işlevler değer olarak verilemez", e)
+        }
+        k_hata("'" + e.ad + "' adında bir değişken yok", e)
+    }
+    e.tür == "tekli" -> eğer {
+        sayı_olmalı(ifade_üret(e.çocuklar[0]), "'" + e.ad + "' işlecinin işleneni", e)
+        e.ad == "-" -> eğer { yaz("neg rax") } değilse {
+            yaz("test rax, rax")
+            yaz("sete al")
+            yaz("movzx eax, al")
+        }
+        "sayı" -> döndür
+    }
+    e.tür == "ikili" -> eğer { ikili_üret(e) -> döndür }
+    desteklenmiyor("'" + e.tür + "' ifadesi", e)
+}
+
+işlev ikili_üret(e) {
+    e.ad -> iş
+    e.çocuklar[0] -> sol
+    e.çocuklar[1] -> sağ
+    iş == "ve" veya iş == "veya" -> eğer {
+        # Kısa devre: sonuç her zaman 0 veya 1.
+        yeni_etiket() -> son
+        sayı_olmalı(ifade_üret(sol), "'" + iş + "' işlecinin sol tarafı", e)
+        yaz("test rax, rax")
+        yaz("setne al")
+        yaz("movzx eax, al")
+        iş == "ve" -> eğer { yaz("jz " + son) } değilse { yaz("jnz " + son) }
+        sayı_olmalı(ifade_üret(sağ), "'" + iş + "' işlecinin sağ tarafı", e)
+        yaz("test rax, rax")
+        yaz("setne al")
+        yaz("movzx eax, al")
+        etiket_koy(son)
+        "sayı" -> döndür
+    }
+    ifade_üret(sol) -> sol_türü
+    yaz("push rax")
+    ifade_üret(sağ) -> sağ_türü
+    yaz("mov rcx, rax")
+    yaz("pop rax")
+    sol_türü == "metin" ve sağ_türü == "metin" ve (iş == "+" veya var(KARŞILAŞTIRMA, iş)) -> eğer {
+        yaz("mov rdi, rax")
+        yaz("mov rsi, rcx")
+        iş == "+" -> eğer {
+            riskli("call __metin_birlestir", e)
+            "metin" -> döndür
+        }
+        yaz("call __metin_karsilastir")
+        yaz("test rax, rax")        # işaretli sonuç 0 ile karşılaştırılır
+        yaz(KARŞILAŞTIRMA[iş] + " al")
+        yaz("movzx eax, al")
+        "sayı" -> döndür
+    }
+    iş == "+" ve sol_türü != sağ_türü -> eğer { k_hata("metin ile sayı doğrudan toplanamaz", e) }
+    sayı_olmalı(sol_türü, "'" + iş + "' işlecinin sol tarafı", e)
+    sayı_olmalı(sağ_türü, "'" + iş + "' işlecinin sağ tarafı", e)
+    iş == "+" -> eğer { yaz("add rax, rcx")   "sayı" -> döndür }
+    iş == "-" -> eğer { yaz("sub rax, rcx")   "sayı" -> döndür }
+    iş == "*" -> eğer { yaz("imul rax, rcx")   "sayı" -> döndür }
+    iş == "/" veya iş == "%" -> eğer {
+        yaz("test rcx, rcx")
+        riskli("jz __sifira_bolme", e)
+        yaz("cqo")
+        yaz("idiv rcx")
+        iş == "%" -> eğer { yaz("mov rax, rdx") }
+        "sayı" -> döndür
+    }
+    yaz("cmp rax, rcx")
+    yaz(KARŞILAŞTIRMA[iş] + " al")
+    yaz("movzx eax, al")
+    "sayı" -> döndür
+}
+
+# ── program ──
+
+# Metnin UTF-8 baytları ve sonundaki sıfır, assembly'nin `.byte` yazımıyla.
+işlev bayt_satırı(m) {
+    [] -> parçalar
+    m -> baytlar -> her (b) { parçalar -> ekle(metne(b)) }
+    parçalar -> ekle("0")
+    "    .byte " + birleş(parçalar, ", ") -> döndür
+}
+
+# Ağacın kökünden bütün assembly metnini üretir. `çalışma_zamanı`, calisma_zamani.s
+# dosyasının içeriğidir.
+işlev üret(kök, çalışma_zamanı) {
+    kök.çocuklar -> her (d) {
+        d.tür == "işlev" veya d.tür == "kayıt" veya d.tür == "kullan" -> eğer {
+            desteklenmiyor("'" + d.tür + "' tanımı", d)
+        }
+    }
+    küreselleri_topla(kök.çocuklar)
+
+    k_kod -> ekle("nehir_ana:")
+    yaz("push rbp")
+    yaz("mov rbp, rsp")
+    kök.çocuklar -> her (d) { deyim_üret(d) }
+    yaz("leave")
+    yaz("ret")
+
+    [".intel_syntax noprefix", ".global _start", ".section .text"] -> satırlar
+    satırlar + k_kod -> satırlar
+    çalışma_zamanı -> böl("YIGIN_BOYUTU") -> birleş(YIĞIN_BOYUTU) -> çz
+    satırlar -> ekle(çz)
+    satırlar -> ekle("    .section .rodata")
+    satırlar -> ekle("    .balign 8")
+    satırlar -> ekle("__dosyalar: .quad " + metin_etiketi(l_dosya))
+
+    satırlar -> ekle("    .section .rodata")
+    0 -> i
+    k_metinler -> her (m) {
+        satırlar -> ekle("    .balign 8")
+        satırlar -> ekle("    .quad " + metne(uzunluk(baytlar(m))))
+        satırlar -> ekle("m" + metne(i) + ":")
+        satırlar -> ekle(bayt_satırı(m))
+        i + 1 -> i
+    }
+    uzunluk(k_küreseller) > 0 -> eğer {
+        satırlar -> ekle("    .section .bss")
+        k_küreseller -> her (ad) { satırlar -> ekle(k_küresel_etiket[ad] + ": .skip 8    # " + ad) }
+    }
+    uzunluk(k_tür_tanımları) > 0 -> eğer {
+        satırlar -> ekle("    .section .rodata")
+        satırlar -> ekle("    .balign 8")
+        satırlar + k_tür_tanımları -> satırlar
+    }
+    birleş(satırlar, "\n") + "\n" -> döndür
+}

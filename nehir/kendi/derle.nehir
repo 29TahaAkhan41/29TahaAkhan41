@@ -1,0 +1,31 @@
+# Nehir ile yazılmış Nehir derleyicisi: kaynak dosyadan assembly üretir.
+#
+#   kullanım: derle <dosya.nehir> <çıktı.s> [calisma_zamani.s]
+#
+# Çıktısı `nehir.py <dosya> --asm -o <çıktı.s>` ile bayt bayt aynıdır. Henüz
+# taşınmamış bir yapıyla karşılaşırsa "henüz desteklenmiyor" der ve 3 ile çıkar.
+# Assembly'yi çalıştırılabilir dosyaya çevirmek için:
+#   as -o program.o program.s && ld -o program program.o
+
+kullan "kod_uretici.nehir"
+
+işlev ana() {
+    argümanlar() -> a
+    uzunluk(a) < 2 veya uzunluk(a) > 3 -> eğer {
+        "kullanım: derle <dosya.nehir> <çıktı.s> [calisma_zamani.s]" -> uyar
+        çık(2)
+    }
+    "calisma_zamani.s" -> çalışma_zamanı_yolu
+    uzunluk(a) == 3 -> eğer { a[2] -> çalışma_zamanı_yolu }
+    a[0] -> l_dosya
+    [l_dosya, çalışma_zamanı_yolu] -> her (yol) {
+        değil dosya_var(yol) -> eğer {
+            yol + ": hata: dosya okunamadı" -> uyar
+            çık(1)
+        }
+    }
+    l_dosya -> dosya_oku -> sözcükle
+    program() -> üret(dosya_oku(çalışma_zamanı_yolu)) -> dosya_yaz(a[1])
+}
+
+ana()

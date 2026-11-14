@@ -1,0 +1,9 @@
+# Karşılaştırmalar ve kısa devre
+5 -> x
+x > 3 ve x < 10 -> yazdır
+x == 5 veya 1 / 0 == 0 -> yazdır
+x != 5 ve 1 / 0 == 0 -> yazdır
+değil x == 4 -> yazdır
+değil değil (x <= 5) -> yazdır
+x >= 6 veya x < 0 -> yazdır
+doğru ve yanlış -> yazdır

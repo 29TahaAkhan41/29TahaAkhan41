@@ -1,0 +1,24 @@
+# eğer, iken, dur, devam, çatal, ortak
+0 -> ortak i
+0 -> toplam
+i < 10 -> iken {
+    i + 1 -> i
+    i % 2 == 0 -> eğer { devam }
+    i > 7 -> eğer { dur }
+    toplam + i -> toplam
+}
+toplam -> yazdır
+i -> (yazdır | x -> yazdır | eğer { "sıfırdan farklı" -> yazdır } değilse { "sıfır" -> yazdır })
+0 -> j
+doğru -> iken {
+    j + 1 -> j
+    j -> (yazdır | eğer { j > 2 -> eğer { dur } })
+}
+j > 0 -> eğer { "j: " -> yazdır } değilse { "olmaz" -> yazdır }
+0 -> k
+k < 3 -> iken {
+    0 -> m
+    m < 3 -> iken { m + 1 -> m   m == 2 -> eğer { dur } }
+    k + m -> k
+}
+k -> yazdır
