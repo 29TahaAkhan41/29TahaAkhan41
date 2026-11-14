@@ -1,0 +1,33 @@
+# Yerleşik işlevler
+"çağlayan nehir" -> m
+m -> uzunluk -> yazdır
+m[2] -> yazdır
+m -> dilim(0, 3) -> yazdır
+m -> bul("nehir") -> yazdır
+m -> böl(" ") -> parçalar -> yazdır
+parçalar -> birleş("+") -> yazdır
+[10, 20, 30] -> l
+l -> dilim(1, 3) -> yazdır
+l -> bul(30) -> yazdır
+[[1], [2, 3]] -> bul([2, 3]) -> yazdır
+["a", "b"] -> bul("b") -> yazdır
+l -> sil(0) -> yazdır
+l -> yazdır
+aralık(2, 6) -> yazdır
+42 -> metne -> yazdır
+"17" -> sayıya -> yazdır
+7 -> sayıya -> yazdır
+"x" -> metne -> yazdır
+"ab" -> baytlar -> yazdır
+argümanlar() -> uzunluk -> yazdır
+"uyarı satırı" -> uyar -> uzunluk -> yazdır
+"/tmp/nehir_kod_sinama.txt" -> yol
+"bir\n" -> dosya_yaz(yol)
+"iki\n" -> dosya_ekle(yol)
+yol -> dosya_var -> yazdır
+yol -> dosya_oku -> böl("\n") -> yazdır
+yol -> dosya_sil
+yol -> dosya_var -> yazdır
+len("abc") -> print
+range(0, 3) -> print
+"x,y" -> split(",") -> join("-") -> print

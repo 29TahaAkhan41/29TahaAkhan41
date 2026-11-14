@@ -1,0 +1,29 @@
+# Listeler: yazım, dizin, elemana yazma, her, birleştirme, karşılaştırma
+[3, 1, 4] -> l -> yazdır
+l[1] + l[2] -> yazdır
+9 -> l[0]
+l -> ekle(1) -> ekle(5) -> yazdır
+0 -> toplam
+l -> her (x) { toplam + x -> toplam }
+toplam -> yazdır
+[] -> boş
+boş -> yazdır
+boş -> ekle("ilk")
+boş -> yazdır
+[[1, 2], [], [3]] -> iç_içe -> yazdır
+iç_içe[0][1] -> yazdır
+iç_içe[1] -> ekle(7)
+8 -> iç_içe[2][0]
+iç_içe -> yazdır
+[1, 2] + [3] -> yazdır
+[1, 2] == [1, 2] -> yazdır
+[[1], [2]] != [[1], [2]] -> yazdır
+[["a"]] == [["a"]] -> yazdır
+[] -> e1
+[] -> e2
+e1 == e2 -> yazdır
+[] -> sonradan
+sonradan -> yazdır
+5 -> ekle_sayı
+sonradan -> ekle(ekle_sayı)
+sonradan -> yazdır

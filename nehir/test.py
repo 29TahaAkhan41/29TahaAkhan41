@@ -113,10 +113,14 @@ def kendi_kod_üreticiyi_sına(geçici, kaynaklar):
         kod_üretici = f.read()
     sys.path.insert(0, KÖK)
     import nehir
-    eksik = [ad for ad in nehir.YERLEŞİKLER if f'"{ad}": 1' not in kod_üretici]
+    eksik = [ad for ad, asıl in nehir.YERLEŞİKLER.items() if f'"{ad}": "{asıl}"' not in kod_üretici]
     if eksik:
         başarısız += 1
         print("BAŞARISIZ kendi/kod_uretici.nehir şu yerleşik adları bilmiyor:", ", ".join(eksik))
+    eksik = [satır for satır in nehir.RİSKLİ if f'"{satır}": 1' not in kod_üretici]
+    if eksik:
+        başarısız += 1
+        print("BAŞARISIZ kendi/kod_uretici.nehir'deki RİSKLİ tablosunda eksikler:", ", ".join(eksik))
     if f'"{nehir.YIĞIN_BOYUTU}" -> YIĞIN_BOYUTU' not in kod_üretici:
         başarısız += 1
         print("BAŞARISIZ kendi/kod_uretici.nehir'deki YIĞIN_BOYUTU nehir.py'dekiyle aynı değil")

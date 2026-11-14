@@ -1,0 +1,32 @@
+# Liste alan ve döndüren işlevler; türleri çağrıdan ve kullanımdan öğrenilir
+işlev kareler(l) {
+    [] -> sonuç
+    l -> her (x) { sonuç -> ekle(x * x) }
+    sonuç -> döndür
+}
+işlev ters(l) {
+    [] -> sonuç
+    l -> her (x) { [x] + sonuç -> sonuç }
+    sonuç -> döndür
+}
+işlev sırala(l) {
+    0 -> i
+    i < uzunluk(l) -> iken {
+        i -> j
+        j > 0 ve l[j - 1] > l[j] -> iken {
+            l[j] -> g
+            l[j - 1] -> l[j]
+            g -> l[j - 1]
+            j - 1 -> j
+        }
+        i + 1 -> i
+    }
+    l -> döndür
+}
+işlev say(n) {
+    n == 0 -> eğer { [] -> döndür }
+    say(n - 1) -> ekle(n) -> döndür
+}
+aralık(1, 5) -> kareler -> ters -> yazdır
+[5, 2, 9, 1] -> sırala -> yazdır
+say(4) -> yazdır

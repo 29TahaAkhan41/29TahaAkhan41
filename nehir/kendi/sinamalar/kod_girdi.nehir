@@ -1,0 +1,10 @@
+# Girdi ve metin üzerinde her
+"Adın? " -> oku -> ad
+"Merhaba " + ad -> yazdır
+[] -> satırlar
+girdi_var() -> iken { satırlar -> ekle(oku()) }
+satırlar -> yazdır
+0 -> ünlü
+ad -> her (k) { bul("aeıioöuü", k) >= 0 -> eğer { ünlü + 1 -> ünlü } }
+ünlü -> yazdır
+oku() -> uzunluk -> yazdır

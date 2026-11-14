@@ -12,9 +12,9 @@
 #   - hedefler: yazdır, değişken, ortak, eğer/değilse, iken, çatal; dur, devam
 #   - işlevler: parametreler, yerel değişkenler, döndür, özyineleme; dönüş türü
 #     çıkarımı ve "sonuna değer döndürmeden ulaşılabiliyor" denetimi
-#   - yerleşik işlevlerden yalnızca çık
-# Henüz yok: kayıtlar, modüller, listeler, sözlükler, öteki yerleşik işlevler,
-# işlev değerleri, `her`; derleyici uyarıları.
+#   - listeler: yazım, dizin, elemana yazma, her, + ve ==; metin üzerinde her
+#   - sözlük gerektirmeyen bütün yerleşik işlevler
+# Henüz yok: kayıtlar, modüller, sözlükler, işlev değerleri; derleyici uyarıları.
 #
 #   kullan "kod_uretici.nehir"
 #   l_dosya -> dosya_oku -> sözcükle
@@ -22,17 +22,39 @@
 
 kullan "ayristirici.nehir"
 
-# Yerleşik işlev adları: bu adlara akan değer işleve argüman olur.
+# Yerleşik işlevler: her yazımın (Türkçe, ASCII, İngilizce) asıl adı. Bu adlara akan
+# değer işleve argüman olur. nehir.py'deki YERLEŞİKLER ile aynı olmalı.
 {
-    "uzunluk": 1, "len": 1, "ekle": 1, "push": 1, "aralık": 1, "aralik": 1, "range": 1, "metne": 1,
-    "str": 1, "sayıya": 1, "sayiya": 1, "num": 1, "dilim": 1, "slice": 1, "bul": 1, "find": 1,
-    "sil": 1, "remove": 1, "böl": 1, "bol": 1, "split": 1, "birleş": 1, "birles": 1, "join": 1,
-    "var": 1, "has": 1, "anahtarlar": 1, "keys": 1, "değerler": 1, "degerler": 1, "values": 1,
-    "dosya_oku": 1, "read_file": 1, "dosya_yaz": 1, "write_file": 1, "dosya_ekle": 1,
-    "append_file": 1, "dosya_var": 1, "file_exists": 1, "dosya_sil": 1, "delete_file": 1,
-    "argümanlar": 1, "argumanlar": 1, "args": 1, "çık": 1, "cik": 1, "exit": 1, "uyar": 1,
-    "warn": 1, "baytlar": 1, "bytes": 1, "oku": 1, "read": 1, "girdi_var": 1, "has_input": 1
+    "uzunluk": "uzunluk", "len": "uzunluk", "ekle": "ekle", "push": "ekle", "aralık": "aralık",
+    "aralik": "aralık", "range": "aralık", "metne": "metne", "str": "metne", "sayıya": "sayıya",
+    "sayiya": "sayıya", "num": "sayıya", "dilim": "dilim", "slice": "dilim", "bul": "bul",
+    "find": "bul", "sil": "sil", "remove": "sil", "böl": "böl", "bol": "böl", "split": "böl",
+    "birleş": "birleş", "birles": "birleş", "join": "birleş", "var": "var", "has": "var",
+    "anahtarlar": "anahtarlar", "keys": "anahtarlar", "değerler": "değerler",
+    "degerler": "değerler", "values": "değerler", "dosya_oku": "dosya_oku",
+    "read_file": "dosya_oku", "dosya_yaz": "dosya_yaz", "write_file": "dosya_yaz",
+    "dosya_ekle": "dosya_ekle", "append_file": "dosya_ekle", "dosya_var": "dosya_var",
+    "file_exists": "dosya_var", "dosya_sil": "dosya_sil", "delete_file": "dosya_sil",
+    "argümanlar": "argümanlar", "argumanlar": "argümanlar", "args": "argümanlar", "çık": "çık",
+    "cik": "çık", "exit": "çık", "uyar": "uyar", "warn": "uyar", "baytlar": "baytlar",
+    "bytes": "baytlar", "oku": "oku", "read": "oku", "girdi_var": "girdi_var",
+    "has_input": "girdi_var"
 } -> YERLEŞİK_ADLAR
+
+# Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
+# nehir.py'deki RİSKLİ ile aynı olmalı.
+{
+    "call __aralik": 1, "call __argumanlar": 1, "call __ayir": 1, "call __dosya_oku": 1,
+    "call __dosya_sil": 1, "call __dosya_yaz": 1, "call __liste_al": 1,
+    "call __liste_birles": 1, "call __liste_birlestir": 1, "call __liste_dilim": 1,
+    "call __liste_ekle": 1, "call __liste_koy": 1, "call __liste_sil": 1,
+    "call __liste_yeni": 1, "call __metin_al": 1, "call __metin_baytlar": 1,
+    "call __metin_birlestir": 1, "call __metin_bol": 1, "call __metin_dilim": 1,
+    "call __metin_karakter": 1, "call __metinden_sayi": 1, "call __oku": 1,
+    "call __sayidan_metin": 1, "call __sozluk_al": 1, "call __sozluk_koy": 1,
+    "call __sozluk_liste": 1, "call __sozluk_sil": 1, "call __sozluk_yeni": 1,
+    "jz __sifira_bolme": 1, "jz __yok_hatasi": 1
+} -> RİSKLİ
 
 {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"} -> KARŞILAŞTIRMA
 
@@ -40,9 +62,11 @@ kullan "ayristirici.nehir"
 "268435456" -> YIĞIN_BOYUTU
 
 # ── türler ──
-# Türler metin olarak tutulur: "sayı", "metin" ya da henüz bilinmeyen bir tür için
-# "?1", "?2", ... Bilinmeyen bir tür öğrenildiğinde k_bağ'a yazılır (birleştirme).
-# Böyle bir tür, özyinelemeli bir işlevin dönüş türü belli olmadan önce doğar.
+# Türler metin olarak tutulur: "sayı", "metin", listeler için "[sayı]", "[[metin]]"
+# ve henüz bilinmeyen bir tür için "?1", "?2", ... Bilinmeyen bir tür öğrenildiğinde
+# k_bağ'a yazılır (birleştirme); "[?5]" gibi bir tür de böylece kendiliğinden
+# "[sayı]"ya çözülür. Bilinmeyenler boş listelerde ve özyinelemeli işlevlerin dönüş
+# türünde doğar.
 
 {} -> k_bağ
 0 -> ortak k_tür_no
@@ -53,6 +77,17 @@ işlev yeni_tür_değişkeni() {
 }
 
 işlev bilinmeyen_mi(t) { dilim(t, 0, 1) == "?" -> döndür }
+işlev liste_mi(t) { dilim(t, 0, 1) == "[" -> döndür }
+işlev eleman_türü(t) { dilim(t, 1, uzunluk(t) - 1) -> döndür }
+işlev liste_türü(t) { "[" + t + "]" -> döndür }
+
+# Bilinmeyen v, t'nin içinde geçiyor mu? (Bir liste kendi elemanı olamaz.)
+işlev içerir(t, v) {
+    çöz(t) -> t
+    t == v -> eğer { doğru -> döndür }
+    liste_mi(t) -> eğer { içerir(eleman_türü(t), v) -> döndür }
+    yanlış -> döndür
+}
 
 işlev çöz(t) {
     bilinmeyen_mi(t) ve var(k_bağ, t) -> iken { k_bağ[t] -> t }
@@ -63,14 +98,17 @@ işlev birleştir(a, b) {
     çöz(a) -> a
     çöz(b) -> b
     a == b -> eğer { doğru -> döndür }
-    bilinmeyen_mi(a) -> eğer {
-        b -> k_bağ[a]
-        doğru -> döndür
-    }
     bilinmeyen_mi(b) -> eğer {
+        içerir(a, b) -> eğer { yanlış -> döndür }
         a -> k_bağ[b]
         doğru -> döndür
     }
+    bilinmeyen_mi(a) -> eğer {
+        içerir(b, a) -> eğer { yanlış -> döndür }
+        b -> k_bağ[a]
+        doğru -> döndür
+    }
+    liste_mi(a) ve liste_mi(b) -> eğer { birleştir(eleman_türü(a), eleman_türü(b)) -> döndür }
     yanlış -> döndür
 }
 
@@ -78,6 +116,11 @@ işlev birleştir(a, b) {
 # kendi adıyla yazılır; ham_ad bunu, tür_adı çözülmüş hâlini verir.
 işlev ham_ad(t) {
     bilinmeyen_mi(t) -> eğer { "henüz bilinmeyen tür" -> döndür }
+    liste_mi(t) -> eğer {
+        çöz(eleman_türü(t)) -> el
+        bilinmeyen_mi(el) -> eğer { "boş liste" -> döndür }
+        ham_ad(el) + " listesi" -> döndür
+    }
     t -> döndür
 }
 işlev tür_adı(t) { ham_ad(çöz(t)) -> döndür }
@@ -85,6 +128,11 @@ işlev tür_adı(t) { ham_ad(çöz(t)) -> döndür }
 işlev tür_listesi(türler) {
     [] -> adlar
     türler -> her (t) { adlar -> ekle(tür_adı(t)) }
+    birleş(adlar, ", ") -> döndür
+}
+işlev ham_listesi(türler) {
+    [] -> adlar
+    türler -> her (t) { adlar -> ekle(ham_ad(t)) }
     birleş(adlar, ", ") -> döndür
 }
 
@@ -99,7 +147,7 @@ işlev tür_listesi(türler) {
 {} -> k_küresel_tür         # ad -> tür ("" henüz değer akmadı)
 {} -> k_ortaklar            # işlevlerin de atayabildiği üst düzey değişkenler
 [] -> k_tür_tanımları       # çalışma zamanı tür tanımları (yazdırma için)
-{} -> k_tür_etiketi         # tür -> tanımının etiketi (t0, t1, ...)
+{} -> k_tür_etiketi         # tanım alanları -> etiketi (t0, t1, ...)
 0 -> ortak k_etiket_no      # son üretilen .L etiketinin numarası
 0 -> ortak k_çatal          # o anda yığında bekleyen çatal değerlerinin sayısı
 
@@ -137,13 +185,13 @@ işlev desteklenmiyor(ne, d) {
 işlev yaz(satır) { k_kod -> ekle("    " + satır) }
 işlev etiket_koy(etiket) { k_kod -> ekle(etiket + ":") }
 
-# Yazdırılan değerin türü sonradan belli olabileceği için tür tanımının etiketi
-# derlemenin sonunda konur; o zamana dek satırda bu işaret durur.
-işlev tür_satırı(tür) { k_kod -> ekle("§TÜR§" + tür) }
+# Türü sonradan belli olabilecek bir değerin tür tanımının adresi yazmaca (rsi ya
+# da rdx) yüklenir. Etiket derlemenin sonunda konur; o zamana dek satırda işaret durur.
+işlev tür_satırı(yazmaç, tür) { k_kod -> ekle("§TÜR§" + yazmaç + tür) }
 
-# Hata verebilen çalışma zamanı işlemlerinden önce r15'e kaynak satırı yüklenir.
-işlev riskli(satır, d) {
-    yaz("mov r15, " + metne(d.satır))
+# Hata verebilen çalışma zamanı işlemlerinden önce r15'e d'nin kaynak satırı yüklenir.
+işlev komut(satır, d) {
+    RİSKLİ -> var(satır) -> eğer { yaz("mov r15, " + metne(d.satır)) }
     yaz(satır)
 }
 
@@ -160,26 +208,29 @@ işlev metin_etiketi(m) {
     "m" + metne(k_metin_no[m]) -> döndür
 }
 
+# Türün çalışma zamanı tanımı: {kod, eleman tanımı, 0}; kod 0 sayı, 1 metin, 2 liste.
+# Hiç belli olmamış tür (boş listenin elemanı) sayı sayılır.
 işlev tür_etiketi(tür) {
     çöz(tür) -> tür
-    bilinmeyen_mi(tür) -> eğer { "sayı" -> tür }     # hiç belli olmamış tür sayı sayılır
-    değil var(k_tür_etiketi, tür) -> eğer {
+    "0, 0, 0" -> alanlar
+    tür == "metin" -> eğer { "1, 0, 0" -> alanlar }
+    liste_mi(tür) -> eğer { "2, " + tür_etiketi(eleman_türü(tür)) + ", 0" -> alanlar }
+    değil var(k_tür_etiketi, alanlar) -> eğer {
         "t" + metne(uzunluk(k_tür_tanımları)) -> etiket
-        etiket -> k_tür_etiketi[tür]
-        "0" -> kod
-        tür == "metin" -> eğer { "1" -> kod }
-        k_tür_tanımları -> ekle(etiket + ": .quad " + kod + ", 0, 0")
+        etiket -> k_tür_etiketi[alanlar]
+        k_tür_tanımları -> ekle(etiket + ": .quad " + alanlar)
     }
-    k_tür_etiketi[tür] -> döndür
+    k_tür_etiketi[alanlar] -> döndür
 }
 
 işlev sayı_olmalı(tür, ne, d) {
     çöz(tür) -> tür
     bilinmeyen_mi(tür) -> eğer { "sayı" -> k_bağ[tür] } değilse {     # burada sayı olarak kullanılıyor
-        tür != "sayı" -> eğer { k_hata(ne + " sayı olmalı, " + tür + " bulundu", d) }
+        tür != "sayı" -> eğer { k_hata(ne + " sayı olmalı, " + ham_ad(tür) + " bulundu", d) }
     }
 }
 
+işlev yerleşik_mi(ad) { var(YERLEŞİK_ADLAR, ad) -> döndür }
 işlev çağrılabilir(ad) { var(k_işlev, ad) veya var(YERLEŞİK_ADLAR, ad) -> döndür }
 
 işlev parametre_sayısı(f) { uzunluk(f.çocuklar) - 1 -> döndür }
@@ -416,18 +467,181 @@ işlev çağır(ad, arg_düğümleri, d, akan) {
     k_işlev_dönüş[ad] -> döndür
 }
 
-# Yerleşik işlevler; argümanları yığına itilmiştir.
+# Yerleşik işlevler; argümanları yığına itilmiştir. `ad` yazıldığı hâlidir.
 işlev yerleşik_çağır(ad, türler, d) {
-    ad == "çık" veya ad == "cik" veya ad == "exit" -> eğer {
-        uzunluk(türler) != 1 veya çöz(türler[0]) != "sayı" -> eğer {
-            k_hata("'" + ad + "' (çıkış kodu) bekliyor; (" + tür_listesi(türler) + ") verildi", d)
+    YERLEŞİK_ADLAR[ad] -> asıl
+    uzunluk(türler) -> n
+    "" -> t0
+    "" -> t1
+    "" -> t2
+    n > 0 -> eğer { türler[0] -> t0 }
+    n > 1 -> eğer { türler[1] -> t1 }
+    n > 2 -> eğer { türler[2] -> t2 }
+    liste_mi(t0) -> ilk_liste
+    asıl == "var" -> eğer { yanlış_argüman(ad, "sözlük, anahtar", türler, d) }
+    asıl == "anahtarlar" veya asıl == "değerler" -> eğer { yanlış_argüman(ad, "sözlük", türler, d) }
+    asıl == "uzunluk" -> eğer {
+        n != 1 veya değil (ilk_liste veya t0 == "metin") -> eğer {
+            yanlış_argüman(ad, "liste, sözlük ya da metin", türler, d)
         }
+        ilk_liste -> eğer {
+            yaz("pop rax")
+            yaz("mov rax, [rax]")
+        } değilse {
+            yaz("pop rdi")
+            komut("call __metin_uzunluk", d)
+        }
+        "sayı" -> döndür
+    }
+    asıl == "oku" -> eğer {
+        # Akan ya da verilen metin, satır sonu eklenmeden istem olarak yazılır.
+        değil (n == 0 veya (n == 1 ve t0 == "metin")) -> eğer {
+            yanlış_argüman(ad, "argümansız ya da istem metni", türler, d)
+        }
+        n == 1 -> eğer {
+            yaz("pop rsi")
+            yaz("mov rdx, [rsi-8]")
+            komut("call __ham_yaz", d)
+        }
+        komut("call __oku", d)
+        "metin" -> döndür
+    }
+    asıl == "dosya_oku" veya asıl == "dosya_var" veya asıl == "dosya_sil" -> eğer {
+        n != 1 veya t0 != "metin" -> eğer { yanlış_argüman(ad, "dosya yolu", türler, d) }
+        yaz("pop rdi")
+        komut("call __" + asıl, d)
+        asıl == "dosya_oku" -> eğer { "metin" -> döndür }
+        "sayı" -> döndür
+    }
+    asıl == "dosya_yaz" veya asıl == "dosya_ekle" -> eğer {
+        n != 2 veya t0 != "metin" veya t1 != "metin" -> eğer { yanlış_argüman(ad, "içerik, dosya yolu", türler, d) }
+        yaz("pop rsi")
+        yaz("pop rdi")
+        # O_WRONLY | O_CREAT ve üstüne yazmak için O_TRUNC, eklemek için O_APPEND
+        asıl == "dosya_yaz" -> eğer { yaz("mov edx, 577") } değilse { yaz("mov edx, 1089") }
+        komut("call __dosya_yaz", d)
+        "metin" -> döndür
+    }
+    asıl == "baytlar" veya asıl == "uyar" -> eğer {
+        n != 1 veya t0 != "metin" -> eğer { yanlış_argüman(ad, "metin", türler, d) }
+        yaz("pop rdi")
+        asıl == "baytlar" -> eğer {
+            komut("call __metin_baytlar", d)
+            "[sayı]" -> döndür
+        }
+        komut("call __uyar", d)
+        "metin" -> döndür
+    }
+    asıl == "argümanlar" -> eğer {
+        n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
+        komut("call __argumanlar", d)
+        "[metin]" -> döndür
+    }
+    asıl == "çık" -> eğer {
+        n != 1 veya t0 != "sayı" -> eğer { yanlış_argüman(ad, "çıkış kodu", türler, d) }
         yaz("pop rdi")
         yaz("mov eax, 60")
         yaz("syscall")
         "sayı" -> döndür
     }
-    desteklenmiyor("yerleşik işlev çağrısı (" + ad + ")", d)
+    asıl == "girdi_var" -> eğer {
+        n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
+        komut("call __girdi_var", d)
+        "sayı" -> döndür
+    }
+    asıl == "metne" -> eğer {
+        n != 1 veya (t0 != "sayı" ve t0 != "metin") -> eğer { yanlış_argüman(ad, "sayı", türler, d) }
+        t0 == "sayı" -> eğer {
+            yaz("pop rdi")
+            komut("call __sayidan_metin", d)
+        } değilse { yaz("pop rax") }
+        "metin" -> döndür
+    }
+    asıl == "sayıya" -> eğer {
+        n != 1 veya (t0 != "sayı" ve t0 != "metin") -> eğer { yanlış_argüman(ad, "metin", türler, d) }
+        t0 == "metin" -> eğer {
+            yaz("pop rdi")
+            komut("call __metinden_sayi", d)
+        } değilse { yaz("pop rax") }
+        "sayı" -> döndür
+    }
+    asıl == "ekle" -> eğer {
+        n != 2 veya değil ilk_liste -> eğer { yanlış_argüman(ad, "liste, eleman", türler, d) }
+        # nehir.py türlerin kimliğine bakar; burada aynı yazılmış türler aynı liste sayılır.
+        t1 == t0 -> eğer { k_hata("bir liste kendi içine eklenemez", d) }
+        değil birleştir(t0, liste_türü(t1)) -> eğer {
+            k_hata(ham_ad(t0) + " içine " + ham_ad(t1) + " eklenemez", d)
+        }
+        yaz("pop rsi")
+        yaz("pop rdi")
+        komut("call __liste_ekle", d)
+        t0 -> döndür
+    }
+    asıl == "dilim" -> eğer {
+        n != 3 veya t1 != "sayı" veya t2 != "sayı" veya değil (ilk_liste veya t0 == "metin") -> eğer {
+            yanlış_argüman(ad, "liste ya da metin, baş, son", türler, d)
+        }
+        yaz("pop rdx")
+        yaz("pop rsi")
+        yaz("pop rdi")
+        ilk_liste -> eğer {
+            komut("call __liste_dilim", d)
+            t0 -> döndür
+        }
+        komut("call __metin_dilim", d)
+        "metin" -> döndür
+    }
+    asıl == "bul" -> eğer {
+        n == 2 ve t0 == "metin" ve t1 == "metin" -> eğer {
+            yaz("pop rsi")
+            yaz("pop rdi")
+            komut("call __metin_bul", d)
+            "sayı" -> döndür
+        }
+        n != 2 veya değil ilk_liste -> eğer {
+            yanlış_argüman(ad, "metin, aranan metin  ya da  liste, aranan eleman", türler, d)
+        }
+        değil birleştir(t0, liste_türü(t1)) -> eğer { k_hata(ham_ad(t0) + " içinde " + ham_ad(t1) + " aranamaz", d) }
+        yaz("pop rsi")
+        yaz("pop rdi")
+        tür_satırı("rdx", t1)
+        komut("call __liste_bul", d)
+        "sayı" -> döndür
+    }
+    asıl == "sil" -> eğer {
+        n != 2 veya değil ilk_liste veya t1 != "sayı" -> eğer {
+            yanlış_argüman(ad, "liste, dizin  ya da  sözlük, anahtar", türler, d)
+        }
+        yaz("pop rsi")
+        yaz("pop rdi")
+        komut("call __liste_sil", d)
+        çöz(eleman_türü(t0)) -> döndür
+    }
+    asıl == "böl" -> eğer {
+        n != 2 veya t0 != "metin" veya t1 != "metin" -> eğer { yanlış_argüman(ad, "metin, ayraç", türler, d) }
+        yaz("pop rsi")
+        yaz("pop rdi")
+        komut("call __metin_bol", d)
+        "[metin]" -> döndür
+    }
+    asıl == "birleş" -> eğer {
+        n != 2 veya değil ilk_liste veya t1 != "metin" -> eğer { yanlış_argüman(ad, "metin listesi, ayraç", türler, d) }
+        değil birleştir(t0, "[metin]") -> eğer { yanlış_argüman(ad, "metin listesi, ayraç", türler, d) }
+        yaz("pop rsi")
+        yaz("pop rdi")
+        komut("call __liste_birles", d)
+        "metin" -> döndür
+    }
+    # aralık
+    n != 2 veya t0 != "sayı" veya t1 != "sayı" -> eğer { yanlış_argüman(ad, "sayı, sayı", türler, d) }
+    yaz("pop rsi")
+    yaz("pop rdi")
+    komut("call __aralik", d)
+    "[sayı]" -> döndür
+}
+
+işlev yanlış_argüman(ad, beklenen, türler, d) {
+    k_hata("'" + ad + "' (" + beklenen + ") bekliyor; (" + ham_listesi(türler) + ") verildi", d)
 }
 
 # İşlevi, parametre türleri belli olduktan sonra ayrı bir tampona derler. Çağıranın
@@ -513,7 +727,7 @@ işlev dönüşleri_denetle() {
                 "sayı" -> dönüş
             }
             k_işlev_sona[ad] ve dönüş != "sayı" -> eğer {
-                k_hata("'" + ad + "' işlevi " + dönüş
+                k_hata("'" + ad + "' işlevi " + ham_ad(dönüş)
                        + " döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor", k_işlev[ad])
             }
         }
@@ -568,7 +782,7 @@ işlev hedef_iç(h, tür, döngü_başı) {
     h.tür == "yazdır" -> eğer {
         yaz("push rax")
         yaz("mov rdi, rax")
-        tür_satırı(tür)
+        tür_satırı("rsi", tür)
         yaz("call __yaz_deger")
         yaz("pop rax")              # değer akmaya devam eder
         tür -> döndür
@@ -607,6 +821,65 @@ işlev hedef_iç(h, tür, döngü_başı) {
         döngü_gövdesi(h.çocuklar[0], döngü_başı, son)
         yaz("jmp " + döngü_başı)
         etiket_koy(son)
+        tür -> döndür
+    }
+    h.tür == "her" -> eğer {
+        yeni_etiket() -> baş
+        yeni_etiket() -> artır
+        yeni_etiket() -> son
+        tür == "metin" -> eğer {      # her karakter sırayla değişkene akar
+            yaz("push rax")                 # [rsp+8] = metin
+            yaz("push 0")                   # [rsp]   = sıradaki karakterin bayt konumu
+            etiket_koy(baş)
+            yaz("mov rsi, [rsp]")
+            yaz("mov rdi, [rsp+8]")
+            yaz("cmp rsi, [rdi-8]")
+            yaz("jge " + son)
+            komut("call __metin_karakter", h)
+            yaz("mov [rsp], rdx")
+            ata(h.ad, "metin", h)
+        } değilse {
+            değil liste_mi(tür) -> eğer {
+                bilinmeyen_mi(tür) veya liste_mi(tür) veya tür == "sayı" -> eğer {
+                    k_hata("'her' içine bir liste, sözlük ya da metin akmalı, " + ham_ad(tür) + " bulundu", h)
+                }
+                desteklenmiyor("'her' içine " + tür, h)
+            }
+            yaz("push rax")                 # [rsp+8] = liste
+            yaz("push 0")                   # [rsp]   = dizin
+            etiket_koy(baş)
+            yaz("mov rsi, [rsp]")
+            yaz("mov rdi, [rsp+8]")
+            yaz("cmp rsi, [rdi]")
+            yaz("jge " + son)
+            komut("call __liste_al", h)
+            ata(h.ad, çöz(eleman_türü(tür)), h)     # henüz bilinmiyorsa kullanımdan öğrenilir
+        }
+        döngü_gövdesi(h.çocuklar[0], artır, son)
+        etiket_koy(artır)
+        tür == "metin" -> eğer { yaz("jmp " + baş) } değilse {
+            yaz("inc qword ptr [rsp]")
+            yaz("jmp " + baş)
+        }
+        etiket_koy(son)
+        yaz("add rsp, 16")
+        tür -> döndür
+    }
+    h.tür == "eleman" -> eğer {
+        yaz("push rax")                     # [rsp] = yazılacak değer
+        ifade_üret(h.çocuklar[0]) -> kap
+        değil liste_mi(kap) -> eğer {
+            k_hata("'[ ]' ile yalnızca liste ve sözlüklere yazılabilir, " + ham_ad(kap) + " bulundu", h)
+        }
+        yaz("push rax")
+        ifade_üret(h.çocuklar[1]) -> dizin_türü
+        yaz("mov rsi, rax")
+        yaz("pop rdi")
+        sayı_olmalı(dizin_türü, "liste dizini", h)
+        değil birleştir(kap, liste_türü(tür)) -> eğer { k_hata(ham_ad(kap) + " içine " + ham_ad(tür) + " akamaz", h) }
+        yaz("mov rdx, [rsp]")
+        komut("call __liste_koy", h)
+        yaz("pop rax")
         tür -> döndür
     }
     h.tür == "çatal" -> eğer {
@@ -672,6 +945,45 @@ işlev ifade_iç(e) {
         k_hata("'" + e.ad + "' adında bir değişken yok", e)
     }
     e.tür == "çağrı" -> eğer { çağır(e.ad, e.çocuklar, e, "") -> döndür }
+    e.tür == "liste" -> eğer {
+        uzunluk(e.çocuklar) -> n
+        n < 4 -> eğer { 4 -> n }
+        yaz("mov edi, " + metne(n))
+        komut("call __liste_yeni", e)
+        yaz("push rax")
+        liste_türü(yeni_tür_değişkeni()) -> tür
+        e.çocuklar -> her (eleman) {
+            ifade_üret(eleman) -> et
+            değil birleştir(tür, liste_türü(et)) -> eğer {
+                çöz(eleman_türü(tür)) -> önceki
+                bilinmeyen_mi(önceki) -> eğer { "None" -> önceki } değilse { ham_ad(önceki) -> önceki }
+                k_hata("listenin elemanları aynı türde olmalı: " + önceki + " ve " + ham_ad(et) + " karışmış", e)
+            }
+            yaz("mov rsi, rax")
+            yaz("mov rdi, [rsp]")
+            komut("call __liste_ekle", e)
+        }
+        yaz("pop rax")
+        tür -> döndür
+    }
+    e.tür == "dizin" -> eğer {
+        ifade_üret(e.çocuklar[0]) -> kap
+        kap == "sayı" -> eğer { k_hata("'[ ]' ile yalnızca liste, sözlük ve metinlere erişilebilir", e) }
+        yaz("push rax")
+        ifade_üret(e.çocuklar[1]) -> dizin_türü
+        yaz("mov rsi, rax")
+        yaz("pop rdi")
+        değil liste_mi(kap) ve kap != "metin" -> eğer {
+            k_hata("'[ ]' ile yalnızca liste, sözlük ve metinlere erişilebilir, " + ham_ad(kap) + " bulundu", e)
+        }
+        sayı_olmalı(dizin_türü, "dizin", e)
+        kap == "metin" -> eğer {
+            komut("call __metin_al", e)
+            "metin" -> döndür
+        }
+        komut("call __liste_al", e)
+        eleman_türü(kap) -> döndür
+    }
     e.tür == "tekli" -> eğer {
         sayı_olmalı(ifade_üret(e.çocuklar[0]), "'" + e.ad + "' işlecinin işleneni", e)
         e.ad == "-" -> eğer { yaz("neg rax") } değilse {
@@ -724,7 +1036,7 @@ işlev ikili_üret(e) {
         yaz("mov rdi, rax")
         yaz("mov rsi, rcx")
         iş == "+" -> eğer {
-            riskli("call __metin_birlestir", e)
+            komut("call __metin_birlestir", e)
             "metin" -> döndür
         }
         yaz("call __metin_karsilastir")
@@ -733,6 +1045,24 @@ işlev ikili_üret(e) {
         yaz("movzx eax, al")
         "sayı" -> döndür
     }
+    liste_mi(sol_türü) ve liste_mi(sağ_türü) ve (iş == "+" veya iş == "==" veya iş == "!=") -> eğer {
+        değil birleştir(sol_türü, sağ_türü) -> eğer {
+            " karşılaştırılamaz" -> ne
+            iş == "+" -> eğer { " birleştirilemez" -> ne }
+            k_hata(ham_ad(sol_türü) + " ile " + ham_ad(sağ_türü) + ne, e)
+        }
+        yaz("mov rdi, rax")
+        yaz("mov rsi, rcx")
+        iş == "+" -> eğer {
+            komut("call __liste_birlestir", e)
+            sol_türü -> döndür
+        }
+        tür_satırı("rdx", sol_türü)
+        yaz("call __deger_esit")
+        iş == "!=" -> eğer { yaz("xor eax, 1") }
+        "sayı" -> döndür
+    }
+    liste_mi(sol_türü) ve iş == "+" -> eğer { k_hata("listeye '+' ile eleman eklenemez", e) }
     iş == "+" ve (sol_türü == "metin" veya sağ_türü == "metin")
         ve (sol_türü == "sayı" veya sağ_türü == "sayı") -> eğer {
         k_hata("metin ile sayı doğrudan toplanamaz", e)
@@ -744,7 +1074,7 @@ işlev ikili_üret(e) {
     iş == "*" -> eğer { yaz("imul rax, rcx")   "sayı" -> döndür }
     iş == "/" veya iş == "%" -> eğer {
         yaz("test rcx, rcx")
-        riskli("jz __sifira_bolme", e)
+        komut("jz __sifira_bolme", e)
         yaz("cqo")
         yaz("idiv rcx")
         iş == "%" -> eğer { yaz("mov rax, rdx") }
@@ -794,7 +1124,7 @@ işlev üret(kök, çalışma_zamanı) {
     [".intel_syntax noprefix", ".global _start", ".section .text"] -> satırlar
     k_kod + k_işlev_kodu -> her (s) {
         dilim(s, 0, 5) == "§TÜR§" -> eğer {
-            satırlar -> ekle("    lea rsi, [rip+" + tür_etiketi(dilim(s, 5, uzunluk(s))) + "]")
+            satırlar -> ekle("    lea " + dilim(s, 5, 8) + ", [rip+" + tür_etiketi(dilim(s, 8, uzunluk(s))) + "]")
         } değilse {
             dilim(s, 0, 8) == "§BAŞLIK§" -> eğer {
                 satırlar -> ekle(işlev_başlığı(dilim(s, 8, uzunluk(s))))
