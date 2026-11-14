@@ -1,0 +1,59 @@
+# İşlevler de değerdir: bir değişkende tutulabilir, başka bir işleve verilebilir,
+# listeye konabilir. İşlevin adı değer olarak yazılınca işlevin kendisi akar.
+
+işlev kare(n) { n * n -> döndür }
+işlev artı_bir(n) { n + 1 -> döndür }
+işlev çift_mi(n) { n % 2 == 0 -> döndür }
+
+# İşlev tutan bir değişken, adının ardına (...) yazılarak çağrılır.
+kare -> f
+f(7) -> yazdır
+7 -> f() -> yazdır          # akan değer ilk argüman olur; `7 -> f` ise atama olurdu
+f -> yazdır
+
+# İşlev alan işlevler
+işlev uygula(liste, dönüştür) {
+    [] -> sonuç
+    liste -> her (x) { sonuç -> ekle(dönüştür(x)) }
+    sonuç -> döndür
+}
+işlev süz(liste, koşul) {
+    [] -> sonuç
+    liste -> her (x) { koşul(x) -> eğer { sonuç -> ekle(x) } }
+    sonuç -> döndür
+}
+işlev indirge(liste, başlangıç, birleştir_) {
+    başlangıç -> toplam
+    liste -> her (x) { birleştir_(toplam, x) -> toplam }
+    toplam -> döndür
+}
+işlev topla(a, b) { a + b -> döndür }
+
+aralık(1, 8) -> sayılar
+sayılar -> uygula(kare) -> yazdır
+sayılar -> süz(çift_mi) -> yazdır
+sayılar -> süz(çift_mi) -> uygula(kare) -> indirge(0, topla) -> yazdır
+
+# İşlev listesi: aynı değer her adımdan geçer.
+[kare, artı_bir, kare] -> adımlar
+3 -> x
+adımlar -> her (adım) { adım(x) -> x }
+x -> yazdır
+
+# İşlev döndüren işlev
+işlev seç(ad) {
+    ad == "kare" -> eğer { kare -> döndür }
+    artı_bir -> döndür
+}
+seç("kare") -> g
+g(5) -> yazdır
+seç("başka") -> g
+g(5) -> yazdır
+g == artı_bir -> yazdır
+
+# Her işlevin tek bir tür imzası vardır: `uygula` sayı listesiyle çağrıldığı için
+# metin listesiyle çağrılamaz. Metin işleyen işlevler de değişkende tutulabilir.
+işlev büyült(m) { "<" + m + ">" -> döndür }
+büyült -> biçim
+["su", "akar"] -> her (m) { biçim(m) -> yazdır }
+

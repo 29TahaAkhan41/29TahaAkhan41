@@ -275,6 +275,29 @@ sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listeni
 içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
 çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır. Birbirini çağıran işlevlerin dönüş türleri de çıkarılır.
 
+**İşlevler değerdir.** Bir işlevin adı değer olarak yazılınca işlevin kendisi akar; değişkende
+tutulabilir, başka işleve verilebilir, listeye konabilir. İşlev tutan bir değişken adının ardına
+`(...)` yazılarak çağrılır:
+
+```nehir
+işlev kare(n) { n * n -> döndür }
+işlev uygula(liste, dönüştür) {
+    [] -> sonuç
+    liste -> her (x) { sonuç -> ekle(dönüştür(x)) }
+    sonuç -> döndür
+}
+[1, 2, 3] -> uygula(kare) -> yazdır     # [1, 4, 9]
+
+kare -> f
+f(7) -> yazdır                          # 49
+7 -> f() -> yazdır                      # 49; `7 -> f` ise f'ye atama olurdu
+```
+
+İşlev türleri de çıkarılır (`işlev(sayı) -> sayı`); iki işlev `==` ile karşılaştırıldığında aynı
+işlev olup olmadıklarına bakılır. Kısıtlar: yalnızca programın kendi işlevleri değer olarak verilebilir
+(yerleşik işlevler ve kayıtlar verilemez, onları çağıran bir işlev yazılır); çağrılan şey bir ad olmalıdır
+(`l[0](3)` yazılamaz, önce `l[0] -> f`); işlevler tanımlandıkları yerdeki yerel değişkenleri yakalamaz.
+
 **İşlevden dönüş.** `döndür`'e hiç ulaşmadan sonuna gelen işlev 0 döndürür: sayı döndüren bir
 işlev için 0, kayıt döndüren için `yok`. Metin, liste ya da sözlük döndüren bir işlevin sonuna
 değer döndürmeden ulaşılabiliyorsa derleyici hata verir. Derleyici bunu çözümlerken şunları bilir:

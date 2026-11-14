@@ -1,4 +1,4 @@
-ornekler/hatalar/islev_deger.nehir:2:1: hata: 'kare' bir işlev; burada değer olarak kullanılmış
+ornekler/hatalar/islev_deger.nehir:2:6: hata: '+' işlecinin sol tarafı sayı olmalı, işlev(?) -> ? bulundu
     2 | kare + 1 -> yazdır
-      | ^^^^
-      = ipucu: çağırmak için: kare(...)   ya da   değer -> kare
+      |      ^
+      = ipucu: bu bir işlevin kendisi; çağırmak için adının ardına (...) yazın

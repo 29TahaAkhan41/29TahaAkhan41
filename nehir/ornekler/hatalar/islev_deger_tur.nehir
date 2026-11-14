@@ -1,0 +1,4 @@
+işlev kare(n) { n * n -> döndür }
+
+kare -> f
+f("üç") -> yazdır

@@ -566,10 +566,11 @@ class Ayrıştırıcı:
 #          hash'inden dizideki yerine (dizin + 1, boşsa 0) götüren açık adresli bir dizindir.
 #
 #   kayıt  alanların art arda durduğu belleğin adresi; `yok` 0 adresidir
+#   işlev  işlevin kodunun adresi
 #
 # Yazdırma ve eşitlik gibi türe bağlı işlemler için derleyici her türün bir
 # tanımını üretir: {tür kodu, 1. parametre tanımı, 2. parametre tanımı};
-# tür kodu 0 sayı, 1 metin, 2 liste, 3 sözlük. Kayıt tanımı farklıdır:
+# tür kodu 0 sayı, 1 metin, 2 liste, 3 sözlük, 5 işlev. Kayıt tanımı farklıdır:
 # {4, ad, alan sayısı, (alan adı, alan türü tanımı)...}.
 # Türler derleme anında izlenir. İşlevlerin parametre türleri ilk çağrıdan
 # çıkarılır; bu yüzden işlevler ilk çağrıldıkları anda derlenir.
@@ -650,6 +651,22 @@ class Kayıt:
         return self.ad
 
 
+class İşlevTürü:
+    """Değer olarak kullanılan işlevin türü: parametre türleri ve dönüş türü."""
+
+    def __init__(self, parametreler, dönüş):
+        self._parametreler, self._dönüş = list(parametreler), dönüş
+
+    def parametreler(self):
+        return self._parametreler + [self._dönüş]
+
+    def __str__(self):
+        def ad(t):
+            t = çöz(t)
+            return "?" if isinstance(t, TürDeğişkeni) and not t.yalnız_kayıt else str(t)
+        return f"işlev({', '.join(map(ad, self._parametreler))}) -> {ad(self._dönüş)}"
+
+
 def kayıtsı(tür):
     """Bir kayıt ya da `yok` mu?"""
     return isinstance(tür, Kayıt) or (isinstance(tür, TürDeğişkeni) and tür.yalnız_kayıt)
@@ -659,7 +676,7 @@ def içerir(tür, hedef):
     tür = çöz(tür)
     if tür is hedef:
         return True
-    return isinstance(tür, (Liste, Sözlük)) and any(içerir(p, hedef) for p in tür.parametreler())
+    return isinstance(tür, (Liste, Sözlük, İşlevTürü)) and any(içerir(p, hedef) for p in tür.parametreler())
 
 
 def sözlük_içerir(tür):
@@ -690,6 +707,8 @@ def birleştir(a, b):
         return False
     if isinstance(a, str):
         return a == b
+    if len(a.parametreler()) != len(b.parametreler()):     # farklı sayıda parametreli işlevler
+        return False
     return all(birleştir(x, y) for x, y in zip(a.parametreler(), b.parametreler()))
 
 
@@ -809,6 +828,8 @@ __deger_ham:                    # rdi = değer, rsi = tür tanımı; satır sonu
     jz __sayi_ham
     cmp rax, 4                  # 4: kayıt
     je __kayit_ham
+    cmp rax, 5                  # 5: işlev
+    je __islev_ham
     cmp rax, 1                  # 1: metin
     jne 1f
     mov rsi, rdi
@@ -920,6 +941,11 @@ __kayit_ham:                    # rdi = kayıt ya da 0, rsi = tür tanımı;  Ad
     pop r12
     pop rbx
     ret
+
+__islev_ham:
+    lea rsi, [rip+__islev_metni]
+    mov edx, __islev_metni_son - __islev_metni
+    jmp __ham_yaz
 
 __yaz_deger:                    # rdi = değer, rsi = tür tanımı
     call __deger_ham
@@ -1223,8 +1249,8 @@ __deger_esit:                   # rdi = a, rsi = b, rdx = tür tanımı -> rax =
     mov rax, [rdx]
     test rax, rax               # 0: sayı
     jz 7f
-    cmp rax, 4                  # 4: kayıt; aynı kayıt mı diye adres karşılaştırılır
-    jne 1f
+    cmp rax, 4                  # 4 kayıt, 5 işlev: aynı değer mi diye adres karşılaştırılır
+    jb 1f
 7:  cmp rdi, rsi
     sete al
     movzx eax, al
@@ -2102,6 +2128,8 @@ __iki_nokta: .ascii ": "
 __par_ac: .ascii "("
 __par_kapa: .ascii ")"
 __yok_metni: .ascii "yok"
+__islev_metni: .ascii "<işlev>"
+__islev_metni_son:
 __h_ara: .ascii ": çalışma hatası: "
 __h_ara_son:
 __h_sifir: .ascii "sıfıra bölme"
@@ -2158,7 +2186,7 @@ class KodÜretici:
         self.işlevler = işlevler
         # Her işlev için: etiket, parametre türleri (ilk çağrıda belirlenir) ve dönüş türü.
         self.bilgi = {ad: {"etiket": f"f{i}", "türler": None, "dönüş": None,
-                           "bitti": False, "sona_ulaşır": False}
+                           "başladı": False, "bitti": False, "sona_ulaşır": False}
                       for i, ad in enumerate(işlevler)}
         # Hiç dönmeyen işlevler: gövdesi hiçbir yoldan sona ulaşmayan ve hiç 'döndür'
         # içermeyen işlevler (her yolu programı bitirir). Birbirlerini çağırabildikleri
@@ -2174,6 +2202,7 @@ class KodÜretici:
                     değişti = True
         # Değişken kayıtları: [yer, tür|None, ilk atamanın konumu, okundu mu]
         self.küreseller = {}      # ad -> kayıt (yer = etiket)
+        self.değer_işlevler = []  # değer olarak kullanılan, henüz derlenmemiş işlevler
         self.ortaklar = set()     # işlevlerin de atayabildiği (`ortak` ile tanımlanmış) küreseller
         self.okunan_küreseller = {}   # derlenen işlevde okunan küreseller: ad -> ilk okunduğu yer
         self.metinler = []        # bayt dizileri
@@ -2328,6 +2357,21 @@ class KodÜretici:
         self.yaz("leave")
         self.yaz("ret")
 
+        # Değer olarak kullanılıp hiç doğrudan çağrılmamış işlevler en son derlenir;
+        # parametre türleri o zamana dek işlev değişkenleri üzerinden yapılan
+        # çağrılardan öğrenilmiş olur. Derlenen işlevler yenilerini ekleyebilir.
+        while self.değer_işlevler:
+            ad = self.değer_işlevler.pop(0)
+            if not self.bilgi[ad]["başladı"]:
+                try:
+                    self.işlevi_derle(ad)
+                except NehirHatası as hata:
+                    if hata.ilgili is None:     # türler, değer olarak verildiği yerden gelir
+                        hata.ilgili = self.bilgi[ad]["değer_yeri"]
+                        hata.ilgili_not = (f"'{ad}' burada değer olarak verildi; parametre türleri "
+                                           f"onu tutan değişken üzerinden yapılan çağrılardan çıkarıldı")
+                    raise
+
         self.dönüşleri_denetle()
         self.okunmayanları_bildir(self.küreseller)
         for ad, b in self.bilgi.items():
@@ -2393,6 +2437,12 @@ class KodÜretici:
                 self.tür_tanımları.append(f"{etiket}: .quad {', '.join(parçalar)}")
             return self.kayıt_etiketleri[anahtar]
         tür = bilinen(tür)
+        if isinstance(tür, İşlevTürü):
+            anahtar = (5,)
+            if anahtar not in self.tür_etiketleri:
+                self.tür_etiketleri[anahtar] = f"t{len(self.tür_etiketleri)}"
+                self.tür_tanımları.append(f"{self.tür_etiketleri[anahtar]}: .quad 5, 0, 0")
+            return self.tür_etiketleri[anahtar]
         if isinstance(tür, (Liste, Sözlük)):
             alt = [self.tür_etiketi(p) for p in tür.parametreler()]
             anahtar = (2 if isinstance(tür, Liste) else 3, *alt)
@@ -2461,6 +2511,7 @@ class KodÜretici:
         """İşlevi, parametre türleri belli olduktan sonra ayrı bir tampona derler."""
         parametreler, gövde, satır = self.işlevler[ad]
         b = self.bilgi[ad]
+        b["başladı"] = True
         n = len(parametreler)
         saklanan = (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
                     self.döngüler, self.çatal_derinliği, self.okunan_küreseller)
@@ -2588,16 +2639,12 @@ class KodÜretici:
                 self.yaz("add rsp, 16")
                 return tür
             if isinstance(tür, Sözlük):    # anahtarların o anki listesi üzerinde dönülür
-                if tür.anahtar is None:
-                    raise NehirHatası(BOŞ_SÖZLÜK_HATASI, satır)
                 self.yaz("mov rdi, rax")
                 self.yaz("mov esi, 16")
                 self.yaz("call __sozluk_liste")
-                tür = Liste(tür.anahtar)
+                tür = Liste(tür._anahtar)
             if not isinstance(tür, Liste):
                 raise NehirHatası(f"'her' içine bir liste, sözlük ya da metin akmalı, {tür} bulundu", satır)
-            if tür.eleman is None:
-                raise NehirHatası(BOŞ_LİSTE_HATASI, satır)
             self.yaz("push rax")                 # [rsp+8] = liste
             self.yaz("push 0")                   # [rsp]   = dizin
             self.etiket_koy(baş)
@@ -2606,7 +2653,7 @@ class KodÜretici:
             self.yaz("cmp rsi, [rdi]")
             self.yaz(f"jge {son}")
             self.yaz("call __liste_al")
-            self.ata(h[1], tür.eleman, satır)
+            self.ata(h[1], çöz(tür._eleman), satır)     # henüz bilinmiyorsa kullanımdan öğrenilir
             self.döngü_gövdesi(h[2], artır, son)
             self.etiket_koy(artır)
             self.yaz("inc qword ptr [rsp]")
@@ -2684,6 +2731,46 @@ class KodÜretici:
         self.ata(ad, tür, satır)
         return tür
 
+    def işlev_değeri(self, ad):
+        """İşlevin adresini rax'e yükler ve türünü verir. Parametre türleri henüz
+        belli değilse bilinmeyenlerle başlar; işlev en son derlenir."""
+        b = self.bilgi[ad]
+        if b["türler"] is None:
+            b["türler"] = [TürDeğişkeni() for _ in self.işlevler[ad][0]]
+            b["değer_yeri"] = self.konum
+            self.değer_işlevler.append(ad)
+        if b["dönüş"] is None:
+            b["dönüş"] = TürDeğişkeni()
+        self.yaz(f"lea rax, [rip+{b['etiket']}]")
+        return İşlevTürü(b["türler"], b["dönüş"])
+
+    def değerle_çağır(self, ad, kayıt, adres, türler, satır):
+        """İşlev tutan bir değişken üzerinden çağrı; argümanlar yığına itilmiştir."""
+        tür = çöz(kayıt[1])
+        if isinstance(tür, TürDeğişkeni) and not tür.yalnız_kayıt:
+            tür.bağ = İşlevTürü([TürDeğişkeni() for _ in türler], TürDeğişkeni())
+            tür = çöz(tür)
+        if not isinstance(tür, İşlevTürü):
+            raise NehirHatası(f"'{ad}' bir değişken ({tür}), işlev değil", satır,
+                              f"'{ad}' adlı değişken, aynı adlı işlevi gölgeliyor"
+                              if self.çağrılabilir(ad) else None)
+        beklenen = tür._parametreler
+        if len(beklenen) != len(türler):
+            raise NehirHatası(f"'{ad}' {len(beklenen)} argüman alan bir işlev tutuyor, "
+                              f"{len(türler)} verildi", satır, f"'{ad}' türü: {tür}")
+        for i, (b, v) in enumerate(zip(beklenen, türler), 1):
+            if not birleştir(b, v):
+                raise NehirHatası(f"'{ad}' işlevinin {i}. argümanı {çöz(b)} olmalı, {v} verildi", satır,
+                                  f"'{ad}' türü: {tür}")
+        kayıt[3] = True
+        if self.yereller is not None and ad not in self.yereller:
+            self.okunan_küreseller.setdefault(ad, satır)
+        self.yaz(f"mov rax, {adres}")
+        self.yaz("call rax")
+        if türler:
+            self.yaz(f"add rsp, {8 * len(türler)}")
+        return çöz(tür._dönüş)
+
     def çağrılabilir(self, ad):
         return ad in self.işlevler or ad in self.kayıtlar or ad in YERLEŞİKLER
 
@@ -2749,10 +2836,9 @@ class KodÜretici:
         # Ad çözümleme sırası: parametre/yerel değişken, programın kendi kayıt ve
         # işlevleri, en son yerleşik işlevler. Böylece program yerleşik bir adı
         # kendi tanımıyla gölgeleyebilir.
-        if self.yereller is not None and ad in self.yereller:
-            raise NehirHatası(f"'{ad}' bir değişken, işlev değil", satır,
-                              f"'{ad}' adlı parametre ya da yerel değişken, aynı adlı işlevi gölgeliyor"
-                              if self.çağrılabilir(ad) else None)
+        kayıt, adres = self.değişken_kaydı(ad)
+        if kayıt is not None and kayıt[1] is not None:
+            return self.değerle_çağır(ad, kayıt, adres, türler, satır)
         if ad in self.kayıtlar:
             kayıt = self.kayıtlar[ad]
             if len(türler) != len(kayıt.alanlar):
@@ -2785,10 +2871,11 @@ class KodÜretici:
                               + ("; akıştan gelen değer ilk argüman sayılır" if akan else ""), **gölge)
         if b["türler"] is None:
             b["türler"] = türler
-            self.işlevi_derle(ad)
         elif not all(birleştir(x, y) for x, y in zip(b["türler"], türler)):
-            raise NehirHatası(f"'{ad}' işlevi ({', '.join(map(str, b['türler']))}) ile çağrılmıştı; "
+            raise NehirHatası(f"'{ad}' işlevi ({', '.join(map(str, map(çöz, b['türler'])))}) ile çağrılmıştı; "
                               f"şimdi ({', '.join(map(str, türler))}) veriliyor", satır, **gölge)
+        if not b["başladı"]:
+            self.işlevi_derle(ad)
         self.yaz(f"call {b['etiket']}")
         if türler:
             self.yaz(f"add rsp, {8 * len(türler)}")
@@ -2971,7 +3058,9 @@ class KodÜretici:
             tür.bağ = "sayı"    # türü bilinmeyen değer burada sayı olarak kullanılıyor
             return
         if tür != "sayı":
-            raise NehirHatası(f"{ne} sayı olmalı, {tür} bulundu", satır)
+            raise NehirHatası(f"{ne} sayı olmalı, {tür} bulundu", satır,
+                              "bu bir işlevin kendisi; çağırmak için adının ardına (...) yazın"
+                              if isinstance(tür, İşlevTürü) else None)
 
     # ── ifadeler ──
     def ifade(self, e):
@@ -2998,9 +3087,15 @@ class KodÜretici:
                 raise NehirHatası(f"'{e[1]}' değişkenine henüz bir değer akmadı", satır,
                                   "değişken, programın daha aşağısında tanımlanıyor")
             if kayıt is None:
-                if e[1] in self.işlevler or e[1] in YERLEŞİKLER:
-                    raise NehirHatası(f"'{e[1]}' bir işlev; burada değer olarak kullanılmış", satır,
-                                      f"çağırmak için: {e[1]}(...)   ya da   değer -> {e[1]}")
+                if e[1] in self.işlevler:
+                    return self.işlev_değeri(e[1])
+                if e[1] in self.kayıtlar:
+                    raise NehirHatası(f"'{e[1]}' bir kayıt; kayıtlar değer olarak verilemez", satır,
+                                      f"kaydı kuran bir işlev tanımlayın:  işlev yeni(...) {{ {e[1]}(...) -> döndür }}")
+                if e[1] in YERLEŞİKLER:
+                    raise NehirHatası(f"'{e[1]}' yerleşik bir işlev; yerleşik işlevler değer olarak verilemez",
+                                      satır, f"onu çağıran bir işlev tanımlayın:  işlev benim_{e[1]}(x) "
+                                             f"{{ x -> {e[1]} -> döndür }}")
                 raise NehirHatası(f"'{e[1]}' adında bir değişken yok", satır,
                                   benzerler(e[1], self.bilinen_değişkenler()))
             kayıt[3] = True
@@ -3105,7 +3200,8 @@ class KodÜretici:
         # Türü henüz bilinmeyen bir işlenen (boş sözlükten okunan değer gibi)
         # türünü öbür işlenenden ya da işleçten alır.
         sol_türü, sağ_türü = çöz(sol_türü), çöz(sağ_türü)
-        if iş in ("==", "!=") and (kayıtsı(sol_türü) or kayıtsı(sağ_türü)):
+        if iş in ("==", "!=") and (kayıtsı(sol_türü) or kayıtsı(sağ_türü)
+                                   or isinstance(sol_türü, İşlevTürü)):
             # Kayıtlar kimlikleriyle karşılaştırılır: aynı kayıt mı (ya da ikisi de yok mu)?
             if not birleştir(sol_türü, sağ_türü):
                 raise NehirHatası(f"{sol_türü} ile {sağ_türü} karşılaştırılamaz", satır)

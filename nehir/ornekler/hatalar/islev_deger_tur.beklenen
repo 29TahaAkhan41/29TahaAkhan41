@@ -1,0 +1,6 @@
+ornekler/hatalar/islev_deger_tur.nehir:1:19: hata: '*' işlecinin sol tarafı sayı olmalı, metin bulundu
+    1 | işlev kare(n) { n * n -> döndür }
+      |                   ^
+ornekler/hatalar/islev_deger_tur.nehir:3:1: not: 'kare' burada değer olarak verildi; parametre türleri onu tutan değişken üzerinden yapılan çağrılardan çıkarıldı
+    3 | kare -> f
+      | ^^^^

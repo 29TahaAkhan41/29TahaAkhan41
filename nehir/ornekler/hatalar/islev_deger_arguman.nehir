@@ -1,0 +1,3 @@
+işlev topla(a, b) { a + b -> döndür }
+topla -> f
+f(1) -> yazdır

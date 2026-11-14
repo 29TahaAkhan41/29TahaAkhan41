@@ -1,0 +1,4 @@
+ornekler/hatalar/yerlesik_deger.nehir:2:1: hata: 'uzunluk' yerleşik bir işlev; yerleşik işlevler değer olarak verilemez
+    2 | uzunluk -> ölç
+      | ^^^^^^^
+      = ipucu: onu çağıran bir işlev tanımlayın:  işlev benim_uzunluk(x) { x -> uzunluk -> döndür }

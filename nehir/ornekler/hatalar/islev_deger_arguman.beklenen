@@ -1,0 +1,4 @@
+ornekler/hatalar/islev_deger_arguman.nehir:3:1: hata: 'f' 2 argüman alan bir işlev tutuyor, 1 verildi
+    3 | f(1) -> yazdır
+      | ^
+      = ipucu: 'f' türü: işlev(?, ?) -> ?

@@ -349,43 +349,25 @@ işlev değil_ifadesi() {
     karşılaştırma() -> döndür
 }
 
+# Bir öncelik düzeyi: alt düzeyin ifadelerini bu düzeyin işleçleriyle soldan
+# birleştirir. `alt` bir işlevdir; her düzey bir alttakini verir.
+işlev ikili_düzey(alt, işleçler) {
+    alt() -> sol
+    doğru -> iken {
+        a_k -> k
+        değil (s_tür[k] == "İŞLEÇ" ve var(işleçler, s_değer[k])) -> eğer { dur }
+        s_değer[k] == "-" ve s_yeni[k] -> eğer { dur }   # satır başındaki '-' yeni bir deyimin eksi işaretidir
+        a_k + 1 -> a_k
+        ikili(s_değer[k], sol, alt(), k) -> sol
+    }
+    sol -> döndür
+}
+
 işlev karşılaştırma() {
-    toplama() -> sol
-    doğru -> iken {
-        a_k -> k
-        s_değer[k] -> iş
-        değil (s_tür[k] == "İŞLEÇ" ve (iş == "==" veya iş == "!=" veya iş == "<"
-                veya iş == ">" veya iş == "<=" veya iş == ">=")) -> eğer { dur }
-        a_k + 1 -> a_k
-        ikili(iş, sol, toplama(), k) -> sol
-    }
-    sol -> döndür
+    ikili_düzey(toplama, {"==": 1, "!=": 1, "<": 1, ">": 1, "<=": 1, ">=": 1}) -> döndür
 }
-
-işlev toplama() {
-    çarpma() -> sol
-    doğru -> iken {
-        a_k -> k
-        s_değer[k] -> iş
-        değil (s_tür[k] == "İŞLEÇ" ve (iş == "+" veya iş == "-")) -> eğer { dur }
-        iş == "-" ve s_yeni[k] -> eğer { dur }      # satır başındaki '-' yeni bir deyimin eksi işaretidir
-        a_k + 1 -> a_k
-        ikili(iş, sol, çarpma(), k) -> sol
-    }
-    sol -> döndür
-}
-
-işlev çarpma() {
-    tekli() -> sol
-    doğru -> iken {
-        a_k -> k
-        s_değer[k] -> iş
-        değil (s_tür[k] == "İŞLEÇ" ve (iş == "*" veya iş == "/" veya iş == "%")) -> eğer { dur }
-        a_k + 1 -> a_k
-        ikili(iş, sol, tekli(), k) -> sol
-    }
-    sol -> döndür
-}
+işlev toplama() { ikili_düzey(çarpma, {"+": 1, "-": 1}) -> döndür }
+işlev çarpma() { ikili_düzey(tekli, {"*": 1, "/": 1, "%": 1}) -> döndür }
 
 işlev tekli() {
     a_k -> k
