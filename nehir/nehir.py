@@ -1102,7 +1102,11 @@ __metin_karsilastir:            # rdi = a, rsi = b -> rax = -1 / 0 / 1 (sözlük
     ret
 
 __metin_uzunluk:                # rdi = metin -> rax = karakter sayısı (UTF-8)
-    mov rcx, [rdi-8]
+    cmp rdi, [rip+__mu_metin]   # son ölçülen metin mi? (metinler değişmez, bellek
+    jne 0f                      #  geri verilmez: bir adres hep aynı metindir)
+    mov rax, [rip+__mu_uzunluk]
+    ret
+0:  mov rcx, [rdi-8]
     xor eax, eax
     xor r8, r8
 1:  cmp r8, rcx
@@ -1115,13 +1119,23 @@ __metin_uzunluk:                # rdi = metin -> rax = karakter sayısı (UTF-8)
     add rax, rdx
     inc r8
     jmp 1b
-2:  ret
+2:  mov [rip+__mu_metin], rdi
+    mov [rip+__mu_uzunluk], rax
+    ret
 
 __metin_al:                     # rdi = metin, rsi = karakter dizini -> rax = o karakter (metin)
     push rbx
     push r12
     mov rcx, [rdi-8]
-    xor r8, r8
+    xor r8, r8                  # bayt konumu
+    mov r10, rsi                # istenen dizin (önbellek için)
+    cmp rdi, [rip+__ma_metin]   # aynı metinde son erişilen yerden ileride mi? Öyleyse
+    jne 1f                      # saymaya oradan başlanır: m[0], m[1], ... doğrusal olur.
+    mov rax, [rip+__ma_dizin]
+    cmp rsi, rax
+    jb 1f
+    sub rsi, rax
+    mov r8, [rip+__ma_bayt]
 1:  cmp r8, rcx                 # rsi karakter atla
     jae __dizin_hatasi
     test rsi, rsi
@@ -1137,7 +1151,10 @@ __metin_al:                     # rdi = metin, rsi = karakter dizini -> rax = o 
     jmp 2b
 4:  dec rsi
     jmp 1b
-3:  mov r9, r8                  # karakterin sonunu bul
+3:  mov [rip+__ma_metin], rdi
+    mov [rip+__ma_dizin], r10
+    mov [rip+__ma_bayt], r8
+    mov r9, r8                  # karakterin sonunu bul
     inc r9
 5:  cmp r9, rcx
     jae 6f
@@ -2163,7 +2180,12 @@ __yigin_son:
     .skip 64                    # __oku'nun başlık ve yuvarlama payı
 __g_tampon: .skip 65536
 __baslangic_sp: .skip 8         # süreç başlarken yığın: argc, argv...
-__h_ek: .skip 8                 # hata mesajına eklenecek metin (dosya yolu) ya da 0
+__h_ek: .skip 8
+__ma_metin: .skip 8             # __metin_al önbelleği: metin, karakter dizini, bayt konumu
+__ma_dizin: .skip 8
+__ma_bayt: .skip 8
+__mu_metin: .skip 8             # __metin_uzunluk önbelleği: metin, karakter sayısı
+__mu_uzunluk: .skip 8                 # hata mesajına eklenecek metin (dosya yolu) ya da 0
 __g_konum: .skip 8
 __g_son: .skip 8
 """.replace("YIGIN_BOYUTU", str(YIĞIN_BOYUTU))

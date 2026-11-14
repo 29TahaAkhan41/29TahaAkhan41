@@ -98,7 +98,7 @@ işlev sayı_değeri(rakamlar) {
 # ── sözcükleyici ──
 
 işlev sözcükle(kaynak) {
-    # Metinde dizinle erişim baştan saymayı gerektirir; karakter listesinde anlıktır.
+    # Karakter listesinde hem dizin hem dilim anlıktır; metinde dilim baştan sayar.
     [] -> kr
     kaynak -> her (k) { kr -> ekle(k) }
     kr -> l_kr

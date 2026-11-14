@@ -1,0 +1,26 @@
+# Metinlerde dizinle erişim: m[i] ve uzunluk(m), aynı metinde son erişilen yeri
+# hatırlar. Baştan sona dolaşmak doğrusal zamanlıdır; rastgele erişim de doğru çalışır.
+"aç-ğüşiöı Ç€𝄞z" -> m
+"xyzçok" -> n
+[0, 3, 3, 1, 13, 12, 5, 0, 7, 2, 9, 4, 13, 0, 6] -> sıra
+"" -> çıktı
+sıra -> her (i) {
+    çıktı + m[i] -> çıktı
+    çıktı + n[i % 6] -> çıktı
+    çıktı + metne(uzunluk(m)) + metne(uzunluk(n)) -> çıktı
+}
+çıktı -> yazdır
+
+# Uzun bir metni dizinle dolaşmak (eskiden karesel zamanlıydı)
+"" -> m
+0 -> i
+i < 2000 -> iken { m + "çay-su " -> m   i + 1 -> i }
+m + m + m + m + m -> m
+0 -> say
+0 -> i
+i < uzunluk(m) -> iken {
+    m[i] == "ç" -> eğer { say + 1 -> say }
+    i + 1 -> i
+}
+uzunluk(m) -> yazdır
+say -> yazdır

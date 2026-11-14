@@ -208,6 +208,8 @@ girdi_var() -> iken { oku() -> sayıya -> n   toplam + n -> toplam }
 ```
 
 Metinler UTF-8'dir; uzunluk ve dizinler bayt değil karakter sayar (`"çığlık"` 6 karakterdir).
+`m[i]` ve `uzunluk(m)` aynı metinde son erişilen yeri hatırlar, bu yüzden bir metni baştan sona dizinle
+dolaşmak doğrusal zamanlıdır.
 Metin ile sayı doğrudan toplanamaz: `"a" + metne(5)`.
 
 **Sözlükler** anahtarları değerlere eşler ve eklenme sırasını korur. Anahtarlar sayı ya da metin,
