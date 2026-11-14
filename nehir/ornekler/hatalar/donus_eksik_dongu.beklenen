@@ -1,0 +1,4 @@
+ornekler/hatalar/donus_eksik_dongu.nehir:1:7: hata: 'ilk_çift' işlevi sayı listesi döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor
+    1 | işlev ilk_çift(l) {
+      |       ^^^^^^^^
+      = ipucu: her yol bir değer döndürmeli ya da programı bitirmeli; yalnızca sayı ve kayıt döndüren işlevler sona ulaşabilir (0 ya da yok döner)

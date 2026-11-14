@@ -274,6 +274,23 @@ sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listeni
 içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
 çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır. Birbirini çağıran işlevlerin dönüş türleri de çıkarılır.
 
+**İşlevden dönüş.** `döndür`'e hiç ulaşmadan sonuna gelen işlev 0 döndürür: sayı döndüren bir
+işlev için 0, kayıt döndüren için `yok`. Metin, liste ya da sözlük döndüren bir işlevin sonuna
+değer döndürmeden ulaşılabiliyorsa derleyici hata verir. Derleyici bunu çözümlerken şunları bilir:
+
+- `çık` ve her yolu `çık`'a varan işlevler (hata verip programı bitiren yardımcılar) geri dönmez;
+  onlardan sonrasına ulaşılamaz, yani ardından göstermelik bir `döndür` gerekmez.
+- İki kolu da dönen bir `eğer`/`değilse`'den sonrasına ulaşılamaz.
+- `doğru -> iken { }` yalnızca içindeki bir `dur` ile biter.
+
+```nehir
+işlev derece(puan) {
+    puan >= 50 -> eğer { "geçer" -> döndür }
+    puan >= 0 -> eğer { "kalır" -> döndür }
+    vazgeç("puan eksi olamaz")      # vazgeç çık'ı çağırır: buradan sonrası yok
+}
+```
+
 **Adların çözülmesi.** Yerleşik işlev adları ayrılmış değildir. Bir ad şu sırayla aranır:
 parametreler ve yerel değişkenler, programın kendi işlev ve kayıtları, en son yerleşik işlevler.
 Yani program `böl` adında kendi işlevini tanımlarsa (hangi modülde olursa olsun) her `böl` çağrısı

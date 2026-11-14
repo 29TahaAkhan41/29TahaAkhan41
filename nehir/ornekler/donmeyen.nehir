@@ -1,0 +1,47 @@
+# Derleyici, bir işlevin sonuna ulaşılıp ulaşılamayacağını bilir.
+
+# Programı bitiren bir işlev hiç geri dönmez.
+işlev vazgeç(mesaj) {
+    "hata: " + mesaj -> yazdır
+    çık(0)
+}
+
+# Metin döndüren bu işlevde her yol ya bir değer döndürür ya da programı bitirir;
+# sonuna göstermelik bir `döndür` yazmak gerekmez.
+işlev derece(puan) {
+    puan >= 85 -> eğer { "pekiyi" -> döndür }
+    puan >= 50 -> eğer { "geçer" -> döndür }
+    puan >= 0 -> eğer { "kalır" -> döndür }
+    vazgeç("puan eksi olamaz: " + metne(puan))
+}
+
+# İki kolu da değer döndüren bir eğer/değilse'den sonrasına ulaşılamaz.
+işlev işaret(n) {
+    n < 0 -> eğer { "eksi" -> döndür } değilse {
+        n == 0 -> eğer { "sıfır" -> döndür } değilse { "artı" -> döndür }
+    }
+}
+
+# `doğru -> iken` yalnızca `dur` ile biter; içinde `dur` yoksa sonrasına ulaşılamaz.
+işlev ilk_bölen(n) {
+    2 -> b
+    doğru -> iken {
+        n % b == 0 -> eğer { [b, n / b] -> döndür }
+        b + 1 -> b
+    }
+}
+
+# Sayı ya da kayıt döndüren işlevler sona ulaşabilir: 0 ya da `yok` döner.
+kayıt Kişi { ad, yaş }
+işlev bul_kişi(kişiler, ad) {
+    kişiler -> her (k) { k.ad == ad -> eğer { k -> döndür } }
+}
+
+[90, 60, 10] -> her (p) { p -> derece -> yazdır }
+[0 - 5, 0, 5] -> her (n) { n -> işaret -> yazdır }
+ilk_bölen(91) -> yazdır
+[Kişi("Ada", 36), Kişi("Can", 20)] -> rehber
+bul_kişi(rehber, "Can") -> yazdır
+bul_kişi(rehber, "Ece") -> yazdır
+derece(0 - 1) -> yazdır
+"buraya gelinmez" -> yazdır

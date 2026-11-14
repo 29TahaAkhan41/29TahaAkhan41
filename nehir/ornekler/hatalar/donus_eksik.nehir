@@ -1,0 +1,5 @@
+işlev ad_ver(no) {
+    no == 1 -> eğer { "bir" -> döndür }
+    no == 2 -> eğer { "iki" -> döndür }
+}
+ad_ver(3) -> yazdır

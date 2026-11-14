@@ -1,0 +1,7 @@
+işlev ilk_çift(l) {
+    doğru -> iken {
+        l -> her (x) { x % 2 == 0 -> eğer { [x] -> döndür } }
+        dur
+    }
+}
+ilk_çift([1, 3]) -> yazdır

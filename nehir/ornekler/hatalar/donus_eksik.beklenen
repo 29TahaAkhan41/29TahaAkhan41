@@ -1,0 +1,4 @@
+ornekler/hatalar/donus_eksik.nehir:1:7: hata: 'ad_ver' işlevi metin döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor
+    1 | işlev ad_ver(no) {
+      |       ^^^^^^
+      = ipucu: her yol bir değer döndürmeli ya da programı bitirmeli; yalnızca sayı ve kayıt döndüren işlevler sona ulaşabilir (0 ya da yok döner)

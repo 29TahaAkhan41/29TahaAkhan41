@@ -686,6 +686,17 @@ def birleştir(a, b):
     return all(birleştir(x, y) for x, y in zip(a.parametreler(), b.parametreler()))
 
 
+class İşlevBaşlığı:
+    """İşlevin etiket satırı. Açıklamadaki türler derlemenin sonunda kesinleşir."""
+
+    def __init__(self, ad, bilgi):
+        self.ad, self.bilgi = ad, bilgi
+
+    def __str__(self):
+        b = self.bilgi
+        return f"{b['etiket']}:    # işlev {self.ad}({', '.join(map(str, map(çöz, b['türler'])))}) -> {çöz(b['dönüş'])}"
+
+
 class TürKoduSatırı:
     """Bir yazmaca, değerin çalışma zamanı tür tanımının adresini yükler. Tür
     (örneğin boş listenin eleman türü) sonradan belli olabileceği için satır
@@ -701,6 +712,9 @@ BOŞ_LİSTE_HATASI = ("bu listenin eleman türü henüz belli değil; "
                     "önce içine bir eleman akmalı")
 BOŞ_SÖZLÜK_HATASI = ("bu sözlüğün anahtar ve değer türleri henüz belli değil; "
                      "önce içine bir değer akmalı:  değer -> sözlük[anahtar]")
+
+# Programı bitiren yerleşik işlevin bütün yazımları.
+ÇIKIŞ_ADLARI = {ad for ad, asıl in YERLEŞİKLER.items() if asıl == "çık"}
 
 # Hata verebilen çalışma zamanı işlemleri; öncesinde r15'e kaynak dosyası ve satırı yüklenir.
 RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + ad for ad in (
@@ -2137,8 +2151,20 @@ class KodÜretici:
         self.işlevler = işlevler
         # Her işlev için: etiket, parametre türleri (ilk çağrıda belirlenir) ve dönüş türü.
         self.bilgi = {ad: {"etiket": f"f{i}", "türler": None, "dönüş": None,
-                           "bitti": False}
+                           "bitti": False, "sona_ulaşır": False}
                       for i, ad in enumerate(işlevler)}
+        # Hiç dönmeyen işlevler: gövdesi hiçbir yoldan sona ulaşmayan ve hiç 'döndür'
+        # içermeyen işlevler (her yolu programı bitirir). Birbirlerini çağırabildikleri
+        # için küme, değişmeyene dek yeniden hesaplanır.
+        self.dönmeyenler = set()
+        değişti = True
+        while değişti:
+            değişti = False
+            for ad, (_, gövde, _) in işlevler.items():
+                if ad not in self.dönmeyenler and not self.içerir_mi(gövde, "döndür") \
+                        and not self.tamamlanır(gövde):
+                    self.dönmeyenler.add(ad)
+                    değişti = True
         # Değişken kayıtları: [yer, tür|None, ilk atamanın konumu, okundu mu]
         self.küreseller = {}      # ad -> kayıt (yer = etiket)
         self.metinler = []        # bayt dizileri
@@ -2154,6 +2180,82 @@ class KodÜretici:
         self.yerel_sayısı = 0
         self.döngüler = []        # iç içe döngüler: (devam etiketi, son etiketi, çatal derinliği)
         self.çatal_derinliği = 0  # o anda yığında bekleyen çatal değerlerinin sayısı
+
+    # ── akış çözümlemesi ──
+    # Sözdizimine bakarak denetimin nereye ulaşabileceğini bulur. Temkinlidir:
+    # emin olamadığı her yerde "ulaşabilir" der.
+
+    @staticmethod
+    def alt_bloklar(hedefler):
+        """Hedeflerin içindeki bloklar: (blok, döngü gövdesi mi?)"""
+        for h in hedefler:
+            if h[0] == "eğer":
+                yield h[1], False
+                if h[2] is not None:
+                    yield h[2], False
+            elif h[0] == "iken":
+                yield h[1], True
+            elif h[0] == "her":
+                yield h[2], True
+            elif h[0] == "çatal":
+                for dal in h[1]:
+                    yield from KodÜretici.alt_bloklar(dal)
+
+    def içerir_mi(self, deyimler, aranan, döngülere_gir=True):
+        """Blokta (iç içe bloklar dahil) 'döndür' hedefi ya da 'dur' deyimi var mı?
+        'dur' aranırken iç döngülere girilmez: oradaki 'dur' o döngüye aittir."""
+        for d in deyimler:
+            if d[0] == aranan:
+                return True
+            if d[0] != "akış":
+                continue
+
+            def hedefte(hedefler):
+                return any(h[0] == aranan or (h[0] == "çatal" and any(hedefte(dal) for dal in h[1]))
+                           for h in hedefler)
+            if hedefte(d[2]):
+                return True
+            if any(self.içerir_mi(blok, aranan, döngülere_gir)
+                   for blok, döngü in self.alt_bloklar(d[2]) if döngülere_gir or not döngü):
+                return True
+        return False
+
+    def dönmez(self, ad):
+        """Bu adın çağrısı hiç geri dönmez mi?"""
+        if ad in self.işlevler:
+            return ad in self.dönmeyenler
+        return ad in ÇIKIŞ_ADLARI and ad not in self.kayıtlar
+
+    def tamamlanır(self, deyimler):
+        """Denetim bu bloğun sonuna ulaşabilir mi?"""
+        return all(self.deyim_tamamlanır(d) for d in deyimler)
+
+    def deyim_tamamlanır(self, d):
+        if d[0] != "akış":
+            return False            # dur, devam
+        _, kaynak, hedefler, _ = d
+        if kaynak[0] == "çağrı" and self.dönmez(kaynak[1]):
+            return False
+        return self.hedefler_tamamlanır(hedefler, kaynak)
+
+    def hedefler_tamamlanır(self, hedefler, kaynak=None):
+        for h in hedefler:
+            if h[0] == "döndür":
+                return False
+            if h[0] == "ad" and self.dönmez(h[1]):
+                return False
+            if h[0] == "eğer" and h[2] is not None \
+                    and not self.tamamlanır(h[1]) and not self.tamamlanır(h[2]):
+                return False
+            if h[0] == "iken":
+                # `doğru -> iken { }` yalnızca içindeki bir 'dur' ile biter.
+                sonsuz = kaynak is not None and kaynak[0] == "sayı" and kaynak[1] != 0 \
+                    and len(hedefler) == 1
+                if sonsuz and not self.içerir_mi(h[1], "dur", döngülere_gir=False):
+                    return False
+            if h[0] == "çatal" and not all(self.hedefler_tamamlanır(dal) for dal in h[1]):
+                return False
+        return True
 
     def tür_çöz(self, t):
         """Kayıt tanımındaki tür ifadesini türe çevirir."""
@@ -2217,6 +2319,7 @@ class KodÜretici:
         self.yaz("leave")
         self.yaz("ret")
 
+        self.dönüşleri_denetle()
         self.okunmayanları_bildir(self.küreseller)
         for ad, b in self.bilgi.items():
             # Modüller kitaplıktır; her işlevlerinin kullanılması beklenmez.
@@ -2228,7 +2331,7 @@ class KodÜretici:
         # Tür tanımları yeni metinler (kayıt ve alan adları) ekleyebildiği için
         # kod, metinler dökülmeden önce son hâline getirilir.
         kod = [f"    lea {x.yazmaç}, [rip+{self.tür_etiketi(x.tür)}]"
-               if isinstance(x, TürKoduSatırı) else x for x in self.çıktı + self.işlev_kodu]
+               if isinstance(x, TürKoduSatırı) else str(x) for x in self.çıktı + self.işlev_kodu]
 
         baş = [".intel_syntax noprefix", ".global _start", ".section .text"]
         son = [ÇALIŞMA_ZAMANI, "    .section .rodata", "    .balign 8",
@@ -2247,6 +2350,23 @@ class KodÜretici:
         if self.tür_tanımları:
             son += ["    .section .rodata", "    .balign 8"] + self.tür_tanımları
         return "\n".join(baş + kod + son) + "\n"
+
+    def dönüşleri_denetle(self):
+        """Bütün program derlendikten sonra dönüş türleri kesinleşir. Sonuna değer
+        döndürmeden ulaşılabilen bir işlev 0 döndürür: bu, sayı için 0, kayıt için
+        `yok` demektir; başka türlerde geçerli bir değer değildir."""
+        for ad, b in self.bilgi.items():
+            if not b["bitti"]:
+                continue
+            dönüş = çöz(b["dönüş"])
+            if isinstance(dönüş, TürDeğişkeni) and not dönüş.yalnız_kayıt:
+                dönüş.bağ = dönüş = "sayı"      # yalnızca kendi sonucunu döndüren özyineleme
+            if b["sona_ulaşır"] and dönüş != "sayı" and not kayıtsı(dönüş):
+                raise NehirHatası(
+                    f"'{ad}' işlevi {dönüş} döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor",
+                    self.işlevler[ad][2],
+                    "her yol bir değer döndürmeli ya da programı bitirmeli; yalnızca sayı ve kayıt "
+                    "döndüren işlevler sona ulaşabilir (0 ya da yok döner)")
 
     def tür_etiketi(self, tür):
         """Türün çalışma zamanı tanımını (gerekirse üreterek) verir. Derlemenin
@@ -2338,17 +2458,13 @@ class KodÜretici:
         (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
          self.döngüler, self.çatal_derinliği) = saklanan
 
-        dönüş = çöz(b["dönüş"])
-        if dönüş is None or (isinstance(dönüş, TürDeğişkeni) and not dönüş.yalnız_kayıt):
-            # Hiç 'döndür' yok (ya da yalnızca kendi sonucunu döndürüyor): işlev 0 döndürür.
-            if dönüş is None:
-                b["dönüş"] = "sayı"
-            else:
-                dönüş.bağ = "sayı"
+        if b["dönüş"] is None:
+            b["dönüş"] = "sayı"     # hiç 'döndür' yok: işlev 0 döndürür
+        b["sona_ulaşır"] = self.tamamlanır(gövde)
         b["bitti"] = True
 
         k = self.işlev_kodu
-        k.append(f"{b['etiket']}:    # işlev {ad}({', '.join(map(str, b['türler']))}) -> {b['dönüş']}")
+        k.append(İşlevBaşlığı(ad, b))
         k.append("    push rbp")
         k.append("    mov rbp, rsp")
         if yerel_sayısı:
