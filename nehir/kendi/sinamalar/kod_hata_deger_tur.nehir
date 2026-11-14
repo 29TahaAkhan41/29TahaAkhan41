@@ -1,0 +1,4 @@
+işlev f(a) { a + 1 -> döndür }
+f -> g
+g(1) -> yazdır
+g("x") -> yazdır

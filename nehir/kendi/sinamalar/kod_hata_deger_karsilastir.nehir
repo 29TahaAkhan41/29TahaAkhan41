@@ -1,0 +1,2 @@
+işlev f(a) { a -> döndür }
+f == 5 -> yazdır

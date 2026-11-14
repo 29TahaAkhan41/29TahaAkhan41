@@ -350,8 +350,15 @@ o zamana kadar asıl derleyici olarak kalır ve yeni parçaların doğruluğu on
 | --- | --- | --- |
 | Sözcükleyici | `kendi/sozcukleyici.nehir` | tamam |
 | Ayrıştırıcı | `kendi/ayristirici.nehir` | tamam |
-| Tür denetimi ve kod üretici | `kendi/kod_uretici.nehir` | sürüyor: modüller ve işlev değerleri dışında her şey (aşağıda) |
-| Modül yükleme, hata gösterimi (kaynak satırı, ipuçları) | | bekliyor |
+| Tür denetimi ve kod üretici | `kendi/kod_uretici.nehir` | tamam: modüller dışında her şey |
+| Modül yükleme | | sırada |
+| Hata gösterimi (kaynak satırı, ipuçları), uyarılar | | bekliyor |
+
+**Derleyici kendini derliyor.** Nehir ile yazılmış derleyicinin dört dosyası (modüller henüz
+taşınmadığı için `kullan` satırları olmadan tek dosyada birleştirilerek) önce `nehir.py` ile derlenir.
+Ortaya çıkan derleyici aynı kaynağı derlediğinde `nehir.py` ile bayt bayt aynı assembly'yi üretir;
+böylece kendi kendini derlemiş derleyici de aynı kaynağı yeniden derlediğinde çıktı değişmez (sabit nokta).
+Testler bu zinciri her çalıştırmada kurar ve sınar.
 
 Her aşama bir modüldür ve Python'daki karşılığıyla aynı çıktıyı verdiği, bütün `.nehir` dosyalarında
 (örnekler, hatalı programlar, `kendi/sinamalar/` altındaki zor girdiler ve aşamaların kendi kaynak
@@ -374,7 +381,7 @@ python3 nehir.py kendi/agac_dok.nehir -o agac_dok
 **Nehir ile yazılmış derleyici.** `kendi/derle.nehir` bir kaynak dosyayı ayrıştırıp assembly'ye
 çevirir; çıktısı Python'daki derleyicinin ürettiğiyle bayt bayt aynıdır. İşlevler, özyineleme ve dönüş türü
 çıkarımı, listeler ve sözlükler (iç içe olanlar ve türü sonradan öğrenilenler dahil), kayıtlar ve `yok`, `her` ve
-bütün yerleşik işlevler taşındı. Henüz taşınmamış bir yapıyla (modüller, işlev değerleri) karşılaşırsa
+bütün yerleşik işlevler ve işlev değerleri taşındı. Henüz taşınmamış bir yapıyla (modüller) karşılaşırsa
 "henüz desteklenmiyor" der ve 3 koduyla çıkar; testler kaç dosyanın taşındığını sayar.
 
 ```bash
@@ -388,11 +395,6 @@ python3 nehir.py kendi/derle.nehir -o derle
 ```bash
 as -o merhaba.o merhaba.s && ld -o merhaba merhaba.o && ./merhaba
 ```
-
-Modüller henüz taşınmadığı için derleyicinin kendi aşamaları bu derleyiciyle doğrudan derlenemiyor. Ama
-sözcükleyici (`kendi/sozcukleyici.nehir`) ile onu kullanan program (`kendi/sozcuk_dok.nehir`) `kullan`
-satırı olmadan tek dosyada birleştirildiğinde, bu derleyici onu bütün işlevleriyle Python'la bayt bayt aynı
-derliyor ve çıkan program bütün `.nehir` dosyalarında doğru sözcükleri veriyor.
 
 Çalışma zamanı (üretilen her programa eklenen assembly) `calisma_zamani.s` dosyasındadır; iki derleyici de onu okur.
 

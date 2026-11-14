@@ -1,0 +1,3 @@
+işlev f(a) { a * 2 -> döndür }
+f -> g
+g("metin") -> yazdır

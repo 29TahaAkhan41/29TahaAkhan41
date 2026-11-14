@@ -1,0 +1,32 @@
+# İşlev değerleri: listede, sözlükte, kayıtta; işlev döndüren işlev; hiç çağrılmayan değer
+işlev kare(n) { n * n -> döndür }
+işlev artı(a, b) { a + b -> döndür }
+işlev selam() { "selam" -> döndür }
+işlev hiç_çağrılmaz(x, y) { x -> döndür }
+işlev uygula(f, x) { f(x) -> döndür }
+kayıt Komut { ad: metin, çalıştır }
+[kare, kare] -> adımlar
+3 -> x
+adımlar -> her (a) { a(x) -> x }
+x -> yazdır
+{"topla": artı} -> işlemler
+işlemler["topla"] -> t
+t(2, 5) -> yazdır
+Komut("kare", kare) -> k
+k.çalıştır -> kç
+kç(6) -> yazdır
+selam -> s
+s() -> yazdır
+uygula(kare, 4) -> yazdır
+kare -> f
+f == kare -> yazdır
+f != kare -> yazdır
+f -> yazdır
+hiç_çağrılmaz -> h
+işlev seç(n) {
+    n > 0 -> eğer { kare -> döndür }
+    kare -> döndür
+}
+seç(1) -> g
+g(9) -> yazdır
+9 -> g() -> yazdır

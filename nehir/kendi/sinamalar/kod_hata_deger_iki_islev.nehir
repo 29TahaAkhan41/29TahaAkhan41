@@ -1,0 +1,4 @@
+işlev f(a) { a -> döndür }
+işlev h(a, b) { a -> döndür }
+f -> g
+h -> g

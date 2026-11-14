@@ -1,0 +1,3 @@
+işlev f(a) { a -> döndür }
+f -> g
+g(1, 2) -> yazdır

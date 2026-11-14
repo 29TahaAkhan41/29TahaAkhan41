@@ -5,7 +5,8 @@ programa standart girdi olarak verilir.
 
 Ardından Nehir ile yazılmış derleyici aşamalarını (kendi/ altındaki sözcükleyici,
 ayrıştırıcı ve kod üretici) derler ve bütün .nehir dosyalarında Python'daki karşılıklarıyla aynı
-çıktıyı verdiklerini sınar.
+çıktıyı verdiklerini sınar. En son, Nehir ile yazılmış derleyicinin kendini derleyip sabit
+noktaya ulaştığını sınar.
 
   python3 test.py              sınamaları çalıştır
   python3 test.py --güncelle   .beklenen dosyalarını şimdiki çıktıyla yeniden yaz
@@ -101,7 +102,57 @@ def kendi_derleyiciyi_sına(geçici, kaynaklar):
         if not farklı:
             print(f"geçti     kendi {aşama} ({len(kaynaklar)} dosyada Python ile aynı çıktı)")
         başarısız += farklı
-    return başarısız + kendi_kod_üreticiyi_sına(geçici, kaynaklar)
+    return başarısız + kendi_kod_üreticiyi_sına(geçici, kaynaklar) + kendini_derlemeyi_sına(geçici)
+
+
+def kendini_derlemeyi_sına(geçici):
+    """Nehir ile yazılmış derleyici kendini derleyebilmelidir:
+      1. nehir.py derleyicinin kaynağını derler                          -> derle1
+      2. derle1 aynı kaynağı derler; çıktı nehir.py'ninkiyle aynı olmalı   -> derle2
+      3. derle2 aynı kaynağı yeniden derler; çıktı değişmemeli (sabit nokta)
+    Modüller henüz taşınmadığı için derleyicinin dosyaları `kullan` satırları
+    olmadan tek dosyada birleştirilir."""
+    parçalar = ["sozcukleyici.nehir", "ayristirici.nehir", "kod_uretici.nehir", "derle.nehir"]
+    kaynak = ""
+    for parça in parçalar:
+        with open(os.path.join(KÖK, "kendi", parça), encoding="utf-8") as f:
+            kaynak += "".join(satır for satır in f if not satır.startswith("kullan "))
+    yol = os.path.join(geçici, "derle_tek.nehir")
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(kaynak)
+    çz = os.path.join(KÖK, "calisma_zamani.s")
+
+    def çevir(s_dosyası, ikili):
+        subprocess.run(["as", "-o", ikili + ".o", s_dosyası], check=True)
+        subprocess.run(["ld", "-o", ikili, ikili + ".o"], check=True)
+
+    def oku(dosya):
+        with open(dosya, "rb") as f:
+            return f.read()
+
+    s1, s2, s3 = (os.path.join(geçici, f"derle{i}.s") for i in (1, 2, 3))
+    p = subprocess.run([sys.executable, "nehir.py", yol, "--asm", "-o", s1], cwd=KÖK,
+                       capture_output=True, text=True, encoding="utf-8")
+    if p.returncode != 0:
+        print("BAŞARISIZ kendini derleme: nehir.py derleyicinin kaynağını derleyemedi:", p.stderr.split("\n")[0])
+        return 1
+    for kaynak_s, ikili, hedef_s in ((s1, "derle1", s2), (s2, "derle2", s3)):
+        ikili = os.path.join(geçici, ikili)
+        çevir(kaynak_s, ikili)
+        n = subprocess.run([ikili, yol, hedef_s, çz], capture_output=True, text=True, encoding="utf-8")
+        if n.returncode != 0:
+            print(f"BAŞARISIZ kendini derleme: {os.path.basename(ikili)} kendi kaynağını derleyemedi:",
+                  n.stderr.split("\n")[0])
+            return 1
+    if oku(s2) != oku(s1):
+        print("BAŞARISIZ kendini derleme: kendi derlediği derleyici nehir.py'ninkinden farklı")
+        return 1
+    if oku(s3) != oku(s2):
+        print("BAŞARISIZ kendini derleme: sabit noktaya ulaşılmadı (2. ve 3. aşama farklı)")
+        return 1
+    print(f"geçti     kendini derleme (derleyici kendi kaynağını {oku(s2).count(b'\n')} satır assembly'ye "
+          f"nehir.py ile bayt bayt aynı derliyor; sabit noktaya ulaşıldı)")
+    return 0
 
 
 def kendi_kod_üreticiyi_sına(geçici, kaynaklar):
