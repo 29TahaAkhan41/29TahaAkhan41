@@ -7,10 +7,14 @@
 #
 # Taşıma parça parça yapılıyor. Henüz taşınmamış bir yapıyla karşılaşınca
 # "henüz desteklenmiyor" der ve 3 koduyla çıkar. Şu an desteklenenler:
-#   - yalnızca üst düzey kod (işlev, kayıt ve modül yok)
 #   - sayılar, metinler, doğru/yanlış, değişkenler (sayı ve metin türünde)
 #   - + - * / % ve karşılaştırmalar, ve / veya / değil, tekli eksi; metin + metin
 #   - hedefler: yazdır, değişken, ortak, eğer/değilse, iken, çatal; dur, devam
+#   - işlevler: parametreler, yerel değişkenler, döndür, özyineleme; dönüş türü
+#     çıkarımı ve "sonuna değer döndürmeden ulaşılabiliyor" denetimi
+#   - yerleşik işlevlerden yalnızca çık
+# Henüz yok: kayıtlar, modüller, listeler, sözlükler, öteki yerleşik işlevler,
+# işlev değerleri, `her`; derleyici uyarıları.
 #
 #   kullan "kod_uretici.nehir"
 #   l_dosya -> dosya_oku -> sözcükle
@@ -35,23 +39,91 @@ kullan "ayristirici.nehir"
 # Yığın için ayrılan bellek (bayt). nehir.py'deki YIĞIN_BOYUTU ile aynı olmalı.
 "268435456" -> YIĞIN_BOYUTU
 
+# ── türler ──
+# Türler metin olarak tutulur: "sayı", "metin" ya da henüz bilinmeyen bir tür için
+# "?1", "?2", ... Bilinmeyen bir tür öğrenildiğinde k_bağ'a yazılır (birleştirme).
+# Böyle bir tür, özyinelemeli bir işlevin dönüş türü belli olmadan önce doğar.
+
+{} -> k_bağ
+0 -> ortak k_tür_no
+
+işlev yeni_tür_değişkeni() {
+    k_tür_no + 1 -> k_tür_no
+    "?" + metne(k_tür_no) -> döndür
+}
+
+işlev bilinmeyen_mi(t) { dilim(t, 0, 1) == "?" -> döndür }
+
+işlev çöz(t) {
+    bilinmeyen_mi(t) ve var(k_bağ, t) -> iken { k_bağ[t] -> t }
+    t -> döndür
+}
+
+işlev birleştir(a, b) {
+    çöz(a) -> a
+    çöz(b) -> b
+    a == b -> eğer { doğru -> döndür }
+    bilinmeyen_mi(a) -> eğer {
+        b -> k_bağ[a]
+        doğru -> döndür
+    }
+    bilinmeyen_mi(b) -> eğer {
+        a -> k_bağ[b]
+        doğru -> döndür
+    }
+    yanlış -> döndür
+}
+
+# Hata mesajlarındaki yazımı. nehir.py'de bilinmeyen bir tür, bağlanmış olsa da
+# kendi adıyla yazılır; ham_ad bunu, tür_adı çözülmüş hâlini verir.
+işlev ham_ad(t) {
+    bilinmeyen_mi(t) -> eğer { "henüz bilinmeyen tür" -> döndür }
+    t -> döndür
+}
+işlev tür_adı(t) { ham_ad(çöz(t)) -> döndür }
+
+işlev tür_listesi(türler) {
+    [] -> adlar
+    türler -> her (t) { adlar -> ekle(tür_adı(t)) }
+    birleş(adlar, ", ") -> döndür
+}
+
 # ── durum ──
 
-[] -> k_kod                 # nehir_ana'nın assembly satırları
+[] -> ortak k_kod           # o anda derlenen gövdenin assembly satırları
+[] -> k_işlev_kodu          # derlenmiş işlevlerin satırları, derlenme sırasıyla
 [] -> k_metinler            # programdaki metinler, ilk görülme sırasıyla
 {} -> k_metin_no            # metin -> k_metinler'deki sırası
 [] -> k_küreseller          # üst düzey değişkenlerin adları, toplanma sırasıyla
 {} -> k_küresel_etiket      # ad -> bellekteki yerinin etiketi (g0, g1, ...)
-{} -> k_küresel_tür         # ad -> "sayı" | "metin" | "" (henüz değer akmadı)
+{} -> k_küresel_tür         # ad -> tür ("" henüz değer akmadı)
+{} -> k_ortaklar            # işlevlerin de atayabildiği üst düzey değişkenler
 [] -> k_tür_tanımları       # çalışma zamanı tür tanımları (yazdırma için)
 {} -> k_tür_etiketi         # tür -> tanımının etiketi (t0, t1, ...)
 0 -> ortak k_etiket_no      # son üretilen .L etiketinin numarası
 0 -> ortak k_çatal          # o anda yığında bekleyen çatal değerlerinin sayısı
 
 # İç içe döngüler (koşut listeler): devam ve çıkış etiketleri, girildiği andaki çatal derinliği
-[] -> k_döngü_devam
-[] -> k_döngü_son
-[] -> k_döngü_çatal
+[] -> ortak k_döngü_devam
+[] -> ortak k_döngü_son
+[] -> ortak k_döngü_çatal
+
+# İşlevler. Her işlev ilk çağrıldığı yerde, o çağrının argüman türleriyle derlenir.
+{} -> k_işlev               # ad -> işlev düğümü
+[] -> k_işlev_adları        # tanım sırasıyla
+{} -> k_işlev_etiket        # ad -> f0, f1, ...
+{} -> k_işlev_türler        # ad -> parametre türleri (ilk çağrıda belirlenir)
+{} -> k_işlev_dönüş         # ad -> dönüş türü ("" henüz belli değil)
+{} -> k_işlev_durum         # ad -> 0 derlenmedi, 1 derleniyor, 2 derlendi
+{} -> k_işlev_sona          # ad -> gövdenin sonuna ulaşılabiliyor mu
+{} -> k_dönmeyen            # hiç geri dönmeyen işlevler (her yolu çık'a varır)
+
+# Derlenmekte olan işlev ("" ise en üst düzey) ve onun yerel değişkenleri
+"" -> ortak k_geçerli
+{} -> ortak k_yerel_yer     # ad -> bellek adresi ([rbp+16], [rbp-8], ...)
+{} -> ortak k_yerel_tür     # ad -> tür
+0 -> ortak k_yerel_sayısı
+{} -> ortak k_okunan        # bu işlevde okunan üst düzey değişkenler
 
 # ── yardımcılar ──
 
@@ -64,6 +136,10 @@ işlev desteklenmiyor(ne, d) {
 
 işlev yaz(satır) { k_kod -> ekle("    " + satır) }
 işlev etiket_koy(etiket) { k_kod -> ekle(etiket + ":") }
+
+# Yazdırılan değerin türü sonradan belli olabileceği için tür tanımının etiketi
+# derlemenin sonunda konur; o zamana dek satırda bu işaret durur.
+işlev tür_satırı(tür) { k_kod -> ekle("§TÜR§" + tür) }
 
 # Hata verebilen çalışma zamanı işlemlerinden önce r15'e kaynak satırı yüklenir.
 işlev riskli(satır, d) {
@@ -85,6 +161,8 @@ işlev metin_etiketi(m) {
 }
 
 işlev tür_etiketi(tür) {
+    çöz(tür) -> tür
+    bilinmeyen_mi(tür) -> eğer { "sayı" -> tür }     # hiç belli olmamış tür sayı sayılır
     değil var(k_tür_etiketi, tür) -> eğer {
         "t" + metne(uzunluk(k_tür_tanımları)) -> etiket
         etiket -> k_tür_etiketi[tür]
@@ -96,7 +174,58 @@ işlev tür_etiketi(tür) {
 }
 
 işlev sayı_olmalı(tür, ne, d) {
-    tür != "sayı" -> eğer { k_hata(ne + " sayı olmalı, " + tür + " bulundu", d) }
+    çöz(tür) -> tür
+    bilinmeyen_mi(tür) -> eğer { "sayı" -> k_bağ[tür] } değilse {     # burada sayı olarak kullanılıyor
+        tür != "sayı" -> eğer { k_hata(ne + " sayı olmalı, " + tür + " bulundu", d) }
+    }
+}
+
+işlev çağrılabilir(ad) { var(k_işlev, ad) veya var(YERLEŞİK_ADLAR, ad) -> döndür }
+
+işlev parametre_sayısı(f) { uzunluk(f.çocuklar) - 1 -> döndür }
+işlev gövdesi(f) { f.çocuklar[uzunluk(f.çocuklar) - 1] -> döndür }
+işlev hedefleri(d) { dilim(d.çocuklar, 1, uzunluk(d.çocuklar)) -> döndür }
+
+# ── değişkenler ──
+
+işlev yerel_mi(ad) { k_geçerli != "" ve var(k_yerel_yer, ad) -> döndür }
+işlev değişken_var_mı(ad) { yerel_mi(ad) veya var(k_küresel_etiket, ad) -> döndür }
+
+işlev değişken_adresi(ad) {
+    yerel_mi(ad) -> eğer { k_yerel_yer[ad] -> döndür }
+    "[rip+" + k_küresel_etiket[ad] + "]" -> döndür
+}
+
+işlev değişken_türü(ad) {
+    yerel_mi(ad) -> eğer { k_yerel_tür[ad] -> döndür }
+    k_küresel_tür[ad] -> döndür
+}
+
+işlev yerel_ekle(ad) {
+    k_yerel_sayısı + 1 -> k_yerel_sayısı
+    "[rbp-" + metne(8 * k_yerel_sayısı) + "]" -> k_yerel_yer[ad]
+    "" -> k_yerel_tür[ad]
+}
+
+# İşlev içindeki atama yerel değişken oluşturur; tek istisna `ortak` ile tanımlanmış
+# üst düzey değişkenlerdir.
+işlev ata(ad, tür, d) {
+    k_geçerli != "" ve değil var(k_yerel_yer, ad) ve değil var(k_ortaklar, ad) -> eğer {
+        k_okunan -> var(ad) -> eğer {
+            k_hata("'" + ad + "' bu işlevde üst düzey değişken olarak okundu; ona burada atanamaz", d)
+        }
+        yerel_ekle(ad)
+    }
+    değil değişken_var_mı(ad) -> eğer { yerel_ekle(ad) }
+    değişken_türü(ad) -> önceki
+    önceki == "" -> eğer {
+        yerel_mi(ad) -> eğer { tür -> k_yerel_tür[ad] } değilse { tür -> k_küresel_tür[ad] }
+    } değilse {
+        değil birleştir(önceki, tür) -> eğer {
+            k_hata("'" + ad + "' değişkeni " + ham_ad(önceki) + " türünde; " + tür_adı(tür) + " atanamaz", d)
+        }
+    }
+    yaz("mov " + değişken_adresi(ad) + ", rax")
 }
 
 # ── üst düzey değişkenler ──
@@ -113,18 +242,21 @@ işlev küresel(ad) {
 
 işlev küreselleri_topla(deyimler) {
     deyimler -> her (d) {
-        d.tür == "akış" -> eğer { hedeflerden_topla(dilim(d.çocuklar, 1, uzunluk(d.çocuklar))) }
+        d.tür == "akış" -> eğer { hedeflerden_topla(hedefleri(d)) }
     }
 }
 
 işlev hedeflerden_topla(hedefler) {
     hedefler -> her (h) {
-        h.tür == "hedef_ad" ve uzunluk(h.çocuklar) == 0 ve değil var(YERLEŞİK_ADLAR, h.ad) -> eğer {
+        h.tür == "hedef_ad" ve uzunluk(h.çocuklar) == 0 ve değil çağrılabilir(h.ad) -> eğer {
             küresel(h.ad)
         }
         h.tür == "eğer" -> eğer { h.çocuklar -> her (b) { küreselleri_topla(b.çocuklar) } }
         h.tür == "iken" -> eğer { küreselleri_topla(h.çocuklar[0].çocuklar) }
-        h.tür == "ortak" -> eğer { küresel(h.ad) }
+        h.tür == "ortak" -> eğer {
+            küresel(h.ad)
+            1 -> k_ortaklar[h.ad]
+        }
         h.tür == "her" -> eğer {
             küresel(h.ad)
             küreselleri_topla(h.çocuklar[0].çocuklar)
@@ -133,12 +265,259 @@ işlev hedeflerden_topla(hedefler) {
     }
 }
 
-işlev ata(ad, tür, d) {
-    k_küresel_tür[ad] -> önceki
-    önceki == "" -> eğer { tür -> k_küresel_tür[ad] } değilse {
-        önceki != tür -> eğer { k_hata("'" + ad + "' değişkeni " + önceki + " türünde; " + tür + " atanamaz", d) }
+# ── akış çözümlemesi ──
+# Sözdizimine bakarak denetimin bir bloğun sonuna ulaşıp ulaşamayacağını bulur.
+# Temkinlidir: emin olamadığı her yerde "ulaşabilir" der.
+
+işlev dönmez(ad) {
+    var(k_işlev, ad) -> eğer { var(k_dönmeyen, ad) -> döndür }
+    ad == "çık" veya ad == "cik" veya ad == "exit" -> döndür
+}
+
+işlev tamamlanır(deyimler) {
+    deyimler -> her (d) { değil deyim_tamamlanır(d) -> eğer { yanlış -> döndür } }
+    doğru -> döndür
+}
+
+işlev deyim_tamamlanır(d) {
+    d.tür != "akış" -> eğer { yanlış -> döndür }       # dur, devam
+    d.çocuklar[0] -> kaynak
+    kaynak.tür == "çağrı" ve dönmez(kaynak.ad) -> eğer { yanlış -> döndür }
+    hedefler_tamamlanır(hedefleri(d), kaynak) -> döndür
+}
+
+# `kaynak` zincirin başındaki ifadedir; çatal kollarında yoktur.
+işlev hedefler_tamamlanır(hedefler, kaynak) {
+    hedefler -> her (h) {
+        h.tür == "döndür" -> eğer { yanlış -> döndür }
+        h.tür == "hedef_ad" ve dönmez(h.ad) -> eğer { yanlış -> döndür }
+        h.tür == "eğer" ve uzunluk(h.çocuklar) > 1 -> eğer {
+            değil tamamlanır(h.çocuklar[0].çocuklar) ve değil tamamlanır(h.çocuklar[1].çocuklar) -> eğer {
+                yanlış -> döndür
+            }
+        }
+        h.tür == "iken" -> eğer {
+            # `doğru -> iken { }` yalnızca içindeki bir 'dur' ile biter.
+            kaynak != yok ve uzunluk(hedefler) == 1 -> eğer {
+                kaynak.tür == "sayı" ve kaynak.sayı != 0 -> eğer {
+                    değil içerir_mi(h.çocuklar[0].çocuklar, "dur", yanlış) -> eğer { yanlış -> döndür }
+                }
+            }
+        }
+        h.tür == "çatal" -> eğer {
+            h.çocuklar -> her (dal) {
+                değil hedefler_tamamlanır(dal.çocuklar, yok) -> eğer { yanlış -> döndür }
+            }
+        }
     }
-    yaz("mov [rip+" + k_küresel_etiket[ad] + "], rax")
+    doğru -> döndür
+}
+
+# Blokta (iç içe bloklar dahil) 'döndür' hedefi ya da 'dur' deyimi var mı?
+# 'dur' aranırken iç döngülere girilmez: oradaki 'dur' o döngüye aittir.
+işlev içerir_mi(deyimler, aranan, döngülere_gir) {
+    deyimler -> her (d) {
+        d.tür == aranan -> eğer { doğru -> döndür }
+        d.tür == "akış" -> eğer {
+            hedefte_var(hedefleri(d), aranan) -> eğer { doğru -> döndür }
+            alt_bloklarda_var(hedefleri(d), aranan, döngülere_gir) -> eğer { doğru -> döndür }
+        }
+    }
+    yanlış -> döndür
+}
+
+işlev hedefte_var(hedefler, aranan) {
+    hedefler -> her (h) {
+        h.tür == aranan -> eğer { doğru -> döndür }
+        h.tür == "çatal" -> eğer {
+            h.çocuklar -> her (dal) { hedefte_var(dal.çocuklar, aranan) -> eğer { doğru -> döndür } }
+        }
+    }
+    yanlış -> döndür
+}
+
+işlev alt_bloklarda_var(hedefler, aranan, döngülere_gir) {
+    hedefler -> her (h) {
+        h.tür == "eğer" -> eğer {
+            h.çocuklar -> her (b) { içerir_mi(b.çocuklar, aranan, döngülere_gir) -> eğer { doğru -> döndür } }
+        }
+        (h.tür == "iken" veya h.tür == "her") ve döngülere_gir -> eğer {
+            içerir_mi(h.çocuklar[0].çocuklar, aranan, döngülere_gir) -> eğer { doğru -> döndür }
+        }
+        h.tür == "çatal" -> eğer {
+            h.çocuklar -> her (dal) {
+                alt_bloklarda_var(dal.çocuklar, aranan, döngülere_gir) -> eğer { doğru -> döndür }
+            }
+        }
+    }
+    yanlış -> döndür
+}
+
+# Hiç dönmeyen işlevler: gövdesinin sonuna ulaşılamayan ve hiç 'döndür' içermeyen
+# işlevler. Birbirlerini çağırabildikleri için küme, değişmeyene dek yeniden hesaplanır.
+işlev dönmeyenleri_bul() {
+    doğru -> değişti
+    değişti -> iken {
+        yanlış -> değişti
+        k_işlev_adları -> her (ad) {
+            gövdesi(k_işlev[ad]).çocuklar -> gövde
+            değil var(k_dönmeyen, ad) ve değil içerir_mi(gövde, "döndür", doğru) ve değil tamamlanır(gövde) -> eğer {
+                1 -> k_dönmeyen[ad]
+                doğru -> değişti
+            }
+        }
+    }
+}
+
+# ── işlevler ──
+
+işlev çağır(ad, arg_düğümleri, d, akan) {
+    # Akan değer (varsa) çağıran tarafından zaten yığına itilmiştir ve ilk argümandır.
+    [] -> türler
+    akan != "" -> eğer { türler -> ekle(akan) }
+    arg_düğümleri -> her (a) {
+        türler -> ekle(ifade_üret(a))
+        yaz("push rax")
+    }
+    değişken_var_mı(ad) -> eğer {
+        çöz(değişken_türü(ad)) -> dt
+        dt == "sayı" veya dt == "metin" -> eğer { k_hata("'" + ad + "' bir değişken (" + dt + "), işlev değil", d) }
+        dt != "" -> eğer { desteklenmiyor("işlev değeri üzerinden çağrı", d) }
+    }
+    değil var(k_işlev, ad) -> eğer {
+        YERLEŞİK_ADLAR -> var(ad) -> eğer { yerleşik_çağır(ad, türler, d) -> döndür }
+        değişken_var_mı(ad) -> eğer { k_hata("'" + ad + "' bir değişken, işlev değil", d) }
+        k_hata("'" + ad + "' adında bir işlev yok", d)
+    }
+    parametre_sayısı(k_işlev[ad]) -> beklenen
+    uzunluk(türler) != beklenen -> eğer {
+        k_hata("'" + ad + "' işlevi " + metne(beklenen) + " argüman bekliyor, "
+               + metne(uzunluk(türler)) + " verildi", d)
+    }
+    değil var(k_işlev_türler, ad) -> eğer { türler -> k_işlev_türler[ad] } değilse {
+        k_işlev_türler[ad] -> önceki
+        0 -> i
+        i < uzunluk(türler) -> iken {
+            değil birleştir(önceki[i], türler[i]) -> eğer {
+                k_hata("'" + ad + "' işlevi (" + tür_listesi(önceki) + ") ile çağrılmıştı; şimdi ("
+                       + tür_listesi(türler) + ") veriliyor", d)
+            }
+            i + 1 -> i
+        }
+    }
+    k_işlev_durum[ad] == 0 -> eğer { işlevi_derle(ad) }
+    yaz("call " + k_işlev_etiket[ad])
+    uzunluk(türler) > 0 -> eğer { yaz("add rsp, " + metne(8 * uzunluk(türler))) }
+    k_işlev_dönüş[ad] == "" -> eğer {
+        # Özyineleme: işlev hâlâ derleniyor ve henüz bir şey döndürmedi. Dönüş türü,
+        # ilk 'döndür'de ya da sonucun kullanıldığı yerde belli olacak bir bilinmeyendir.
+        yeni_tür_değişkeni() -> k_işlev_dönüş[ad]
+    }
+    k_işlev_dönüş[ad] -> döndür
+}
+
+# Yerleşik işlevler; argümanları yığına itilmiştir.
+işlev yerleşik_çağır(ad, türler, d) {
+    ad == "çık" veya ad == "cik" veya ad == "exit" -> eğer {
+        uzunluk(türler) != 1 veya çöz(türler[0]) != "sayı" -> eğer {
+            k_hata("'" + ad + "' (çıkış kodu) bekliyor; (" + tür_listesi(türler) + ") verildi", d)
+        }
+        yaz("pop rdi")
+        yaz("mov eax, 60")
+        yaz("syscall")
+        "sayı" -> döndür
+    }
+    desteklenmiyor("yerleşik işlev çağrısı (" + ad + ")", d)
+}
+
+# İşlevi, parametre türleri belli olduktan sonra ayrı bir tampona derler. Çağıranın
+# derleme durumu saklanır ve sonra geri yüklenir.
+işlev işlevi_derle(ad) {
+    1 -> k_işlev_durum[ad]
+    k_işlev[ad] -> f
+    parametre_sayısı(f) -> n
+
+    k_kod -> s_kod
+    k_geçerli -> s_geçerli
+    k_yerel_yer -> s_yerel_yer
+    k_yerel_tür -> s_yerel_tür
+    k_yerel_sayısı -> s_yerel_sayısı
+    k_okunan -> s_okunan
+    k_döngü_devam -> s_döngü_devam
+    k_döngü_son -> s_döngü_son
+    k_döngü_çatal -> s_döngü_çatal
+    k_çatal -> s_çatal
+
+    [] -> k_kod
+    ad -> k_geçerli
+    {} -> k_yerel_yer
+    {} -> k_yerel_tür
+    0 -> k_yerel_sayısı
+    {} -> k_okunan
+    [] -> k_döngü_devam
+    [] -> k_döngü_son
+    [] -> k_döngü_çatal
+    0 -> k_çatal
+    # Argümanlar soldan sağa itilir: ilk argüman en derinde durur.
+    0 -> i
+    i < n -> iken {
+        f.çocuklar[i].ad -> p
+        "[rbp+" + metne(16 + 8 * (n - 1 - i)) + "]" -> k_yerel_yer[p]
+        k_işlev_türler[ad][i] -> k_yerel_tür[p]
+        i + 1 -> i
+    }
+    gövdesi(f) -> gövde
+    blok_üret(gövde)
+    k_kod -> gövde_kodu
+    k_yerel_sayısı -> yerel_sayısı
+
+    s_kod -> k_kod
+    s_geçerli -> k_geçerli
+    s_yerel_yer -> k_yerel_yer
+    s_yerel_tür -> k_yerel_tür
+    s_yerel_sayısı -> k_yerel_sayısı
+    s_okunan -> k_okunan
+    s_döngü_devam -> k_döngü_devam
+    s_döngü_son -> k_döngü_son
+    s_döngü_çatal -> k_döngü_çatal
+    s_çatal -> k_çatal
+
+    k_işlev_dönüş[ad] == "" -> eğer { "sayı" -> k_işlev_dönüş[ad] }    # hiç 'döndür' yok: 0 döner
+    tamamlanır(gövde.çocuklar) -> k_işlev_sona[ad]
+    2 -> k_işlev_durum[ad]
+
+    k_işlev_kodu -> ekle("§BAŞLIK§" + ad)
+    k_işlev_kodu -> ekle("    push rbp")
+    k_işlev_kodu -> ekle("    mov rbp, rsp")
+    yerel_sayısı > 0 -> eğer { k_işlev_kodu -> ekle("    sub rsp, " + metne(8 * yerel_sayısı)) }
+    gövde_kodu -> her (s) { k_işlev_kodu -> ekle(s) }
+    k_işlev_kodu -> ekle("    xor eax, eax")
+    k_işlev_kodu -> ekle("    leave")
+    k_işlev_kodu -> ekle("    ret")
+}
+
+# İşlevin etiket satırı; türler derlemenin sonunda kesinleşmiş olur.
+işlev işlev_başlığı(ad) {
+    k_işlev_etiket[ad] + ":    # işlev " + ad + "(" + tür_listesi(k_işlev_türler[ad]) + ") -> "
+        + tür_adı(k_işlev_dönüş[ad]) -> döndür
+}
+
+# Bütün program derlendikten sonra dönüş türleri kesinleşir. Sonuna değer
+# döndürmeden ulaşılabilen bir işlev 0 döndürür; bu yalnızca sayı için geçerlidir.
+işlev dönüşleri_denetle() {
+    k_işlev_adları -> her (ad) {
+        k_işlev_durum[ad] == 2 -> eğer {
+            çöz(k_işlev_dönüş[ad]) -> dönüş
+            bilinmeyen_mi(dönüş) -> eğer {      # yalnızca kendi sonucunu döndüren özyineleme
+                "sayı" -> k_bağ[dönüş]
+                "sayı" -> dönüş
+            }
+            k_işlev_sona[ad] ve dönüş != "sayı" -> eğer {
+                k_hata("'" + ad + "' işlevi " + dönüş
+                       + " döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor", k_işlev[ad])
+            }
+        }
+    }
 }
 
 # ── deyimler ──
@@ -183,16 +562,30 @@ işlev deyim_üret(d) {
     }
 }
 
-işlev hedef_üret(h, tür, döngü_başı) {
+işlev hedef_üret(h, tür, döngü_başı) { hedef_iç(h, çöz(tür), döngü_başı) -> döndür }
+
+işlev hedef_iç(h, tür, döngü_başı) {
     h.tür == "yazdır" -> eğer {
         yaz("push rax")
         yaz("mov rdi, rax")
-        yaz("lea rsi, [rip+" + tür_etiketi(tür) + "]")
+        tür_satırı(tür)
         yaz("call __yaz_deger")
         yaz("pop rax")              # değer akmaya devam eder
         tür -> döndür
     }
-    h.tür == "döndür" -> eğer { k_hata("'döndür' yalnızca işlev içinde kullanılabilir", h) }
+    h.tür == "döndür" -> eğer {
+        k_geçerli == "" -> eğer { k_hata("'döndür' yalnızca işlev içinde kullanılabilir", h) }
+        k_işlev_dönüş[k_geçerli] -> önceki
+        önceki == "" -> eğer { tür -> k_işlev_dönüş[k_geçerli] } değilse {
+            değil birleştir(önceki, tür) -> eğer {
+                k_hata("'" + k_geçerli + "' işlevi hem " + ham_ad(önceki) + " hem " + tür_adı(tür)
+                       + " döndürüyor", h)
+            }
+        }
+        yaz("leave")
+        yaz("ret")
+        tür -> döndür
+    }
     h.tür == "eğer" -> eğer {
         sayı_olmalı(tür, "'eğer' koşulu", h)
         yeni_etiket() -> öteki
@@ -229,14 +622,20 @@ işlev hedef_üret(h, tür, döngü_başı) {
         tür -> döndür
     }
     h.tür == "ortak" -> eğer {
-        YERLEŞİK_ADLAR -> var(h.ad) -> eğer {
-            k_hata("'" + h.ad + "' bir işlev ya da kayıt adı; değişken adı olamaz", h)
-        }
+        k_geçerli != "" -> eğer { k_hata("'ortak' yalnızca en üst düzeyde, değişken tanımlanırken yazılır", h) }
+        çağrılabilir(h.ad) -> eğer { k_hata("'" + h.ad + "' bir işlev ya da kayıt adı; değişken adı olamaz", h) }
         ata(h.ad, tür, h)
         tür -> döndür
     }
     h.tür == "hedef_ad" -> eğer {
-        uzunluk(h.çocuklar) > 0 veya var(YERLEŞİK_ADLAR, h.ad) -> eğer { desteklenmiyor("işlev çağrısı", h) }
+        # İşlevse akan değer ilk argüman olur, değilse değişkene atanır. Parametreler
+        # ve yerel değişkenler aynı adlı işlevleri gölgeler.
+        uzunluk(h.çocuklar) > 0 veya (değil yerel_mi(h.ad) ve çağrılabilir(h.ad)) -> eğer {
+            yaz("push rax")
+            [] -> arg_düğümleri
+            uzunluk(h.çocuklar) > 0 -> eğer { h.çocuklar[0].çocuklar -> arg_düğümleri }
+            çağır(h.ad, arg_düğümleri, h, tür) -> döndür
+        }
         ata(h.ad, tür, h)
         tür -> döndür
     }
@@ -244,9 +643,11 @@ işlev hedef_üret(h, tür, döngü_başı) {
 }
 
 # ── ifadeler ──
-# Her ifadenin sonucu rax'te kalır; işlev, ifadenin türünü verir.
+# Her ifadenin sonucu rax'te kalır; işlev, ifadenin (çözülmüş) türünü verir.
 
-işlev ifade_üret(e) {
+işlev ifade_üret(e) { çöz(ifade_iç(e)) -> döndür }
+
+işlev ifade_iç(e) {
     e.tür == "sayı" -> eğer {
         yaz("mov rax, " + metne(e.sayı))
         "sayı" -> döndür
@@ -256,18 +657,21 @@ işlev ifade_üret(e) {
         "metin" -> döndür
     }
     e.tür == "değişken" -> eğer {
-        k_küresel_etiket -> var(e.ad) -> eğer {
-            k_küresel_tür[e.ad] == "" -> eğer {
+        değişken_var_mı(e.ad) -> eğer {
+            değişken_türü(e.ad) == "" -> eğer {
                 k_hata("'" + e.ad + "' değişkenine henüz bir değer akmadı", e)
             }
-            yaz("mov rax, [rip+" + k_küresel_etiket[e.ad] + "]")
-            k_küresel_tür[e.ad] -> döndür
+            k_geçerli != "" ve değil yerel_mi(e.ad) -> eğer { 1 -> k_okunan[e.ad] }
+            yaz("mov rax, " + değişken_adresi(e.ad))
+            değişken_türü(e.ad) -> döndür
         }
+        k_işlev -> var(e.ad) -> eğer { desteklenmiyor("işlev değeri", e) }
         YERLEŞİK_ADLAR -> var(e.ad) -> eğer {
             k_hata("'" + e.ad + "' yerleşik bir işlev; yerleşik işlevler değer olarak verilemez", e)
         }
         k_hata("'" + e.ad + "' adında bir değişken yok", e)
     }
+    e.tür == "çağrı" -> eğer { çağır(e.ad, e.çocuklar, e, "") -> döndür }
     e.tür == "tekli" -> eğer {
         sayı_olmalı(ifade_üret(e.çocuklar[0]), "'" + e.ad + "' işlecinin işleneni", e)
         e.ad == "-" -> eğer { yaz("neg rax") } değilse {
@@ -305,6 +709,17 @@ işlev ikili_üret(e) {
     ifade_üret(sağ) -> sağ_türü
     yaz("mov rcx, rax")
     yaz("pop rax")
+    # Türü henüz bilinmeyen bir işlenen türünü öbür işlenenden ya da işleçten alır.
+    bilinmeyen_mi(sol_türü) veya bilinmeyen_mi(sağ_türü) -> eğer {
+        iş == "+" veya var(KARŞILAŞTIRMA, iş) -> eğer {
+            bilinmeyen_mi(sol_türü) ve bilinmeyen_mi(sağ_türü) -> eğer {
+                k_hata("'" + iş + "' işlecinin iki tarafının da türü henüz belli değil", e)
+            }
+            birleştir(sol_türü, sağ_türü)
+            çöz(sol_türü) -> sol_türü
+            çöz(sağ_türü) -> sağ_türü
+        }
+    }
     sol_türü == "metin" ve sağ_türü == "metin" ve (iş == "+" veya var(KARŞILAŞTIRMA, iş)) -> eğer {
         yaz("mov rdi, rax")
         yaz("mov rsi, rcx")
@@ -318,7 +733,10 @@ işlev ikili_üret(e) {
         yaz("movzx eax, al")
         "sayı" -> döndür
     }
-    iş == "+" ve sol_türü != sağ_türü -> eğer { k_hata("metin ile sayı doğrudan toplanamaz", e) }
+    iş == "+" ve (sol_türü == "metin" veya sağ_türü == "metin")
+        ve (sol_türü == "sayı" veya sağ_türü == "sayı") -> eğer {
+        k_hata("metin ile sayı doğrudan toplanamaz", e)
+    }
     sayı_olmalı(sol_türü, "'" + iş + "' işlecinin sol tarafı", e)
     sayı_olmalı(sağ_türü, "'" + iş + "' işlecinin sağ tarafı", e)
     iş == "+" -> eğer { yaz("add rax, rcx")   "sayı" -> döndür }
@@ -352,21 +770,39 @@ işlev bayt_satırı(m) {
 # dosyasının içeriğidir.
 işlev üret(kök, çalışma_zamanı) {
     kök.çocuklar -> her (d) {
-        d.tür == "işlev" veya d.tür == "kayıt" veya d.tür == "kullan" -> eğer {
-            desteklenmiyor("'" + d.tür + "' tanımı", d)
+        d.tür == "kayıt" veya d.tür == "kullan" -> eğer { desteklenmiyor("'" + d.tür + "'", d) }
+        d.tür == "işlev" -> eğer {
+            d -> k_işlev[d.ad]
+            "f" + metne(uzunluk(k_işlev_adları)) -> k_işlev_etiket[d.ad]
+            "" -> k_işlev_dönüş[d.ad]
+            0 -> k_işlev_durum[d.ad]
+            k_işlev_adları -> ekle(d.ad)
         }
     }
+    dönmeyenleri_bul()
     küreselleri_topla(kök.çocuklar)
 
     k_kod -> ekle("nehir_ana:")
     yaz("push rbp")
     yaz("mov rbp, rsp")
-    kök.çocuklar -> her (d) { deyim_üret(d) }
+    kök.çocuklar -> her (d) { d.tür != "işlev" -> eğer { deyim_üret(d) } }
     yaz("leave")
     yaz("ret")
+    dönüşleri_denetle()
 
+    # Ertelenen satırlar (tür tanımları, işlev başlıkları) son sırayla çözülür.
     [".intel_syntax noprefix", ".global _start", ".section .text"] -> satırlar
-    satırlar + k_kod -> satırlar
+    k_kod + k_işlev_kodu -> her (s) {
+        dilim(s, 0, 5) == "§TÜR§" -> eğer {
+            satırlar -> ekle("    lea rsi, [rip+" + tür_etiketi(dilim(s, 5, uzunluk(s))) + "]")
+        } değilse {
+            dilim(s, 0, 8) == "§BAŞLIK§" -> eğer {
+                satırlar -> ekle(işlev_başlığı(dilim(s, 8, uzunluk(s))))
+            } değilse {
+                satırlar -> ekle(s)
+            }
+        }
+    }
     çalışma_zamanı -> böl("YIGIN_BOYUTU") -> birleş(YIĞIN_BOYUTU) -> çz
     satırlar -> ekle(çz)
     satırlar -> ekle("    .section .rodata")

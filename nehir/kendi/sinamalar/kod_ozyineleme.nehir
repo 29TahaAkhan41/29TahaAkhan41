@@ -1,0 +1,29 @@
+# Özyineleme ve karşılıklı özyineleme; dönüş türleri sonradan belli olur
+işlev fakt(n) {
+    n <= 1 -> eğer { 1 -> döndür }
+    n * fakt(n - 1) -> döndür
+}
+işlev çift_mi(n) { n == 0 -> eğer { doğru -> döndür }
+    tek_mi(n - 1) -> döndür }
+işlev tek_mi(n) { n == 0 -> eğer { yanlış -> döndür }
+    çift_mi(n - 1) -> döndür }
+işlev önce_çağır(n) {
+    n > 0 -> eğer { önce_çağır(n - 1) + 1 -> döndür }
+    0 -> döndür
+}
+işlev metin_tekrar(m, n) {
+    n == 0 -> eğer { "" -> döndür }
+    m + metin_tekrar(m, n - 1) -> döndür
+}
+işlev önce_metin(n) {
+    n > 0 -> eğer { önce_metin(n - 1) + "!" -> döndür }
+    "" -> döndür
+}
+işlev hep_kendi(n) { n > 0 -> eğer { hep_kendi(n - 1) -> döndür } }
+10 -> fakt -> yazdır
+çift_mi(10) -> yazdır
+tek_mi(7) -> yazdır
+önce_çağır(4) -> yazdır
+metin_tekrar("ab", 3) -> yazdır
+önce_metin(3) -> yazdır
+hep_kendi(3) -> yazdır

@@ -350,7 +350,7 @@ o zamana kadar asıl derleyici olarak kalır ve yeni parçaların doğruluğu on
 | --- | --- | --- |
 | Sözcükleyici | `kendi/sozcukleyici.nehir` | tamam |
 | Ayrıştırıcı | `kendi/ayristirici.nehir` | tamam |
-| Tür denetimi ve kod üretici | `kendi/kod_uretici.nehir` | sürüyor: üst düzey kod, sayılar, metinler, aritmetik, `eğer`, `iken`, çatal (aşağıda) |
+| Tür denetimi ve kod üretici | `kendi/kod_uretici.nehir` | sürüyor: sayılar, metinler, aritmetik, `eğer`, `iken`, çatal, işlevler ve özyineleme (aşağıda) |
 | Modül yükleme, hata gösterimi (kaynak satırı, ipuçları) | | bekliyor |
 
 Her aşama bir modüldür ve Python'daki karşılığıyla aynı çıktıyı verdiği, bütün `.nehir` dosyalarında
@@ -372,8 +372,9 @@ python3 nehir.py kendi/agac_dok.nehir -o agac_dok
 ```
 
 **Nehir ile yazılmış derleyici.** `kendi/derle.nehir` bir kaynak dosyayı ayrıştırıp assembly'ye
-çevirir; çıktısı Python'daki derleyicinin ürettiğiyle bayt bayt aynıdır. Henüz taşınmamış bir yapıyla
-(işlevler, kayıtlar, modüller, listeler, sözlükler, yerleşik işlev çağrıları, `her`) karşılaşırsa
+çevirir; çıktısı Python'daki derleyicinin ürettiğiyle bayt bayt aynıdır. İşlevler, parametreler, yerel
+değişkenler, özyineleme ve özyinelemeli işlevlerin dönüş türü çıkarımı taşındı. Henüz taşınmamış bir yapıyla
+(kayıtlar, modüller, listeler, sözlükler, `çık` dışındaki yerleşik işlevler, işlev değerleri, `her`) karşılaşırsa
 "henüz desteklenmiyor" der ve 3 koduyla çıkar; testler kaç dosyanın taşındığını sayar.
 
 ```bash
@@ -391,7 +392,7 @@ as -o merhaba.o merhaba.s && ld -o merhaba merhaba.o && ./merhaba
 Çalışma zamanı (üretilen her programa eklenen assembly) `calisma_zamani.s` dosyasındadır; iki derleyici de onu okur.
 
 Bilinen farklar: Nehir sürümleri hata mesajının yalnızca ilk satırını yazar (kaynak satırını ve
-ipucunu göstermez), ve ASCII dışındaki her karakteri harf sayar; Python sürümü Unicode'un harf tanımını kullanır.
+ipucunu göstermez), derleyici uyarılarını (kullanılmayan işlev, yazım hatası tahmini) henüz vermez, ve ASCII dışındaki her karakteri harf sayar; Python sürümü Unicode'un harf tanımını kullanır.
 
 ## Sınamalar
 

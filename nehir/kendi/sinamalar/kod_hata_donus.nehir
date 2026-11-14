@@ -1,0 +1,5 @@
+işlev f(n) {
+    n > 0 -> eğer { "artı" -> döndür }
+    n -> döndür
+}
+f(1) -> yazdır

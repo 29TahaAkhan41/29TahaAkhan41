@@ -1,0 +1,4 @@
+işlev ad_ver(n) {
+    n == 1 -> eğer { "bir" -> döndür }
+}
+ad_ver(1) -> yazdır

@@ -141,8 +141,9 @@ def kendi_kod_üreticiyi_sına(geçici, kaynaklar):
         if n.returncode == 3:
             desteklenmeyen += 1
             continue
-        beklenen = (p.returncode, p.stderr.split("\n")[0])
-        çıkan = (n.returncode, n.stderr.split("\n")[0])
+        # Derleyici uyarıları henüz taşınmadı: başarılı derlemede yalnızca assembly karşılaştırılır.
+        beklenen = (p.returncode, p.stderr.split("\n")[0] if p.returncode else "")
+        çıkan = (n.returncode, n.stderr.split("\n")[0] if n.returncode else "")
         if beklenen == çıkan and p.returncode == 0:
             with open(py_s, "rb") as a, open(nh_s, "rb") as b:
                 if a.read() != b.read():

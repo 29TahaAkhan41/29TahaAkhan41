@@ -1,0 +1,3 @@
+işlev a(n) { n > 0 -> eğer { a(n - 1) + a(n - 2) -> döndür }
+ 1 -> döndür }
+a(3) -> yazdır

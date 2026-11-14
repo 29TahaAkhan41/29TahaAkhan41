@@ -1,0 +1,3 @@
+işlev f(n) { n * 2 -> döndür }
+f(1) -> yazdır
+f("a") -> yazdır

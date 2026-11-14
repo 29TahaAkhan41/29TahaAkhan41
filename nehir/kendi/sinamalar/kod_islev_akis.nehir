@@ -1,0 +1,39 @@
+# İşlev içinde döngüler, dur/devam, çatal ve döndür
+işlev ilk_bölen(n) {
+    2 -> b
+    doğru -> iken {
+        n % b == 0 -> eğer { b -> döndür }
+        b + 1 -> b
+    }
+}
+işlev sınıfla(n) {
+    n -> (
+        eğer { n < 0 -> eğer { "eksi" -> döndür } }
+      | eğer { "sıfır değil" -> döndür } değilse { "sıfır" -> döndür }
+    )
+}
+işlev say(sınır) {
+    0 -> toplam
+    0 -> i
+    i < sınır -> iken {
+        i + 1 -> i
+        i % 3 == 0 -> eğer { devam }
+        i > 10 -> eğer { dur }
+        i -> (eğer { toplam + i -> toplam })
+    }
+    toplam -> döndür
+}
+işlev vazgeç(m) { m -> yazdır
+    çık(0) }
+işlev not_ver(p) {
+    p >= 50 -> eğer { "geçer" -> döndür }
+    vazgeç("kalır")
+}
+91 -> ilk_bölen -> yazdır
+sınıfla(0 - 3) -> yazdır
+sınıfla(0) -> yazdır
+sınıfla(4) -> yazdır
+20 -> say -> yazdır
+not_ver(70) -> yazdır
+not_ver(10) -> yazdır
+"buraya gelinmez" -> yazdır

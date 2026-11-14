@@ -1,0 +1,20 @@
+# İşlevler: parametreler, yereller, ortak, derlenme sırası
+0 -> ortak sayaç
+10 -> i
+işlev üç_parametre(a, b, c) {
+    a * 100 + b * 10 + c -> sonuç
+    sayaç + 1 -> sayaç
+    0 -> i
+    sonuç -> döndür
+}
+işlev dış(x) { iç(x) + iç(x + 1) -> döndür }
+işlev iç(y) { y * y -> döndür }
+işlev selam(ad) { "Merhaba, " + ad -> döndür }
+işlev hiç_dönmeyen() { 5 -> yerel }
+üç_parametre(1, 2, 3) -> yazdır
+4 -> üç_parametre(5, 6) -> yazdır
+dış(3) -> yazdır
+"Ada" -> selam -> yazdır
+hiç_dönmeyen() -> yazdır
+sayaç -> yazdır
+i -> yazdır

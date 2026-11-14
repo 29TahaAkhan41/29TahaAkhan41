@@ -1,0 +1,2 @@
+işlev f(a, b) { a + b -> döndür }
+1 -> f(2, 3) -> yazdır
