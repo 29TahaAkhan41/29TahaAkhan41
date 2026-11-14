@@ -391,8 +391,11 @@ Python'daki karşılığıyla karşılaştırır:
 
 Çalışma zamanı (üretilen her programa eklenen assembly) `calisma_zamani.s` dosyasındadır; iki derleyici de onu okur.
 
-Bilinen farklar: Nehir sürümleri hata mesajının yalnızca ilk satırını yazar (kaynak satırını ve
-ipucunu göstermez), derleyici uyarılarını (kullanılmayan işlev, yazım hatası tahmini) henüz vermez, ve ASCII dışındaki her karakteri harf sayar; Python sürümü Unicode'un harf tanımını kullanır.
+Hata mesajları (kaynak satırı, altı çizili yer, ipucu ve "ilk tanım burada" gibi notlarıyla),
+yazım hatası önerileri ve uyarılar da iki derleyicide birebir aynıdır; testler standart hatanın tamamını
+karşılaştırır. Bilinen farklar: Nehir sürümü mesajları terminalde renklendirmez, ASCII dışındaki her
+karakteri harf sayar (Python sürümü Unicode'un harf tanımını kullanır), geçerli UTF-8 olmayan ya da
+okunamayan (örneğin dizin olan) modül dosyalarını ayrıca tanımaz.
 
 ## Sınamalar
 

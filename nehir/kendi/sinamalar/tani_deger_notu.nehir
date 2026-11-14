@@ -1,0 +1,4 @@
+işlev ikile(n) { n * 2 -> döndür }
+işlev uygula(f, x) { f(x) -> döndür }
+1 -> a
+uygula(ikile, "x") -> yazdır

@@ -298,6 +298,21 @@ işlev ham_listesi(türler) {
 {} -> k_kayıt_türleri       # ad -> [alan türleri]
 {} -> k_kayıt_etiketi       # ad ("" yok için) -> çalışma zamanı tanımının etiketi (kt0, ...)
 
+# Hata ve uyarılar
+"" -> ortak k_varsayılan_ipucu      # ipucusuz hatalara eklenecek ipucu
+"" -> ortak k_değer_bağlamı         # derlenmekte olan, değer olarak verilmiş işlev
+{} -> k_değer_yeri                  # işlev -> ilk kez değer olarak verildiği yer
+[] -> k_uyarı_yeri
+[] -> k_uyarı_mesajı
+[] -> k_uyarı_ipucu
+[] -> k_yazım_adayları
+{} -> k_küresel_konum               # üst düzey değişken -> ilk atandığı yer
+{} -> k_küresel_okundu
+{} -> ortak k_yerel_konum
+{} -> ortak k_yerel_okundu
+[""] -> ortak k_yerel_sıra          # yerel değişkenler, oluşturulma sırasıyla
+k_yerel_sıra -> sil(0)              # (bir metinle başlatılır ki eleman türü baştan belli olsun)
+
 # Derlenmekte olan işlev ("" ise en üst düzey) ve onun yerel değişkenleri
 "" -> ortak k_geçerli
 {} -> ortak k_yerel_yer     # ad -> bellek adresi ([rbp+16], [rbp-8], ...)
@@ -307,7 +322,228 @@ işlev ham_listesi(türler) {
 
 # ── yardımcılar ──
 
-işlev k_hata(mesaj, d) { hata_yer(mesaj, d.dosya, d.satır, d.sütun) }
+işlev k_hata(mesaj, d) { k_hata_i(mesaj, d, "") }
+
+# İpucu verilmemişse o anki varsayılan ipucu kullanılır. Değer olarak verilen bir işlev
+# derlenirken çıkan hataya, işlevin değer olarak verildiği yer not olarak eklenir.
+işlev k_hata_i(mesaj, d, ipucu) {
+    ipucu == "" -> eğer { k_varsayılan_ipucu -> ipucu }
+    k_değer_bağlamı != "" -> eğer {
+        k_hata_not(mesaj, d, ipucu, k_değer_yeri[k_değer_bağlamı],
+                   "'" + k_değer_bağlamı + "' burada değer olarak verildi; parametre türleri "
+                   + "onu tutan değişken üzerinden yapılan çağrılardan çıkarıldı")
+    }
+    hata_ver(mesaj, d.dosya, d.satır, d.sütun, d.uzunluk, ipucu, İLGİSİZ, "")
+}
+
+işlev k_hata_not(mesaj, d, ipucu, ilgili, ilgili_not) {
+    ipucu == "" -> eğer { k_varsayılan_ipucu -> ipucu }
+    hata_ver(mesaj, d.dosya, d.satır, d.sütun, d.uzunluk, ipucu, ilgili, ilgili_not)
+}
+
+# ── yazım hatası önerileri ──
+
+işlev karakterler(m) {
+    [] -> l
+    m -> her (k) { l -> ekle(k) }
+    l -> döndür
+}
+
+işlev sırala(liste) {
+    [] -> sonuç
+    liste -> her (x) {
+        sonuç -> ekle(x)
+        uzunluk(sonuç) - 1 -> i
+        i > 0 ve sonuç[i - 1] > x -> iken {
+            sonuç[i - 1] -> sonuç[i]
+            i - 1 -> i
+        }
+        x -> sonuç[i]
+    }
+    sonuç -> döndür
+}
+
+# Düzenleme (Levenshtein) uzaklığı.
+işlev uzaklık(a, b) {
+    karakterler(a) -> x
+    karakterler(b) -> y
+    aralık(0, uzunluk(y) + 1) -> önceki
+    0 -> i
+    i < uzunluk(x) -> iken {
+        [i + 1] -> şimdiki
+        0 -> j
+        j < uzunluk(y) -> iken {
+            önceki[j + 1] + 1 -> en_az
+            şimdiki[j] + 1 < en_az -> eğer { şimdiki[j] + 1 -> en_az }
+            önceki[j] -> değiştir
+            x[i] != y[j] -> eğer { değiştir + 1 -> değiştir }
+            değiştir < en_az -> eğer { değiştir -> en_az }
+            şimdiki -> ekle(en_az)
+            j + 1 -> j
+        }
+        şimdiki -> önceki
+        i + 1 -> i
+    }
+    önceki[uzunluk(y)] -> döndür
+}
+
+# a[alo:ahi] ile b[blo:bhi] arasındaki eşleşen karakter sayısı; Python'daki
+# difflib.SequenceMatcher'ın eşleşen bloklarının toplam uzunluğu. En uzun ortak parça
+# (eşitlikte a'da, sonra b'de en soldaki) bulunur, sonra iki yanı için yinelenir.
+işlev eşleşen(a, b, alo, ahi, blo, bhi) {
+    alo -> bi
+    blo -> bj
+    0 -> bk
+    alo -> i
+    i < ahi -> iken {
+        blo -> j
+        j < bhi -> iken {
+            0 -> k
+            i + k < ahi ve j + k < bhi ve a[i + k] == b[j + k] -> iken { k + 1 -> k }
+            k > bk -> eğer {
+                i -> bi
+                j -> bj
+                k -> bk
+            }
+            j + 1 -> j
+        }
+        i + 1 -> i
+    }
+    bk == 0 -> eğer { 0 -> döndür }
+    bk -> toplam
+    alo < bi ve blo < bj -> eğer { toplam + eşleşen(a, b, alo, bi, blo, bj) -> toplam }
+    bi + bk < ahi ve bj + bk < bhi -> eğer { toplam + eşleşen(a, b, bi + bk, ahi, bj + bk, bhi) -> toplam }
+    toplam -> döndür
+}
+
+# Yazım hatası için "şunu mu demek istediniz" ipucu: difflib.get_close_matches(n=2,
+# cutoff=0.7) gibi, benzerlik oranı 2*M/T en az 0,7 olan en iyi iki aday (eşitlikte
+# sözlük sırasında büyük olan önce). Benzer ad yoksa "".
+işlev benzerler(ad, adaylar) {
+    karakterler(ad) -> a
+    {} -> görülen
+    [] -> uygun
+    [] -> uygun_m
+    [] -> uygun_t
+    adaylar -> her (x) {
+        x != ad ve değil var(görülen, x) -> eğer {
+            1 -> görülen[x]
+            karakterler(x) -> b
+            eşleşen(a, b, 0, uzunluk(a), 0, uzunluk(b)) -> m
+            uzunluk(a) + uzunluk(b) -> t
+            20 * m >= 7 * t -> eğer {
+                uygun -> ekle(x)
+                uygun_m -> ekle(m)
+                uygun_t -> ekle(t)
+            }
+        }
+    }
+    [] -> seçilen
+    {} -> alındı
+    0 -> tur
+    tur < 2 -> iken {
+        -1 -> en_iyi
+        0 -> i
+        i < uzunluk(uygun) -> iken {
+            değil var(alındı, uygun[i]) -> eğer {
+                en_iyi < 0 -> eğer { i -> en_iyi } değilse {
+                    uygun_m[i] * uygun_t[en_iyi] -> sol
+                    uygun_m[en_iyi] * uygun_t[i] -> sağ
+                    sol > sağ veya (sol == sağ ve uygun[i] > uygun[en_iyi]) -> eğer { i -> en_iyi }
+                }
+            }
+            i + 1 -> i
+        }
+        en_iyi < 0 -> eğer { dur }
+        1 -> alındı[uygun[en_iyi]]
+        seçilen -> ekle("'" + uygun[en_iyi] + "'")
+        tur + 1 -> tur
+    }
+    uzunluk(seçilen) == 0 -> eğer { "" -> döndür }
+    birleş(seçilen, " ya da ") + " mi demek istediniz?" -> döndür
+}
+
+işlev bilinen_değişkenler() {
+    [] -> adlar
+    k_küreseller -> her (ad) { k_küresel_tür[ad] != "" -> eğer { adlar -> ekle(ad) } }
+    k_geçerli != "" -> eğer {
+        k_yerel_tür -> her (ad) { k_yerel_tür[ad] != "" -> eğer { adlar -> ekle(ad) } }
+    }
+    adlar -> döndür
+}
+
+# ── uyarılar ──
+
+işlev uyarı_ekle(d, mesaj, ipucu) {
+    k_uyarı_yeri -> ekle(d)
+    k_uyarı_mesajı -> ekle(mesaj)
+    k_uyarı_ipucu -> ekle(ipucu)
+}
+
+# Yazım hatası uyarısının adayları: işlev, yerleşik işlev ve anahtar kelime adları, sıralı.
+işlev yazım_adayları() {
+    uzunluk(k_yazım_adayları) == 0 -> eğer {
+        {} -> küme
+        k_işlev_adları -> her (a) { 1 -> küme[a] }
+        YERLEŞİK_ADLAR -> her (a) { 1 -> küme[a] }
+        ANAHTARLAR -> her (a) { 1 -> küme[a] }
+        anahtarlar(küme) -> sırala -> her (a) { k_yazım_adayları -> ekle(a) }
+    }
+    k_yazım_adayları -> döndür
+}
+
+# Hiç okunmayan bir değişken: yerelse ve aynı adlı üst düzey değişken varsa, büyük
+# olasılıkla 'ortak' unutulmuştur; değilse bir işlev ya da anahtar kelimeye çok
+# benziyorsa büyük olasılıkla yazım hatasıdır (`5 -> kere` yeni bir değişken oluşturur).
+işlev okunmayanı_bildir(ad, d, yerel) {
+    yerel ve var(k_küresel_etiket, ad) -> eğer {
+        uyarı_ekle(d, "'" + ad + "' burada yerel bir değişken oluşturuyor ve hiç okunmuyor; "
+                   + "aynı adlı üst düzey değişken değişmez",
+                   "üst düzey değişkeni değiştirmek için onu 'ortak' ile tanımlayın:  değer -> ortak " + ad)
+    } değilse {
+        # Yanlış alarm vermemek için yalnızca çok yakın adlar sayılır.
+        1 -> sınır
+        uzunluk(ad) >= 8 -> eğer { 2 -> sınır }
+        [] -> yakın
+        uzunluk(ad) >= 4 -> eğer {
+            yazım_adayları() -> her (a) {
+                uzunluk(a) >= 3 ve uzunluk(yakın) < 2 -> eğer {
+                    uzaklık(ad, a) <= sınır -> eğer { yakın -> ekle("'" + a + "'") }
+                }
+            }
+        }
+        uzunluk(yakın) > 0 -> eğer {
+            uyarı_ekle(d, "'" + ad + "' yeni bir değişken olarak tanımlandı ama hiç okunmuyor",
+                       birleş(yakın, " ya da ") + " mi demek istediniz?")
+        }
+    }
+}
+
+# Uyarıları kaynak sırasıyla (dosya, satır; eşitlikte eklenme sırası) yazar.
+işlev uyarıları_yaz() {
+    [] -> sıra
+    0 -> i
+    i < uzunluk(k_uyarı_yeri) -> iken {
+        sıra -> ekle(i)
+        uzunluk(sıra) - 1 -> j
+        j > 0 ve önce_mi(i, sıra[j - 1]) -> iken {
+            sıra[j - 1] -> sıra[j]
+            j - 1 -> j
+        }
+        i -> sıra[j]
+        i + 1 -> i
+    }
+    sıra -> her (u) {
+        k_uyarı_yeri[u] -> d
+        bildir("uyarı", k_uyarı_mesajı[u], d.dosya, d.satır, d.sütun, d.uzunluk, k_uyarı_ipucu[u])
+    }
+}
+
+işlev önce_mi(a, b) {
+    k_uyarı_yeri[a] -> x
+    k_uyarı_yeri[b] -> y
+    x.dosya < y.dosya veya (x.dosya == y.dosya ve x.satır < y.satır) -> döndür
+}
 
 işlev desteklenmiyor(ne, d) {
     a_dosyalar[d.dosya] + ":" + metne(d.satır) + ":" + metne(d.sütun) + ": henüz desteklenmiyor: " + ne -> uyar
@@ -393,7 +629,11 @@ işlev kayıt_etiketi(tür) {
 işlev sayı_olmalı(tür, ne, d) {
     çöz(tür) -> tür
     bilinmeyen_mi(tür) ve değil yok_mu(tür) -> eğer { "sayı" -> k_bağ[tür] } değilse {     # burada sayı olarak kullanılıyor
-        tür != "sayı" -> eğer { k_hata(ne + " sayı olmalı, " + ham_ad(tür) + " bulundu", d) }
+        tür != "sayı" -> eğer {
+            "" -> ipucu
+            işlev_türü_mü(tür) -> eğer { "bu bir işlevin kendisi; çağırmak için adının ardına (...) yazın" -> ipucu }
+            k_hata_i(ne + " sayı olmalı, " + ham_ad(tür) + " bulundu", d, ipucu)
+        }
     }
 }
 
@@ -428,12 +668,15 @@ işlev tür_çöz(t) {
     t.ad == "sayı" veya t.ad == "sayi" veya t.ad == "number" -> eğer { "sayı" -> döndür }
     t.ad == "metin" veya t.ad == "text" -> eğer { "metin" -> döndür }
     var(k_kayıt_alanları, t.ad) -> eğer { "@" + t.ad -> döndür }
-    k_hata("'" + t.ad + "' adında bir tür yok", t)
+    k_hata_i("'" + t.ad + "' adında bir tür yok", t, benzerler(t.ad, ["sayı", "metin"] + anahtarlar(k_kayıt_alanları)))
 }
 
 # Alanın kayıttaki sırası; tür çözülmüş olmalı.
 işlev alan_sırası(tür, alan, d) {
-    bilinmeyen_mi(tür) -> eğer { k_hata("'." + alan + "' alanına erişilen değerin türü henüz belli değil", d) }
+    bilinmeyen_mi(tür) -> eğer {
+        k_hata_i("'." + alan + "' alanına erişilen değerin türü henüz belli değil", d,
+                 "kayıt tanımında alanın türünü yazmak bunu çözer:  kayıt Ad { alan: Tür }")
+    }
     değil kayıt_mı(tür) -> eğer {
         k_hata("'." + alan + "': alanlara yalnızca kayıtlarda erişilir, " + ham_ad(tür) + " bulundu", d)
     }
@@ -443,7 +686,9 @@ işlev alan_sırası(tür, alan, d) {
         alanlar[i] == alan -> eğer { i -> döndür }
         i + 1 -> i
     }
-    k_hata("'" + kayıt_adı(tür) + "' kaydında '" + alan + "' adında bir alan yok", d)
+    benzerler(alan, alanlar) -> ipucu
+    ipucu == "" -> eğer { "alanları: " + birleş(alanlar, ", ") -> ipucu }
+    k_hata_i("'" + kayıt_adı(tür) + "' kaydında '" + alan + "' adında bir alan yok", d, ipucu)
 }
 
 işlev alan_türü(tür, sıra) { k_kayıt_türleri[kayıt_adı(tür)][sıra] -> döndür }
@@ -471,6 +716,11 @@ işlev yerel_ekle(ad) {
     k_yerel_sayısı + 1 -> k_yerel_sayısı
     "[rbp-" + metne(8 * k_yerel_sayısı) + "]" -> k_yerel_yer[ad]
     "" -> k_yerel_tür[ad]
+    k_yerel_sıra -> ekle(ad)
+}
+
+işlev okundu(ad) {
+    yerel_mi(ad) -> eğer { 1 -> k_yerel_okundu[ad] } değilse { 1 -> k_küresel_okundu[ad] }
 }
 
 # İşlev içindeki atama yerel değişken oluşturur; tek istisna `ortak` ile tanımlanmış
@@ -478,14 +728,24 @@ işlev yerel_ekle(ad) {
 işlev ata(ad, tür, d) {
     k_geçerli != "" ve değil var(k_yerel_yer, ad) ve değil var(k_ortaklar, ad) -> eğer {
         k_okunan -> var(ad) -> eğer {
-            k_hata("'" + ad + "' bu işlevde üst düzey değişken olarak okundu; ona burada atanamaz", d)
+            İLGİSİZ -> ilgili
+            var(k_küresel_konum, ad) -> eğer { k_küresel_konum[ad] -> ilgili }
+            k_hata_not("'" + ad + "' bu işlevde üst düzey değişken olarak okundu; ona burada atanamaz", d,
+                       "işlevlerin değiştirebildiği değişkenler 'ortak' ile tanımlanır:  değer -> ortak " + ad,
+                       ilgili, "'" + ad + "' burada tanımlanmış")
         }
         yerel_ekle(ad)
     }
     değil değişken_var_mı(ad) -> eğer { yerel_ekle(ad) }
     değişken_türü(ad) -> önceki
     önceki == "" -> eğer {
-        yerel_mi(ad) -> eğer { tür -> k_yerel_tür[ad] } değilse { tür -> k_küresel_tür[ad] }
+        yerel_mi(ad) -> eğer {
+            tür -> k_yerel_tür[ad]
+            d -> k_yerel_konum[ad]
+        } değilse {
+            tür -> k_küresel_tür[ad]
+            d -> k_küresel_konum[ad]
+        }
     } değilse {
         değil birleştir(önceki, tür) -> eğer {
             k_hata("'" + ad + "' değişkeni " + ham_ad(önceki) + " türünde; " + tür_adı(tür) + " atanamaz", d)
@@ -652,8 +912,8 @@ işlev çağır(ad, arg_düğümleri, d, akan) {
         k_kayıt_alanları[ad] -> alanlar
         k_kayıt_türleri[ad] -> alan_türleri
         uzunluk(alanlar) != uzunluk(türler) -> eğer {
-            k_hata("'" + ad + "' kaydının " + metne(uzunluk(alanlar)) + " alanı var, "
-                   + metne(uzunluk(türler)) + " değer verildi", d)
+            k_hata_i("'" + ad + "' kaydının " + metne(uzunluk(alanlar)) + " alanı var, "
+                     + metne(uzunluk(türler)) + " değer verildi", d, "tanımı: " + ad + "(" + birleş(alanlar, ", ") + ")")
         }
         0 -> i
         i < uzunluk(türler) -> iken {
@@ -678,20 +938,34 @@ işlev çağır(ad, arg_düğümleri, d, akan) {
     değil var(k_işlev, ad) -> eğer {
         YERLEŞİK_ADLAR -> var(ad) -> eğer { yerleşik_çağır(ad, türler, d) -> döndür }
         değişken_var_mı(ad) -> eğer { k_hata("'" + ad + "' bir değişken, işlev değil", d) }
-        k_hata("'" + ad + "' adında bir işlev yok", d)
+        k_hata_i("'" + ad + "' adında bir işlev yok", d,
+                 benzerler(ad, k_işlev_adları + anahtarlar(YERLEŞİK_ADLAR)))
     }
     parametre_sayısı(k_işlev[ad]) -> beklenen
+    # Çağrı tutmuyorsa ve ad yerleşik bir işlevin de adıysa, çağıran büyük olasılıkla
+    # yerleşik olanı kastetmiştir; gölgeleyen tanım gösterilir.
+    İLGİSİZ -> gölge
+    yerleşik_mi(ad) -> eğer { k_işlev[ad] -> gölge }
+    "yerleşik '" + ad + "' işlevini gölgeleyen tanım burada" -> gölge_notu
     uzunluk(türler) != beklenen -> eğer {
-        k_hata("'" + ad + "' işlevi " + metne(beklenen) + " argüman bekliyor, "
-               + metne(uzunluk(türler)) + " verildi", d)
+        [] -> parametre_adları
+        0 -> i
+        i < beklenen -> iken {
+            parametre_adları -> ekle(k_işlev[ad].çocuklar[i].ad)
+            i + 1 -> i
+        }
+        "tanımı: " + ad + "(" + birleş(parametre_adları, ", ") + ")" -> ipucu
+        akan != "" -> eğer { ipucu + "; akıştan gelen değer ilk argüman sayılır" -> ipucu }
+        k_hata_not("'" + ad + "' işlevi " + metne(beklenen) + " argüman bekliyor, "
+                   + metne(uzunluk(türler)) + " verildi", d, ipucu, gölge, gölge_notu)
     }
     değil var(k_işlev_türler, ad) -> eğer { türler -> k_işlev_türler[ad] } değilse {
         k_işlev_türler[ad] -> önceki
         0 -> i
         i < uzunluk(türler) -> iken {
             değil birleştir(önceki[i], türler[i]) -> eğer {
-                k_hata("'" + ad + "' işlevi (" + tür_listesi(önceki) + ") ile çağrılmıştı; şimdi ("
-                       + tür_listesi(türler) + ") veriliyor", d)
+                k_hata_not("'" + ad + "' işlevi (" + tür_listesi(önceki) + ") ile çağrılmıştı; şimdi ("
+                           + tür_listesi(türler) + ") veriliyor", d, "", gölge, gölge_notu)
             }
             i + 1 -> i
         }
@@ -716,21 +990,26 @@ işlev değerle_çağır(ad, türler, d) {
         işlev_türü(parametreler, yeni_tür_değişkeni()) -> k_bağ[tür]
         çöz(tür) -> tür
     }
-    değil işlev_türü_mü(tür) -> eğer { k_hata("'" + ad + "' bir değişken (" + ham_ad(tür) + "), işlev değil", d) }
+    değil işlev_türü_mü(tür) -> eğer {
+        "" -> ipucu
+        çağrılabilir(ad) -> eğer { "'" + ad + "' adlı değişken, aynı adlı işlevi gölgeliyor" -> ipucu }
+        k_hata_i("'" + ad + "' bir değişken (" + ham_ad(tür) + "), işlev değil", d, ipucu)
+    }
     işlev_parçaları(tür) -> parçalar
     uzunluk(parçalar) - 1 -> beklenen
     beklenen != uzunluk(türler) -> eğer {
-        k_hata("'" + ad + "' " + metne(beklenen) + " argüman alan bir işlev tutuyor, "
-               + metne(uzunluk(türler)) + " verildi", d)
+        k_hata_i("'" + ad + "' " + metne(beklenen) + " argüman alan bir işlev tutuyor, "
+                 + metne(uzunluk(türler)) + " verildi", d, "'" + ad + "' türü: " + ham_ad(tür))
     }
     0 -> i
     i < beklenen -> iken {
         değil birleştir(parçalar[i], türler[i]) -> eğer {
-            k_hata("'" + ad + "' işlevinin " + metne(i + 1) + ". argümanı " + tür_adı(parçalar[i])
-                   + " olmalı, " + ham_ad(türler[i]) + " verildi", d)
+            k_hata_i("'" + ad + "' işlevinin " + metne(i + 1) + ". argümanı " + tür_adı(parçalar[i])
+                     + " olmalı, " + ham_ad(türler[i]) + " verildi", d, "'" + ad + "' türü: " + ham_ad(tür))
         }
         i + 1 -> i
     }
+    okundu(ad)
     k_geçerli != "" ve değil yerel_mi(ad) -> eğer { 1 -> k_okunan[ad] }
     yaz("mov rax, " + değişken_adresi(ad))
     yaz("call rax")
@@ -740,8 +1019,9 @@ işlev değerle_çağır(ad, türler, d) {
 
 # İşlevin adresini rax'e yükler ve türünü verir. Parametre türleri henüz belli değilse
 # bilinmeyenlerle başlar; işlev en son derlenir (türleri o zamana dek öğrenilmiş olur).
-işlev işlev_değeri(ad) {
+işlev işlev_değeri(ad, d) {
     değil var(k_işlev_türler, ad) -> eğer {
+        d -> k_değer_yeri[ad]
         [] -> türler
         0 -> i
         i < parametre_sayısı(k_işlev[ad]) -> iken {
@@ -977,7 +1257,13 @@ işlev işlevi_derle(ad) {
     k_döngü_son -> s_döngü_son
     k_döngü_çatal -> s_döngü_çatal
     k_çatal -> s_çatal
+    k_yerel_konum -> s_yerel_konum
+    k_yerel_okundu -> s_yerel_okundu
+    k_yerel_sıra -> s_yerel_sıra
 
+    {} -> k_yerel_konum
+    {} -> k_yerel_okundu
+    [] -> k_yerel_sıra
     [] -> k_kod
     ad -> k_geçerli
     {} -> k_yerel_yer
@@ -1000,6 +1286,9 @@ işlev işlevi_derle(ad) {
     blok_üret(gövde)
     k_kod -> gövde_kodu
     k_yerel_sayısı -> yerel_sayısı
+    k_yerel_sıra -> her (y) {
+        değil var(k_yerel_okundu, y) ve var(k_yerel_konum, y) -> eğer { okunmayanı_bildir(y, k_yerel_konum[y], doğru) }
+    }
 
     s_kod -> k_kod
     s_geçerli -> k_geçerli
@@ -1011,6 +1300,9 @@ işlev işlevi_derle(ad) {
     s_döngü_son -> k_döngü_son
     s_döngü_çatal -> k_döngü_çatal
     s_çatal -> k_çatal
+    s_yerel_konum -> k_yerel_konum
+    s_yerel_okundu -> k_yerel_okundu
+    s_yerel_sıra -> k_yerel_sıra
 
     k_işlev_dönüş[ad] == "" -> eğer { "sayı" -> k_işlev_dönüş[ad] }    # hiç 'döndür' yok: 0 döner
     tamamlanır(gövde.çocuklar) -> k_işlev_sona[ad]
@@ -1043,8 +1335,10 @@ işlev dönüşleri_denetle() {
                 "sayı" -> dönüş
             }
             k_işlev_sona[ad] ve dönüş != "sayı" ve değil kayıtsı(dönüş) -> eğer {
-                k_hata("'" + ad + "' işlevi " + ham_ad(dönüş)
-                       + " döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor", k_işlev[ad])
+                k_hata_i("'" + ad + "' işlevi " + ham_ad(dönüş)
+                         + " döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor", k_işlev[ad],
+                         "her yol bir değer döndürmeli ya da programı bitirmeli; yalnızca sayı ve kayıt "
+                         + "döndüren işlevler sona ulaşabilir (0 ya da yok döner)")
             }
         }
     }
@@ -1238,7 +1532,10 @@ işlev hedef_iç(h, tür, döngü_başı) {
         tür -> döndür
     }
     h.tür == "ortak" -> eğer {
-        k_geçerli != "" -> eğer { k_hata("'ortak' yalnızca en üst düzeyde, değişken tanımlanırken yazılır", h) }
+        k_geçerli != "" -> eğer {
+            k_hata_i("'ortak' yalnızca en üst düzeyde, değişken tanımlanırken yazılır", h,
+                     "'" + h.ad + "' zaten ortaksa işlev içinde doğrudan atanır:  değer -> " + h.ad)
+        }
         çağrılabilir(h.ad) -> eğer { k_hata("'" + h.ad + "' bir işlev ya da kayıt adı; değişken adı olamaz", h) }
         ata(h.ad, tür, h)
         tür -> döndür
@@ -1250,7 +1547,13 @@ işlev hedef_iç(h, tür, döngü_başı) {
             yaz("push rax")
             [] -> arg_düğümleri
             uzunluk(h.çocuklar) > 0 -> eğer { h.çocuklar[0].çocuklar -> arg_düğümleri }
-            çağır(h.ad, arg_düğümleri, h, tür) -> döndür
+            uzunluk(h.çocuklar) == 0 ve yerleşik_mi(h.ad) ve değil var(k_işlev, h.ad) -> eğer {
+                "'" + h.ad + "' yerleşik bir işlevdir; akan değer ona argüman olur. "
+                    + "Değişkene başka bir ad verin" -> k_varsayılan_ipucu
+            }
+            çağır(h.ad, arg_düğümleri, h, tür) -> sonuç
+            "" -> k_varsayılan_ipucu
+            sonuç -> döndür
         }
         ata(h.ad, tür, h)
         tür -> döndür
@@ -1275,18 +1578,24 @@ işlev ifade_iç(e) {
     e.tür == "değişken" -> eğer {
         değişken_var_mı(e.ad) -> eğer {
             değişken_türü(e.ad) == "" -> eğer {
-                k_hata("'" + e.ad + "' değişkenine henüz bir değer akmadı", e)
+                k_hata_i("'" + e.ad + "' değişkenine henüz bir değer akmadı", e,
+                         "değişken, programın daha aşağısında tanımlanıyor")
             }
+            okundu(e.ad)
             k_geçerli != "" ve değil yerel_mi(e.ad) -> eğer { 1 -> k_okunan[e.ad] }
             yaz("mov rax, " + değişken_adresi(e.ad))
             değişken_türü(e.ad) -> döndür
         }
-        k_işlev -> var(e.ad) -> eğer { işlev_değeri(e.ad) -> döndür }
-        k_kayıt_alanları -> var(e.ad) -> eğer { k_hata("'" + e.ad + "' bir kayıt; kayıtlar değer olarak verilemez", e) }
-        YERLEŞİK_ADLAR -> var(e.ad) -> eğer {
-            k_hata("'" + e.ad + "' yerleşik bir işlev; yerleşik işlevler değer olarak verilemez", e)
+        k_işlev -> var(e.ad) -> eğer { işlev_değeri(e.ad, e) -> döndür }
+        k_kayıt_alanları -> var(e.ad) -> eğer {
+            k_hata_i("'" + e.ad + "' bir kayıt; kayıtlar değer olarak verilemez", e,
+                     "kaydı kuran bir işlev tanımlayın:  işlev yeni(...) { " + e.ad + "(...) -> döndür }")
         }
-        k_hata("'" + e.ad + "' adında bir değişken yok", e)
+        YERLEŞİK_ADLAR -> var(e.ad) -> eğer {
+            k_hata_i("'" + e.ad + "' yerleşik bir işlev; yerleşik işlevler değer olarak verilemez", e,
+                     "onu çağıran bir işlev tanımlayın:  işlev benim_" + e.ad + "(x) { x -> " + e.ad + " -> döndür }")
+        }
+        k_hata_i("'" + e.ad + "' adında bir değişken yok", e, benzerler(e.ad, bilinen_değişkenler()))
     }
     e.tür == "çağrı" -> eğer { çağır(e.ad, e.çocuklar, e, "") -> döndür }
     e.tür == "yok" -> eğer {
@@ -1422,7 +1731,8 @@ işlev ikili_üret(e) {
     bilinmeyen_mi(sol_türü) veya bilinmeyen_mi(sağ_türü) -> eğer {
         iş == "+" veya var(KARŞILAŞTIRMA, iş) -> eğer {
             bilinmeyen_mi(sol_türü) ve bilinmeyen_mi(sağ_türü) -> eğer {
-                k_hata("'" + iş + "' işlecinin iki tarafının da türü henüz belli değil", e)
+                k_hata_i("'" + iş + "' işlecinin iki tarafının da türü henüz belli değil", e,
+                         "kabın içine önce bir değer akmalı")
             }
             birleştir(sol_türü, sağ_türü)
             çöz(sol_türü) -> sol_türü
@@ -1462,10 +1772,12 @@ işlev ikili_üret(e) {
     sözlük_mi(sol_türü) ve sözlük_mi(sağ_türü) ve (iş == "==" veya iş == "!=") -> eğer {
         k_hata("sözlükler '==' ve '!=' ile karşılaştırılamaz", e)
     }
-    liste_mi(sol_türü) ve iş == "+" -> eğer { k_hata("listeye '+' ile eleman eklenemez", e) }
+    liste_mi(sol_türü) ve iş == "+" -> eğer {
+        k_hata_i("listeye '+' ile eleman eklenemez", e, "eleman eklemek için:  liste -> ekle(eleman)")
+    }
     iş == "+" ve (sol_türü == "metin" veya sağ_türü == "metin")
         ve (sol_türü == "sayı" veya sağ_türü == "sayı") -> eğer {
-        k_hata("metin ile sayı doğrudan toplanamaz", e)
+        k_hata_i("metin ile sayı doğrudan toplanamaz", e, "sayıyı önce metne çevirin:  \"a\" + metne(5)")
     }
     sayı_olmalı(sol_türü, "'" + iş + "' işlecinin sol tarafı", e)
     sayı_olmalı(sağ_türü, "'" + iş + "' işlecinin sağ tarafı", e)
@@ -1545,9 +1857,24 @@ işlev üret(kök, çalışma_zamanı) {
     # işlevler yenilerini ekleyebilir.
     uzunluk(k_değer_işlevler) > 0 -> iken {
         k_değer_işlevler -> sil(0) -> ad
-        k_işlev_durum[ad] == 0 -> eğer { işlevi_derle(ad) }
+        k_işlev_durum[ad] == 0 -> eğer {
+            ad -> k_değer_bağlamı
+            işlevi_derle(ad)
+            "" -> k_değer_bağlamı
+        }
     }
     dönüşleri_denetle()
+    k_küreseller -> her (ad) {
+        değil var(k_küresel_okundu, ad) ve var(k_küresel_konum, ad) -> eğer {
+            okunmayanı_bildir(ad, k_küresel_konum[ad], yanlış)
+        }
+    }
+    # Modüller kitaplıktır; her işlevlerinin kullanılması beklenmez.
+    k_işlev_adları -> her (ad) {
+        değil var(k_işlev_türler, ad) ve k_işlev[ad].dosya == 0 -> eğer {
+            uyarı_ekle(k_işlev[ad], "'" + ad + "' işlevi hiç çağrılmıyor; derlenmedi", "")
+        }
+    }
 
     # Ertelenen satırlar (tür tanımları, işlev başlıkları) son sırayla çözülür.
     [".intel_syntax noprefix", ".global _start", ".section .text"] -> satırlar

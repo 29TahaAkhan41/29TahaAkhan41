@@ -1,0 +1,4 @@
+kayıt Nokta { boy, en, derinlik }
+Nokta(1, 2, 3) -> n
+n.bo -> yazdır
+n.qqq -> yazdır

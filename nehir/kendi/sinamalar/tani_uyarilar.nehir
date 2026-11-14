@@ -1,0 +1,16 @@
+# Uyarılar: yazım hatası (iki öneri), gölgeleme, okunmayan; işlev içi ve üst düzey sırası
+0 -> toplam
+işlev hesapla(n) {
+    n -> toplam
+    n * 2 -> uzunlk
+    n -> dondr
+    n -> döndür
+}
+5 -> hesapla -> yazdır
+7 -> yazdr
+1 -> ekel
+3 -> aralk
+"a" -> sayya
+işlev kullanılmayan() { 1 -> döndür }
+işlev kullanılmayan2() { 2 -> döndür }
+toplam -> yazdır

@@ -65,12 +65,11 @@ def ana():
 
 
 def kendi_derleyiciyi_sına(geçici, kaynaklar):
-    """Nehir ile yazılmış aşamalar, her dosyada Python'daki karşılıklarıyla aynı çıktıyı
-    (hatalı dosyalarda aynı ilk hata satırını ve çıkış kodunu) vermelidir."""
+    """Nehir ile yazılmış aşamalar, her dosyada Python'daki karşılıklarıyla aynı çıktıyı,
+    aynı hata mesajlarını (kaynak satırı, ipucu ve notlarıyla) ve aynı çıkış kodunu vermelidir."""
     def çalıştır(komut):
         s = subprocess.run(komut, cwd=KÖK, capture_output=True, text=True, encoding="utf-8")
-        ilk_hata = s.stderr.split("\n")[0]
-        return s.returncode, s.stdout, ilk_hata
+        return s.returncode, s.stdout, s.stderr
 
     kaynaklar = list(kaynaklar)
     for kalıp in ("ornekler/moduller/*.nehir", "ornekler/hatalar/moduller/*.nehir",
@@ -148,8 +147,7 @@ def kendini_derlemeyi_sına(geçici):
 
 def kendi_kod_üreticiyi_sına(geçici, kaynaklar):
     """Nehir ile yazılmış derleyici (kendi/derle.nehir), Python'daki derleyiciyle bayt bayt
-    aynı assembly'yi üretmelidir; hatalı dosyalarda aynı ilk hata satırını ve çıkış kodunu
-    vermelidir. Henüz taşınmamış yapıları içeren dosyalarda 3 koduyla çıkar; bunlar sayılır."""
+    aynı assembly'yi, aynı hata mesajlarını ve uyarıları, aynı çıkış kodunu vermelidir. Henüz taşınmamış yapıları içeren dosyalarda 3 koduyla çıkar; bunlar sayılır."""
     başarısız = 0
     with open(os.path.join(KÖK, "kendi", "kod_uretici.nehir"), encoding="utf-8") as f:
         kod_üretici = f.read()
@@ -163,6 +161,12 @@ def kendi_kod_üreticiyi_sına(geçici, kaynaklar):
     if eksik:
         başarısız += 1
         print("BAŞARISIZ kendi/kod_uretici.nehir'deki RİSKLİ tablosunda eksikler:", ", ".join(eksik))
+    with open(os.path.join(KÖK, "kendi", "sozcukleyici.nehir"), encoding="utf-8") as f:
+        sözcükleyici = f.read()
+    eksik = [ad for ad, asıl in nehir.ANAHTARLAR.items() if f'"{ad}": "{asıl}"' not in sözcükleyici]
+    if eksik:
+        başarısız += 1
+        print("BAŞARISIZ kendi/sozcukleyici.nehir şu anahtar kelimeleri bilmiyor:", ", ".join(eksik))
     if f'"{nehir.YIĞIN_BOYUTU}" -> YIĞIN_BOYUTU' not in kod_üretici:
         başarısız += 1
         print("BAŞARISIZ kendi/kod_uretici.nehir'deki YIĞIN_BOYUTU nehir.py'dekiyle aynı değil")
@@ -187,9 +191,9 @@ def kendi_kod_üreticiyi_sına(geçici, kaynaklar):
         if n.returncode == 3:
             desteklenmeyen += 1
             continue
-        # Derleyici uyarıları henüz taşınmadı: başarılı derlemede yalnızca assembly karşılaştırılır.
-        beklenen = (p.returncode, p.stderr.split("\n")[0] if p.returncode else "")
-        çıkan = (n.returncode, n.stderr.split("\n")[0] if n.returncode else "")
+        # Hata mesajları (kaynak satırı, ipucu ve notlarıyla) ve uyarılar da aynı olmalı.
+        beklenen = (p.returncode, p.stderr)
+        çıkan = (n.returncode, n.stderr)
         if beklenen == çıkan and p.returncode == 0:
             with open(py_s, "rb") as a, open(nh_s, "rb") as b:
                 if a.read() != b.read():

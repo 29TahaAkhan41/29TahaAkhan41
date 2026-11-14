@@ -1,0 +1,2 @@
+işlev böl(a, b) { a / b -> döndür }
+"a,b" -> böl(",") -> yazdır

@@ -52,6 +52,8 @@
 
 "" -> ortak l_dosya
 0 -> ortak l_dosya_no
+{} -> l_kaynaklar      # dosya numarası -> kaynak metni (hata mesajlarında satırı göstermek için)
+{} -> l_dosya_adları   # dosya numarası -> görünen yolu
 [""] -> ortak l_kr        # kaynağın karakterleri
 1 -> ortak l_satır
 0 -> ortak l_satır_başı   # geçerli satırın ilk karakterinin dizini
@@ -68,8 +70,49 @@ işlev harf_mi(k) {
     (k >= "a" ve k <= "z") veya (k >= "A" ve k <= "Z") veya k == "_" veya k > "~" -> döndür
 }
 
-işlev hata(mesaj, baş) {
-    l_dosya + ":" + metne(l_satır) + ":" + metne(baş - l_satır_başı + 1) + ": hata: " + mesaj -> uyar
+# Hata, uyarı ya da notu kaynak satırı ve altı çizili yeriyle standart hataya yazar
+# (nehir.py'deki bildir ile aynı biçim; renksiz):
+#
+#     dosya:3:5: hata: 'x' adında bir değişken yok
+#         3 | y + x -> yazdır
+#           |     ^
+#           = ipucu: 'xs' mi demek istediniz?
+işlev bildir(düzey, mesaj, dosya, satır, sütun, boy, ipucu) {
+    l_dosya_adları[dosya] + ":" + metne(satır) + ":" + metne(sütun) + ": " + düzey + ": " + mesaj -> uyar
+    l_kaynaklar[dosya] -> böl("\n") -> satırlar
+    satır >= 1 ve satır <= uzunluk(satırlar) -> eğer {
+        satırlar[satır - 1] -> kaynak_satırı
+        dilim(kaynak_satırı, 0, sütun - 1) -> önce
+        # Sekmeler korunur ki işaret, kaynak satırındaki yerle aynı hizaya gelsin.
+        "" -> boşluk
+        önce -> her (k) {
+            k == "\t" -> eğer { boşluk + "\t" -> boşluk } değilse { boşluk + " " -> boşluk }
+        }
+        uzunluk(kaynak_satırı) - uzunluk(önce) -> kalan
+        boy > kalan -> eğer { kalan -> boy }
+        boy < 1 -> eğer { 1 -> boy }
+        "" -> işaret
+        0 -> i
+        i < boy -> iken {
+            işaret + "^" -> işaret
+            i + 1 -> i
+        }
+        sağa_yasla(metne(satır), 5) + " | " + kaynak_satırı -> uyar
+        "      | " + boşluk + işaret -> uyar
+    }
+    ipucu != "" -> eğer { "      = ipucu: " + ipucu -> uyar }
+}
+
+işlev sağa_yasla(m, genişlik) {
+    uzunluk(m) < genişlik -> iken { " " + m -> m }
+    m -> döndür
+}
+
+# Sözcükleme hatası: [baş, son) karakter aralığının altını çizer.
+işlev hata(mesaj, baş, son, ipucu) {
+    son - baş -> boy
+    boy < 1 -> eğer { 1 -> boy }
+    bildir("hata", mesaj, l_dosya_no, l_satır, baş - l_satır_başı + 1, boy, ipucu)
     çık(1)
 }
 
@@ -102,6 +145,8 @@ işlev sayı_değeri(rakamlar) {
 
 # Kaynağın sözcüklerini s_* listelerinin sonuna ekler; her dosya SON ile biter.
 işlev sözcükle(kaynak) {
+    kaynak -> l_kaynaklar[l_dosya_no]
+    l_dosya -> l_dosya_adları[l_dosya_no]
     1 -> l_satır
     0 -> l_satır_başı
     0 -> l_son_satır
@@ -140,7 +185,7 @@ işlev sözcükle(kaynak) {
                 j + 1 -> j
             }
             rakamlar -> sayı_değeri -> değer
-            değer == "" -> eğer { hata("sayı çok büyük; en fazla 9223372036854775807 olabilir", i) }
+            değer == "" -> eğer { hata("sayı çok büyük; en fazla 9223372036854775807 olabilir", i, j, "") }
             sözcük_ekle("SAYI", değer, i, j)
             j -> i
             devam
@@ -150,13 +195,15 @@ işlev sözcükle(kaynak) {
             i + 1 -> j
             [] -> parçalar
             doğru -> iken {
-                j >= n -> eğer { hata("metin kapatılmamış", i) }
-                kr[j] == "\n" -> eğer { hata("metin kapatılmamış", i) }
+                j >= n veya kr[j] == "\n" -> eğer {
+                    hata("metin kapatılmamış", i, j, "metinler aynı satırda \" ile kapanmalı; satır sonu için \\n yazın")
+                }
                 kr[j] == "\"" -> eğer { dur }
                 kr[j] == "\\" -> eğer {
                     j + 1 -> j
-                    j >= n -> eğer { hata("geçersiz kaçış dizisi", j - 1) }
-                    değil var(KAÇIŞLAR, kr[j]) -> eğer { hata("geçersiz kaçış dizisi", j - 1) }
+                    j >= n veya değil var(KAÇIŞLAR, kr[j]) -> eğer {
+                        hata("geçersiz kaçış dizisi", j - 1, j + 1, "geçerli olanlar: \\n  \\t  \\r  \\\"  \\\\")
+                    }
                     parçalar -> ekle(KAÇIŞLAR[kr[j]])
                 } değilse {
                     parçalar -> ekle(kr[j])
@@ -193,8 +240,10 @@ işlev sözcükle(kaynak) {
             }
         }
         işleç == "" -> eğer {
-            c == "=" -> eğer { hata("Nehir'de '=' ile atama yok", i) }
-            hata("tanınmayan karakter: '" + c + "'", i)
+            c == "=" -> eğer {
+                hata("Nehir'de '=' ile atama yok", i, i + 1, "değer soldan sağa akar: 5 -> x   (eşitlik sınaması için ==)")
+            }
+            hata("tanınmayan karakter: '" + c + "'", i, i + 1, "")
         }
         işleç == "→" -> eğer {
             sözcük_ekle("İŞLEÇ", "->", i, i + 1)
