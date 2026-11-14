@@ -350,7 +350,7 @@ o zamana kadar asıl derleyici olarak kalır ve yeni parçaların doğruluğu on
 | --- | --- | --- |
 | Sözcükleyici | `kendi/sozcukleyici.nehir` | tamam |
 | Ayrıştırıcı | `kendi/ayristirici.nehir` | tamam |
-| Tür denetimi ve kod üretici | `kendi/kod_uretici.nehir` | sürüyor: kayıtlar, modüller ve işlev değerleri dışında her şey (aşağıda) |
+| Tür denetimi ve kod üretici | `kendi/kod_uretici.nehir` | sürüyor: modüller ve işlev değerleri dışında her şey (aşağıda) |
 | Modül yükleme, hata gösterimi (kaynak satırı, ipuçları) | | bekliyor |
 
 Her aşama bir modüldür ve Python'daki karşılığıyla aynı çıktıyı verdiği, bütün `.nehir` dosyalarında
@@ -373,8 +373,8 @@ python3 nehir.py kendi/agac_dok.nehir -o agac_dok
 
 **Nehir ile yazılmış derleyici.** `kendi/derle.nehir` bir kaynak dosyayı ayrıştırıp assembly'ye
 çevirir; çıktısı Python'daki derleyicinin ürettiğiyle bayt bayt aynıdır. İşlevler, özyineleme ve dönüş türü
-çıkarımı, listeler ve sözlükler (iç içe olanlar ve türü sonradan öğrenilenler dahil), `her` ve bütün yerleşik
-işlevler taşındı. Henüz taşınmamış bir yapıyla (kayıtlar, modüller, işlev değerleri) karşılaşırsa
+çıkarımı, listeler ve sözlükler (iç içe olanlar ve türü sonradan öğrenilenler dahil), kayıtlar ve `yok`, `her` ve
+bütün yerleşik işlevler taşındı. Henüz taşınmamış bir yapıyla (modüller, işlev değerleri) karşılaşırsa
 "henüz desteklenmiyor" der ve 3 koduyla çıkar; testler kaç dosyanın taşındığını sayar.
 
 ```bash

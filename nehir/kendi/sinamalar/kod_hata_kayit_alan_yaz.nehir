@@ -1,0 +1,3 @@
+kayıt K { a: sayı }
+K(1) -> k
+"x" -> k.a

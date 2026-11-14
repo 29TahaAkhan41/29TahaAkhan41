@@ -15,7 +15,8 @@
 #   - listeler: yazım, dizin, elemana yazma, her, + ve ==; metin üzerinde her
 #   - sözlükler: yazım, okuma, yazma, her, var/sil/anahtarlar/değerler/uzunluk
 #   - bütün yerleşik işlevler
-# Henüz yok: kayıtlar, modüller, işlev değerleri; derleyici uyarıları.
+#   - kayıtlar: tanım (alan türü yazımları dahil), kurma, alan okuma ve yazma, yok
+# Henüz yok: modüller, işlev değerleri; derleyici uyarıları.
 #
 #   kullan "kod_uretici.nehir"
 #   l_dosya -> dosya_oku -> sözcükle
@@ -64,12 +65,15 @@ kullan "ayristirici.nehir"
 
 # ── türler ──
 # Türler metin olarak tutulur: "sayı", "metin", listeler için "[sayı]", "[[metin]]",
-# sözlükler için "{metin:sayı}" ve henüz bilinmeyen bir tür için "?1", "?2", ... Bilinmeyen bir tür öğrenildiğinde
+# sözlükler için "{metin:sayı}", kayıtlar için "@Nokta" (ada göre) ve henüz bilinmeyen
+# bir tür için "?1", "?2", ... `yok` değerinin türü, yalnızca bir kayıt türüne
+# bağlanabilen bir bilinmeyendir (k_yok'ta işaretli). Bilinmeyen bir tür öğrenildiğinde
 # k_bağ'a yazılır (birleştirme); "[?5]" gibi bir tür de böylece kendiliğinden
 # "[sayı]"ya çözülür. Bilinmeyenler boş listelerde ve özyinelemeli işlevlerin dönüş
 # türünde doğar.
 
 {} -> k_bağ
+{} -> k_yok                 # yalnızca kayıt olabilen bilinmeyenler
 0 -> ortak k_tür_no
 
 işlev yeni_tür_değişkeni() {
@@ -79,6 +83,11 @@ işlev yeni_tür_değişkeni() {
 
 işlev bilinmeyen_mi(t) { dilim(t, 0, 1) == "?" -> döndür }
 işlev liste_mi(t) { dilim(t, 0, 1) == "[" -> döndür }
+işlev kayıt_mı(t) { dilim(t, 0, 1) == "@" -> döndür }
+işlev kayıt_adı(t) { dilim(t, 1, uzunluk(t)) -> döndür }
+işlev yok_mu(t) { var(k_yok, t) -> döndür }
+# Bir kayıt ya da `yok` mu? (t çözülmüş olmalı)
+işlev kayıtsı(t) { kayıt_mı(t) veya (bilinmeyen_mi(t) ve yok_mu(t)) -> döndür }
 işlev eleman_türü(t) { dilim(t, 1, uzunluk(t) - 1) -> döndür }
 işlev liste_türü(t) { "[" + t + "]" -> döndür }
 
@@ -126,14 +135,22 @@ işlev birleştir(a, b) {
     çöz(a) -> a
     çöz(b) -> b
     a == b -> eğer { doğru -> döndür }
-    bilinmeyen_mi(b) -> eğer {
-        içerir(a, b) -> eğer { yanlış -> döndür }
-        a -> k_bağ[b]
-        doğru -> döndür
-    }
-    bilinmeyen_mi(a) -> eğer {
-        içerir(b, a) -> eğer { yanlış -> döndür }
-        b -> k_bağ[a]
+    bilinmeyen_mi(a) veya bilinmeyen_mi(b) -> eğer {
+        # Bağlanacak bilinmeyen: önce b; ikisi de bilinmeyense ve a yalnızca kayıt
+        # olabiliyorsa a (kısıt korunur).
+        b -> bağlanan
+        a -> öteki
+        değil bilinmeyen_mi(b) veya (bilinmeyen_mi(a) ve yok_mu(a)) -> eğer {
+            a -> bağlanan
+            b -> öteki
+        }
+        yok_mu(bağlanan) -> eğer {
+            bilinmeyen_mi(öteki) -> eğer { 1 -> k_yok[öteki] } değilse {
+                değil kayıt_mı(öteki) -> eğer { yanlış -> döndür }
+            }
+        }
+        içerir(öteki, bağlanan) -> eğer { yanlış -> döndür }
+        öteki -> k_bağ[bağlanan]
         doğru -> döndür
     }
     liste_mi(a) ve liste_mi(b) -> eğer { birleştir(eleman_türü(a), eleman_türü(b)) -> döndür }
@@ -146,7 +163,11 @@ işlev birleştir(a, b) {
 # Hata mesajlarındaki yazımı. nehir.py'de bilinmeyen bir tür, bağlanmış olsa da
 # kendi adıyla yazılır; ham_ad bunu, tür_adı çözülmüş hâlini verir.
 işlev ham_ad(t) {
-    bilinmeyen_mi(t) -> eğer { "henüz bilinmeyen tür" -> döndür }
+    bilinmeyen_mi(t) -> eğer {
+        yok_mu(t) -> eğer { "yok" -> döndür }
+        "henüz bilinmeyen tür" -> döndür
+    }
+    kayıt_mı(t) -> eğer { kayıt_adı(t) -> döndür }
     liste_mi(t) -> eğer {
         çöz(eleman_türü(t)) -> el
         bilinmeyen_mi(el) -> eğer { "boş liste" -> döndür }
@@ -210,6 +231,11 @@ işlev ham_listesi(türler) {
 {} -> k_işlev_sona          # ad -> gövdenin sonuna ulaşılabiliyor mu
 {} -> k_dönmeyen            # hiç geri dönmeyen işlevler (her yolu çık'a varır)
 
+# Kayıtlar: alan adları ve türleri (tanımdan ya da kullanımdan öğrenilir)
+{} -> k_kayıt_alanları      # ad -> [alan adları]
+{} -> k_kayıt_türleri       # ad -> [alan türleri]
+{} -> k_kayıt_etiketi       # ad ("" yok için) -> çalışma zamanı tanımının etiketi (kt0, ...)
+
 # Derlenmekte olan işlev ("" ise en üst düzey) ve onun yerel değişkenleri
 "" -> ortak k_geçerli
 {} -> ortak k_yerel_yer     # ad -> bellek adresi ([rbp+16], [rbp-8], ...)
@@ -257,6 +283,7 @@ işlev metin_etiketi(m) {
 # Hiç belli olmamış tür (boş listenin elemanı) sayı sayılır.
 işlev tür_etiketi(tür) {
     çöz(tür) -> tür
+    kayıtsı(tür) -> eğer { kayıt_etiketi(tür) -> döndür }
     "0, 0, 0" -> alanlar
     tür == "metin" -> eğer { "1, 0, 0" -> alanlar }
     liste_mi(tür) -> eğer { "2, " + tür_etiketi(eleman_türü(tür)) + ", 0" -> alanlar }
@@ -265,16 +292,43 @@ işlev tür_etiketi(tür) {
         "3, " + a + ", " + tür_etiketi(değer_kısmı(tür)) -> alanlar
     }
     değil var(k_tür_etiketi, alanlar) -> eğer {
-        "t" + metne(uzunluk(k_tür_tanımları)) -> etiket
+        "t" + metne(uzunluk(k_tür_etiketi)) -> etiket       # kayıt tanımları (kt) ayrı sayılır
         etiket -> k_tür_etiketi[alanlar]
         k_tür_tanımları -> ekle(etiket + ": .quad " + alanlar)
     }
     k_tür_etiketi[alanlar] -> döndür
 }
 
+# Kaydın tanımı: {4, ad, alan sayısı, (alan adı, alan türü tanımı)...}. Etiket, alan
+# türleri işlenmeden önce verilir ki kendine gönderme yapan kayıtlar onu bulabilsin;
+# tanım satırı alanlarınkinden sonra eklenir. Türü hiç belli olmamış `yok` alansızdır.
+işlev kayıt_etiketi(tür) {
+    "" -> ad
+    kayıt_mı(tür) -> eğer { kayıt_adı(tür) -> ad }
+    değil var(k_kayıt_etiketi, ad) -> eğer {
+        "kt" + metne(uzunluk(k_kayıt_etiketi)) -> etiket    # "k0" bir yazmaç adıdır
+        etiket -> k_kayıt_etiketi[ad]
+        "yok" -> görünen
+        ad != "" -> eğer { ad -> görünen }
+        ["4", metin_etiketi(görünen)] -> parçalar
+        ad == "" -> eğer { parçalar -> ekle("0") } değilse {
+            k_kayıt_alanları[ad] -> alanlar
+            parçalar -> ekle(metne(uzunluk(alanlar)))
+            0 -> i
+            i < uzunluk(alanlar) -> iken {
+                parçalar -> ekle(metin_etiketi(alanlar[i]))
+                parçalar -> ekle(tür_etiketi(k_kayıt_türleri[ad][i]))
+                i + 1 -> i
+            }
+        }
+        k_tür_tanımları -> ekle(etiket + ": .quad " + birleş(parçalar, ", "))
+    }
+    k_kayıt_etiketi[ad] -> döndür
+}
+
 işlev sayı_olmalı(tür, ne, d) {
     çöz(tür) -> tür
-    bilinmeyen_mi(tür) -> eğer { "sayı" -> k_bağ[tür] } değilse {     # burada sayı olarak kullanılıyor
+    bilinmeyen_mi(tür) ve değil yok_mu(tür) -> eğer { "sayı" -> k_bağ[tür] } değilse {     # burada sayı olarak kullanılıyor
         tür != "sayı" -> eğer { k_hata(ne + " sayı olmalı, " + ham_ad(tür) + " bulundu", d) }
     }
 }
@@ -291,7 +345,44 @@ işlev anahtarı_denetle(sözlük, anahtar, d) {
 }
 
 işlev yerleşik_mi(ad) { var(YERLEŞİK_ADLAR, ad) -> döndür }
-işlev çağrılabilir(ad) { var(k_işlev, ad) veya var(YERLEŞİK_ADLAR, ad) -> döndür }
+işlev çağrılabilir(ad) {
+    var(k_işlev, ad) veya var(k_kayıt_alanları, ad) veya var(YERLEŞİK_ADLAR, ad) -> döndür
+}
+
+# ── kayıtlar ──
+
+# Kayıt tanımındaki tür yazımını türe çevirir.
+işlev tür_çöz(t) {
+    t.tür == "tür_liste" -> eğer { liste_türü(tür_çöz(t.çocuklar[0])) -> döndür }
+    t.tür == "tür_sözlük" -> eğer {
+        tür_çöz(t.çocuklar[0]) -> anahtar
+        anahtar != "sayı" ve anahtar != "metin" -> eğer {
+            k_hata("sözlük anahtarı sayı ya da metin olmalı, " + ham_ad(anahtar) + " bulundu", t.çocuklar[0])
+        }
+        sözlük_türü(anahtar, tür_çöz(t.çocuklar[1])) -> döndür
+    }
+    t.ad == "sayı" veya t.ad == "sayi" veya t.ad == "number" -> eğer { "sayı" -> döndür }
+    t.ad == "metin" veya t.ad == "text" -> eğer { "metin" -> döndür }
+    var(k_kayıt_alanları, t.ad) -> eğer { "@" + t.ad -> döndür }
+    k_hata("'" + t.ad + "' adında bir tür yok", t)
+}
+
+# Alanın kayıttaki sırası; tür çözülmüş olmalı.
+işlev alan_sırası(tür, alan, d) {
+    bilinmeyen_mi(tür) -> eğer { k_hata("'." + alan + "' alanına erişilen değerin türü henüz belli değil", d) }
+    değil kayıt_mı(tür) -> eğer {
+        k_hata("'." + alan + "': alanlara yalnızca kayıtlarda erişilir, " + ham_ad(tür) + " bulundu", d)
+    }
+    k_kayıt_alanları[kayıt_adı(tür)] -> alanlar
+    0 -> i
+    i < uzunluk(alanlar) -> iken {
+        alanlar[i] == alan -> eğer { i -> döndür }
+        i + 1 -> i
+    }
+    k_hata("'" + kayıt_adı(tür) + "' kaydında '" + alan + "' adında bir alan yok", d)
+}
+
+işlev alan_türü(tür, sıra) { k_kayıt_türleri[kayıt_adı(tür)][sıra] -> döndür }
 
 işlev parametre_sayısı(f) { uzunluk(f.çocuklar) - 1 -> döndür }
 işlev gövdesi(f) { f.çocuklar[uzunluk(f.çocuklar) - 1] -> döndür }
@@ -382,7 +473,7 @@ işlev hedeflerden_topla(hedefler) {
 
 işlev dönmez(ad) {
     var(k_işlev, ad) -> eğer { var(k_dönmeyen, ad) -> döndür }
-    ad == "çık" veya ad == "cik" veya ad == "exit" -> döndür
+    (ad == "çık" veya ad == "cik" veya ad == "exit") ve değil var(k_kayıt_alanları, ad) -> döndür
 }
 
 işlev tamamlanır(deyimler) {
@@ -491,9 +582,39 @@ işlev çağır(ad, arg_düğümleri, d, akan) {
         yaz("push rax")
     }
     değişken_var_mı(ad) -> eğer {
-        çöz(değişken_türü(ad)) -> dt
-        dt == "sayı" veya dt == "metin" -> eğer { k_hata("'" + ad + "' bir değişken (" + dt + "), işlev değil", d) }
-        dt != "" -> eğer { desteklenmiyor("işlev değeri üzerinden çağrı", d) }
+        değişken_türü(ad) -> dt
+        dt != "" -> eğer {
+            çöz(dt) -> dt
+            bilinmeyen_mi(dt) ve değil yok_mu(dt) -> eğer { desteklenmiyor("işlev değeri üzerinden çağrı", d) }
+            k_hata("'" + ad + "' bir değişken (" + ham_ad(dt) + "), işlev değil", d)
+        }
+    }
+    var(k_kayıt_alanları, ad) -> eğer {
+        k_kayıt_alanları[ad] -> alanlar
+        k_kayıt_türleri[ad] -> alan_türleri
+        uzunluk(alanlar) != uzunluk(türler) -> eğer {
+            k_hata("'" + ad + "' kaydının " + metne(uzunluk(alanlar)) + " alanı var, "
+                   + metne(uzunluk(türler)) + " değer verildi", d)
+        }
+        0 -> i
+        i < uzunluk(türler) -> iken {
+            değil birleştir(alan_türleri[i], türler[i]) -> eğer {
+                k_hata("'" + ad + "." + alanlar[i] + "' alanı " + tür_adı(alan_türleri[i]) + " türünde; "
+                       + ham_ad(türler[i]) + " verildi", d)
+            }
+            i + 1 -> i
+        }
+        uzunluk(türler) -> boy
+        boy < 1 -> eğer { 1 -> boy }
+        yaz("mov edi, " + metne(8 * boy))
+        komut("call __ayir", d)
+        uzunluk(türler) - 1 -> sıra
+        sıra >= 0 -> iken {
+            yaz("pop rcx")
+            yaz("mov [rax+" + metne(8 * sıra) + "], rcx")
+            sıra - 1 -> sıra
+        }
+        "@" + ad -> döndür
     }
     değil var(k_işlev, ad) -> eğer {
         YERLEŞİK_ADLAR -> var(ad) -> eğer { yerleşik_çağır(ad, türler, d) -> döndür }
@@ -809,11 +930,11 @@ işlev dönüşleri_denetle() {
     k_işlev_adları -> her (ad) {
         k_işlev_durum[ad] == 2 -> eğer {
             çöz(k_işlev_dönüş[ad]) -> dönüş
-            bilinmeyen_mi(dönüş) -> eğer {      # yalnızca kendi sonucunu döndüren özyineleme
+            bilinmeyen_mi(dönüş) ve değil yok_mu(dönüş) -> eğer {   # yalnızca kendi sonucunu döndüren özyineleme
                 "sayı" -> k_bağ[dönüş]
                 "sayı" -> dönüş
             }
-            k_işlev_sona[ad] ve dönüş != "sayı" -> eğer {
+            k_işlev_sona[ad] ve dönüş != "sayı" ve değil kayıtsı(dönüş) -> eğer {
                 k_hata("'" + ad + "' işlevi " + ham_ad(dönüş)
                        + " döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor", k_işlev[ad])
             }
@@ -981,6 +1102,21 @@ işlev hedef_iç(h, tür, döngü_başı) {
         yaz("pop rax")
         tür -> döndür
     }
+    h.tür == "alan_yaz" -> eğer {
+        yaz("push rax")                     # [rsp] = yazılacak değer
+        ifade_üret(h.çocuklar[0]) -> kt
+        alan_sırası(kt, h.ad, h) -> sıra
+        alan_türü(kt, sıra) -> at
+        değil birleştir(at, tür) -> eğer {
+            k_hata("'" + h.ad + "' alanı " + tür_adı(at) + " türünde; " + ham_ad(tür) + " atanamaz", h)
+        }
+        yaz("test rax, rax")
+        komut("jz __yok_hatasi", h)
+        yaz("mov rcx, [rsp]")
+        yaz("mov [rax+" + metne(8 * sıra) + "], rcx")
+        yaz("pop rax")
+        tür -> döndür
+    }
     h.tür == "çatal" -> eğer {
         # Aynı değer her kola ayrı ayrı akar; sonra olduğu gibi yoluna devam eder.
         h.çocuklar -> her (dal) {
@@ -1038,12 +1174,27 @@ işlev ifade_iç(e) {
             değişken_türü(e.ad) -> döndür
         }
         k_işlev -> var(e.ad) -> eğer { desteklenmiyor("işlev değeri", e) }
+        k_kayıt_alanları -> var(e.ad) -> eğer { k_hata("'" + e.ad + "' bir kayıt; kayıtlar değer olarak verilemez", e) }
         YERLEŞİK_ADLAR -> var(e.ad) -> eğer {
             k_hata("'" + e.ad + "' yerleşik bir işlev; yerleşik işlevler değer olarak verilemez", e)
         }
         k_hata("'" + e.ad + "' adında bir değişken yok", e)
     }
     e.tür == "çağrı" -> eğer { çağır(e.ad, e.çocuklar, e, "") -> döndür }
+    e.tür == "yok" -> eğer {
+        yaz("xor eax, eax")
+        yeni_tür_değişkeni() -> t
+        1 -> k_yok[t]
+        t -> döndür
+    }
+    e.tür == "alan" -> eğer {
+        ifade_üret(e.çocuklar[0]) -> kt
+        alan_sırası(kt, e.ad, e) -> sıra
+        yaz("test rax, rax")
+        komut("jz __yok_hatasi", e)
+        yaz("mov rax, [rax+" + metne(8 * sıra) + "]")
+        alan_türü(kt, sıra) -> döndür
+    }
     e.tür == "liste" -> eğer {
         uzunluk(e.çocuklar) -> n
         n < 4 -> eğer { 4 -> n }
@@ -1149,6 +1300,16 @@ işlev ikili_üret(e) {
     ifade_üret(sağ) -> sağ_türü
     yaz("mov rcx, rax")
     yaz("pop rax")
+    (iş == "==" veya iş == "!=") ve (kayıtsı(sol_türü) veya kayıtsı(sağ_türü)) -> eğer {
+        # Kayıtlar kimlikleriyle karşılaştırılır: aynı kayıt mı (ya da ikisi de yok mu)?
+        değil birleştir(sol_türü, sağ_türü) -> eğer {
+            k_hata(ham_ad(sol_türü) + " ile " + ham_ad(sağ_türü) + " karşılaştırılamaz", e)
+        }
+        yaz("cmp rax, rcx")
+        yaz(KARŞILAŞTIRMA[iş] + " al")
+        yaz("movzx eax, al")
+        "sayı" -> döndür
+    }
     # Türü henüz bilinmeyen bir işlenen türünü öbür işlenenden ya da işleçten alır.
     bilinmeyen_mi(sol_türü) veya bilinmeyen_mi(sağ_türü) -> eğer {
         iş == "+" veya var(KARŞILAŞTIRMA, iş) -> eğer {
@@ -1230,8 +1391,31 @@ işlev bayt_satırı(m) {
 # Ağacın kökünden bütün assembly metnini üretir. `çalışma_zamanı`, calisma_zamani.s
 # dosyasının içeriğidir.
 işlev üret(kök, çalışma_zamanı) {
+    # Önce bütün kayıt türleri oluşturulur, sonra alan türleri çözülür; böylece
+    # kayıtlar kendilerine ve birbirlerine gönderme yapabilir.
     kök.çocuklar -> her (d) {
-        d.tür == "kayıt" veya d.tür == "kullan" -> eğer { desteklenmiyor("'" + d.tür + "'", d) }
+        d.tür == "kayıt" -> eğer {
+            [] -> alanlar
+            [] -> türler
+            d.çocuklar -> her (a) {
+                alanlar -> ekle(a.ad)
+                türler -> ekle(yeni_tür_değişkeni())
+            }
+            alanlar -> k_kayıt_alanları[d.ad]
+            türler -> k_kayıt_türleri[d.ad]
+        }
+    }
+    kök.çocuklar -> her (d) {
+        d.tür == "kayıt" -> eğer {
+            0 -> i
+            d.çocuklar -> her (a) {
+                uzunluk(a.çocuklar) > 0 -> eğer { tür_çöz(a.çocuklar[0]) -> k_bağ[k_kayıt_türleri[d.ad][i]] }
+                i + 1 -> i
+            }
+        }
+    }
+    kök.çocuklar -> her (d) {
+        d.tür == "kullan" -> eğer { desteklenmiyor("'" + d.tür + "'", d) }
         d.tür == "işlev" -> eğer {
             d -> k_işlev[d.ad]
             "f" + metne(uzunluk(k_işlev_adları)) -> k_işlev_etiket[d.ad]
@@ -1246,7 +1430,7 @@ işlev üret(kök, çalışma_zamanı) {
     k_kod -> ekle("nehir_ana:")
     yaz("push rbp")
     yaz("mov rbp, rsp")
-    kök.çocuklar -> her (d) { d.tür != "işlev" -> eğer { deyim_üret(d) } }
+    kök.çocuklar -> her (d) { d.tür != "işlev" ve d.tür != "kayıt" -> eğer { deyim_üret(d) } }
     yaz("leave")
     yaz("ret")
     dönüşleri_denetle()

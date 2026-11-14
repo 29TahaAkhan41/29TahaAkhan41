@@ -1,0 +1,4 @@
+kayıt K { a }
+işlev f(n) { n > 0 -> eğer { K(n) -> döndür }
+ "x" -> döndür }
+f(1) -> yazdır

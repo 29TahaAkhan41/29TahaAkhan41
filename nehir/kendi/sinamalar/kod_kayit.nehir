@@ -1,0 +1,38 @@
+# Kayıtlar: tür yazımları, karşılıklı gönderme, yok, kayıt listeleri ve sözlükleri
+kayıt Ağaç { değer: sayı, çocuklar: [Ağaç], ebeveyn: Ağaç, etiketler: {metin: [Etiket]} }
+kayıt Etiket { ad: metin, renk }
+kayıt Boş { }
+kayıt Çift { a, b }
+Ağaç(1, [], yok, {}) -> kök
+Ağaç(2, [], kök, {}) -> dal
+kök.çocuklar -> ekle(dal)
+[Etiket("acil", 3)] -> kök.etiketler["iş"]
+kök.etiketler["iş"][0].renk + 1 -> kök.etiketler["iş"][0].renk
+dal.ebeveyn.değer -> yazdır
+kök.çocuklar[0].değer -> yazdır
+kök.etiketler -> yazdır
+dal.ebeveyn == kök -> yazdır
+kök.ebeveyn == yok -> yazdır
+yok == dal.ebeveyn -> yazdır
+Boş() -> b -> yazdır
+Çift("x", [1]) -> ç -> yazdır
+ç.b -> ekle(2)
+ç -> yazdır
+[ç, Çift("y", [])] -> çiftler
+çiftler -> bul(ç) -> yazdır
+çiftler == [ç, çiftler[1]] -> yazdır
+yok -> hiç
+hiç -> yazdır
+işlev bul_değer(a, d) {
+    a.değer == d -> eğer { a -> döndür }
+    a.çocuklar -> her (ç) {
+        bul_değer(ç, d) -> s
+        s != yok -> eğer { s -> döndür }
+    }
+}
+bul_değer(kök, 2) -> bulunan
+bulunan.değer -> yazdır
+bul_değer(kök, 9) -> yazdır
+kök -> (değer_yaz)
+işlev değer_yaz(a) { a.değer -> yazdır }
+kök -> değer_yaz
