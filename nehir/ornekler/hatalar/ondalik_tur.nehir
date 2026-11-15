@@ -1,0 +1,3 @@
+# Bir değişken türünü korur: sayıyla başlayan değişkene ondalık akamaz.
+0 -> hız
+hız + 0.5 -> hız

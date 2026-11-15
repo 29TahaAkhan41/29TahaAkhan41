@@ -434,6 +434,7 @@ işlev birincil() {
         sayıya(s_değer[k]) -> d.sayı
         d -> döndür
     }
+    al("ONDALIK", "") -> eğer { düğüm("ondalık", s_değer[k], k) -> döndür }
     al("METİN", "") -> eğer { düğüm("metin", s_değer[k], k) -> döndür }
     al("ANAHTAR", "doğru") -> eğer {
         düğüm("sayı", "", k) -> d

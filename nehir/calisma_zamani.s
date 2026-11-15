@@ -74,6 +74,8 @@ __deger_ham:                    # rdi = değer, rsi = tür tanımı; satır sonu
     mov rax, [rsi]
     test rax, rax               # 0: sayı
     jz __sayi_ham
+    cmp rax, 6                  # 6: ondalık
+    je __ondalik_ham
     cmp rax, 4                  # 4: kayıt
     je __kayit_ham
     cmp rax, 5                  # 5: işlev
@@ -900,9 +902,414 @@ __metinden_sayi:                # rdi = metin -> rax = sayı
     neg rax
 2:  ret
 
+# ── ondalık sayılar (IEEE 754 çift duyarlık) ──
+# Değer, sayılar gibi 64 bitlik bir yazmaçta (ham bitleriyle) taşınır. Metne çevirme,
+# metinden okuma ve matematik işlevleri x87 ile 80 bitlik duyarlıkla hesaplanır; denetim
+# sözcüğü her seferinde açıkça kurulur, böylece Linux ve Windows aynı sonucu verir.
+
+__on_kuvvet:                    # rdi = k -> st0 = 10^k (80 bit)
+    mov rax, rdi
+    test rax, rax
+    jns 1f
+    neg rax
+1:  fld1
+    fld qword ptr [rip+__od_on]
+2:  test rax, rax
+    jz 4f
+    test al, 1
+    jz 3f
+    fmul st(1), st
+3:  fmul st, st
+    shr rax, 1
+    jmp 2b
+4:  fstp st(0)
+    test rdi, rdi
+    jns 5f
+    fdivr qword ptr [rip+__od_bir]
+5:  ret
+
+__ondalik_metin:                # rdi = ondalık -> rax = metin (15 anlamlı basamak, Python'un repr'i gibi)
+    push rbp
+    mov rbp, rsp
+    push rbx
+    push r12
+    push r13
+    push r14
+    sub rsp, 128                # [rbp-40] x, [rbp-48] denetim sözcükleri, [rbp-56] geçici,
+    lea r12, [rbp-160]          # [rbp-72..-58] basamaklar, [rbp-160..] çıktı
+    mov rax, rdi
+    btr rax, 63
+    jnc 1f
+    mov byte ptr [r12], 45
+    inc r12
+1:  movabs rcx, 0x7FF0000000000000
+    mov rdx, rax
+    and rdx, rcx
+    cmp rdx, rcx
+    jne 2f
+    cmp rax, rcx
+    jne 3f
+    mov dword ptr [r12], 0x666E69   # "inf"
+    add r12, 3
+    jmp 90f
+3:  lea r12, [rbp-160]
+    mov dword ptr [r12], 0x6E616E   # "nan"
+    add r12, 3
+    jmp 90f
+2:  test rax, rax
+    jnz 4f
+    mov dword ptr [r12], 0x302E30   # "0.0"
+    add r12, 3
+    jmp 90f
+4:  mov [rbp-40], rax
+    fnstcw [rbp-48]
+    mov word ptr [rbp-46], 0x037F   # 64 bit duyarlık, en yakına yuvarla
+    mov word ptr [rbp-44], 0x077F   # 64 bit duyarlık, aşağı yuvarla
+    fldcw [rbp-44]
+    fldlg2
+    fld qword ptr [rbp-40]
+    fyl2x                       # log10(x)
+    fistp qword ptr [rbp-56]
+    fldcw [rbp-46]
+    mov r13, [rbp-56]           # r13 = onluk üs
+5:  mov edi, 14
+    sub rdi, r13
+    call __on_kuvvet
+    fmul qword ptr [rbp-40]
+    fistp qword ptr [rbp-56]    # m = x * 10^(14-üs), 15 basamaklı olmalı
+    mov rax, [rbp-56]
+    movabs rcx, 1000000000000000
+    cmp rax, rcx
+    jl 6f
+    inc r13
+    jmp 5b
+6:  movabs rcx, 100000000000000
+    cmp rax, rcx
+    jge 7f
+    dec r13
+    jmp 5b
+7:  fldcw [rbp-48]
+    mov ebx, 10
+    mov r8d, 14
+8:  xor edx, edx
+    div rbx
+    add dl, 48
+    mov [rbp+r8-72], dl
+    dec r8
+    jns 8b
+    mov r14d, 15                # r14 = sondaki sıfırlar atılınca basamak sayısı
+9:  cmp r14, 1
+    jbe 10f
+    cmp byte ptr [rbp+r14-73], 48
+    jne 10f
+    dec r14
+    jmp 9b
+10: cmp r13, -4
+    jl 30f
+    cmp r13, 16
+    jge 30f
+    test r13, r13
+    js 20f
+    xor ecx, ecx                # tam kısım
+11: cmp rcx, r13
+    jg 12f
+    mov al, 48
+    cmp rcx, r14
+    jae 111f
+    mov al, [rbp+rcx-72]
+111: mov [r12], al
+    inc r12
+    inc rcx
+    jmp 11b
+12: mov byte ptr [r12], 46
+    inc r12
+    cmp rcx, r14
+    jb 13f
+    mov byte ptr [r12], 48
+    inc r12
+    jmp 90f
+13: cmp rcx, r14
+    jae 90f
+    mov al, [rbp+rcx-72]
+    mov [r12], al
+    inc r12
+    inc rcx
+    jmp 13b
+20: mov word ptr [r12], 0x2E30  # "0." ve sıfırlar
+    add r12, 2
+    mov rcx, r13
+    neg rcx
+    dec rcx
+21: test rcx, rcx
+    jz 22f
+    mov byte ptr [r12], 48
+    inc r12
+    dec rcx
+    jmp 21b
+22: xor ecx, ecx
+23: cmp rcx, r14
+    jae 90f
+    mov al, [rbp+rcx-72]
+    mov [r12], al
+    inc r12
+    inc rcx
+    jmp 23b
+30: mov al, [rbp-72]            # üslü yazım: 1.5e-07, 1e+16
+    mov [r12], al
+    inc r12
+    cmp r14, 1
+    jbe 32f
+    mov byte ptr [r12], 46
+    inc r12
+    mov ecx, 1
+31: cmp rcx, r14
+    jae 32f
+    mov al, [rbp+rcx-72]
+    mov [r12], al
+    inc r12
+    inc rcx
+    jmp 31b
+32: mov byte ptr [r12], 101
+    mov byte ptr [r12+1], 43
+    test r13, r13
+    jns 33f
+    mov byte ptr [r12+1], 45
+    neg r13
+33: add r12, 2
+    mov rax, r13
+    cmp rax, 100
+    jb 34f
+    xor edx, edx
+    mov ecx, 100
+    div rcx
+    add al, 48
+    mov [r12], al
+    inc r12
+    mov rax, rdx
+34: xor edx, edx
+    mov ecx, 10
+    div rcx
+    add al, 48
+    add dl, 48
+    mov [r12], al
+    mov [r12+1], dl
+    add r12, 2
+90: lea rsi, [rbp-160]
+    mov rdi, r12
+    sub rdi, rsi
+    call __metin_yeni
+    mov rdi, rax
+    lea rsi, [rbp-160]
+    mov rcx, [rax-8]
+    rep movsb
+    lea rsp, [rbp-32]
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    pop rbp
+    ret
+
+__ondalik_ham:                  # rdi = ondalık; satır sonu eklemeden yazar
+    call __ondalik_metin
+    mov rsi, rax
+    mov rdx, [rax-8]
+    jmp __ham_yaz
+
+__metinden_ondalik:             # rdi = metin ("-12.5", "3", "1.5e-3") -> rax = ondalık
+    push rbx
+    push r12
+    sub rsp, 16
+    mov rcx, [rdi-8]
+    xor r8, r8                  # konum
+    xor r9, r9                  # eksi mi
+    xor eax, eax                # anlamlı basamaklar (en çok 18)
+    xor r10, r10                # görülen basamak sayısı
+    xor r11, r11                # onluk üs düzeltmesi
+    xor r12, r12                # biriken anlamlı basamak sayısı
+    xor ebx, ebx                # kesir kısmında mı
+    test rcx, rcx
+    jz __ondalik_hatasi
+    cmp byte ptr [rdi], 45
+    jne 1f
+    mov r9, 1
+    inc r8
+1:  cmp r8, rcx
+    jae 5f
+    movzx edx, byte ptr [rdi+r8]
+    cmp edx, 46                 # '.'
+    jne 2f
+    test ebx, ebx
+    jnz __ondalik_hatasi
+    mov ebx, 1
+    inc r8
+    jmp 1b
+2:  sub edx, 48
+    cmp edx, 9
+    ja 4f
+    inc r10
+    inc r8
+    cmp r12, 18
+    jae 3f
+    imul rax, rax, 10
+    add rax, rdx
+    sub r11, rbx                # kesirdeki her basamak üssü bir azaltır
+    test rax, rax
+    jz 1b
+    inc r12
+    jmp 1b
+3:  test ebx, ebx               # sığmayan basamak: tam kısımdaysa üssü artırır
+    jnz 1b
+    inc r11
+    jmp 1b
+4:  test r10, r10               # üs: e ya da E
+    jz __ondalik_hatasi
+    add edx, 48
+    or edx, 32
+    cmp edx, 101
+    jne __ondalik_hatasi
+    inc r8
+    xor ebx, ebx                # ebx = üssün işareti, rdx = üs
+    cmp r8, rcx
+    jae __ondalik_hatasi
+    movzx edx, byte ptr [rdi+r8]
+    cmp edx, 43
+    je 41f
+    cmp edx, 45
+    jne 42f
+    mov ebx, 1
+41: inc r8
+42: cmp r8, rcx
+    jae __ondalik_hatasi
+    push rax
+    xor eax, eax
+43: movzx edx, byte ptr [rdi+r8]
+    sub edx, 48
+    cmp edx, 9
+    ja __ondalik_hatasi
+    cmp rax, 100000
+    jae 44f
+    imul rax, rax, 10
+    add rax, rdx
+44: inc r8
+    cmp r8, rcx
+    jb 43b
+    test ebx, ebx
+    jz 45f
+    neg rax
+45: add r11, rax
+    pop rax
+    jmp 6f
+5:  test r10, r10
+    jz __ondalik_hatasi
+6:  test rax, rax
+    jz 7f
+    mov [rsp], rax
+    fnstcw [rsp+8]
+    mov word ptr [rsp+10], 0x037F
+    fldcw [rsp+10]
+    mov rdi, r11
+    call __on_kuvvet
+    fild qword ptr [rsp]
+    fmulp st(1), st
+    fstp qword ptr [rsp]
+    fldcw [rsp+8]
+    mov rax, [rsp]
+7:  test r9, r9
+    jz 8f
+    bts rax, 63
+8:  add rsp, 16
+    pop r12
+    pop rbx
+    ret
+
+__ondalik_yuvarla:              # rdi = ondalık, rsi = 0 yuvarla (yarımlar sıfırdan uzağa), 1 taban, 2 tavan
+    sub rsp, 24                 #  -> rax = sayı
+    mov [rsp], rdi
+    fnstcw [rsp+8]
+    mov word ptr [rsp+10], 0x077F
+    cmp rsi, 1
+    je 1f
+    mov word ptr [rsp+10], 0x0B7F
+    cmp rsi, 2
+    je 1f
+    mov word ptr [rsp+10], 0x0F7F   # sıfıra doğru, önce ±0.5 eklenir
+1:  fldcw [rsp+10]
+    fld qword ptr [rsp]
+    test rsi, rsi
+    jnz 2f
+    fld qword ptr [rip+__od_yarim]
+    test rdi, rdi
+    jns 3f
+    fchs
+3:  faddp st(1), st
+2:  fistp qword ptr [rsp]
+    fldcw [rsp+8]
+    mov rax, [rsp]
+    add rsp, 24
+    ret
+
+__ondalik_kalan:                # rdi = a, rsi = b (b != 0) -> rax = a - b * tam(a / b), işareti a'nınki
+    sub rsp, 8
+    mov [rsp], rsi
+    fld qword ptr [rsp]
+    mov [rsp], rdi
+    fld qword ptr [rsp]
+1:  fprem
+    fnstsw ax
+    test ah, 4
+    jnz 1b
+    fstp qword ptr [rsp]
+    fstp st(0)
+    mov rax, [rsp]
+    add rsp, 8
+    ret
+
+__ondalik_sin:                  # rdi = ondalık -> rax = sin
+    sub rsp, 8
+    mov [rsp], rdi
+    fld qword ptr [rsp]
+    fsin
+    fstp qword ptr [rsp]
+    mov rax, [rsp]
+    add rsp, 8
+    ret
+
+__ondalik_cos:                  # rdi = ondalık -> rax = cos
+    sub rsp, 8
+    mov [rsp], rdi
+    fld qword ptr [rsp]
+    fcos
+    fstp qword ptr [rsp]
+    mov rax, [rsp]
+    add rsp, 8
+    ret
+
+__ondalik_atan2:                # rdi = y, rsi = x -> rax = atan2(y, x)
+    sub rsp, 8
+    mov [rsp], rdi
+    fld qword ptr [rsp]
+    mov [rsp], rsi
+    fld qword ptr [rsp]
+    fpatan
+    fstp qword ptr [rsp]
+    mov rax, [rsp]
+    add rsp, 8
+    ret
+
 __deger_esit:                   # rdi = a, rsi = b, rdx = tür tanımı -> rax = eşitse 1, değilse 0
     mov rax, [rdx]
-    test rax, rax               # 0: sayı
+    cmp rax, 6                  # 6: ondalık (0.0 == -0.0; nan hiçbir şeye eşit değil)
+    jne 0f
+    movq xmm0, rdi
+    movq xmm1, rsi
+    ucomisd xmm0, xmm1
+    sete al
+    setnp cl
+    and al, cl
+    movzx eax, al
+    ret
+0:  test rax, rax               # 0: sayı
     jz 7f
     cmp rax, 4                  # 4 kayıt, 5 işlev: aynı değer mi diye adres karşılaştırılır
     jb 1f
@@ -1862,6 +2269,10 @@ __anahtar_hatasi:
     lea rsi, [rip+__h_anahtar]
     mov edx, __h_anahtar_son - __h_anahtar
     jmp __hata
+__ondalik_hatasi:
+    lea rsi, [rip+__h_ondalik]
+    mov edx, __h_ondalik_son - __h_ondalik
+    jmp __hata
 __sayi_hatasi:
     lea rsi, [rip+__h_sayi]
     mov edx, __h_sayi_son - __h_sayi
@@ -1938,6 +2349,12 @@ __h_dizin: .ascii "dizin sınırların dışında"
 __h_dizin_son:
 __h_sayi: .ascii "metin sayıya çevrilemiyor"
 __h_sayi_son:
+__h_ondalik: .ascii "metin ondalık sayıya çevrilemiyor"
+__h_ondalik_son:
+    .balign 8
+__od_on: .double 10.0
+__od_bir: .double 1.0
+__od_yarim: .double 0.5
 __h_anahtar: .ascii "anahtar sözlükte yok"
 __h_anahtar_son:
 __h_yok: .ascii "dosya bulunamadı"

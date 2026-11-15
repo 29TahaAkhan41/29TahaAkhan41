@@ -1,0 +1,2 @@
+# Ondalık sayıya çevrilemeyen metin.
+ondalığa("3,5") -> yazdır

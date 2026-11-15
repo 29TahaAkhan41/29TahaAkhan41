@@ -53,7 +53,11 @@ kullan "ayristirici.nehir"
     "key_mode": "tuş_kipi", "tuş": "tuş", "tus": "tuş", "key": "tuş", "göster": "göster",
     "goster": "göster", "show": "göster", "uçbirim_boyutu": "uçbirim_boyutu",
     "ucbirim_boyutu": "uçbirim_boyutu", "terminal_size": "uçbirim_boyutu",
-    "çöp_topla": "çöp_topla", "cop_topla": "çöp_topla", "collect_garbage": "çöp_topla"
+    "çöp_topla": "çöp_topla", "cop_topla": "çöp_topla", "collect_garbage": "çöp_topla",
+    "ondalığa": "ondalığa", "ondaliga": "ondalığa", "float": "ondalığa", "yuvarla": "yuvarla",
+    "round": "yuvarla", "taban": "taban", "floor": "taban", "tavan": "tavan", "ceil": "tavan",
+    "karekök": "karekök", "karekok": "karekök", "sqrt": "karekök", "mutlak": "mutlak",
+    "abs": "mutlak", "sin": "sin", "cos": "cos", "atan2": "atan2", "pi": "pi"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -68,7 +72,8 @@ kullan "ayristirici.nehir"
     "call __metinden_sayi": 1, "call __oku": 1, "call __sayidan_metin": 1, "call __sozluk_al": 1,
     "call __sozluk_koy": 1, "call __sozluk_liste": 1, "call __sozluk_sil": 1,
     "call __sozluk_yeni": 1, "jz __sifira_bolme": 1, "jz __yok_hatasi": 1,
-    "call __rastgele": 1, "call __tus": 1, "call __ucbirim_boyutu": 1
+    "call __rastgele": 1, "call __tus": 1, "call __ucbirim_boyutu": 1,
+    "call __ondalik_metin": 1, "call __metinden_ondalik": 1
 } -> RİSKLİ
 
 {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"} -> KARŞILAŞTIRMA
@@ -279,6 +284,8 @@ işlev ham_listesi(türler) {
 [] -> k_işlev_kodu          # derlenmiş işlevlerin satırları, derlenme sırasıyla
 [] -> k_metinler            # programdaki metinler, ilk görülme sırasıyla
 {} -> k_metin_no            # metin -> k_metinler'deki sırası
+[] -> k_ondalıklar          # ondalık sayıların yazımları (assembler ikiliye çevirir)
+{} -> k_ondalık_no
 [] -> k_küreseller          # üst düzey değişkenlerin adları, toplanma sırasıyla
 {} -> k_küresel_etiket      # ad -> bellekteki yerinin etiketi (g0, g1, ...)
 {} -> k_küresel_tür         # ad -> tür ("" henüz değer akmadı)
@@ -596,6 +603,7 @@ işlev tür_etiketi(tür) {
     kayıtsı(tür) -> eğer { kayıt_etiketi(tür) -> döndür }
     "0, 0, 0" -> alanlar
     tür == "metin" -> eğer { "1, 0, 0" -> alanlar }
+    tür == "ondalık" -> eğer { "6, 0, 0" -> alanlar }
     işlev_türü_mü(tür) -> eğer { "5, 0, 0" -> alanlar }
     liste_mi(tür) -> eğer { "2, " + tür_etiketi(eleman_türü(tür)) + ", 0" -> alanlar }
     sözlük_mi(tür) -> eğer {
@@ -678,8 +686,9 @@ işlev tür_çöz(t) {
     }
     t.ad == "sayı" veya t.ad == "sayi" veya t.ad == "number" -> eğer { "sayı" -> döndür }
     t.ad == "metin" veya t.ad == "text" -> eğer { "metin" -> döndür }
+    t.ad == "ondalık" veya t.ad == "ondalik" veya t.ad == "float" -> eğer { "ondalık" -> döndür }
     var(k_kayıt_alanları, t.ad) -> eğer { "@" + t.ad -> döndür }
-    k_hata_i("'" + t.ad + "' adında bir tür yok", t, benzerler(t.ad, ["sayı", "metin"] + anahtarlar(k_kayıt_alanları)))
+    k_hata_i("'" + t.ad + "' adında bir tür yok", t, benzerler(t.ad, ["sayı", "metin", "ondalık"] + anahtarlar(k_kayıt_alanları)))
 }
 
 # Alanın kayıttaki sırası; tür çözülmüş olmalı.
@@ -759,7 +768,11 @@ işlev ata(ad, tür, d) {
         }
     } değilse {
         değil birleştir(önceki, tür) -> eğer {
-            k_hata("'" + ad + "' değişkeni " + ham_ad(önceki) + " türünde; " + tür_adı(tür) + " atanamaz", d)
+            "" -> ipucu
+            çöz(önceki) == "sayı" ve tür == "ondalık" -> eğer {
+                "değişken ondalık olacaksa ilk değerini de ondalık yazın:  0.0" -> ipucu
+            }
+            k_hata_i("'" + ad + "' değişkeni " + ham_ad(önceki) + " türünde; " + tür_adı(tür) + " atanamaz", d, ipucu)
         }
     }
     yaz("mov " + değişken_adresi(ad) + ", rax")
@@ -1216,20 +1229,97 @@ işlev yerleşik_çağır(ad, türler, d) {
         "metin" -> döndür
     }
     asıl == "metne" -> eğer {
-        n != 1 veya (t0 != "sayı" ve t0 != "metin") -> eğer { yanlış_argüman(ad, "sayı", türler, d) }
+        n != 1 veya (t0 != "sayı" ve t0 != "metin" ve t0 != "ondalık") -> eğer { yanlış_argüman(ad, "sayı", türler, d) }
         t0 == "sayı" -> eğer {
             yaz("pop rdi")
             komut("call __sayidan_metin", d)
-        } değilse { yaz("pop rax") }
+        } değilse {
+            t0 == "ondalık" -> eğer {
+                yaz("pop rdi")
+                komut("call __ondalik_metin", d)
+            } değilse { yaz("pop rax") }
+        }
         "metin" -> döndür
     }
     asıl == "sayıya" -> eğer {
-        n != 1 veya (t0 != "sayı" ve t0 != "metin") -> eğer { yanlış_argüman(ad, "metin", türler, d) }
+        n != 1 veya (t0 != "sayı" ve t0 != "metin" ve t0 != "ondalık") -> eğer { yanlış_argüman(ad, "metin", türler, d) }
         t0 == "metin" -> eğer {
             yaz("pop rdi")
             komut("call __metinden_sayi", d)
-        } değilse { yaz("pop rax") }
+        } değilse {
+            yaz("pop rax")
+            t0 == "ondalık" -> eğer {       # sıfıra doğru kesilir
+                yaz("movq xmm0, rax")
+                yaz("cvttsd2si rax, xmm0")
+            }
+        }
         "sayı" -> döndür
+    }
+    asıl == "ondalığa" -> eğer {
+        n != 1 veya (t0 != "sayı" ve t0 != "metin" ve t0 != "ondalık") -> eğer { yanlış_argüman(ad, "sayı ya da metin", türler, d) }
+        t0 == "metin" -> eğer {
+            yaz("pop rdi")
+            komut("call __metinden_ondalik", d)
+        } değilse {
+            yaz("pop rax")
+            t0 == "sayı" -> eğer {
+                yaz("cvtsi2sd xmm0, rax")
+                yaz("movq rax, xmm0")
+            }
+        }
+        "ondalık" -> döndür
+    }
+    asıl == "yuvarla" veya asıl == "taban" veya asıl == "tavan" -> eğer {
+        n != 1 veya (t0 != "sayı" ve t0 != "ondalık") -> eğer { yanlış_argüman(ad, "ondalık", türler, d) }
+        t0 == "sayı" -> eğer { yaz("pop rax") } değilse {
+            yaz("pop rdi")
+            yaz("mov esi, " + metne(bul(["yuvarla", "taban", "tavan"], asıl)))
+            yaz("call __ondalik_yuvarla")
+        }
+        "sayı" -> döndür
+    }
+    asıl == "mutlak" -> eğer {
+        n != 1 veya (t0 != "sayı" ve t0 != "ondalık") -> eğer { yanlış_argüman(ad, "sayı ya da ondalık", türler, d) }
+        yaz("pop rax")
+        t0 == "sayı" -> eğer {
+            yaz("mov rcx, rax")
+            yaz("neg rax")
+            yaz("cmovl rax, rcx")
+        } değilse { yaz("btr rax, 63") }
+        t0 -> döndür
+    }
+    asıl == "karekök" veya asıl == "sin" veya asıl == "cos" veya asıl == "atan2" -> eğer {
+        1 -> beklenen_sayı
+        "sayı ya da ondalık" -> açıklama
+        asıl == "atan2" -> eğer {
+            2 -> beklenen_sayı
+            "y, x" -> açıklama
+        }
+        n != beklenen_sayı -> eğer { yanlış_argüman(ad, açıklama, türler, d) }
+        türler -> her (t) { t != "sayı" ve t != "ondalık" -> eğer { yanlış_argüman(ad, açıklama, türler, d) } }
+        n == 2 -> eğer {
+            yaz("pop rsi")
+            t1 == "sayı" -> eğer {
+                yaz("cvtsi2sd xmm0, rsi")
+                yaz("movq rsi, xmm0")
+            }
+        }
+        yaz("pop rdi")
+        t0 == "sayı" -> eğer {
+            yaz("cvtsi2sd xmm0, rdi")
+            yaz("movq rdi, xmm0")
+        }
+        asıl == "karekök" -> eğer {
+            yaz("movq xmm0, rdi")
+            yaz("sqrtsd xmm0, xmm0")
+            yaz("movq rax, xmm0")
+        } değilse { yaz("call __ondalik_" + asıl) }
+        "ondalık" -> döndür
+    }
+    asıl == "pi" -> eğer {
+        n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
+        yaz("movabs rax, 0x400921FB54442D18")
+        "ondalık" -> döndür
     }
     asıl == "ekle" -> eğer {
         n != 2 veya değil ilk_liste -> eğer { yanlış_argüman(ad, "liste, eleman", türler, d) }
@@ -1643,6 +1733,14 @@ işlev ifade_iç(e) {
         yaz("mov rax, " + metne(e.sayı))
         "sayı" -> döndür
     }
+    e.tür == "ondalık" -> eğer {
+        değil var(k_ondalık_no, e.ad) -> eğer {
+            uzunluk(k_ondalıklar) -> k_ondalık_no[e.ad]
+            k_ondalıklar -> ekle(e.ad)
+        }
+        yaz("mov rax, [rip+d" + metne(k_ondalık_no[e.ad]) + "]")
+        "ondalık" -> döndür
+    }
     e.tür == "metin" -> eğer {
         yaz("lea rax, [rip+" + metin_etiketi(e.ad) + "]")
         "metin" -> döndür
@@ -1753,7 +1851,12 @@ işlev ifade_iç(e) {
         eleman_türü(kap) -> döndür
     }
     e.tür == "tekli" -> eğer {
-        sayı_olmalı(ifade_üret(e.çocuklar[0]), "'" + e.ad + "' işlecinin işleneni", e)
+        ifade_üret(e.çocuklar[0]) -> işlenen
+        işlenen == "ondalık" ve e.ad == "-" -> eğer {
+            yaz("btc rax, 63")      # işaret biti
+            "ondalık" -> döndür
+        }
+        sayı_olmalı(işlenen, "'" + e.ad + "' işlecinin işleneni", e)
         e.ad == "-" -> eğer { yaz("neg rax") } değilse {
             yaz("test rax, rax")
             yaz("sete al")
@@ -1763,6 +1866,49 @@ işlev ifade_iç(e) {
     }
     e.tür == "ikili" -> eğer { ikili_üret(e) -> döndür }
     desteklenmiyor("'" + e.tür + "' ifadesi", e)
+}
+
+# rax ve rcx'teki işlenenlerden en az biri ondalık; sayı olan ondalığa çevrilir.
+işlev ondalık_ikili(iş, sol_türü, sağ_türü, e) {
+    sol_türü == "sayı" -> eğer { yaz("cvtsi2sd xmm0, rax") } değilse { yaz("movq xmm0, rax") }
+    sağ_türü == "sayı" -> eğer { yaz("cvtsi2sd xmm1, rcx") } değilse { yaz("movq xmm1, rcx") }
+    iş == "/" veya iş == "%" -> eğer {
+        sağ_türü == "sayı" -> eğer { yaz("test rcx, rcx") } değilse {
+            yaz("mov rdx, rcx")
+            yaz("btr rdx, 63")      # 0.0 da -0.0 da sıfırdır
+            yaz("test rdx, rdx")
+        }
+        komut("jz __sifira_bolme", e)
+    }
+    {"+": "addsd", "-": "subsd", "*": "mulsd", "/": "divsd"} -> komutlar
+    var(komutlar, iş) -> eğer {
+        yaz(komutlar[iş] + " xmm0, xmm1")
+        yaz("movq rax, xmm0")
+        "ondalık" -> döndür
+    }
+    iş == "%" -> eğer {
+        yaz("movq rdi, xmm0")
+        yaz("movq rsi, xmm1")
+        yaz("call __ondalik_kalan")
+        "ondalık" -> döndür
+    }
+    # Karşılaştırmalar: nan hiçbir şeye eşit, küçük ya da büyük değildir.
+    iş == "<" veya iş == "<=" -> eğer { yaz("ucomisd xmm1, xmm0") } değilse { yaz("ucomisd xmm0, xmm1") }
+    iş == "==" -> eğer {
+        yaz("sete al")
+        yaz("setnp cl")
+        yaz("and al, cl")
+    } değilse {
+        iş == "!=" -> eğer {
+            yaz("setne al")
+            yaz("setp cl")
+            yaz("or al, cl")
+        } değilse {
+            iş == "<" veya iş == ">" -> eğer { yaz("seta al") } değilse { yaz("setae al") }
+        }
+    }
+    yaz("movzx eax, al")
+    "sayı" -> döndür
 }
 
 işlev ikili_üret(e) {
@@ -1848,8 +1994,18 @@ işlev ikili_üret(e) {
         k_hata_i("listeye '+' ile eleman eklenemez", e, "eleman eklemek için:  liste -> ekle(eleman)")
     }
     iş == "+" ve (sol_türü == "metin" veya sağ_türü == "metin")
-        ve (sol_türü == "sayı" veya sağ_türü == "sayı") -> eğer {
+        ve (sol_türü == "sayı" veya sağ_türü == "sayı" veya sol_türü == "ondalık" veya sağ_türü == "ondalık") -> eğer {
         k_hata_i("metin ile sayı doğrudan toplanamaz", e, "sayıyı önce metne çevirin:  \"a\" + metne(5)")
+    }
+    sol_türü == "ondalık" veya sağ_türü == "ondalık" -> eğer {
+        # Türü bilinmeyen işlenen ondalıktır; sayı ile ondalık karışırsa sayı ondalığa çevrilir.
+        bilinmeyen_mi(sol_türü) ve değil yok_mu(sol_türü) -> eğer { "ondalık" -> k_bağ[sol_türü] }
+        bilinmeyen_mi(sağ_türü) ve değil yok_mu(sağ_türü) -> eğer { "ondalık" -> k_bağ[sağ_türü] }
+        çöz(sol_türü) -> sol_türü
+        çöz(sağ_türü) -> sağ_türü
+        (sol_türü == "sayı" veya sol_türü == "ondalık") ve (sağ_türü == "sayı" veya sağ_türü == "ondalık") -> eğer {
+            ondalık_ikili(iş, sol_türü, sağ_türü, e) -> döndür
+        }
     }
     sayı_olmalı(sol_türü, "'" + iş + "' işlecinin sol tarafı", e)
     sayı_olmalı(sağ_türü, "'" + iş + "' işlecinin sağ tarafı", e)
@@ -1987,6 +2143,15 @@ işlev üret(kök, çalışma_zamanı) {
         satırlar -> ekle("    .section .rodata")
         satırlar -> ekle("    .balign 8")
         satırlar + k_tür_tanımları -> satırlar
+    }
+    uzunluk(k_ondalıklar) > 0 -> eğer {
+        satırlar -> ekle("    .section .rodata")
+        satırlar -> ekle("    .balign 8")
+        0 -> i
+        k_ondalıklar -> her (yazım) {
+            satırlar -> ekle("d" + metne(i) + ": .double " + yazım)
+            i + 1 -> i
+        }
     }
     birleş(satırlar, "\n") + "\n" -> döndür
 }

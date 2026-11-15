@@ -1,0 +1,53 @@
+# Ondalık sayılar: 64 bitlik IEEE 754 kayan noktalı sayılar.
+#
+# Yazımı noktalıdır (3.14, 0.5, 2.0). Sayı ile ondalık karıştığında sayı ondalığa çevrilir;
+# sonuç ondalıktır. Ekrana en çok 15 anlamlı basamakla yazılır.
+
+3.14 -> pi_yaklaşık
+pi_yaklaşık * 2 -> yazdır            # 6.28
+1 / 3.0 -> yazdır                    # 0.333333333333333
+7 / 2 -> yazdır                      # 3: iki sayının bölümü yine sayıdır
+7 / 2.0 -> yazdır                    # 3.5
+0.1 + 0.2 -> yazdır                  # 0.3
+-2.5 * 4 -> yazdır                   # -10.0
+7.5 % 2 -> yazdır                    # 1.5
+[1.5, 1000000.0, 0.0001, 0.00001, 12345678901234567.0] -> yazdır
+
+# Karşılaştırmalar sayı (1 / 0) verir
+2 < 2.5 -> yazdır
+0.5 + 0.25 == 0.75 -> yazdır
+
+# Çevirmeler
+ondalığa(5) -> yazdır                # 5.0
+ondalığa("-12.75") -> yazdır
+ondalığa("1.5e3") -> yazdır          # metinden okurken üslü yazım da olur
+sayıya(-3.9) -> yazdır               # -3: sıfıra doğru kesilir
+[yuvarla(2.5), yuvarla(-2.5), yuvarla(2.4)] -> yazdır    # yarımlar sıfırdan uzağa
+[taban(-1.5), tavan(-1.5), taban(3.7), tavan(3.2)] -> yazdır
+"sonuç: " + metne(1.25) -> yazdır
+
+# Matematik
+karekök(2) -> yazdır
+mutlak(-4.5) -> yazdır
+mutlak(-4) -> yazdır
+pi() -> yazdır
+sin(pi() / 6) -> yazdır
+cos(0) -> yazdır
+atan2(1, 1) * 4 -> yazdır
+
+# Fizik: yerçekimiyle düşen bir top, her karede 0.1 saniye
+kayıt Top { y: ondalık, hız: ondalık }
+Top(100.0, 0.0) -> top
+0 -> kare
+top.y > 0 -> iken {
+    top.hız - 9.81 * 0.1 -> top.hız
+    top.y + top.hız * 0.1 -> top.y
+    kare + 1 -> kare
+}
+"top " + metne(kare) + " karede yere düştü; hızı " + metne(yuvarla(top.hız)) + " m/sn" -> yazdır
+
+# Ortalama
+[3, 4, 4, 5] -> notlar
+0 -> toplam
+notlar -> her (n) { toplam + n -> toplam }
+ondalığa(toplam) / uzunluk(notlar) -> yazdır     # 4.0

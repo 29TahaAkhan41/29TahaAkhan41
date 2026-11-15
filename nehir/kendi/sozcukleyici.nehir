@@ -43,7 +43,7 @@ kullan "veri.nehir"
 # Nehir'de kayıt (struct) olmadığı için sözcükler koşut listelerde tutulur:
 # i. sözcüğün türü s_tür[i], değeri s_değer[i], ...
 
-[] -> s_tür         # "SAYI", "METİN", "AD", "ANAHTAR", "İŞLEÇ", "SON"
+[] -> s_tür         # "SAYI", "ONDALIK", "METİN", "AD", "ANAHTAR", "İŞLEÇ", "SON"
 [] -> s_değer       # metin olarak; sayılar için onluk yazımı
 [] -> s_yazım       # kaynakta yazıldığı hâli (hata mesajları için)
 [] -> s_satır
@@ -371,6 +371,18 @@ işlev sözcükle(kaynak) {
             j < n ve (rakam_mı(kr[j]) veya kr[j] == "_") -> iken {
                 kr[j] != "_" -> eğer { rakamlar + kr[j] -> rakamlar }
                 j + 1 -> j
+            }
+            j + 1 < n ve kr[j] == "." ve rakam_mı(kr[j + 1]) -> eğer {
+                # Ondalık sayı: yazıldığı gibi saklanır, ikili değerine çeviriyi derleyici yapar
+                rakamlar + "." -> rakamlar
+                j + 1 -> j
+                j < n ve (rakam_mı(kr[j]) veya kr[j] == "_") -> iken {
+                    kr[j] != "_" -> eğer { rakamlar + kr[j] -> rakamlar }
+                    j + 1 -> j
+                }
+                sözcük_ekle("ONDALIK", rakamlar, i, j)
+                j -> i
+                devam
             }
             rakamlar -> sayı_değeri -> değer
             değer == "" -> eğer { hata("sayı çok büyük; en fazla 9223372036854775807 olabilir", i, j, "") }

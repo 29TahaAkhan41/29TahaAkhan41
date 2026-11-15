@@ -236,7 +236,7 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `böl(m, ayraç)` | `split` | metni ayraçtan böler, metin listesi verir |
 | `birleş(l, ayraç)` | `join` | metin listesinin elemanlarını araya ayraç koyarak tek metin yapar |
 | `metne(n)` | `str` | sayıyı metne çevirir |
-| `sayıya(m)` | `num` | metni sayıya çevirir; metin geçerli bir tam sayı değilse program hatayla durur |
+| `sayıya(m)` | `num` | metni sayıya çevirir; metin geçerli bir tam sayı değilse program hatayla durur. Ondalığı sıfıra doğru keser |
 | `oku()` | `read` | standart girdiden bir satır okur (satır sonu olmadan; `\n` ya da `\r\n`); girdi bittiyse `""` verir |
 | `oku(istem)` | `read` | önce `istem` metnini satır sonu eklemeden yazar, sonra bir satır okur |
 | `girdi_var()` | `has_input` | okunacak girdi kaldıysa 1, bittiyse 0 verir |
@@ -263,10 +263,33 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `göster(m)` | `show` | metni satır sonu eklemeden yazar |
 | `uçbirim_boyutu()` | `terminal_size` | `[genişlik, yükseklik]`; çıktı bir uçbirim değilse `[80, 24]` |
 | `çöp_topla()` | `collect_garbage` | çöp toplayıcıyı hemen çalıştırır; toplamadan sağ çıkan bayt sayısını verir |
+| `ondalığa(x)` | `float` | sayıyı ya da metni (`"-12.5"`, `"1.5e3"`) ondalığa çevirir |
+| `yuvarla(x)` | `round` | en yakın tam sayı; yarımlar sıfırdan uzağa (`2.5` → `3`, `-2.5` → `-3`) |
+| `taban(x)`, `tavan(x)` | `floor`, `ceil` | aşağı / yukarı yuvarlanmış tam sayı |
+| `karekök(x)` | `sqrt` | karekök (ondalık) |
+| `mutlak(x)` | `abs` | mutlak değer; sayıysa sayı, ondalıksa ondalık |
+| `sin(x)`, `cos(x)` | | radyan cinsinden açının sinüsü ve kosinüsü |
+| `atan2(y, x)` | | `(x, y)` noktasının açısı (radyan, `-pi()` ile `pi()` arası) |
+| `pi()` | | π |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
 `program.nehir:3: çalışma hatası: dosya bulunamadı: yok.txt`. Önce `dosya_var` ile sorulabilir.
+
+**Ondalık sayılar** 64 bitlik IEEE 754 sayılarıdır ve noktayla yazılır: `3.14`, `0.5`, `2.0`.
+Sayı ile ondalık bir işlemde karışırsa sayı ondalığa çevrilir ve sonuç ondalık olur (`7 / 2` = `3`,
+`7 / 2.0` = `3.5`). Ekrana en çok 15 anlamlı basamakla yazılır (`0.1 + 0.2` → `0.3`, `1e+16`).
+Bir değişkenin türü değişmediği için ondalık olacak değişken ondalıkla başlamalıdır: `0.0 -> hız`.
+Ondalıkta da sıfıra bölmek çalışma hatasıdır; kayıt alanlarının türü `ondalık` diye yazılır.
+
+```nehir
+kayıt Top { y: ondalık, hız: ondalık }
+Top(100.0, 0.0) -> top
+top.y > 0 -> iken {
+    top.hız - 9.81 * 0.1 -> top.hız
+    top.y + top.hız * 0.1 -> top.y
+}
+```
 
 **Bellek** kendiliğinden yönetilir: artık ulaşılamayan metinler, listeler, sözlükler ve kayıtları
 bir çöp toplayıcı geri kazanır. Bu yüzden her karede yeni metinler üreten bir oyun döngüsü ya da
@@ -367,7 +390,7 @@ p -> uzaklık_karesi(BAŞLANGIÇ) -> yazdır
 - `kullan` yalnızca dosyanın en üst düzeyinde yazılabilir.
 - Derleme ve çalışma zamanı hataları, hatanın bulunduğu dosyayı ve satırı gösterir.
 
-**Türler:** 64 bit tam sayılar, metinler, listeler, sözlükler ve kayıtlar. Bir listenin bütün elemanları aynı türdendir:
+**Türler:** 64 bit tam sayılar, ondalık sayılar, metinler, listeler, sözlükler ve kayıtlar. Bir listenin bütün elemanları aynı türdendir:
 sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listenin (`[]`) türü,
 içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
 çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır. Birbirini çağıran işlevlerin dönüş türleri de çıkarılır.
@@ -536,7 +559,7 @@ değilse bu aşama atlanır.
 - Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken adı olamaz (işlev, kayıt ve parametre adı olabilir)
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Program aynı anda en çok 256 MB canlı liste, metin, sözlük ve kayıt tutabilir
-- Ondalıklı sayı yok
+- Kaynakta ondalık sayılar üslü yazılamaz (`1.5e3` yerine `1500.0`; `ondalığa("1.5e3")` olur)
 - Modüllerin kendi ad alanı yok; adların çakışmaması programcıya kalır
 - Kayıtlar kurulurken değerler yalnızca sırayla verilir (`Nokta(x: 3, y: 4)` yazılamaz); kayıtların yöntemi yok
 - `yok` yalnızca kayıtlar içindir; "sayı yok" ya da "metin yok" diye bir değer yok

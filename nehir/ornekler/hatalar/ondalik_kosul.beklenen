@@ -1,0 +1,3 @@
+ornekler/hatalar/ondalik_kosul.nehir:2:8: hata: 'eğer' koşulu sayı olmalı, ondalık bulundu
+    2 | 0.5 -> eğer { "evet" -> yazdır }
+      |        ^^^^

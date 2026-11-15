@@ -107,6 +107,14 @@ YERLEŞİKLER = {
     "uçbirim_boyutu": "uçbirim_boyutu", "ucbirim_boyutu": "uçbirim_boyutu",
     "terminal_size": "uçbirim_boyutu",
     "çöp_topla": "çöp_topla", "cop_topla": "çöp_topla", "collect_garbage": "çöp_topla",
+    "ondalığa": "ondalığa", "ondaliga": "ondalığa", "float": "ondalığa",
+    "yuvarla": "yuvarla", "round": "yuvarla",
+    "taban": "taban", "floor": "taban",
+    "tavan": "tavan", "ceil": "tavan",
+    "karekök": "karekök", "karekok": "karekök", "sqrt": "karekök",
+    "mutlak": "mutlak", "abs": "mutlak",
+    "sin": "sin", "cos": "cos", "atan2": "atan2",
+    "pi": "pi",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -167,6 +175,14 @@ def sözcükle(kaynak, dosya=0):
             j = i
             while j < n and (kaynak[j] in "0123456789" or kaynak[j] == "_"):
                 j += 1
+            if j + 1 < n and kaynak[j] == "." and kaynak[j + 1] in "0123456789":
+                # Ondalık sayı: yazıldığı gibi saklanır, ikili değerine çeviriyi derleyici yapar
+                j += 1
+                while j < n and (kaynak[j] in "0123456789" or kaynak[j] == "_"):
+                    j += 1
+                ekle("ONDALIK", kaynak[i:j].replace("_", ""), i, j)
+                i = j
+                continue
             değer = int(kaynak[i:j].replace("_", ""))
             if değer >= 2 ** 63:
                 raise NehirHatası("sayı çok büyük; en fazla 9223372036854775807 olabilir", konum(i, j))
@@ -522,6 +538,8 @@ class Ayrıştırıcı:
         s = self.şimdiki
         if self.al("SAYI"):
             return ("sayı", s.değer, s.satır)
+        if self.al("ONDALIK"):
+            return ("ondalık", s.değer, s.satır)
         if self.al("METİN"):
             return ("metin", s.değer, s.satır)
         if self.al("ANAHTAR", "doğru"):
@@ -765,7 +783,8 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__metin_dilim", "__liste_dilim", "__liste_birlestir", "__liste_sil",
     "__metin_bol", "__liste_birles", "__metin_baytlar", "__karakter", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
     "__sozluk_sil", "__sozluk_liste", "__dosya_oku", "__dosya_yaz", "__dosya_sil",
-    "__argumanlar", "__metin_karakter", "__rastgele", "__tus", "__ucbirim_boyutu")}
+    "__argumanlar", "__metin_karakter", "__rastgele", "__tus", "__ucbirim_boyutu",
+    "__ondalik_metin", "__metinden_ondalik")}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -823,6 +842,7 @@ class KodÜretici:
         self.ortaklar = set()     # işlevlerin de atayabildiği (`ortak` ile tanımlanmış) küreseller
         self.okunan_küreseller = {}   # derlenen işlevde okunan küreseller: ad -> ilk okunduğu yer
         self.metinler = []        # bayt dizileri
+        self.ondalıklar = []      # ondalık sayıların yazımları (assembler ikiliye çevirir)
         self.tür_etiketleri = {}  # yapısal tür anahtarı -> tanımın etiketi
         self.tür_tanımları = []   # rodata satırları
         self.etiket_no = 0
@@ -926,10 +946,12 @@ class KodÜretici:
             return "sayı"
         if ad in ("metin", "text"):
             return "metin"
+        if ad in ("ondalık", "ondalik", "float"):
+            return "ondalık"
         if ad in self.kayıtlar:
             return self.kayıtlar[ad]
         raise NehirHatası(f"'{ad}' adında bir tür yok", t[-1],
-                          benzerler(ad, ["sayı", "metin"] + list(self.kayıtlar)))
+                          benzerler(ad, ["sayı", "metin", "ondalık"] + list(self.kayıtlar)))
 
     def metin_etiketi(self, metin):
         veri = metin.encode("utf-8")
@@ -1021,6 +1043,9 @@ class KodÜretici:
         son.append("__kokler_son:")
         if self.tür_tanımları:
             son += ["    .section .rodata", "    .balign 8"] + self.tür_tanımları
+        if self.ondalıklar:
+            son += ["    .section .rodata", "    .balign 8"]
+            son += [f"d{i}: .double {yazım}" for i, yazım in enumerate(self.ondalıklar)]
         return "\n".join(baş + kod + son) + "\n"
 
     def dönüşleri_denetle(self):
@@ -1066,7 +1091,7 @@ class KodÜretici:
             alt = [self.tür_etiketi(p) for p in tür.parametreler()]
             anahtar = (2 if isinstance(tür, Liste) else 3, *alt)
         else:
-            anahtar = (1 if tür == "metin" else 0,)
+            anahtar = ({"metin": 1, "ondalık": 6}.get(tür, 0),)
         if anahtar not in self.tür_etiketleri:
             self.tür_etiketleri[anahtar] = f"t{len(self.tür_etiketleri)}"
             alanlar = [str(a) for a in anahtar] + ["0"] * (3 - len(anahtar))
@@ -1442,6 +1467,9 @@ class KodÜretici:
         if kayıt[1] is None:
             kayıt[1], kayıt[2] = tür, satır
         elif not birleştir(kayıt[1], tür):
+            if çöz(kayıt[1]) == "sayı" and tür == "ondalık":
+                raise NehirHatası(f"'{ad}' değişkeni {kayıt[1]} türünde; {tür} atanamaz", satır,
+                                  "değişken ondalık olacaksa ilk değerini de ondalık yazın:  0.0")
             raise NehirHatası(f"'{ad}' değişkeni {kayıt[1]} türünde; {tür} atanamaz", satır)
         self.yaz(f"mov {adres}, rax")
 
@@ -1636,23 +1664,85 @@ class KodÜretici:
             self.yaz("call __goster")
             return "metin"
         if asıl == "metne":
-            if türler not in (["sayı"], ["metin"]):
+            if türler not in (["sayı"], ["metin"], ["ondalık"]):
                 yanlış("sayı")
             if türler[0] == "sayı":
                 self.yaz("pop rdi")
                 self.yaz("call __sayidan_metin")
+            elif türler[0] == "ondalık":
+                self.yaz("pop rdi")
+                self.yaz("call __ondalik_metin")
             else:
                 self.yaz("pop rax")
             return "metin"
         if asıl == "sayıya":
-            if türler not in (["sayı"], ["metin"]):
+            if türler not in (["sayı"], ["metin"], ["ondalık"]):
                 yanlış("metin")
             if türler[0] == "metin":
                 self.yaz("pop rdi")
                 self.yaz("call __metinden_sayi")
+            elif türler[0] == "ondalık":
+                self.yaz("pop rax")             # sıfıra doğru kesilir
+                self.yaz("movq xmm0, rax")
+                self.yaz("cvttsd2si rax, xmm0")
             else:
                 self.yaz("pop rax")
             return "sayı"
+        if asıl == "ondalığa":
+            if türler not in (["sayı"], ["metin"], ["ondalık"]):
+                yanlış("sayı ya da metin")
+            if türler[0] == "metin":
+                self.yaz("pop rdi")
+                self.yaz("call __metinden_ondalik")
+            else:
+                self.yaz("pop rax")
+                if türler[0] == "sayı":
+                    self.yaz("cvtsi2sd xmm0, rax")
+                    self.yaz("movq rax, xmm0")
+            return "ondalık"
+        if asıl in ("yuvarla", "taban", "tavan"):
+            if türler not in (["sayı"], ["ondalık"]):
+                yanlış("ondalık")
+            if türler[0] == "sayı":
+                self.yaz("pop rax")
+            else:
+                self.yaz("pop rdi")
+                self.yaz(f"mov esi, {['yuvarla', 'taban', 'tavan'].index(asıl)}")
+                self.yaz("call __ondalik_yuvarla")
+            return "sayı"
+        if asıl == "mutlak":
+            if türler not in (["sayı"], ["ondalık"]):
+                yanlış("sayı ya da ondalık")
+            self.yaz("pop rax")
+            if türler[0] == "sayı":
+                self.yaz("mov rcx, rax")
+                self.yaz("neg rax")
+                self.yaz("cmovl rax, rcx")
+            else:
+                self.yaz("btr rax, 63")
+            return türler[0]
+        if asıl in ("karekök", "sin", "cos", "atan2"):
+            sayısı = 2 if asıl == "atan2" else 1
+            if len(türler) != sayısı or any(t not in ("sayı", "ondalık") for t in türler):
+                yanlış("y, x" if asıl == "atan2" else "sayı ya da ondalık")
+            yazmaçlar = ["rdi", "rsi"][:sayısı]
+            for yazmaç, tür in reversed(list(zip(yazmaçlar, türler))):
+                self.yaz(f"pop {yazmaç}")
+                if tür == "sayı":
+                    self.yaz(f"cvtsi2sd xmm0, {yazmaç}")
+                    self.yaz(f"movq {yazmaç}, xmm0")
+            if asıl == "karekök":
+                self.yaz("movq xmm0, rdi")
+                self.yaz("sqrtsd xmm0, xmm0")
+                self.yaz("movq rax, xmm0")
+            else:
+                self.yaz(f"call __ondalik_{asıl}")
+            return "ondalık"
+        if asıl == "pi":
+            if türler:
+                yanlış("argümansız")
+            self.yaz("movabs rax, 0x400921FB54442D18")
+            return "ondalık"
         if asıl == "ekle":
             if len(türler) != 2 or not ilk_liste:
                 yanlış("liste, eleman")
@@ -1740,6 +1830,11 @@ class KodÜretici:
         if tip == "sayı":
             self.yaz(f"mov rax, {e[1]}")
             return "sayı"
+        if tip == "ondalık":
+            if e[1] not in self.ondalıklar:
+                self.ondalıklar.append(e[1])
+            self.yaz(f"mov rax, [rip+d{self.ondalıklar.index(e[1])}]")
+            return "ondalık"
         if tip == "metin":
             veri = e[1].encode("utf-8")
             if veri not in self.metinler:
@@ -1831,7 +1926,11 @@ class KodÜretici:
             self.yaz("pop rax")
             return tür
         if tip == "tekli":
-            self.sayı_olmalı(self.ifade(e[2]), f"'{e[1]}' işlecinin işleneni", satır)
+            işlenen = self.ifade(e[2])
+            if işlenen == "ondalık" and e[1] == "-":
+                self.yaz("btc rax, 63")     # işaret biti
+                return "ondalık"
+            self.sayı_olmalı(işlenen, f"'{e[1]}' işlecinin işleneni", satır)
             if e[1] == "-":
                 self.yaz("neg rax")
             else:
@@ -1840,6 +1939,42 @@ class KodÜretici:
                 self.yaz("movzx eax, al")
             return "sayı"
         return self.ikili(e)
+
+    def ondalık_ikili(self, iş, sol_türü, sağ_türü):
+        """rax ve rcx'teki işlenenlerden en az biri ondalık; sayı olan ondalığa çevrilir."""
+        self.yaz("cvtsi2sd xmm0, rax" if sol_türü == "sayı" else "movq xmm0, rax")
+        self.yaz("cvtsi2sd xmm1, rcx" if sağ_türü == "sayı" else "movq xmm1, rcx")
+        if iş in ("/", "%"):
+            if sağ_türü == "sayı":
+                self.yaz("test rcx, rcx")
+            else:
+                self.yaz("mov rdx, rcx")
+                self.yaz("btr rdx, 63")         # 0.0 da -0.0 da sıfırdır
+                self.yaz("test rdx, rdx")
+            self.yaz("jz __sifira_bolme")
+        if iş in ("+", "-", "*", "/"):
+            self.yaz({"+": "addsd", "-": "subsd", "*": "mulsd", "/": "divsd"}[iş] + " xmm0, xmm1")
+            self.yaz("movq rax, xmm0")
+            return "ondalık"
+        if iş == "%":
+            self.yaz("movq rdi, xmm0")
+            self.yaz("movq rsi, xmm1")
+            self.yaz("call __ondalik_kalan")
+            return "ondalık"
+        # Karşılaştırmalar: nan hiçbir şeye eşit, küçük ya da büyük değildir.
+        self.yaz("ucomisd xmm1, xmm0" if iş in ("<", "<=") else "ucomisd xmm0, xmm1")
+        if iş == "==":
+            self.yaz("sete al")
+            self.yaz("setnp cl")
+            self.yaz("and al, cl")
+        elif iş == "!=":
+            self.yaz("setne al")
+            self.yaz("setp cl")
+            self.yaz("or al, cl")
+        else:
+            self.yaz(("seta" if iş in ("<", ">") else "setae") + " al")
+        self.yaz("movzx eax, al")
+        return "sayı"
 
     def ikili(self, e):
         _, iş, sol, sağ, satır = e
@@ -1911,9 +2046,18 @@ class KodÜretici:
         if isinstance(sol_türü, Liste) and iş == "+":
             raise NehirHatası(f"listeye '+' ile eleman eklenemez", satır,
                               "eleman eklemek için:  liste -> ekle(eleman)")
-        if "metin" in (sol_türü, sağ_türü) and "sayı" in (sol_türü, sağ_türü) and iş == "+":
+        if "metin" in (sol_türü, sağ_türü) and iş == "+" \
+                and ("sayı" in (sol_türü, sağ_türü) or "ondalık" in (sol_türü, sağ_türü)):
             raise NehirHatası("metin ile sayı doğrudan toplanamaz", satır,
                               "sayıyı önce metne çevirin:  \"a\" + metne(5)")
+        if "ondalık" in (sol_türü, sağ_türü):
+            # Türü bilinmeyen işlenen ondalıktır; sayı ile ondalık karışırsa sayı ondalığa çevrilir.
+            for t in (sol_türü, sağ_türü):
+                if isinstance(t, TürDeğişkeni) and not t.yalnız_kayıt:
+                    t.bağ = "ondalık"
+            sol_türü, sağ_türü = çöz(sol_türü), çöz(sağ_türü)
+            if sol_türü in ("sayı", "ondalık") and sağ_türü in ("sayı", "ondalık"):
+                return self.ondalık_ikili(iş, sol_türü, sağ_türü)
         self.sayı_olmalı(sol_türü, f"'{iş}' işlecinin sol tarafı", satır)
         self.sayı_olmalı(sağ_türü, f"'{iş}' işlecinin sağ tarafı", satır)
         if iş == "+":
@@ -2009,7 +2153,7 @@ def ağaç_dökümü(kaynak):
         t, k = n[0], n[-1]
         if t == "sayı":
             return (t, "", n[1], [], k)
-        if t in ("metin", "değişken", "kullan"):
+        if t in ("metin", "ondalık", "değişken", "kullan"):
             return (t, n[1], 0, [], k)
         if t == "çağrı":
             return (t, n[1], 0, [ifade(a) for a in n[2]], k)

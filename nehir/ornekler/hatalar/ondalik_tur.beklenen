@@ -1,0 +1,4 @@
+ornekler/hatalar/ondalik_tur.nehir:3:14: hata: 'hız' değişkeni sayı türünde; ondalık atanamaz
+    3 | hız + 0.5 -> hız
+      |              ^^^
+      = ipucu: değişken ondalık olacaksa ilk değerini de ondalık yazın:  0.0

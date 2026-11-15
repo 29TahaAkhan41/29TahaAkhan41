@@ -1,0 +1,2 @@
+# Koşul bir sayı olmalı; ondalık doğrudan koşul olamaz.
+0.5 -> eğer { "evet" -> yazdır }
