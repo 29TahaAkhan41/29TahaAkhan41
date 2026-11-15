@@ -1,0 +1,3 @@
+ornekler/hatalar/bit_ondalik.nehir:2:1: hata: 'bit_ve' (sayı, sayı) bekliyor; (ondalık, sayı) verildi
+    2 | bit_ve(1.5, 1) -> yazdır
+      | ^^^^^^

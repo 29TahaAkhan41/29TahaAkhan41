@@ -279,14 +279,14 @@ işlev bildir(düzey, mesaj, dosya, satır, sütun, boy, ipucu) {
         uzunluk(kaynak_satırı) - uzunluk(önce) -> kalan
         boy > kalan -> eğer { kalan -> boy }
         boy < 1 -> eğer { 1 -> boy }
-        "" -> işaret
+        "" -> imleç_çizgisi
         0 -> i
         i < boy -> iken {
-            işaret + "^" -> işaret
+            imleç_çizgisi + "^" -> imleç_çizgisi
             i + 1 -> i
         }
         boya(sağa_yasla(metne(satır), 5) + " |", "34") + " " + kaynak_satırı -> uyar
-        "      " + boya("|", "34") + " " + boşluk + boya(işaret, düzey_rengi(düzey)) -> uyar
+        "      " + boya("|", "34") + " " + boşluk + boya(imleç_çizgisi, düzey_rengi(düzey)) -> uyar
     }
     ipucu != "" -> eğer { "      " + boya("=", "34") + " " + boya("ipucu:", "1") + " " + ipucu -> uyar }
 }
@@ -365,6 +365,39 @@ işlev sözcükle(kaynak) {
             devam
         }
 
+        c == "0" ve i + 1 < n ve (kr[i + 1] == "x" veya kr[i + 1] == "X" veya kr[i + 1] == "b" veya kr[i + 1] == "B") -> eğer {
+            # 0xFF, 0b1010
+            16 -> sayı_tabanı
+            "0123456789abcdefABCDEF" -> geçerli
+            "onaltılık" -> taban_adı
+            kr[i + 1] == "b" veya kr[i + 1] == "B" -> eğer {
+                2 -> sayı_tabanı
+                "01" -> geçerli
+                "ikili" -> taban_adı
+            }
+            i + 2 -> j
+            0 -> okunan_sayı
+            0 -> rakam_sayısı
+            yanlış -> taştı
+            j < n ve (bul(geçerli, kr[j]) >= 0 veya kr[j] == "_") -> iken {
+                kr[j] != "_" -> eğer {
+                    bul(geçerli, kr[j]) -> r
+                    r >= 16 -> eğer { r - 6 -> r }        # A-F, a-f ile aynı
+                    okunan_sayı > (9223372036854775807 - r) / sayı_tabanı -> eğer { doğru -> taştı } değilse {
+                        okunan_sayı * sayı_tabanı + r -> okunan_sayı
+                    }
+                    rakam_sayısı + 1 -> rakam_sayısı
+                }
+                j + 1 -> j
+            }
+            rakam_sayısı == 0 -> eğer {
+                hata("'" + kr[i] + kr[i + 1] + "' ardından " + taban_adı + " rakamlar gelmeli", i, j, "")
+            }
+            taştı -> eğer { hata("sayı çok büyük; en fazla 9223372036854775807 olabilir", i, j, "") }
+            sözcük_ekle("SAYI", metne(okunan_sayı), i, j)
+            j -> i
+            devam
+        }
         rakam_mı(c) -> eğer {
             i -> j
             "" -> rakamlar

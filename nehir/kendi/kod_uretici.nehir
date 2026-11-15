@@ -57,7 +57,17 @@ kullan "ayristirici.nehir"
     "ondalığa": "ondalığa", "ondaliga": "ondalığa", "float": "ondalığa", "yuvarla": "yuvarla",
     "round": "yuvarla", "taban": "taban", "floor": "taban", "tavan": "tavan", "ceil": "tavan",
     "karekök": "karekök", "karekok": "karekök", "sqrt": "karekök", "mutlak": "mutlak",
-    "abs": "mutlak", "sin": "sin", "cos": "cos", "atan2": "atan2", "pi": "pi"
+    "abs": "mutlak", "sin": "sin", "cos": "cos", "atan2": "atan2", "pi": "pi",
+    "bit_ve": "bit_ve", "bit_and": "bit_ve", "bit_veya": "bit_veya", "bit_or": "bit_veya",
+    "bit_yada": "bit_yada", "bit_xor": "bit_yada", "bit_değil": "bit_değil",
+    "bit_degil": "bit_değil", "bit_not": "bit_değil", "sola_kaydır": "sola_kaydır",
+    "sola_kaydir": "sola_kaydır", "shift_left": "sola_kaydır", "sağa_kaydır": "sağa_kaydır",
+    "saga_kaydir": "sağa_kaydır", "shift_right": "sağa_kaydır", "en_küçük": "en_küçük",
+    "en_kucuk": "en_küçük", "min": "en_küçük", "en_büyük": "en_büyük", "en_buyuk": "en_büyük",
+    "max": "en_büyük", "sınırla": "sınırla", "sinirla": "sınırla", "clamp": "sınırla",
+    "işaret": "işaret", "isaret": "işaret", "sign": "işaret", "üs": "üs", "us": "üs",
+    "pow": "üs", "tan": "tan", "atan": "atan", "asin": "asin", "acos": "acos",
+    "üstel": "üstel", "ustel": "üstel", "exp": "üstel", "ln": "ln", "log": "ln"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -73,7 +83,8 @@ kullan "ayristirici.nehir"
     "call __sozluk_koy": 1, "call __sozluk_liste": 1, "call __sozluk_sil": 1,
     "call __sozluk_yeni": 1, "jz __sifira_bolme": 1, "jz __yok_hatasi": 1,
     "call __rastgele": 1, "call __tus": 1, "call __ucbirim_boyutu": 1,
-    "call __ondalik_metin": 1, "call __metinden_ondalik": 1
+    "call __ondalik_metin": 1, "call __metinden_ondalik": 1, "call __us_sayi": 1,
+    "call __liste_en": 1
 } -> RİSKLİ
 
 {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"} -> KARŞILAŞTIRMA
@@ -1314,6 +1325,115 @@ işlev yerleşik_çağır(ad, türler, d) {
             yaz("sqrtsd xmm0, xmm0")
             yaz("movq rax, xmm0")
         } değilse { yaz("call __ondalik_" + asıl) }
+        "ondalık" -> döndür
+    }
+    asıl == "bit_ve" veya asıl == "bit_veya" veya asıl == "bit_yada" veya asıl == "sola_kaydır"
+        veya asıl == "sağa_kaydır" -> eğer {
+        n != 2 veya t0 != "sayı" veya t1 != "sayı" -> eğer { yanlış_argüman(ad, "sayı, sayı", türler, d) }
+        yaz("pop rcx")
+        yaz("pop rax")
+        yaz({"bit_ve": "and rax, rcx", "bit_veya": "or rax, rcx", "bit_yada": "xor rax, rcx",
+             "sola_kaydır": "shl rax, cl", "sağa_kaydır": "sar rax, cl"}[asıl])
+        "sayı" -> döndür
+    }
+    asıl == "bit_değil" -> eğer {
+        n != 1 veya t0 != "sayı" -> eğer { yanlış_argüman(ad, "sayı", türler, d) }
+        yaz("pop rax")
+        yaz("not rax")
+        "sayı" -> döndür
+    }
+    "" -> liste_elemanı
+    n == 1 ve liste_mi(t0) -> eğer { çöz(eleman_türü(t0)) -> liste_elemanı }
+    (asıl == "en_küçük" veya asıl == "en_büyük") ve (liste_elemanı == "sayı" veya liste_elemanı == "ondalık") -> eğer {
+        0 -> kip
+        asıl == "en_büyük" -> eğer { 1 -> kip }
+        liste_elemanı == "ondalık" -> eğer { kip + 2 -> kip }
+        yaz("pop rdi")
+        yaz("mov esi, " + metne(kip))
+        komut("call __liste_en", d)
+        liste_elemanı -> döndür
+    }
+    asıl == "en_küçük" veya asıl == "en_büyük" veya asıl == "sınırla" veya asıl == "üs" -> eğer {
+        2 -> beklenen_sayı
+        "iki sayı ya da bir sayı listesi" -> açıklama
+        asıl == "sınırla" -> eğer {
+            3 -> beklenen_sayı
+            "değer, alt sınır, üst sınır" -> açıklama
+        }
+        asıl == "üs" -> eğer { "taban, üs" -> açıklama }
+        n != beklenen_sayı -> eğer { yanlış_argüman(ad, açıklama, türler, d) }
+        0 -> ondalık_sayısı
+        türler -> her (t) {
+            t != "sayı" ve t != "ondalık" -> eğer { yanlış_argüman(ad, açıklama, türler, d) }
+            t == "ondalık" -> eğer { ondalık_sayısı + 1 -> ondalık_sayısı }
+        }
+        ["rax", "rcx", "rdx"] -> yazmaçlar
+        asıl == "üs" -> eğer { ["rdi", "rsi"] -> yazmaçlar }
+        n - 1 -> i
+        i >= 0 -> iken {
+            yaz("pop " + yazmaçlar[i])
+            i - 1 -> i
+        }
+        ondalık_sayısı == 0 -> eğer {
+            asıl == "üs" -> eğer { komut("call __us_sayi", d) } değilse {
+                yaz("cmp rax, rcx")
+                {"en_küçük": "cmovg rax, rcx", "en_büyük": "cmovl rax, rcx", "sınırla": "cmovl rax, rcx"} -> seçim
+                yaz(seçim[asıl])
+                asıl == "sınırla" -> eğer {
+                    yaz("cmp rax, rdx")
+                    yaz("cmovg rax, rdx")
+                }
+            }
+            "sayı" -> döndür
+        }
+        0 -> i
+        i < n -> iken {
+            türler[i] == "sayı" -> eğer { yaz("cvtsi2sd xmm" + metne(i) + ", " + yazmaçlar[i]) }
+            değilse { yaz("movq xmm" + metne(i) + ", " + yazmaçlar[i]) }
+            i + 1 -> i
+        }
+        asıl == "üs" -> eğer {
+            yaz("movq rdi, xmm0")
+            yaz("movq rsi, xmm1")
+            yaz("call __ondalik_us")
+            "ondalık" -> döndür
+        }
+        asıl == "en_küçük" -> eğer { yaz("minsd xmm0, xmm1") } değilse { yaz("maxsd xmm0, xmm1") }
+        asıl == "sınırla" -> eğer { yaz("minsd xmm0, xmm2") }
+        yaz("movq rax, xmm0")
+        "ondalık" -> döndür
+    }
+    asıl == "işaret" -> eğer {
+        n != 1 veya (t0 != "sayı" ve t0 != "ondalık") -> eğer { yanlış_argüman(ad, "sayı ya da ondalık", türler, d) }
+        yaz("pop rax")
+        t0 == "sayı" -> eğer {
+            yaz("xor ecx, ecx")
+            yaz("test rax, rax")
+            yaz("setg cl")
+            yaz("sar rax, 63")
+            yaz("or rax, rcx")
+        } değilse {
+            yaz("movq xmm0, rax")
+            yaz("xorpd xmm1, xmm1")
+            yaz("ucomisd xmm0, xmm1")
+            yaz("seta al")
+            yaz("setb cl")
+            yaz("movzx eax, al")
+            yaz("movzx ecx, cl")
+            yaz("sub rax, rcx")
+        }
+        "sayı" -> döndür
+    }
+    ["tan", "atan", "üstel", "ln", "asin", "acos"] -> işlev_adları
+    bul(işlev_adları, asıl) >= 0 -> eğer {
+        n != 1 veya (t0 != "sayı" ve t0 != "ondalık") -> eğer { yanlış_argüman(ad, "sayı ya da ondalık", türler, d) }
+        yaz("pop rdi")
+        t0 == "sayı" -> eğer {
+            yaz("cvtsi2sd xmm0, rdi")
+            yaz("movq rdi, xmm0")
+        }
+        yaz("mov esi, " + metne(bul(işlev_adları, asıl)))
+        yaz("call __ondalik_fonk")
         "ondalık" -> döndür
     }
     asıl == "pi" -> eğer {

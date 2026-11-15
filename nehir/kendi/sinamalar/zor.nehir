@@ -1,7 +1,8 @@
 # Sözcükleyici için zor durumlar
 "kaçışlar: \n \t \r \" \\ son" -> yazdır
 1_000_000 + 007 - 0 -> x; x → y;;y->z
-9223372036854775807 -> en_büyük
+9223372036854775807 -> en_büyük_sayı
+0xff 0XAB_cd 0b1010 0B1 0x7FFF_FFFF_FFFF_FFFF 00 0.5 3.25_5 1.x 2.
 a<=b>=c==d!=e<f>g
 	sekmeyle	 başlayan   # yorum "tırnak" -> if
 [1,2]|{"a":1}(x)%

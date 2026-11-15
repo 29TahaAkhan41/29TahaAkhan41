@@ -1,0 +1,4 @@
+# Boş listenin en küçüğü yoktur.
+[3] -> l
+sil(l, 0)
+en_küçük(l) -> yazdır

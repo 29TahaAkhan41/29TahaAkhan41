@@ -1,0 +1,2 @@
+# Bit işlemleri yalnızca sayılarla yapılır.
+bit_ve(1.5, 1) -> yazdır

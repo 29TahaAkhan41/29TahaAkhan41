@@ -1,0 +1,3 @@
+2
+4
+ornekler/hatalar/us_negatif.nehir:2: çalışma hatası: tam sayının üssü negatif olamaz (ondalıkla deneyin: üs(2.0, -1))

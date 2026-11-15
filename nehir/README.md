@@ -271,10 +271,23 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `sin(x)`, `cos(x)` | | radyan cinsinden açının sinüsü ve kosinüsü |
 | `atan2(y, x)` | | `(x, y)` noktasının açısı (radyan, `-pi()` ile `pi()` arası) |
 | `pi()` | | π |
+| `tan(x)`, `asin(x)`, `acos(x)`, `atan(x)` | | tanjant ve ters trigonometri işlevleri (radyan) |
+| `üstel(x)`, `ln(x)` | `exp`, `log` | e üzeri x ve doğal logaritma |
+| `üs(a, b)` | `pow` | a üzeri b; ikisi de sayıysa sayı (b ≥ 0 olmalı), biri ondalıksa ondalık |
+| `en_küçük(a, b)`, `en_büyük(a, b)` | `min`, `max` | iki değerin küçüğü / büyüğü; bir sayı ya da ondalık listesi de verilebilir |
+| `sınırla(x, alt, üst)` | `clamp` | x'i `[alt, üst]` aralığına sığdırır |
+| `işaret(x)` | `sign` | x negatifse -1, sıfırsa 0, pozitifse 1 (sayı) |
+| `bit_ve(a, b)`, `bit_veya(a, b)`, `bit_yada(a, b)` | `bit_and`, `bit_or`, `bit_xor` | bit bit ve, veya, özel veya |
+| `bit_değil(a)` | `bit_not` | bütün bitleri çevirir |
+| `sola_kaydır(a, n)`, `sağa_kaydır(a, n)` | `shift_left`, `shift_right` | bitleri n (0–63) basamak kaydırır; sağa kaydırma işareti korur |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
 `program.nehir:3: çalışma hatası: dosya bulunamadı: yok.txt`. Önce `dosya_var` ile sorulabilir.
+
+**Sayı yazımları:** onaltılık `0xFF` ve ikili `0b1010` de yazılabilir; uzun sayılarda alt çizgi
+okumayı kolaylaştırır: `1_000_000`, `0x7FFF_FFFF`. Bit işlemleri işlev olarak yazılır (`|` çatal
+işleci olduğu için): `bit_veya(OYUNCU, DUVAR)`.
 
 **Ondalık sayılar** 64 bitlik IEEE 754 sayılarıdır ve noktayla yazılır: `3.14`, `0.5`, `2.0`.
 Sayı ile ondalık bir işlemde karışırsa sayı ondalığa çevrilir ve sonuç ondalık olur (`7 / 2` = `3`,

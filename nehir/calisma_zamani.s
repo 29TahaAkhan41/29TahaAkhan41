@@ -1297,6 +1297,157 @@ __ondalik_atan2:                # rdi = y, rsi = x -> rax = atan2(y, x)
     add rsp, 8
     ret
 
+__iki_kuvvet:                   # st0 = t -> st0 = 2^t
+    fld st(0)
+    frndint                     # n, t
+    fld st(1)
+    fsub st, st(1)              # t - n, n, t
+    f2xm1
+    fld1
+    faddp st(1), st             # 2^(t-n), n, t
+    fscale
+    fstp st(1)
+    fstp st(1)
+    ret
+
+__ondalik_fonk:                 # rdi = x, rsi = 0 tan, 1 atan, 2 üstel, 3 ln, 4 asin, 5 acos -> rax
+    sub rsp, 24
+    mov [rsp], rdi
+    fnstcw [rsp+8]
+    mov word ptr [rsp+10], 0x037F
+    fldcw [rsp+10]
+    cmp rsi, 3
+    jne 1f
+    fldln2                      # ln x = ln 2 * log2 x
+    fld qword ptr [rsp]
+    fyl2x
+    jmp 9f
+1:  fld qword ptr [rsp]
+    test rsi, rsi
+    jnz 2f
+    fptan
+    fstp st(0)
+    jmp 9f
+2:  cmp rsi, 1
+    jne 3f
+    fld1
+    fpatan
+    jmp 9f
+3:  cmp rsi, 2
+    jne 4f
+    fldl2e                      # e^x = 2^(x * log2 e)
+    fmulp st(1), st
+    call __iki_kuvvet
+    jmp 9f
+4:  fld st(0)                   # asin x = atan2(x, s), acos x = atan2(s, x); s = karekök(1 - x²)
+    fmul st, st(0)
+    fld1
+    fsub st, st(1)
+    fsqrt
+    fstp st(1)                  # s, x
+    cmp rsi, 4
+    je 5f
+    fxch
+5:  fpatan
+9:  fstp qword ptr [rsp]
+    fldcw [rsp+8]
+    mov rax, [rsp]
+    add rsp, 24
+    ret
+
+__ondalik_us:                   # rdi = taban, rsi = üs (ondalıklar) -> rax = taban^üs
+    sub rsp, 40
+    mov [rsp], rdi
+    mov [rsp+16], rsi
+    fnstcw [rsp+8]
+    mov word ptr [rsp+10], 0x037F
+    fldcw [rsp+10]
+    movabs rax, 0x3FF0000000000000  # x^0 = 1
+    mov rcx, rsi
+    btr rcx, 63
+    test rcx, rcx
+    jz 9f
+    mov rcx, rdi
+    btr rcx, 63
+    test rcx, rcx
+    jnz 1f
+    xor eax, eax                # 0^b: b > 0 ise 0, b < 0 ise sonsuz
+    test rsi, rsi
+    jns 9f
+    movabs rax, 0x7FF0000000000000
+    jmp 9f
+1:  mov [rsp+24], rcx           # |taban|^üs = 2^(üs * log2 |taban|)
+    fld qword ptr [rsp+16]
+    fld qword ptr [rsp+24]
+    fyl2x
+    call __iki_kuvvet
+    fstp qword ptr [rsp+24]
+    mov rax, [rsp+24]
+    test rdi, rdi
+    jns 9f
+    movq xmm0, rsi              # negatif taban: üs tam sayı olmalı; tekse sonuç negatif
+    cvttsd2si rcx, xmm0
+    cvtsi2sd xmm1, rcx
+    ucomisd xmm0, xmm1
+    jne 2f
+    jp 2f
+    test cl, 1
+    jz 9f
+    bts rax, 63
+    jmp 9f
+2:  movabs rax, 0x7FF8000000000000  # nan
+9:  fldcw [rsp+8]
+    add rsp, 40
+    ret
+
+__us_sayi:                      # rdi = taban, rsi = üs (>= 0) -> rax = taban^üs
+    test rsi, rsi
+    js __us_hatasi
+    mov eax, 1
+1:  test rsi, rsi
+    jz 3f
+    test sil, 1
+    jz 2f
+    imul rax, rdi
+2:  imul rdi, rdi
+    shr rsi, 1
+    jmp 1b
+3:  ret
+
+__liste_en:                     # rdi = liste, rsi = 0 en küçük, 1 en büyük (sayı); 2, 3 (ondalık) -> rax
+    mov rcx, [rdi]
+    test rcx, rcx
+    jz __bos_liste_hatasi
+    mov rdx, [rdi+16]
+    mov rax, [rdx]
+    cmp rsi, 2
+    jae 5f
+1:  dec rcx
+    jz 9f
+    add rdx, 8
+    mov r8, [rdx]
+    test rsi, rsi
+    jnz 2f
+    cmp r8, rax
+    cmovl rax, r8
+    jmp 1b
+2:  cmp r8, rax
+    cmovg rax, r8
+    jmp 1b
+5:  movq xmm0, rax
+6:  dec rcx
+    jz 8f
+    add rdx, 8
+    movq xmm1, [rdx]
+    cmp rsi, 2
+    jne 7f
+    minsd xmm0, xmm1
+    jmp 6b
+7:  maxsd xmm0, xmm1
+    jmp 6b
+8:  movq rax, xmm0
+9:  ret
+
 __deger_esit:                   # rdi = a, rsi = b, rdx = tür tanımı -> rax = eşitse 1, değilse 0
     mov rax, [rdx]
     cmp rax, 6                  # 6: ondalık (0.0 == -0.0; nan hiçbir şeye eşit değil)
@@ -2269,6 +2420,14 @@ __anahtar_hatasi:
     lea rsi, [rip+__h_anahtar]
     mov edx, __h_anahtar_son - __h_anahtar
     jmp __hata
+__us_hatasi:
+    lea rsi, [rip+__h_us]
+    mov edx, __h_us_son - __h_us
+    jmp __hata
+__bos_liste_hatasi:
+    lea rsi, [rip+__h_bos_liste]
+    mov edx, __h_bos_liste_son - __h_bos_liste
+    jmp __hata
 __ondalik_hatasi:
     lea rsi, [rip+__h_ondalik]
     mov edx, __h_ondalik_son - __h_ondalik
@@ -2351,6 +2510,10 @@ __h_sayi: .ascii "metin sayıya çevrilemiyor"
 __h_sayi_son:
 __h_ondalik: .ascii "metin ondalık sayıya çevrilemiyor"
 __h_ondalik_son:
+__h_us: .ascii "tam sayının üssü negatif olamaz (ondalıkla deneyin: üs(2.0, -1))"
+__h_us_son:
+__h_bos_liste: .ascii "boş listenin en küçüğü ya da en büyüğü yok"
+__h_bos_liste_son:
     .balign 8
 __od_on: .double 10.0
 __od_bir: .double 1.0

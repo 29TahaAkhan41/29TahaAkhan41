@@ -1,0 +1,2 @@
+# Tam sayının negatif üssü tam sayı olamaz; ondalıkla hesaplanır.
+[1, 2, -1] -> her (u) { üs(2, u) -> yazdır }

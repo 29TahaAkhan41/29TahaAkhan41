@@ -1,0 +1,64 @@
+# Bit işlemleri ve matematik işlevleri: oyun motorlarında sık gereken araçlar.
+
+# ── sayı yazımları ──
+0xFF -> yazdır                       # onaltılık: 255
+0b1010 -> yazdır                     # ikili: 10
+0x7FFF_FFFF -> yazdır                # alt çizgi okumayı kolaylaştırır
+
+# ── bit işlemleri ──
+# Bayraklar: her durum bir bit. Bir varlığın hangi katmanlarla çarpıştığını tutmak gibi.
+0b0001 -> OYUNCU
+0b0010 -> DÜŞMAN
+0b0100 -> DUVAR
+0b1000 -> MERMİ
+
+bit_veya(OYUNCU, DUVAR) -> çarpışır          # oyuncu ve duvar katmanları
+işlev çarpışır_mı(maske, katman) { bit_ve(maske, katman) != 0 -> döndür }
+[çarpışır_mı(çarpışır, OYUNCU), çarpışır_mı(çarpışır, DÜŞMAN), çarpışır_mı(çarpışır, DUVAR)] -> yazdır
+bit_ve(çarpışır, bit_değil(DUVAR)) -> çarpışır  # duvar bitini sil
+çarpışır -> yazdır                           # 1
+bit_yada(çarpışır, MERMİ) -> yazdır          # mermi bitini çevir: 9
+
+# Rengi tek sayıya sığdırmak: 0xRRGGBB
+işlev renk(k, y, m) { bit_veya(bit_veya(sola_kaydır(k, 16), sola_kaydır(y, 8)), m) -> döndür }
+işlev kırmızısı(r) { bit_ve(sağa_kaydır(r, 16), 0xFF) -> döndür }
+işlev yeşili(r) { bit_ve(sağa_kaydır(r, 8), 0xFF) -> döndür }
+renk(255, 128, 0) -> turuncu
+[turuncu, kırmızısı(turuncu), yeşili(turuncu), bit_ve(turuncu, 0xFF)] -> yazdır
+
+# ── en küçük, en büyük, sınırla, işaret ──
+[en_küçük(3, 7), en_büyük(3, 7), sınırla(15, 0, 10), sınırla(-3, 0, 10)] -> yazdır
+[en_küçük([5, 3, 9, 1]), en_büyük([5, 3, 9, 1])] -> yazdır
+en_büyük([2.5, -1.0, 7.25]) -> yazdır
+[işaret(-7), işaret(0), işaret(2.5)] -> yazdır
+sınırla(1.7, 0.0, 1.0) -> yazdır             # bir ondalık varsa sonuç ondalık
+
+# ── üs, kök, logaritma ──
+[üs(2, 10), üs(-3, 3)] -> yazdır             # sayıların üssü sayıdır
+üs(2.0, -2) -> yazdır                        # 0.25
+üs(27, 1.0 / 3) -> yazdır                    # küp kök: 3.0
+[üstel(1), ln(üstel(2)), ln(100) / ln(10)] -> yazdır
+
+# ── trigonometri: açılar radyan ──
+işlev dereceden(d) { d * pi() / 180 -> döndür }
+işlev dereceye(r) { r * 180 / pi() -> döndür }
+[sin(dereceden(30)), cos(dereceden(60)), tan(dereceden(45))] -> yazdır
+[dereceye(asin(1)), dereceye(acos(0.5)), dereceye(atan(1))] -> yazdır
+
+# İki nokta arası uzaklık ve yön (oyuncudan düşmana)
+kayıt Nokta { x: ondalık, y: ondalık }
+işlev uzaklık(a, b) { karekök(üs(b.x - a.x, 2.0) + üs(b.y - a.y, 2.0)) -> döndür }
+işlev yön(a, b) { dereceye(atan2(b.y - a.y, b.x - a.x)) -> döndür }
+Nokta(1.0, 1.0) -> oyuncu
+Nokta(4.0, 5.0) -> düşman
+uzaklık(oyuncu, düşman) -> yazdır             # 5.0
+yuvarla(yön(oyuncu, düşman)) -> yazdır        # 53 derece
+
+# Doğrusal ara değer (lerp): kameranın hedefe yumuşakça yaklaşması
+işlev ara_değer(a, b, t) { a + (b - a) * sınırla(t, 0.0, 1.0) -> döndür }
+0.0 -> kamera
+aralık(0, 5) -> her (kare) {
+    ara_değer(kamera, 100.0, 0.5) -> kamera
+    göster(metne(kamera) + " ")
+}
+"" -> yazdır

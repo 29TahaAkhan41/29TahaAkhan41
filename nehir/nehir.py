@@ -115,6 +115,20 @@ YERLEŞİKLER = {
     "mutlak": "mutlak", "abs": "mutlak",
     "sin": "sin", "cos": "cos", "atan2": "atan2",
     "pi": "pi",
+    "bit_ve": "bit_ve", "bit_and": "bit_ve",
+    "bit_veya": "bit_veya", "bit_or": "bit_veya",
+    "bit_yada": "bit_yada", "bit_xor": "bit_yada",
+    "bit_değil": "bit_değil", "bit_degil": "bit_değil", "bit_not": "bit_değil",
+    "sola_kaydır": "sola_kaydır", "sola_kaydir": "sola_kaydır", "shift_left": "sola_kaydır",
+    "sağa_kaydır": "sağa_kaydır", "saga_kaydir": "sağa_kaydır", "shift_right": "sağa_kaydır",
+    "en_küçük": "en_küçük", "en_kucuk": "en_küçük", "min": "en_küçük",
+    "en_büyük": "en_büyük", "en_buyuk": "en_büyük", "max": "en_büyük",
+    "sınırla": "sınırla", "sinirla": "sınırla", "clamp": "sınırla",
+    "işaret": "işaret", "isaret": "işaret", "sign": "işaret",
+    "üs": "üs", "us": "üs", "pow": "üs",
+    "tan": "tan", "atan": "atan", "asin": "asin", "acos": "acos",
+    "üstel": "üstel", "ustel": "üstel", "exp": "üstel",
+    "ln": "ln", "log": "ln",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -171,6 +185,21 @@ def sözcükle(kaynak, dosya=0):
         elif c == "#":
             while i < n and kaynak[i] != "\n":
                 i += 1
+        elif c == "0" and i + 1 < n and kaynak[i + 1] in "xXbB":    # 0xFF, 0b1010
+            taban = 16 if kaynak[i + 1] in "xX" else 2
+            geçerli = "0123456789abcdefABCDEF" if taban == 16 else "01"
+            j = i + 2
+            while j < n and (kaynak[j] in geçerli or kaynak[j] == "_"):
+                j += 1
+            rakamlar = kaynak[i + 2:j].replace("_", "")
+            if not rakamlar:
+                raise NehirHatası(f"'{kaynak[i:i + 2]}' ardından {'onaltılık' if taban == 16 else 'ikili'} "
+                                  f"rakamlar gelmeli", konum(i, j))
+            değer = int(rakamlar, taban)
+            if değer >= 2 ** 63:
+                raise NehirHatası("sayı çok büyük; en fazla 9223372036854775807 olabilir", konum(i, j))
+            ekle("SAYI", değer, i, j)
+            i = j
         elif c in "0123456789":     # yalnızca ASCII rakamları (int() '²' gibi rakamları çeviremez)
             j = i
             while j < n and (kaynak[j] in "0123456789" or kaynak[j] == "_"):
@@ -784,7 +813,7 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__metin_bol", "__liste_birles", "__metin_baytlar", "__karakter", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
     "__sozluk_sil", "__sozluk_liste", "__dosya_oku", "__dosya_yaz", "__dosya_sil",
     "__argumanlar", "__metin_karakter", "__rastgele", "__tus", "__ucbirim_boyutu",
-    "__ondalik_metin", "__metinden_ondalik")}
+    "__ondalik_metin", "__metinden_ondalik", "__us_sayi", "__liste_en")}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -1737,6 +1766,89 @@ class KodÜretici:
                 self.yaz("movq rax, xmm0")
             else:
                 self.yaz(f"call __ondalik_{asıl}")
+            return "ondalık"
+        if asıl in ("bit_ve", "bit_veya", "bit_yada", "sola_kaydır", "sağa_kaydır"):
+            if türler != ["sayı", "sayı"]:
+                yanlış("sayı, sayı")
+            self.yaz("pop rcx")
+            self.yaz("pop rax")
+            self.yaz({"bit_ve": "and rax, rcx", "bit_veya": "or rax, rcx", "bit_yada": "xor rax, rcx",
+                      "sola_kaydır": "shl rax, cl", "sağa_kaydır": "sar rax, cl"}[asıl])
+            return "sayı"
+        if asıl == "bit_değil":
+            if türler != ["sayı"]:
+                yanlış("sayı")
+            self.yaz("pop rax")
+            self.yaz("not rax")
+            return "sayı"
+        if asıl in ("en_küçük", "en_büyük") and len(türler) == 1 and isinstance(türler[0], Liste) \
+                and çöz(türler[0]._eleman) in ("sayı", "ondalık"):
+            ondalık = çöz(türler[0]._eleman) == "ondalık"
+            self.yaz("pop rdi")
+            self.yaz(f"mov esi, {(asıl == 'en_büyük') + 2 * ondalık}")
+            self.yaz("call __liste_en")
+            return çöz(türler[0]._eleman)
+        if asıl in ("en_küçük", "en_büyük", "sınırla", "üs"):
+            sayısı = 3 if asıl == "sınırla" else 2
+            if len(türler) != sayısı or any(t not in ("sayı", "ondalık") for t in türler):
+                yanlış({"sınırla": "değer, alt sınır, üst sınır", "üs": "taban, üs"}.get(
+                    asıl, "iki sayı ya da bir sayı listesi"))
+            yazmaçlar = ["rax", "rcx", "rdx"][:sayısı] if asıl != "üs" else ["rdi", "rsi"]
+            for yazmaç in reversed(yazmaçlar):
+                self.yaz(f"pop {yazmaç}")
+            if "ondalık" not in türler:
+                if asıl == "üs":
+                    self.yaz("call __us_sayi")
+                else:
+                    self.yaz("cmp rax, rcx")
+                    self.yaz({"en_küçük": "cmovg rax, rcx", "en_büyük": "cmovl rax, rcx",
+                              "sınırla": "cmovl rax, rcx"}[asıl])
+                    if asıl == "sınırla":
+                        self.yaz("cmp rax, rdx")
+                        self.yaz("cmovg rax, rdx")
+                return "sayı"
+            for i, (yazmaç, tür) in enumerate(zip(yazmaçlar, türler)):
+                self.yaz(f"cvtsi2sd xmm{i}, {yazmaç}" if tür == "sayı" else f"movq xmm{i}, {yazmaç}")
+            if asıl == "üs":
+                self.yaz("movq rdi, xmm0")
+                self.yaz("movq rsi, xmm1")
+                self.yaz("call __ondalik_us")
+                return "ondalık"
+            self.yaz({"en_küçük": "minsd xmm0, xmm1", "en_büyük": "maxsd xmm0, xmm1",
+                      "sınırla": "maxsd xmm0, xmm1"}[asıl])
+            if asıl == "sınırla":
+                self.yaz("minsd xmm0, xmm2")
+            self.yaz("movq rax, xmm0")
+            return "ondalık"
+        if asıl == "işaret":
+            if türler not in (["sayı"], ["ondalık"]):
+                yanlış("sayı ya da ondalık")
+            self.yaz("pop rax")
+            if türler[0] == "sayı":
+                self.yaz("xor ecx, ecx")
+                self.yaz("test rax, rax")
+                self.yaz("setg cl")
+                self.yaz("sar rax, 63")
+                self.yaz("or rax, rcx")
+            else:
+                self.yaz("movq xmm0, rax")
+                self.yaz("xorpd xmm1, xmm1")
+                self.yaz("ucomisd xmm0, xmm1")
+                self.yaz("seta al")
+                self.yaz("setb cl")
+                self.yaz("movzx eax, al")
+                self.yaz("movzx ecx, cl")
+                self.yaz("sub rax, rcx")
+            return "sayı"
+        if asıl in ("tan", "atan", "üstel", "ln", "asin", "acos"):
+            if türler not in (["sayı"], ["ondalık"]):
+                yanlış("sayı ya da ondalık")
+            self.yaz("pop rdi")
+            if türler[0] == "sayı":
+                self.yaz("cvtsi2sd xmm0, rdi")
+                self.yaz("movq rdi, xmm0")
+            self.yaz(f"mov esi, {['tan', 'atan', 'üstel', 'ln', 'asin', 'acos'].index(asıl)}")
+            self.yaz("call __ondalik_fonk")
             return "ondalık"
         if asıl == "pi":
             if türler:
