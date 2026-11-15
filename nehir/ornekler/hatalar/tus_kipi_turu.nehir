@@ -1,0 +1,2 @@
+# tuş_kipi bir sayı (1 ya da 0; doğru ya da yanlış) bekler.
+tuş_kipi("aç") -> yazdır

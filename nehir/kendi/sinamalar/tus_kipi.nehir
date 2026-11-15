@@ -1,0 +1,11 @@
+# test.py bunu bir sözde uçbirimde (pty) çalıştırır: ham kipte tuşlar Enter beklemeden ve
+# yankısız gelir; kip kapanınca (ya da Ctrl+C ile çıkınca) uçbirim eski hâline döner.
+tuş_kipi(1) -> yazdır
+doğru -> iken {
+    tuş() -> t
+    t == "q" -> eğer { dur }
+    t != "" -> eğer { "<" + t + ">" -> yazdır }
+    bekle(5)
+}
+tuş_kipi(0) -> yazdır
+"satır: " + oku() -> yazdır

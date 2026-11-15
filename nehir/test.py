@@ -13,6 +13,7 @@ noktaya ulaştığını sınar.
 """
 import glob
 import os
+import time
 import subprocess
 import sys
 import tempfile
@@ -102,7 +103,7 @@ def kendi_derleyiciyi_sına(geçici, kaynaklar):
             print(f"geçti     kendi {aşama} ({len(kaynaklar)} dosyada Python ile aynı çıktı)")
         başarısız += farklı
     return (başarısız + kendi_kod_üreticiyi_sına(geçici, kaynaklar) + kendini_derlemeyi_sına(geçici)
-            + renkleri_sına(geçici) + windowsu_sına(geçici))
+            + renkleri_sına(geçici) + tuşları_sına(geçici) + windowsu_sına(geçici))
 
 
 def windows_araçları():
@@ -226,6 +227,64 @@ def renkleri_sına(geçici):
     if not başarısız:
         print(f"geçti     renkler ({len(dosyalar)} dosyada uçbirimde renkli, NO_COLOR ile renksiz; "
               f"iki derleyici bayt bayt aynı)")
+    return başarısız
+
+
+def tuşları_sına(geçici):
+    """tuş_kipi ve tuş() gerçek bir uçbirimde: tuşlar Enter beklemeden ve yankısız gelir,
+    kip kapanınca satır okuma ve yankı geri döner; Ctrl+C programı 130 ile bitirir ve
+    uçbirimin ayarlarını geri yükler."""
+    import pty, select, termios
+    ikili = os.path.join(geçici, "tus_kipi")
+    subprocess.run([sys.executable, "nehir.py", "kendi/sinamalar/tus_kipi.nehir", "-o", ikili],
+                   cwd=KÖK, check=True)
+
+    def çalıştır(adımlar):
+        ana_uç, yan_uç = pty.openpty()
+        önce = termios.tcgetattr(yan_uç)
+        süreç = subprocess.Popen([ikili], stdin=yan_uç, stdout=yan_uç, stderr=yan_uç)
+        çıktı = b""
+
+        def bekle(aranan, süre=5):
+            nonlocal çıktı
+            son = time.time() + süre
+            while aranan not in çıktı and time.time() < son:
+                if select.select([ana_uç], [], [], 0.05)[0]:
+                    try:
+                        çıktı += os.read(ana_uç, 4096)
+                    except OSError:
+                        return
+        for aranan, gönderilen in adımlar:
+            bekle(aranan)
+            os.write(ana_uç, gönderilen)
+        try:
+            süreç.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            süreç.kill()
+            süreç.wait()
+        bekle(b"\0", 0.2)
+        sonra = termios.tcgetattr(yan_uç)
+        os.close(yan_uç)
+        os.close(ana_uç)
+        return süreç.returncode, çıktı.replace(b"\r\n", b"\n"), önce == sonra
+
+    sonuçlar = [
+        ("tuşlar ve satır", çalıştır([(b"1\r\n", b"a\x1b[A"), (b"<yukar\xc4\xb1>", b"q"),
+                                     (b"0\r\n", b"merhaba\n")]),
+         (0, "1\n<a>\n<yukarı>\n0\nmerhaba\nsatır: merhaba\n".encode(), True)),
+        ("Ctrl+C", çalıştır([(b"1\r\n", b"x"), (b"<x>", b"\x03")]),
+         (130, b"1\n<x>\n\x1b[0m\x1b[?25h\n", True)),
+    ]
+    başarısız = 0
+    for ad, çıkan, beklenen in sonuçlar:
+        if çıkan != beklenen:
+            başarısız += 1
+            print(f"BAŞARISIZ tuşlar ({ad})")
+            print("  beklenen:", repr(beklenen))
+            print("  çıkan:   ", repr(çıkan))
+    if not başarısız:
+        print("geçti     tuşlar (uçbirimde ham kip: tuşlar beklemeden ve yankısız; kip kapanınca "
+              "ve Ctrl+C'de uçbirim eski hâline dönüyor)")
     return başarısız
 
 

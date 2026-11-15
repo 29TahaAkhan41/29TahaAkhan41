@@ -97,6 +97,15 @@ YERLEŞİKLER = {
     "dosya_hatası": "dosya_hatası", "dosya_hatasi": "dosya_hatası", "file_error": "dosya_hatası",
     "oku": "oku", "read": "oku",
     "girdi_var": "girdi_var", "has_input": "girdi_var",
+    "zaman": "zaman", "time_ms": "zaman",
+    "bekle": "bekle", "sleep": "bekle",
+    "rastgele": "rastgele", "random": "rastgele",
+    "rastgele_tohum": "rastgele_tohum", "seed_random": "rastgele_tohum",
+    "tuş_kipi": "tuş_kipi", "tus_kipi": "tuş_kipi", "key_mode": "tuş_kipi",
+    "tuş": "tuş", "tus": "tuş", "key": "tuş",
+    "göster": "göster", "goster": "göster", "show": "göster",
+    "uçbirim_boyutu": "uçbirim_boyutu", "ucbirim_boyutu": "uçbirim_boyutu",
+    "terminal_size": "uçbirim_boyutu",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -755,7 +764,7 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__metin_dilim", "__liste_dilim", "__liste_birlestir", "__liste_sil",
     "__metin_bol", "__liste_birles", "__metin_baytlar", "__karakter", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
     "__sozluk_sil", "__sozluk_liste", "__dosya_oku", "__dosya_yaz", "__dosya_sil",
-    "__argumanlar", "__metin_karakter")}
+    "__argumanlar", "__metin_karakter", "__rastgele", "__tus", "__ucbirim_boyutu")}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -1602,6 +1611,26 @@ class KodÜretici:
                 yanlış("argümansız")
             self.yaz("call __girdi_var")
             return "sayı"
+        if asıl in ("zaman", "tuş", "uçbirim_boyutu"):
+            if türler:
+                yanlış("argümansız")
+            self.yaz({"zaman": "call __zaman", "tuş": "call __tus",
+                      "uçbirim_boyutu": "call __ucbirim_boyutu"}[asıl])
+            return {"zaman": "sayı", "tuş": "metin", "uçbirim_boyutu": Liste("sayı")}[asıl]
+        if asıl in ("bekle", "rastgele", "rastgele_tohum", "tuş_kipi"):
+            if türler != ["sayı"]:
+                yanlış({"bekle": "milisaniye", "rastgele": "üst sınır", "rastgele_tohum": "tohum",
+                        "tuş_kipi": "açmak için 1, kapatmak için 0"}[asıl])
+            self.yaz("pop rdi")
+            self.yaz({"bekle": "call __bekle", "rastgele": "call __rastgele",
+                      "rastgele_tohum": "call __rastgele_tohum", "tuş_kipi": "call __tus_kipi"}[asıl])
+            return "sayı"
+        if asıl == "göster":
+            if türler != ["metin"]:
+                yanlış("metin")
+            self.yaz("pop rdi")
+            self.yaz("call __goster")
+            return "metin"
         if asıl == "metne":
             if türler not in (["sayı"], ["metin"]):
                 yanlış("sayı")

@@ -46,7 +46,13 @@ kullan "ayristirici.nehir"
     "os_name": "işletim_sistemi", "uçbirim_mi": "uçbirim_mi", "ucbirim_mi": "uçbirim_mi",
     "is_terminal": "uçbirim_mi", "ortam_var": "ortam_var", "has_env": "ortam_var",
     "dosya_hatası": "dosya_hatası", "dosya_hatasi": "dosya_hatası", "file_error": "dosya_hatası",
-    "oku": "oku", "read": "oku", "girdi_var": "girdi_var", "has_input": "girdi_var"
+    "oku": "oku", "read": "oku", "girdi_var": "girdi_var", "has_input": "girdi_var",
+    "zaman": "zaman", "time_ms": "zaman", "bekle": "bekle", "sleep": "bekle",
+    "rastgele": "rastgele", "random": "rastgele", "rastgele_tohum": "rastgele_tohum",
+    "seed_random": "rastgele_tohum", "tuş_kipi": "tuş_kipi", "tus_kipi": "tuş_kipi",
+    "key_mode": "tuş_kipi", "tuş": "tuş", "tus": "tuş", "key": "tuş", "göster": "göster",
+    "goster": "göster", "show": "göster", "uçbirim_boyutu": "uçbirim_boyutu",
+    "ucbirim_boyutu": "uçbirim_boyutu", "terminal_size": "uçbirim_boyutu"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -60,7 +66,8 @@ kullan "ayristirici.nehir"
     "call __metin_bol": 1, "call __metin_dilim": 1, "call __metin_karakter": 1,
     "call __metinden_sayi": 1, "call __oku": 1, "call __sayidan_metin": 1, "call __sozluk_al": 1,
     "call __sozluk_koy": 1, "call __sozluk_liste": 1, "call __sozluk_sil": 1,
-    "call __sozluk_yeni": 1, "jz __sifira_bolme": 1, "jz __yok_hatasi": 1
+    "call __sozluk_yeni": 1, "jz __sifira_bolme": 1, "jz __yok_hatasi": 1,
+    "call __rastgele": 1, "call __tus": 1, "call __ucbirim_boyutu": 1
 } -> RİSKLİ
 
 {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"} -> KARŞILAŞTIRMA
@@ -1173,6 +1180,35 @@ işlev yerleşik_çağır(ad, türler, d) {
         n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
         komut("call __girdi_var", d)
         "sayı" -> döndür
+    }
+    asıl == "zaman" veya asıl == "tuş" veya asıl == "uçbirim_boyutu" -> eğer {
+        n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
+        asıl == "zaman" -> eğer {
+            komut("call __zaman", d)
+            "sayı" -> döndür
+        }
+        asıl == "tuş" -> eğer {
+            komut("call __tus", d)
+            "metin" -> döndür
+        }
+        komut("call __ucbirim_boyutu", d)
+        "[sayı]" -> döndür
+    }
+    asıl == "bekle" veya asıl == "rastgele" veya asıl == "rastgele_tohum" veya asıl == "tuş_kipi" -> eğer {
+        {"bekle": "milisaniye", "rastgele": "üst sınır", "rastgele_tohum": "tohum",
+         "tuş_kipi": "açmak için 1, kapatmak için 0"} -> açıklamalar
+        {"bekle": "call __bekle", "rastgele": "call __rastgele",
+         "rastgele_tohum": "call __rastgele_tohum", "tuş_kipi": "call __tus_kipi"} -> çağrılar
+        n != 1 veya t0 != "sayı" -> eğer { yanlış_argüman(ad, açıklamalar[asıl], türler, d) }
+        yaz("pop rdi")
+        komut(çağrılar[asıl], d)
+        "sayı" -> döndür
+    }
+    asıl == "göster" -> eğer {
+        n != 1 veya t0 != "metin" -> eğer { yanlış_argüman(ad, "metin", türler, d) }
+        yaz("pop rdi")
+        komut("call __goster", d)
+        "metin" -> döndür
     }
     asıl == "metne" -> eğer {
         n != 1 veya (t0 != "sayı" ve t0 != "metin") -> eğer { yanlış_argüman(ad, "sayı", türler, d) }

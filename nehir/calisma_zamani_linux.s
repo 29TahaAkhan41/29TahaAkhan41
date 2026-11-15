@@ -9,6 +9,9 @@ _start:
     jmp __cik
 
 __cik:                          # rdi = çıkış kodu
+    push rdi
+    call __tk_geri              # tuş kipi açık kaldıysa uçbirim eski hâline döner
+    pop rdi
     mov eax, 60
     syscall
 
@@ -156,6 +159,145 @@ __dosya_hata_kodu:              # rdi = yol -> rax = açılabiliyorsa 0, değils
 2:  pop rbx
     ret
 
+__sis_zaman:                    # -> rax = tekdüze saatin milisaniyesi
+    push rdi
+    push rsi
+    push rdx
+    sub rsp, 16
+    mov eax, 228                # clock_gettime(CLOCK_MONOTONIC, &ts)
+    mov edi, 1
+    mov rsi, rsp
+    syscall
+    mov rax, [rsp+8]
+    xor edx, edx
+    mov ecx, 1000000
+    div rcx
+    imul rdx, [rsp], 1000
+    add rax, rdx
+    add rsp, 16
+    pop rdx
+    pop rsi
+    pop rdi
+    ret
+
+__sis_bekle:                    # rdi = milisaniye
+    push rdi
+    push rsi
+    push rdx
+    sub rsp, 16
+    mov rax, rdi
+    xor edx, edx
+    mov ecx, 1000
+    div rcx
+    mov [rsp], rax
+    imul rdx, rdx, 1000000
+    mov [rsp+8], rdx
+    mov eax, 35                 # nanosleep(&ts, 0)
+    mov rdi, rsp
+    xor esi, esi
+    syscall
+    add rsp, 16
+    pop rdx
+    pop rsi
+    pop rdi
+    ret
+
+__sis_tus_doldur:               # -> rax = girdi hazırsa tampona doldurup 1, değilse 0 (beklemez)
+    push rdi
+    push rsi
+    push rdx
+    sub rsp, 16
+    mov dword ptr [rsp], 0      # poll({fd 0, POLLIN}, 1, 0)
+    mov dword ptr [rsp+4], 1
+    mov eax, 7
+    mov rdi, rsp
+    mov esi, 1
+    xor edx, edx
+    syscall
+    add rsp, 16
+    test rax, rax
+    jle 1f
+    call __girdi_doldur
+    jmp 2f
+1:  xor eax, eax
+2:  pop rdx
+    pop rsi
+    pop rdi
+    ret
+
+__sis_tus_kipi:                 # rdi = 1 aç, 0 kapat -> rax = ham kip açıksa 1
+    push rdi
+    push rsi
+    push rdx
+    test rdi, rdi
+    jz 5f
+    mov eax, 1
+    cmp byte ptr [rip+__tk_acik], 0
+    jne 9f
+    mov eax, 16                 # ioctl(0, TCGETS, &eski): yalnızca uçbirimde başarılı olur
+    xor edi, edi
+    mov esi, 0x5401
+    lea rdx, [rip+__tk_eski]
+    syscall
+    test rax, rax
+    jnz 8f
+    sub rsp, 64
+    lea rsi, [rip+__tk_eski]
+    mov rdi, rsp
+    mov ecx, 8
+    rep movsq
+    and dword ptr [rsp], -1281      # c_iflag: ICRNL ve IXON kapalı
+    and dword ptr [rsp+12], -32780  # c_lflag: ISIG, ICANON, ECHO ve IEXTEN kapalı
+    mov byte ptr [rsp+22], 0        # VTIME
+    mov byte ptr [rsp+23], 1        # VMIN: oku() yine bir bayt bekler; tuş() hiç beklemez
+    mov eax, 16                 # ioctl(0, TCSETS, &yeni)
+    xor edi, edi
+    mov esi, 0x5402
+    mov rdx, rsp
+    syscall
+    add rsp, 64
+    mov byte ptr [rip+__tk_acik], 1
+    mov eax, 1
+    jmp 9f
+5:  call __tk_geri
+8:  xor eax, eax
+9:  pop rdx
+    pop rsi
+    pop rdi
+    ret
+
+__tk_geri:                      # tuş kipi açıksa uçbirimin eski ayarlarını geri yükler
+    cmp byte ptr [rip+__tk_acik], 0
+    je 1f
+    mov byte ptr [rip+__tk_acik], 0
+    mov eax, 16                 # ioctl(0, TCSETS, &eski)
+    xor edi, edi
+    mov esi, 0x5402
+    lea rdx, [rip+__tk_eski]
+    syscall
+1:  ret
+
+__sis_boyut:                    # -> rax = (yükseklik << 32) | genişlik; uçbirim değilse 0
+    push rdi
+    push rsi
+    push rdx
+    sub rsp, 16
+    mov qword ptr [rsp], 0
+    mov eax, 16                 # ioctl(1, TIOCGWINSZ, &ws)
+    mov edi, 1
+    mov esi, 0x5413
+    mov rdx, rsp
+    syscall
+    movzx eax, word ptr [rsp]   # satır
+    shl rax, 32
+    movzx ecx, word ptr [rsp+2] # sütun
+    or rax, rcx
+    add rsp, 16
+    pop rdx
+    pop rsi
+    pop rdi
+    ret
+
     .section .rodata
     .balign 8
     .quad 5
@@ -165,3 +307,5 @@ __isletim_sistemi_adi: .ascii "linux"
     .section .bss
     .balign 8
 __baslangic_sp: .skip 8         # süreç başlarken yığın: argc, argv..., 0, ortam..., 0
+__tk_eski: .skip 64             # tuş kipinden önceki uçbirim ayarları (termios)
+__tk_acik: .skip 8

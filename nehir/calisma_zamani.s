@@ -5,6 +5,11 @@
 # Linux sistem çağrısı gibi davranır (yalnızca rax, rcx ve r11 değişir, hata -errno döner):
 #   __sis_yaz(fd, adres, uzunluk)  __sis_oku(fd, adres, uzunluk)  __sis_ac(yol, bayraklar)
 #   __sis_kapat(fd)  __sis_sil(yol)  __sis_erisim(yol)  __cik(kod)
+# Oyun temelleri için ayrıca:
+#   __sis_zaman() -> tekdüze saatin milisaniyesi     __sis_bekle(milisaniye)
+#   __sis_tus_kipi(1 aç / 0 kapat) -> ham kip açıksa 1
+#   __sis_tus_doldur() -> beklemeden: girdi hazırsa __g_tampon'a doldurup 1, değilse 0
+#   __sis_boyut() -> (yükseklik << 32) | genişlik; uçbirim değilse 0
     .section .text
 
 __ham_yaz:                      # rsi = adres, rdx = uzunluk
@@ -1319,6 +1324,196 @@ __oku:                          # -> rax = bir satır (satır sonu olmadan); gir
     pop rbx
     ret
 
+# ── oyun temelleri: zaman, rastgelelik, tuşlar, ekran ──
+
+__zaman:                        # -> rax = milisaniye (tekdüze saat; yalnızca farkı anlamlıdır)
+    jmp __sis_zaman
+
+__bekle:                        # rdi = milisaniye -> rax = milisaniye
+    test rdi, rdi
+    jle 1f
+    call __sis_bekle
+1:  mov rax, rdi
+    ret
+
+__rastgele_tohum:               # rdi = tohum -> rax = tohum
+    mov [rip+__rs_durum], rdi
+    mov byte ptr [rip+__rs_tohumlu], 1
+    mov rax, rdi
+    ret
+
+__rastgele:                     # rdi = n (> 0) -> rax = 0, 1, ..., n-1 (splitmix64)
+    test rdi, rdi
+    jle __rastgele_hatasi
+    cmp byte ptr [rip+__rs_tohumlu], 0
+    jne 1f
+    rdtsc                       # tohum verilmediyse işlemcinin zaman sayacından
+    shl rdx, 32
+    or rax, rdx
+    mov [rip+__rs_durum], rax
+    mov byte ptr [rip+__rs_tohumlu], 1
+1:  movabs rax, 0x9E3779B97F4A7C15
+    add rax, [rip+__rs_durum]
+    mov [rip+__rs_durum], rax
+    mov rcx, rax
+    shr rcx, 30
+    xor rax, rcx
+    movabs rcx, 0xBF58476D1CE4E5B9
+    imul rax, rcx
+    mov rcx, rax
+    shr rcx, 27
+    xor rax, rcx
+    movabs rcx, 0x94D049BB133111EB
+    imul rax, rcx
+    mov rcx, rax
+    shr rcx, 31
+    xor rax, rcx
+    xor edx, edx
+    div rdi
+    mov rax, rdx
+    ret
+
+__goster:                       # rdi = metin; satır sonu eklemeden yazar -> rax = metin
+    push rdi
+    mov rsi, rdi
+    mov rdx, [rdi-8]
+    call __ham_yaz
+    pop rax
+    ret
+
+__tus_kipi:                     # rdi = 1 aç, 0 kapat -> rax = ham kip açıksa 1
+    jmp __sis_tus_kipi
+
+__ucbirim_boyutu:               # -> rax = [genişlik, yükseklik]; uçbirim değilse [80, 24]
+    push rbx
+    push r12
+    call __sis_boyut
+    mov ebx, eax
+    mov r12, rax
+    shr r12, 32
+    test rbx, rbx
+    jz 1f
+    test r12, r12
+    jnz 2f
+1:  mov ebx, 80
+    mov r12d, 24
+2:  mov edi, 2
+    call __liste_yeni
+    mov rdi, rax
+    mov rsi, rbx
+    call __liste_ekle
+    mov rdi, rax
+    mov rsi, r12
+    call __liste_ekle
+    pop r12
+    pop rbx
+    ret
+
+# Girdiden bir tuş alır; beklemez. Girdi oku() ile aynı tampondan gelir.
+# Oklar "yukarı", "aşağı", "sağ", "sol"; Enter "enter", Esc "esc", Tab "tab",
+# geri silme "geri"; diğer tuşlar yazdıkları karakterdir. Ctrl+C programı bitirir.
+__tus:                          # -> rax = tuş (metin); basılan tuş yoksa ""
+    push rbx
+    push r12
+    mov rax, [rip+__g_konum]
+    cmp rax, [rip+__g_son]
+    jb 1f
+    call __sis_tus_doldur
+    test rax, rax
+    jz 20f
+    mov rax, [rip+__g_konum]
+1:  lea rbx, [rip+__g_tampon]
+    add rbx, rax                # rbx = tuşun başı
+    mov r12, [rip+__g_son]
+    sub r12, rax                # r12 = tamponda kalan bayt
+    movzx eax, byte ptr [rbx]
+    cmp eax, 27
+    je 10f
+    lea rcx, [rip+__t_enter]
+    cmp eax, 13
+    je 3f
+    cmp eax, 10
+    je 4f
+    lea rcx, [rip+__t_geri]
+    cmp eax, 127
+    je 4f
+    cmp eax, 8
+    je 4f
+    lea rcx, [rip+__t_tab]
+    cmp eax, 9
+    je 4f
+    cmp eax, 3                  # Ctrl+C
+    je 30f
+    mov ecx, 1                  # UTF-8 karakterinin bayt sayısı
+    cmp eax, 0xC0
+    jb 5f
+    mov ecx, 2
+    cmp eax, 0xE0
+    jb 5f
+    mov ecx, 3
+    cmp eax, 0xF0
+    jb 5f
+    mov ecx, 4
+5:  cmp rcx, r12
+    jbe 6f
+    mov rcx, r12
+6:  add [rip+__g_konum], rcx
+    push rcx
+    mov rdi, rcx
+    call __metin_yeni
+    pop rcx
+    mov rdi, rax
+    mov rsi, rbx
+    rep movsb
+    jmp 21f
+3:  cmp r12, 2                  # "\r\n" tek bir Enter
+    jb 4f
+    cmp byte ptr [rbx+1], 10
+    jne 4f
+    inc qword ptr [rip+__g_konum]
+4:  inc qword ptr [rip+__g_konum]
+    mov rax, rcx
+    jmp 21f
+10: cmp r12, 3                  # Esc [ A ... : ok tuşları
+    jb 12f
+    movzx eax, byte ptr [rbx+1]
+    cmp eax, 91                 # '['
+    je 11f
+    cmp eax, 79                 # 'O'
+    jne 12f
+11: movzx eax, byte ptr [rbx+2]
+    sub eax, 65                 # 'A'
+    cmp eax, 3
+    ja 13f
+    add qword ptr [rip+__g_konum], 3
+    lea rcx, [rip+__t_oklar]
+    mov rax, [rcx+rax*8]
+    jmp 21f
+13: cmp byte ptr [rbx+1], 91    # tanınmayan dizi: sonuna dek atlanır
+    jne 12f
+    mov ecx, 2
+14: cmp rcx, r12
+    jae 15f
+    movzx eax, byte ptr [rbx+rcx]
+    inc rcx
+    cmp eax, 64
+    jb 14b
+15: add [rip+__g_konum], rcx
+20: lea rax, [rip+__t_bos]
+    jmp 21f
+12: lea rcx, [rip+__t_esc]
+    jmp 4b
+21: pop r12
+    pop rbx
+    ret
+30: cmp byte ptr [rip+__tk_acik], 0   # uçbirimde: renkler sıfırlanır, imleç geri gelir
+    je 31f
+    lea rsi, [rip+__t_sifirla]
+    mov edx, __t_sifirla_son - __t_sifirla
+    call __ham_yaz
+31: mov edi, 130
+    jmp __cik
+
 __sifira_bolme:
     lea rsi, [rip+__h_sifir]
     mov edx, __h_sifir_son - __h_sifir
@@ -1358,6 +1553,10 @@ __anahtar_hatasi:
 __sayi_hatasi:
     lea rsi, [rip+__h_sayi]
     mov edx, __h_sayi_son - __h_sayi
+    jmp __hata
+__rastgele_hatasi:
+    lea rsi, [rip+__h_rastgele]
+    mov edx, __h_rastgele_son - __h_rastgele
     jmp __hata
 __bellek_bitti:
     lea rsi, [rip+__h_bellek]
@@ -1443,6 +1642,46 @@ __h_karakter: .ascii "geçersiz karakter kodu"
 __h_karakter_son:
 __h_bellek: .ascii "bellek tükendi"
 __h_bellek_son:
+__h_rastgele: .ascii "rastgele'nin üst sınırı pozitif olmalı"
+__h_rastgele_son:
+    .balign 8
+__t_oklar: .quad __t_yukari, __t_asagi, __t_sag, __t_sol
+    .quad 0
+__t_bos: .byte 0
+__t_sifirla: .ascii "\033[0m\033[?25h\n"
+__t_sifirla_son:
+    .balign 8
+    .quad 7
+__t_yukari: .ascii "yukarı"
+    .byte 0
+    .balign 8
+    .quad 8
+__t_asagi: .ascii "aşağı"
+    .byte 0
+    .balign 8
+    .quad 4
+__t_sag: .ascii "sağ"
+    .byte 0
+    .balign 8
+    .quad 3
+__t_sol: .ascii "sol"
+    .byte 0
+    .balign 8
+    .quad 5
+__t_enter: .ascii "enter"
+    .byte 0
+    .balign 8
+    .quad 3
+__t_esc: .ascii "esc"
+    .byte 0
+    .balign 8
+    .quad 3
+__t_tab: .ascii "tab"
+    .byte 0
+    .balign 8
+    .quad 4
+__t_geri: .ascii "geri"
+    .byte 0
 
     .section .data
 __yigin_uc: .quad __yigin
@@ -1461,3 +1700,5 @@ __mu_metin: .skip 8             # __metin_uzunluk önbelleği: metin, karakter s
 __mu_uzunluk: .skip 8                 # hata mesajına eklenecek metin (dosya yolu) ya da 0
 __g_konum: .skip 8
 __g_son: .skip 8
+__rs_durum: .skip 8             # rastgele sayı üretecinin durumu
+__rs_tohumlu: .skip 8

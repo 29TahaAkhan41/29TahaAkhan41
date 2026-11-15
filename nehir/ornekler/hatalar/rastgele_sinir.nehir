@@ -1,0 +1,3 @@
+# rastgele(n), 0 ile n-1 arasında bir sayı verir; n pozitif olmalıdır.
+[3, 0] -> sınırlar
+sınırlar -> her (n) { rastgele(n) < n -> yazdır }

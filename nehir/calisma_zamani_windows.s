@@ -87,6 +87,7 @@ __vt_ac:                        # rcx = tutamaç; konsolsa renk kodlarını (san
 __cik:                          # rdi = çıkış kodu
     and rsp, -16
     sub rsp, 32
+    call __tk_geri              # tuş kipi açık kaldıysa konsol eski hâline döner
     mov ecx, edi
     call ExitProcess
 
@@ -438,14 +439,206 @@ __argumanlar:                   # -> rax = komut satırı argümanlarının list
     pop rbp
     ret
 
+__sis_zaman:                    # -> rax = tekdüze saatin milisaniyesi
+    WIN_GIRIS
+    lea rcx, [rsp+64]
+    call QueryPerformanceFrequency
+    lea rcx, [rsp+72]
+    call QueryPerformanceCounter
+    mov rax, [rsp+72]
+    mov ecx, 1000
+    mul rcx
+    div qword ptr [rsp+64]
+    WIN_CIKIS
+
+__sis_bekle:                    # rdi = milisaniye; varsa yüksek çözünürlüklü zamanlayıcıyla
+    WIN_GIRIS
+    mov rcx, [rip+__w_zamanlayici]
+    test rcx, rcx
+    jnz 1f
+    xor ecx, ecx
+    xor edx, edx
+    mov r8d, 2                  # CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+    mov r9d, 0x1F0003           # TIMER_ALL_ACCESS
+    call CreateWaitableTimerExW
+    test rax, rax
+    jz 5f
+    mov [rip+__w_zamanlayici], rax
+    mov rcx, rax
+1:  imul rax, rdi, -10000       # göreli süre, 100 ns birimiyle
+    mov [rsp+64], rax
+    lea rdx, [rsp+64]
+    xor r8d, r8d
+    xor r9d, r9d
+    mov qword ptr [rsp+32], 0
+    mov qword ptr [rsp+40], 0
+    call SetWaitableTimer
+    test eax, eax
+    jz 5f
+    mov rcx, [rip+__w_zamanlayici]
+    mov edx, -1                 # INFINITE
+    call WaitForSingleObject
+    WIN_CIKIS
+5:  mov rcx, rdi
+    call Sleep
+    WIN_CIKIS
+
+__sis_tus_kipi:                 # rdi = 1 aç, 0 kapat -> rax = ham kip açıksa 1
+    WIN_GIRIS
+    test rdi, rdi
+    jz 5f
+    mov eax, 1
+    cmp byte ptr [rip+__tk_acik], 0
+    jne 9f
+    mov rcx, [rip+__std_tutamac]
+    lea rdx, [rip+__tk_eski]
+    call GetConsoleMode
+    test eax, eax
+    jz 8f
+    mov edx, [rip+__tk_eski]
+    and edx, -8                 # satır, yankı ve Ctrl+C işleme kapalı
+    mov rcx, [rip+__std_tutamac]
+    call SetConsoleMode
+    mov byte ptr [rip+__tk_acik], 1
+    mov eax, 1
+    WIN_CIKIS
+5:  call __tk_geri
+8:  xor eax, eax
+9:  WIN_CIKIS
+
+__tk_geri:                      # tuş kipi açıksa konsolun eski kipini geri yükler (hizalı yığınla çağrılır)
+    cmp byte ptr [rip+__tk_acik], 0
+    je 1f
+    mov byte ptr [rip+__tk_acik], 0
+    sub rsp, 40
+    mov rcx, [rip+__std_tutamac]
+    mov edx, [rip+__tk_eski]
+    call SetConsoleMode
+    add rsp, 40
+1:  ret
+
+__sis_tus_doldur:               # -> rax = girdi hazırsa tampona doldurup 1, değilse 0 (beklemez)
+    WIN_GIRIS
+    mov rcx, [rip+__std_tutamac]
+    mov [rsp+64], rcx
+    lea rdx, [rsp+96]
+    call GetConsoleMode
+    test eax, eax
+    jnz 5f
+    mov rcx, [rsp+64]           # boruda bekleyen bayt yoksa okunmaz
+    call GetFileType
+    cmp eax, 3                  # FILE_TYPE_PIPE
+    jne 4f
+    mov rcx, [rsp+64]
+    xor edx, edx
+    xor r8d, r8d
+    xor r9d, r9d
+    mov dword ptr [rsp+80], 0
+    lea rax, [rsp+80]
+    mov [rsp+32], rax
+    mov qword ptr [rsp+40], 0
+    call PeekNamedPipe
+    test eax, eax
+    jz 4f                       # boru kapandı: okumak girdinin bittiğini bildirir
+    cmp dword ptr [rsp+80], 0
+    je 0f
+4:  call __girdi_doldur
+    WIN_CIKIS
+5:  mov qword ptr [rsp+72], 0   # konsol: tuş olayları UTF-8'e (oklar Esc [ A ... dizilerine) çevrilir
+6:  cmp qword ptr [rsp+72], 65000
+    jae 8f
+    mov rcx, [rsp+64]
+    lea rdx, [rsp+80]
+    call GetNumberOfConsoleInputEvents
+    test eax, eax
+    jz 8f
+    cmp dword ptr [rsp+80], 0
+    je 8f
+    mov rcx, [rsp+64]
+    lea rdx, [rip+__w_kayit]
+    mov r8d, 1
+    lea r9, [rsp+80]
+    call ReadConsoleInputW
+    test eax, eax
+    jz 8f
+    lea rax, [rip+__w_kayit]
+    cmp word ptr [rax], 1       # KEY_EVENT
+    jne 6b
+    cmp dword ptr [rax+4], 0    # yalnızca basılma
+    je 6b
+    movzx ecx, word ptr [rax+14]
+    test ecx, ecx
+    jnz 7f
+    movzx ecx, word ptr [rax+10]    # karaktersiz tuş: yalnızca oklar
+    sub ecx, 0x25
+    cmp ecx, 3
+    ja 6b
+    lea rdx, [rip+__w_oklar]
+    movzx ecx, byte ptr [rdx+rcx]
+    lea rdx, [rip+__g_tampon]
+    add rdx, [rsp+72]
+    mov byte ptr [rdx], 27
+    mov byte ptr [rdx+1], 91
+    mov [rdx+2], cl
+    add qword ptr [rsp+72], 3
+    jmp 6b
+7:  lea r8, [rax+14]
+    mov ecx, 65001
+    xor edx, edx
+    mov r9d, 1
+    lea rax, [rip+__g_tampon]
+    add rax, [rsp+72]
+    mov [rsp+32], rax
+    mov qword ptr [rsp+40], 8
+    mov qword ptr [rsp+48], 0
+    mov qword ptr [rsp+56], 0
+    call WideCharToMultiByte
+    add [rsp+72], rax
+    jmp 6b
+8:  mov rax, [rsp+72]
+    test rax, rax
+    jz 0f
+    mov [rip+__g_son], rax
+    mov qword ptr [rip+__g_konum], 0
+    mov eax, 1
+    WIN_CIKIS
+0:  xor eax, eax
+    WIN_CIKIS
+
+__sis_boyut:                    # -> rax = (yükseklik << 32) | genişlik; konsol değilse 0
+    WIN_GIRIS
+    mov rcx, [rip+__std_tutamac+8]
+    lea rdx, [rsp+64]
+    call GetConsoleScreenBufferInfo
+    test eax, eax
+    jz 1f
+    movsx rax, word ptr [rsp+80]    # srWindow.Bottom - Top + 1
+    movsx rcx, word ptr [rsp+76]
+    sub rax, rcx
+    inc rax
+    shl rax, 32
+    movsx rdx, word ptr [rsp+78]    # srWindow.Right - Left + 1
+    movsx rcx, word ptr [rsp+74]
+    sub rdx, rcx
+    inc rdx
+    or rax, rdx
+    WIN_CIKIS
+1:  xor eax, eax
+    WIN_CIKIS
+
     .section .rodata
     .balign 8
     .quad 7
 __isletim_sistemi_adi: .ascii "windows"
     .byte 0
+__w_oklar: .ascii "DACB"        # sol, yukarı, sağ, aşağı -> Esc [ D/A/C/B
 
     .section .bss
     .balign 16
 __std_tutamac: .skip 24         # girdi, çıktı ve hata tutamaçları
+__tk_eski: .skip 8              # tuş kipinden önceki konsol kipi
+__tk_acik: .skip 8
+__w_zamanlayici: .skip 8        # bekle() için yüksek çözünürlüklü zamanlayıcı
+__w_kayit: .skip 24             # konsoldan okunan bir INPUT_RECORD
 __genis_tampon: .skip 65536     # UTF-16 yollar ve konsol metni
 __dar_tampon: .skip 131072      # UTF-8'e çevrilen argümanlar

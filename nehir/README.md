@@ -254,10 +254,38 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `uçbirim_mi(fd)` | `is_terminal` | dosya tanıtıcısı (0 girdi, 1 çıktı, 2 hata) bir uçbirime bağlıysa 1 |
 | `ortam_var(ad)` | `has_env` | ortam değişkeni tanımlıysa (boş olsa da) 1 |
 | `dosya_hatası(yol)` | `file_error` | dosya okunmak için açılabiliyorsa 0, açılamıyorsa işletim sisteminin hata kodu (dizinler için 21) |
+| `zaman()` | `time_ms` | tekdüze saatin milisaniyesi; yalnızca iki ölçüm arasındaki fark anlamlıdır |
+| `bekle(ms)` | `sleep` | programı `ms` milisaniye uyutur |
+| `rastgele(n)` | `random` | `0, 1, ..., n-1` arasından rastgele bir sayı; `n` pozitif olmalı |
+| `rastgele_tohum(t)` | `seed_random` | üreteci `t` ile başlatır: aynı tohum her zaman aynı sayıları verir (verilmezse tohum rastgeledir) |
+| `tuş_kipi(açık)` | `key_mode` | `1` uçbirimin ham kipini açar (tuşlar Enter beklemeden ve yankısız gelir), `0` kapatır; ham kip açıldıysa 1 verir |
+| `tuş()` | `key` | basılmış bir tuş varsa onu, yoksa beklemeden `""` verir |
+| `göster(m)` | `show` | metni satır sonu eklemeden yazar |
+| `uçbirim_boyutu()` | `terminal_size` | `[genişlik, yükseklik]`; çıktı bir uçbirim değilse `[80, 24]` |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
 `program.nehir:3: çalışma hatası: dosya bulunamadı: yok.txt`. Önce `dosya_var` ile sorulabilir.
+
+**Oyun döngüsü.** `tuş()` oklar için `"yukarı"`, `"aşağı"`, `"sağ"`, `"sol"`; Enter için `"enter"`,
+Esc için `"esc"`, Tab için `"tab"`, geri silme için `"geri"`, diğer tuşlar için yazdıkları karakteri
+(`"a"`, `" "`, `"ç"`) verir. Tuşlar `oku()` ile aynı girdiden gelir; girdi bir dosya ya da boruysa tuşlar
+oradan tek tek okunur. Ham kipte Ctrl+C programı (130 koduyla) bitirir; program nasıl biterse bitsin
+uçbirim eski hâline döner. Sabit hızlı bir döngü:
+
+```nehir
+tuş_kipi(1)
+zaman() -> sonraki
+doğru -> iken {
+    tuş() -> basılan
+    basılan == "q" -> eğer { dur }
+    # ... dünyayı bir adım ilerlet, ekranı göster() ile tek seferde çiz ...
+    sonraki + 50 -> sonraki                 # saniyede 20 kare
+    sonraki - zaman() -> kalan
+    kalan > 0 -> eğer { bekle(kalan) }
+}
+tuş_kipi(0)
+```
 
 Girdinin tamamını okumak için koşulu döngüye akıtmak yeter:
 
@@ -457,9 +485,9 @@ olur). Bunun için gereken Unicode tabloları ve işletim sistemi hata metinleri
 dosyasındadır; bu dosya `python3 kendi/veri_uret.py` ile çalışan Python'dan üretilir ve testler güncel
 olduğunu denetler.
 
-## Oyun: Nehrin Kaynağı
+## Oyunlar
 
-`ornekler/nehrin_kaynagi.nehir`, tamamen Nehir ile yazılmış bir metin oyunudur. Bir salla nehrin
+`ornekler/nehrin_kaynagi.nehir` (Nehrin Kaynağı), tamamen Nehir ile yazılmış bir metin oyunudur. Bir salla nehrin
 kaynağına, 20 km yukarıya kürek çekersin; her gün kürek çekmeye, dinlenmeye, balık tutmaya ya da
 köydeki pazara uğramaya karar verirsin. Erzak, enerji, sağlık ve para idaresi, karadan aşılması gereken
 bir şelale, fırtına, ters akıntı, yolda bulunanlar ve aç yolcular oyunun parçalarıdır. Rastgelelik
@@ -467,6 +495,14 @@ kaptanın adından türetilir: aynı adla aynı nehir, başka bir adla başka bi
 
 ```bash
 python3 nehir.py ornekler/nehrin_kaynagi.nehir --çalıştır
+```
+
+`ornekler/akinti.nehir` ise gerçek zamanlıdır: azgın bir nehirde akan kanonu oklarla kayalardan ve
+kıyılardan kaçırıp altın toplarsın; nehir gittikçe daralıp hızlanır. Ham kip, sabit kare hızı, rastgele
+dünya üretimi ve ekranın tek seferde çizilmesini gösterir. En yüksek puan `akinti_rekor.txt`'de saklanır.
+
+```bash
+python3 nehir.py ornekler/akinti.nehir --çalıştır
 ```
 
 ## Sınamalar
@@ -490,7 +526,8 @@ değilse bu aşama atlanır.
 - Sözlükler `==` ile karşılaştırılamaz; anahtar olarak liste kullanılamaz
 - Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken adı olamaz (işlev, kayıt ve parametre adı olabilir)
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
-- Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir
+- Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir (her karede ekran
+  çizen bir oyun için bu, kare başına harcanan belleğe göre dakikalar ya da saatler eder)
 - Ondalıklı sayı yok
 - Modüllerin kendi ad alanı yok; adların çakışmaması programcıya kalır
 - Kayıtlar kurulurken değerler yalnızca sırayla verilir (`Nokta(x: 3, y: 4)` yazılamaz); kayıtların yöntemi yok

@@ -1,0 +1,204 @@
+# ≈≈≈ AKINTI ≈≈≈
+#
+# Gerçek zamanlı bir Nehir oyunu. Kanon azgın bir nehirde hızla akıyor; ← ve → (ya da a ve d)
+# ile kayalardan ve kıyılardan kaçıp altınları topla. Nehir gittikçe daralır ve hızlanır.
+# q ya da Esc oyunu bitirir. En yüksek puan akinti_rekor.txt dosyasında saklanır.
+#
+#   python3 nehir.py ornekler/akinti.nehir --çalıştır
+#
+# Bir oyun döngüsünün parçalarını gösterir: tuş_kipi ve tuş() ile beklemeden girdi,
+# zaman() ve bekle() ile sabit kare hızı, rastgele() ile dünya üretimi, göster() ile
+# ekranın tek seferde (titremeden) çizilmesi. Çıktı bir uçbirim değilse (örneğin sınamalarda)
+# ekran çizilmez, beklenmez ve tohum sabittir: oyun her seferinde aynı oynanır.
+
+24 -> GEN               # nehrin ekrandaki genişliği (hücre)
+18 -> BOY               # görünen satır sayısı
+0 -> SU
+1 -> KAYA
+2 -> ALTIN
+3 -> KIYI
+
+uçbirim_mi(0) ve uçbirim_mi(1) -> EKRANDA
+karakter(27) -> ESC
+
+kayıt Oyun {
+    satırlar: [[sayı]],     # BOY satırlık halka: ekranın en üstü satırlar[üst]
+    üst: sayı,
+    x: sayı,                # kanonun sütunu (en alt satırda)
+    adım: sayı,
+    altın: sayı,
+    orta: sayı,             # nehrin ortasının sütunu
+    genişlik: sayı,         # kıyılar arası
+    son: metin              # oyun bittiyse nedeni, sürüyorsa ""
+}
+
+# ── dünya ──
+
+işlev kaya_olasılığı(o) {      # binde
+    40 + o.adım / 8 -> p
+    p > 170 -> eğer { 170 -> döndür }
+    p -> döndür
+}
+
+işlev yeni_satır(o, engelli) {
+    o.orta + rastgele(3) - 1 -> orta
+    o.genişlik / 2 + 1 -> en_sol
+    GEN - o.genişlik / 2 - 2 -> en_sağ
+    orta < en_sol -> eğer { en_sol -> orta }
+    orta > en_sağ -> eğer { en_sağ -> orta }
+    orta -> o.orta
+    orta - o.genişlik / 2 -> sol
+    sol + o.genişlik -> sağ
+    kaya_olasılığı(o) -> p
+    [] -> satır
+    0 -> i
+    i < GEN -> iken {
+        KIYI -> h
+        i >= sol ve i < sağ -> eğer {
+            SU -> h
+            engelli -> eğer {
+                rastgele(1000) -> z
+                z < p -> eğer { KAYA -> h } değilse { z < p + 12 -> eğer { ALTIN -> h } }
+            }
+        }
+        satır -> ekle(h)
+        i + 1 -> i
+    }
+    satır -> döndür
+}
+
+işlev satır_al(o, r) {          # r: ekranın üstünden 0, 1, ..., BOY-1
+    o.satırlar -> halka
+    halka[(o.üst + r) % BOY] -> döndür
+}
+
+işlev kaydır(o) {
+    (o.üst + BOY - 1) % BOY -> o.üst
+    o.satırlar -> halka
+    yeni_satır(o, doğru) -> halka[o.üst]
+}
+
+işlev puan(o) { o.adım + o.altın * 25 -> döndür }
+
+# ── bir adım ──
+
+işlev adım_at(o, basılan) {
+    basılan == "sol" veya basılan == "a" -> eğer { o.x - 1 -> o.x }
+    basılan == "sağ" veya basılan == "d" -> eğer { o.x + 1 -> o.x }
+    kaydır(o)
+    o.adım + 1 -> o.adım
+    o.adım % 120 == 0 ve o.genişlik > 9 -> eğer { o.genişlik - 1 -> o.genişlik }
+    satır_al(o, BOY - 1) -> alt
+    alt[o.x] -> h
+    h == KAYA -> eğer { "Kanon bir kayaya çarpıp parçalandı!" -> o.son }
+    h == KIYI -> eğer { "Kanon kıyıdaki kayalıklara bindi!" -> o.son }
+    h == ALTIN -> eğer {
+        o.altın + 1 -> o.altın
+        SU -> alt[o.x]
+    }
+}
+
+# ── ekran ──
+
+# Hücre türüne göre renk kodu ve karakter; renk dizileri bir kez kurulur.
+["36;44", "1;37;44", "1;33;44", "32;42"] -> HÜCRE_KODU
+[" ", "●", "◆", "▒"] -> HÜCRE_KARAKTERİ
+"1;31;44" -> KANON_KODU
+{} -> RENK
+HÜCRE_KODU -> her (kod) { ESC + "[0;" + kod + "m" -> RENK[kod] }
+ESC + "[0;" + KANON_KODU + "m" -> RENK[KANON_KODU]
+
+# Bellek geri toplanmadığı için her kare az bellek harcamalı: ekran, parçaları bir listede
+# toplayıp tek seferde birleştirerek kurulur (art arda + ile büyüyen metin her adımda kopyalanır).
+işlev çiz(o) {
+    [ESC + "[H" + ESC + "[0;1m  AKINTI" + ESC + "[0m   puan " + metne(puan(o))
+        + "   altın " + metne(o.altın) + "      \n"] -> parçalar
+    0 -> r
+    r < BOY -> iken {
+        satır_al(o, r) -> satır
+        "" -> son_kod
+        parçalar -> ekle("  ")
+        0 -> i
+        i < GEN -> iken {
+            satır[i] -> h
+            HÜCRE_KODU[h] -> kod
+            HÜCRE_KARAKTERİ[h] -> k
+            h == SU ve (o.adım + BOY - r + i * 5) % 13 == 0 -> eğer { "~" -> k }
+            r == BOY - 1 ve i == o.x -> eğer {
+                KANON_KODU -> kod
+                "▲" -> k
+            }
+            kod != son_kod -> eğer {
+                parçalar -> ekle(RENK[kod])
+                kod -> son_kod
+            }
+            parçalar -> ekle(k)
+            i + 1 -> i
+        }
+        parçalar -> ekle(ESC + "[0m\n")
+        r + 1 -> r
+    }
+    parçalar -> ekle("  ← → ya da a d: yön    q: çık\n")
+    göster(birleş(parçalar, ""))
+}
+
+işlev kare_süresi(o) {          # milisaniye; nehir hızlandıkça kısalır
+    110 - o.adım / 10 -> süre
+    süre < 45 -> eğer { 45 -> döndür }
+    süre -> döndür
+}
+
+# ── oyun ──
+
+işlev rekoru_oku() {
+    dosya_var("akinti_rekor.txt") -> eğer { sayıya(dosya_oku("akinti_rekor.txt")) -> döndür }
+    0 -> döndür
+}
+
+işlev oyna() {
+    EKRANDA -> eğer {
+        tuş_kipi(1)
+        göster(ESC + "[2J" + ESC + "[?25l")        # ekranı sil, imleci gizle
+    } değilse {
+        rastgele_tohum(7)
+    }
+    Oyun([], 0, GEN / 2, 0, 0, GEN / 2, 14, "") -> o
+    0 -> r
+    r < BOY -> iken {
+        o.satırlar -> ekle(yeni_satır(o, yanlış))
+        r + 1 -> r
+    }
+    zaman() -> sonraki
+    o.son == "" -> iken {
+        tuş() -> basılan
+        basılan == "q" veya basılan == "esc" -> eğer {
+            "Kanonu kıyıya çektin." -> o.son
+            dur
+        }
+        adım_at(o, basılan)
+        EKRANDA -> eğer {
+            çiz(o)
+            sonraki + kare_süresi(o) -> sonraki
+            sonraki - zaman() -> kalan
+            kalan > 0 -> eğer { bekle(kalan) } değilse { zaman() -> sonraki }
+        }
+    }
+    EKRANDA -> eğer {
+        göster(ESC + "[0m" + ESC + "[?25h")         # imleci geri getir
+        tuş_kipi(0)
+    }
+    "" -> yazdır
+    "  " + o.son -> yazdır
+    "  " + metne(o.adım) + " adım, " + metne(o.altın) + " altın · puan " + metne(puan(o)) -> yazdır
+    EKRANDA -> eğer {
+        rekoru_oku() -> rekor
+        puan(o) > rekor -> eğer {
+            "  Yeni rekor!" -> yazdır
+            dosya_yaz(metne(puan(o)), "akinti_rekor.txt")
+        } değilse {
+            "  Rekor: " + metne(rekor) -> yazdır
+        }
+    }
+}
+
+oyna()

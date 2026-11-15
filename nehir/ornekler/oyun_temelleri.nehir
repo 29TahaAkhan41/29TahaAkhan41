@@ -1,0 +1,53 @@
+# Oyun temelleri: zaman, bekleme, rastgelelik, anlık tuş okuma ve ekran.
+#
+#   zaman()              tekdüze saatin milisaniyesi (yalnızca iki ölçüm arasındaki fark anlamlıdır)
+#   bekle(ms)            programı ms milisaniye uyutur
+#   rastgele(n)          0, 1, ..., n-1 arasından rastgele bir sayı
+#   rastgele_tohum(t)    üreteci t ile başlatır: aynı tohum, aynı sayılar
+#   tuş_kipi(1 / 0)      uçbirimin ham kipini açar / kapatır (tuşlar Enter beklemeden, yankısız gelir)
+#   tuş()                basılmış bir tuş varsa onu, yoksa beklemeden "" verir
+#   göster(m)            satır sonu eklemeden yazar (ekranı çizmek için)
+#   uçbirim_boyutu()     [genişlik, yükseklik]; uçbirim değilse [80, 24]
+
+# ── rastgelelik: aynı tohum her zaman aynı diziyi verir ──
+rastgele_tohum(2024)
+[] -> zarlar
+aralık(0, 10) -> her (i) { zarlar -> ekle(1 + rastgele(6)) }
+zarlar -> yazdır
+
+rastgele_tohum(2024)
+1 + rastgele(6) == zarlar[0] -> yazdır
+
+# Bir listeyi karıştırmak (Fisher–Yates)
+["kılıç", "kalkan", "iksir", "harita", "anahtar"] -> eşyalar
+uzunluk(eşyalar) - 1 -> i
+i > 0 -> iken {
+    rastgele(i + 1) -> j
+    eşyalar[i] -> geçici
+    eşyalar[j] -> eşyalar[i]
+    geçici -> eşyalar[j]
+    i - 1 -> i
+}
+"karışık: " + birleş(eşyalar, ", ") -> yazdır
+
+# ── zaman ve bekleme ──
+zaman() -> başlangıç
+bekle(25)
+zaman() - başlangıç >= 25 -> yazdır
+
+# ── ekran ──
+göster("yük")
+göster("leniyor")
+"..." -> yazdır
+uçbirim_boyutu() -> boyut
+"boyut: " + metne(boyut[0]) + "x" + metne(boyut[1]) -> yazdır
+
+# ── tuşlar ──
+# Burada girdi bir dosyadan geldiği için ham kip açılmaz (0); tuşlar yine tek tek okunur.
+tuş_kipi(doğru) -> yazdır
+tuş() -> t
+t != "" -> iken {
+    "tuş: " + t -> yazdır
+    tuş() -> t
+}
+tuş_kipi(yanlış) -> yazdır
