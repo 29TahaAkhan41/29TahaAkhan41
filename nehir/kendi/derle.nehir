@@ -7,7 +7,7 @@
 # bulunulan dizinde aranır; aynı dizinde calisma_zamani_<hedef>.s de bulunmalıdır.
 # Assembly'yi çalıştırılabilir dosyaya çevirmek için:
 #   Linux:    as -o program.o program.s && ld -o program program.o
-#   Windows:  gcc -nostdlib -o program.exe program.s -lkernel32 -lshell32 -Wl,-e,_start -Wl,--subsystem,console
+#   Windows:  gcc -nostdlib -o program.exe program.s -lkernel32 -lshell32 -Wl,-e,_start -Wl,--subsystem,console -Wl,--stack,67108864
 
 kullan "kod_uretici.nehir"
 

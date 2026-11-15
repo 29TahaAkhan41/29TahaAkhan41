@@ -166,7 +166,7 @@ def windowsu_sına(geçici):
     for kaynak_s, ikili, hedef_s in ((s1, "derle1.exe", s2), (s2, "derle2.exe", s3)):
         ikili = os.path.join(dizin, ikili)
         subprocess.run([gcc, "-nostdlib", "-o", ikili, kaynak_s, "-lkernel32", "-lshell32",
-                        "-Wl,-e,_start", "-Wl,--subsystem,console"], check=True)
+                        "-Wl,-e,_start", "-Wl,--subsystem,console", "-Wl,--stack,67108864"], check=True)
         n = subprocess.run([wine, ikili, "kendi/derle.nehir", hedef_s, çz], cwd=KÖK, capture_output=True, env=ortam)
         if n.returncode != 0:
             print(f"BAŞARISIZ windows kendini derleme: {os.path.basename(ikili)}:", n.stderr[:300])

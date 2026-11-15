@@ -216,6 +216,8 @@ __yaz_deger:                    # rdi = değer, rsi = tür tanımı
 # olunca yeniden toplanır.
 
 __ayir:                         # rdi = bayt sayısı -> rax = sıfırlanmış bellek (yalnızca rax, rcx, rdx değişir)
+    cmp rdi, YIGIN_BOYUTU       # yığından büyük (ya da taşmış) istek
+    ja __bellek_bitti
     push rdi
     push rsi
     push r8
@@ -526,6 +528,8 @@ __gc_supur:                     # işaretsiz blokları boşaltır, boş komşula
     ret
 
 __liste_yeni:                   # rdi = kapasite (>= 1) -> rax = boş liste
+    cmp rdi, YIGIN_BOYUTU / 8   # kapasite * 8 taşmasın
+    ja __bellek_bitti
     push rdi
     mov edi, 24
     call __ayir
@@ -875,7 +879,7 @@ __sayidan_metin:                # rdi = sayı -> rax = metin
     leave
     ret
 
-__metinden_sayi:                # rdi = metin -> rax = sayı
+__metinden_sayi:                # rdi = metin -> rax = sayı; sığmıyorsa hata
     mov rcx, [rdi-8]
     xor eax, eax
     xor r8, r8
@@ -892,15 +896,19 @@ __metinden_sayi:                # rdi = metin -> rax = sayı
     sub edx, 48
     cmp edx, 9
     ja __sayi_hatasi
-    imul rax, rax, 10
+    imul rax, rax, 10           # negatif sayılar eksi yönde biriktirilir: -9223372036854775808 sığar
+    jo __buyuk_sayi_hatasi
+    test r9, r9
+    jnz 2f
     add rax, rdx
-    inc r8
+    jo __buyuk_sayi_hatasi
+    jmp 3f
+2:  sub rax, rdx
+    jo __buyuk_sayi_hatasi
+3:  inc r8
     cmp r8, rcx
     jb 1b
-    test r9, r9
-    jz 2f
-    neg rax
-2:  ret
+    ret
 
 # ── ondalık sayılar (IEEE 754 çift duyarlık) ──
 # Değer, sayılar gibi 64 bitlik bir yazmaçta (ham bitleriyle) taşınır. Metne çevirme,
@@ -1247,7 +1255,13 @@ __ondalik_yuvarla:              # rdi = ondalık, rsi = 0 yuvarla (yarımlar sı
     fldcw [rsp+8]
     mov rax, [rsp]
     add rsp, 24
-    ret
+    movabs rcx, 0x8000000000000000  # sığmayan ya da nan: x87 bu değeri verir
+    cmp rax, rcx
+    jne 4f
+    movabs rcx, 0xC3E0000000000000
+    cmp rdi, rcx
+    jne __tama_hatasi
+4:  ret
 
 __ondalik_kalan:                # rdi = a, rsi = b (b != 0) -> rax = a - b * tam(a / b), işareti a'nınki
     sub rsp, 8
@@ -2061,6 +2075,57 @@ __liste_ters:                   # rdi = liste -> rax = elemanları ters sırada 
 3:  pop rbx
     ret
 
+# ── tam sayı işlemleri ──
+__sayi_bol:                     # rax / rcx -> rax; en küçük sayı / -1 taşar ve kendisi olur (işlemci çökmez)
+    test rcx, rcx
+    jz __sifira_bolme
+    cmp rcx, -1
+    je 1f
+    cqo
+    idiv rcx
+    ret
+1:  neg rax
+    ret
+
+__sayi_kalan:                   # rax % rcx -> rax (işareti bölünenin işaretidir)
+    test rcx, rcx
+    jz __sifira_bolme
+    cmp rcx, -1
+    je 1f
+    cqo
+    idiv rcx
+    mov rax, rdx
+    ret
+1:  xor eax, eax
+    ret
+
+__sola_kaydir:                  # rax << rcx; 0-63 dışındaki kaydırmalar 0 verir
+    cmp rcx, 63
+    ja 1f
+    shl rax, cl
+    ret
+1:  xor eax, eax
+    ret
+
+__saga_kaydir:                  # rax >> rcx (işaret korunur); 0-63 dışında 0 ya da -1
+    cmp rcx, 63
+    jbe 1f
+    sar rax, 63
+    ret
+1:  sar rax, cl
+    ret
+
+__ondalik_tama:                 # rdi = ondalık -> rax = sıfıra doğru kesilmiş tam sayı; sığmıyorsa hata
+    movq xmm0, rdi
+    cvttsd2si rax, xmm0
+    movabs rcx, 0x8000000000000000
+    cmp rax, rcx
+    jne 1f
+    movabs rcx, 0xC3E0000000000000  # tam olarak -2^63 ise geçerli
+    cmp rdi, rcx
+    jne __tama_hatasi
+1:  ret
+
 __deger_esit:                   # rdi = a, rsi = b, rdx = tür tanımı -> rax = eşitse 1, değilse 0
     mov rax, [rdx]
     cmp rax, 6                  # 6: ondalık (0.0 == -0.0; nan hiçbir şeye eşit değil)
@@ -2345,8 +2410,8 @@ __metin_bol:                    # rdi = metin, rsi = ayraç -> rax = parçaları
     mov r13, rax
     xor r14, r14                # süren parçanın başı
     xor ebp, ebp                # tarama konumu
-    cmp qword ptr [r12-8], 0    # boş ayraç: metin tek parça kalır
-    je 5f
+    cmp qword ptr [r12-8], 0    # boş ayraç: metin karakterlerine bölünür
+    je 6f
 1:  mov rax, [r12-8]
     add rax, rbp
     cmp rax, [rbx-8]
@@ -2369,13 +2434,33 @@ __metin_bol:                    # rdi = metin, rsi = ayraç -> rax = parçaları
     jmp 1b
 5:  mov rsi, [rbx-8]
     call __bol_parca
-    mov rax, r13
+7:  mov rax, r13
     pop rbp
     pop r14
     pop r13
     pop r12
     pop rbx
     ret
+
+__metin_karakterleri:           # __metin_bol'un boş ayraçlı kolu (oradan atlanır)
+6:  cmp rbp, [rbx-8]
+    jae 7b
+    mov r14, rbp
+    movzx eax, byte ptr [rbx+rbp]
+    mov ecx, 1
+    cmp eax, 0xC0
+    jb 8f
+    inc ecx
+    cmp eax, 0xE0
+    jb 8f
+    inc ecx
+    cmp eax, 0xF0
+    jb 8f
+    inc ecx
+8:  add rbp, rcx
+    mov rsi, rbp
+    call __bol_parca
+    jmp 6b
 
 __liste_birles:                 # rdi = metin listesi, rsi = ayraç -> rax = birleşik metin
     push rbx
@@ -3041,6 +3126,19 @@ __ekran_kapali_hatasi:
     lea rsi, [rip+__h_ekran_kapali]
     mov edx, __h_ekran_kapali_son - __h_ekran_kapali
     jmp __hata
+__tama_hatasi:
+    lea rsi, [rip+__h_tama]
+    mov edx, __h_tama_son - __h_tama
+    jmp __hata
+__buyuk_sayi_hatasi:
+    lea rsi, [rip+__h_buyuk_sayi]
+    mov edx, __h_buyuk_sayi_son - __h_buyuk_sayi
+    jmp __hata
+__yigin_tasti:
+    mov rsp, [rip+__cagri_tepe]     # program bitecek: hata yazılırken yığın yetsin diye tepeye dönülür
+    lea rsi, [rip+__h_yigin]
+    mov edx, __h_yigin_son - __h_yigin
+    jmp __hata
 __us_hatasi:
     lea rsi, [rip+__h_us]
     mov edx, __h_us_son - __h_us
@@ -3142,6 +3240,12 @@ __ek_sil_dizi: .ascii "\033[0m\033[2J"
 __ek_sil_dizi_son:
 __ek_kapa_dizi: .ascii "\033[0m\033[?25h\033[?1049l"
 __ek_kapa_dizi_son:
+__h_tama: .ascii "ondalık sayı tam sayıya sığmıyor"
+__h_tama_son:
+__h_buyuk_sayi: .ascii "sayı çok büyük; en fazla 9223372036854775807 olabilir"
+__h_buyuk_sayi_son:
+__h_yigin: .ascii "çağrı yığını taştı (sonu gelmeyen bir özyineleme mi?)"
+__h_yigin_son:
 __h_us: .ascii "tam sayının üssü negatif olamaz (ondalıkla deneyin: üs(2.0, -1))"
 __h_us_son:
 __h_bos_liste: .ascii "boş listenin en küçüğü ya da en büyüğü yok"
@@ -3219,6 +3323,7 @@ __gc_ayrilan: .skip 8           # son toplamadan bu yana ayrılan bayt
 __gc_canli: .skip 8             # son toplamadan sağ çıkan bayt
 __gc_tasti: .skip 8             # işaret yığını taştı mı
 __cagri_tepe: .skip 8           # çağrı yığınının programın başındaki tepesi
+__yigin_siniri: .skip 8         # işlevler girişte yığının bunun altına inip inmediğine bakar
 __gc_baslar: .skip YIGIN_BOYUTU / 64 + 64   # blok başları bit haritası
 __gc_isaret: .skip 8388608      # işaret yığını (1M blok)
     .balign 16

@@ -3,6 +3,7 @@
 # Ortak kısmın (calisma_zamani.s) kullandığı işletim sistemi yordamları, kernel32.dll ve
 # shell32.dll işlevleriyle. Program MinGW-w64'ün gcc'siyle C kitaplığı olmadan bağlanır:
 #   gcc -nostdlib -o program.exe program.s -lkernel32 -lshell32 -Wl,-e,_start -Wl,--subsystem,console
+#       -Wl,--stack,67108864
 #
 # Ortak kısım bu yordamları Linux sistem çağrısı gibi kullanır: yalnızca rax, rcx ve r11
 # değişir, hata -errno olarak döner. Win64 çağrı düzeninde ise rdx ve r8-r10 de değişir,
@@ -50,6 +51,8 @@
     .section .text
 _start:
     mov [rip+__cagri_tepe], rsp
+    lea rax, [rsp-66846720]     # yığın 64 MB ayrılarak bağlanır (-Wl,--stack,67108864); 256 KB pay
+    mov [rip+__yigin_siniri], rax
     and rsp, -16
     sub rsp, 32
     mov ecx, -10                # STD_INPUT_HANDLE

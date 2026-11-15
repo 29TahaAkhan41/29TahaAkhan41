@@ -110,7 +110,7 @@ Nehir ile yazılmış derleyiciyi bir kez Python'la derledikten sonra Python'a g
 ```powershell
 python nehir.py kendi\derle.nehir -o derle.exe
 .\derle.exe ornekler\fibonacci.nehir fibonacci.s
-gcc -nostdlib -o fibonacci.exe fibonacci.s -lkernel32 -lshell32 "-Wl,-e,_start" "-Wl,--subsystem,console"
+gcc -nostdlib -o fibonacci.exe fibonacci.s -lkernel32 -lshell32 "-Wl,-e,_start" "-Wl,--subsystem,console" "-Wl,--stack,67108864"
 .\fibonacci.exe
 ```
 
@@ -233,7 +233,7 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `var(s, a)` | `has` | `a` anahtarı sözlükte varsa 1, yoksa 0 |
 | `anahtarlar(s)` | `keys` | sözlüğün anahtarlarının listesi (eklenme sırasıyla) |
 | `değerler(s)` | `values` | sözlüğün değerlerinin listesi |
-| `böl(m, ayraç)` | `split` | metni ayraçtan böler, metin listesi verir |
+| `böl(m, ayraç)` | `split` | metni ayraçtan böler, metin listesi verir; ayraç `""` ise karakterlerine böler |
 | `birleş(l, ayraç)` | `join` | metin listesinin elemanlarını araya ayraç koyarak tek metin yapar |
 | `metne(n)` | `str` | sayıyı metne çevirir |
 | `sayıya(m)` | `num` | metni sayıya çevirir; metin geçerli bir tam sayı değilse program hatayla durur. Ondalığı sıfıra doğru keser |
@@ -294,6 +294,12 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
 `program.nehir:3: çalışma hatası: dosya bulunamadı: yok.txt`. Önce `dosya_var` ile sorulabilir.
+
+**Taşmalar ve sınırlar** programı çökertmez: tam sayı işlemleri 64 bitte sarar (`üs(2, 64)` = 0),
+en küçük sayının -1'e bölümü kendisidir, 0–63 dışındaki kaydırmalar 0 (ya da sağa kaydırmada -1) verir.
+Sığmayan bir sayı metni (`sayıya`), tam sayıya sığmayan bir ondalık (`sayıya`, `yuvarla`, `taban`, `tavan`),
+sonu gelmeyen özyineleme (64 MB'lık çağrı yığını taşınca) ve yığından büyük bellek istekleri, satırı
+gösteren bir çalışma hatasıyla durur.
 
 **Sayı yazımları:** onaltılık `0xFF` ve ikili `0b1010` de yazılabilir; uzun sayılarda alt çizgi
 okumayı kolaylaştırır: `1_000_000`, `0x7FFF_FFFF`. Bit işlemleri işlev olarak yazılır (`|` çatal

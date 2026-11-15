@@ -1,0 +1,11 @@
+# Uç değerler: taşmalar ve sınırlar programı çökertmez, tanımlı sonuçlar verir.
+0 - 9223372036854775807 - 1 -> en_küçük_sayı
+[en_küçük_sayı / (0 - 1), en_küçük_sayı % (0 - 1)] -> yazdır     # taşma: kendisi ve 0
+[7 / 2, (0 - 7) / 2, 7 % 3, (0 - 7) % 3] -> yazdır                 # sıfıra doğru bölme
+[sola_kaydır(1, 63), sola_kaydır(1, 64), sağa_kaydır(0 - 8, 70), sağa_kaydır(8, 70)] -> yazdır
+sayıya("-9223372036854775808") -> yazdır
+[sayıya(2.9), sayıya(0 - 2.9), yuvarla(0 - 2.5), taban(0 - 0.5)] -> yazdır
+böl("çağ!", "") -> yazdır                                            # boş ayraç: karakterler
+böl("", ",") -> yazdır
+işlev derin(n) { n == 0 -> eğer { 0 -> döndür }  derin(n - 1) + 1 -> döndür }
+derin(200000) -> yazdır                                              # derin ama sonlu özyineleme

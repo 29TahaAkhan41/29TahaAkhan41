@@ -93,7 +93,8 @@ kullan "ayristirici.nehir"
     "call __ondalik_metin": 1, "call __metinden_ondalik": 1, "call __us_sayi": 1,
     "call __liste_en": 1, "call __ekran_ac": 1, "call __ekran_temizle": 1, "call __ekran_yaz": 1,
     "call __ekran_doldur": 1, "call __ekran_ciz": 1, "call __liste_sirala": 1,
-    "call __liste_ters": 1
+    "call __liste_ters": 1, "call __sayi_bol": 1, "call __sayi_kalan": 1, "call __ondalik_tama": 1,
+    "call __ondalik_yuvarla": 1
 } -> RİSKLİ
 
 # Ekran işlevleri: [kısa biçim, uzun biçim, açıklama, yordam]. Biçim, argüman türlerinin virgülle
@@ -1312,11 +1313,10 @@ işlev yerleşik_çağır(ad, türler, d) {
             yaz("pop rdi")
             komut("call __metinden_sayi", d)
         } değilse {
-            yaz("pop rax")
             t0 == "ondalık" -> eğer {       # sıfıra doğru kesilir
-                yaz("movq xmm0, rax")
-                yaz("cvttsd2si rax, xmm0")
-            }
+                yaz("pop rdi")
+                komut("call __ondalik_tama", d)
+            } değilse { yaz("pop rax") }
         }
         "sayı" -> döndür
     }
@@ -1339,7 +1339,7 @@ işlev yerleşik_çağır(ad, türler, d) {
         t0 == "sayı" -> eğer { yaz("pop rax") } değilse {
             yaz("pop rdi")
             yaz("mov esi, " + metne(bul(["yuvarla", "taban", "tavan"], asıl)))
-            yaz("call __ondalik_yuvarla")
+            komut("call __ondalik_yuvarla", d)
         }
         "sayı" -> döndür
     }
@@ -1387,7 +1387,7 @@ işlev yerleşik_çağır(ad, türler, d) {
         yaz("pop rcx")
         yaz("pop rax")
         yaz({"bit_ve": "and rax, rcx", "bit_veya": "or rax, rcx", "bit_yada": "xor rax, rcx",
-             "sola_kaydır": "shl rax, cl", "sağa_kaydır": "sar rax, cl"}[asıl])
+             "sola_kaydır": "call __sola_kaydir", "sağa_kaydır": "call __saga_kaydir"}[asıl])
         "sayı" -> döndür
     }
     asıl == "bit_değil" -> eğer {
@@ -1712,6 +1712,11 @@ işlev işlevi_derle(ad) {
     k_işlev_kodu -> ekle("    push rbp")
     k_işlev_kodu -> ekle("    mov rbp, rsp")
     yerel_sayısı > 0 -> eğer { k_işlev_kodu -> ekle("    sub rsp, " + metne(8 * yerel_sayısı)) }
+    # Yığın taşmasın: sonu gelmeyen özyineleme, işlevin satırını gösteren bir hatayla durur.
+    k_işlev[ad] -> tanım
+    k_işlev_kodu -> ekle("    mov r15, " + metne(tanım.dosya * 4294967296 + tanım.satır))
+    k_işlev_kodu -> ekle("    cmp rsp, [rip+__yigin_siniri]")
+    k_işlev_kodu -> ekle("    jb __yigin_tasti")
     gövde_kodu -> her (s) { k_işlev_kodu -> ekle(s) }
     k_işlev_kodu -> ekle("    xor eax, eax")
     k_işlev_kodu -> ekle("    leave")
@@ -2266,12 +2271,12 @@ işlev ikili_üret(e) {
     iş == "+" -> eğer { yaz("add rax, rcx")   "sayı" -> döndür }
     iş == "-" -> eğer { yaz("sub rax, rcx")   "sayı" -> döndür }
     iş == "*" -> eğer { yaz("imul rax, rcx")   "sayı" -> döndür }
-    iş == "/" veya iş == "%" -> eğer {
-        yaz("test rcx, rcx")
-        komut("jz __sifira_bolme", e)
-        yaz("cqo")
-        yaz("idiv rcx")
-        iş == "%" -> eğer { yaz("mov rax, rdx") }
+    iş == "/" -> eğer {
+        komut("call __sayi_bol", e)
+        "sayı" -> döndür
+    }
+    iş == "%" -> eğer {
+        komut("call __sayi_kalan", e)
         "sayı" -> döndür
     }
     yaz("cmp rax, rcx")

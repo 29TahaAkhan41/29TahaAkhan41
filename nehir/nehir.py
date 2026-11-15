@@ -842,7 +842,7 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__argumanlar", "__metin_karakter", "__rastgele", "__tus", "__ucbirim_boyutu",
     "__ondalik_metin", "__metinden_ondalik", "__us_sayi", "__liste_en", "__ekran_ac",
     "__ekran_temizle", "__ekran_yaz", "__ekran_doldur", "__ekran_ciz", "__liste_sirala",
-    "__liste_ters")}
+    "__liste_ters", "__sayi_bol", "__sayi_kalan", "__ondalik_tama", "__ondalik_yuvarla")}
 
 # Ekran işlevleri: kabul ettikleri argüman türleri, açıklaması ve çalışma zamanı yordamı.
 # Argümanlar yığında kalır; yordam onları rdi'nin gösterdiği yerden okur. Eksik renkler -1'dir.
@@ -1253,6 +1253,11 @@ class KodÜretici:
         k.append("    mov rbp, rsp")
         if yerel_sayısı:
             k.append(f"    sub rsp, {8 * yerel_sayısı}")
+        # Yığın taşmasın: sonu gelmeyen özyineleme, işlevin satırını gösteren bir hatayla durur.
+        tanım = self.işlevler[ad][2]
+        k.append(f"    mov r15, {getattr(tanım, 'dosya', 0) << 32 | int(tanım)}")
+        k.append("    cmp rsp, [rip+__yigin_siniri]")
+        k.append("    jb __yigin_tasti")
         k.extend(gövde_kodu)
         k.append("    xor eax, eax")
         k.append("    leave")
@@ -1776,9 +1781,8 @@ class KodÜretici:
                 self.yaz("pop rdi")
                 self.yaz("call __metinden_sayi")
             elif türler[0] == "ondalık":
-                self.yaz("pop rax")             # sıfıra doğru kesilir
-                self.yaz("movq xmm0, rax")
-                self.yaz("cvttsd2si rax, xmm0")
+                self.yaz("pop rdi")             # sıfıra doğru kesilir
+                self.yaz("call __ondalik_tama")
             else:
                 self.yaz("pop rax")
             return "sayı"
@@ -1838,7 +1842,7 @@ class KodÜretici:
             self.yaz("pop rcx")
             self.yaz("pop rax")
             self.yaz({"bit_ve": "and rax, rcx", "bit_veya": "or rax, rcx", "bit_yada": "xor rax, rcx",
-                      "sola_kaydır": "shl rax, cl", "sağa_kaydır": "sar rax, cl"}[asıl])
+                      "sola_kaydır": "call __sola_kaydir", "sağa_kaydır": "call __saga_kaydir"}[asıl])
             return "sayı"
         if asıl == "bit_değil":
             if türler != ["sayı"]:
@@ -2304,12 +2308,7 @@ class KodÜretici:
         elif iş == "*":
             self.yaz("imul rax, rcx")
         elif iş in ("/", "%"):
-            self.yaz("test rcx, rcx")
-            self.yaz("jz __sifira_bolme")
-            self.yaz("cqo")
-            self.yaz("idiv rcx")
-            if iş == "%":
-                self.yaz("mov rax, rdx")
+            self.yaz("call __sayi_bol" if iş == "/" else "call __sayi_kalan")
         else:
             self.yaz("cmp rax, rcx")
             self.yaz(f"{KARŞILAŞTIRMA[iş]} al")
@@ -2597,7 +2596,7 @@ def ana(argv):
         program = çıktı or kök + ".exe"
         gcc = "gcc" if sys.platform == "win32" else "x86_64-w64-mingw32-gcc"
         komutlar = [[gcc, "-nostdlib", "-x", "assembler", "-", "-o", program, "-lkernel32", "-lshell32",
-                     "-Wl,-e,_start", "-Wl,--subsystem,console"]]
+                     "-Wl,-e,_start", "-Wl,--subsystem,console", "-Wl,--stack,67108864"]]
         nesne = None
     else:
         program = kök

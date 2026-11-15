@@ -1,0 +1,2 @@
+# Yığından büyük bir liste istenemez.
+aralık(0, 9223372036854775807) -> l

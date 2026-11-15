@@ -4,7 +4,10 @@
     .section .text
 _start:
     mov [rip+__baslangic_sp], rsp
+    lea rsp, [rip+__cagri_yigini_son]   # program kendi 64 MB'lık çağrı yığınında çalışır
     mov [rip+__cagri_tepe], rsp
+    lea rax, [rip+__cagri_yigini+65536] # altta hata mesajı için pay
+    mov [rip+__yigin_siniri], rax
     call nehir_ana
     xor edi, edi
     jmp __cik
@@ -311,3 +314,6 @@ __isletim_sistemi_adi: .ascii "linux"
 __baslangic_sp: .skip 8         # süreç başlarken yığın: argc, argv..., 0, ortam..., 0
 __tk_eski: .skip 64             # tuş kipinden önceki uçbirim ayarları (termios)
 __tk_acik: .skip 8
+    .balign 16
+__cagri_yigini: .skip 67108864  # çağrı yığını (dokunulmadıkça bellek harcamaz)
+__cagri_yigini_son:

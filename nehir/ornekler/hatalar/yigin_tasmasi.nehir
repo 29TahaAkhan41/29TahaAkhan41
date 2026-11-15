@@ -1,0 +1,3 @@
+# Sonu gelmeyen özyineleme yığını taşırır; program hatayla durur.
+işlev sonsuz(n) { sonsuz(n + 1) + 1 -> döndür }
+sonsuz(0) -> yazdır

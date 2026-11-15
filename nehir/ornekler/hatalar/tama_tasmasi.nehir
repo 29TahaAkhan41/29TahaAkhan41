@@ -1,0 +1,2 @@
+# Tam sayıya sığmayan ondalık.
+sayıya(ondalığa("1e19")) -> yazdır

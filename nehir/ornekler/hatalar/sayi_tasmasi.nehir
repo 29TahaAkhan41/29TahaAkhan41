@@ -1,0 +1,2 @@
+# 64 bite sığmayan sayı metni.
+sayıya("9223372036854775808") -> yazdır
