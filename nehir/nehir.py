@@ -129,6 +129,13 @@ YERLEŞİKLER = {
     "tan": "tan", "atan": "atan", "asin": "asin", "acos": "acos",
     "üstel": "üstel", "ustel": "üstel", "exp": "üstel",
     "ln": "ln", "log": "ln",
+    "ekran_aç": "ekran_aç", "ekran_ac": "ekran_aç", "screen_open": "ekran_aç",
+    "ekran_kapat": "ekran_kapat", "screen_close": "ekran_kapat",
+    "ekran_temizle": "ekran_temizle", "screen_clear": "ekran_temizle",
+    "ekran_yaz": "ekran_yaz", "screen_text": "ekran_yaz",
+    "ekran_doldur": "ekran_doldur", "screen_fill": "ekran_doldur",
+    "ekran_çiz": "ekran_çiz", "ekran_ciz": "ekran_çiz", "screen_draw": "ekran_çiz",
+    "rgb": "rgb",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -813,7 +820,21 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__metin_bol", "__liste_birles", "__metin_baytlar", "__karakter", "__sozluk_yeni", "__sozluk_koy", "__sozluk_al",
     "__sozluk_sil", "__sozluk_liste", "__dosya_oku", "__dosya_yaz", "__dosya_sil",
     "__argumanlar", "__metin_karakter", "__rastgele", "__tus", "__ucbirim_boyutu",
-    "__ondalik_metin", "__metinden_ondalik", "__us_sayi", "__liste_en")}
+    "__ondalik_metin", "__metinden_ondalik", "__us_sayi", "__liste_en", "__ekran_ac",
+    "__ekran_temizle", "__ekran_yaz", "__ekran_doldur", "__ekran_ciz")}
+
+# Ekran işlevleri: kabul ettikleri argüman türleri, açıklaması ve çalışma zamanı yordamı.
+# Argümanlar yığında kalır; yordam onları rdi'nin gösterdiği yerden okur. Eksik renkler -1'dir.
+EKRAN_İŞLEVLERİ = {
+    "ekran_aç": ([["sayı", "sayı"]], "genişlik, yükseklik", "__ekran_ac"),
+    "ekran_kapat": ([[]], "argümansız", "__ekran_kapat"),
+    "ekran_temizle": ([[], ["sayı"]], "arka plan rengi", "__ekran_temizle"),
+    "ekran_yaz": ([["sayı", "sayı", "metin"], ["sayı", "sayı", "metin", "sayı", "sayı"]],
+                  "x, y, metin, yazı rengi, arka plan rengi", "__ekran_yaz"),
+    "ekran_doldur": ([["sayı"] * 4 + ["metin"], ["sayı"] * 4 + ["metin", "sayı", "sayı"]],
+                     "x, y, genişlik, yükseklik, karakter, yazı rengi, arka plan rengi", "__ekran_doldur"),
+    "ekran_çiz": ([[]], "argümansız", "__ekran_ciz"),
+}
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
@@ -1850,6 +1871,34 @@ class KodÜretici:
             self.yaz(f"mov esi, {['tan', 'atan', 'üstel', 'ln', 'asin', 'acos'].index(asıl)}")
             self.yaz("call __ondalik_fonk")
             return "ondalık"
+        if asıl in EKRAN_İŞLEVLERİ:
+            biçimler, açıklama, yordam = EKRAN_İŞLEVLERİ[asıl]
+            if türler not in biçimler:
+                yanlış(açıklama)
+            eksik = len(biçimler[-1]) - len(türler)
+            for _ in range(eksik):
+                self.yaz("push -1")
+            sayısı = len(biçimler[-1])
+            if sayısı:
+                self.yaz("mov rdi, rsp")
+            self.yaz(f"call {yordam}")
+            if sayısı:
+                self.yaz(f"add rsp, {8 * sayısı}")
+            return "sayı"
+        if asıl == "rgb":
+            if türler != ["sayı", "sayı", "sayı"]:
+                yanlış("kırmızı, yeşil, mavi (0-255)")
+            self.yaz("pop rdx")
+            self.yaz("pop rcx")
+            self.yaz("pop rax")
+            self.yaz("and eax, 255")
+            self.yaz("shl eax, 16")
+            self.yaz("and ecx, 255")
+            self.yaz("shl ecx, 8")
+            self.yaz("or eax, ecx")
+            self.yaz("and edx, 255")
+            self.yaz("or eax, edx")
+            return "sayı"
         if asıl == "pi":
             if türler:
                 yanlış("argümansız")

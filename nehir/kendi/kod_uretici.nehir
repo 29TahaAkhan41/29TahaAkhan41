@@ -67,7 +67,12 @@ kullan "ayristirici.nehir"
     "max": "en_büyük", "sınırla": "sınırla", "sinirla": "sınırla", "clamp": "sınırla",
     "işaret": "işaret", "isaret": "işaret", "sign": "işaret", "üs": "üs", "us": "üs",
     "pow": "üs", "tan": "tan", "atan": "atan", "asin": "asin", "acos": "acos",
-    "üstel": "üstel", "ustel": "üstel", "exp": "üstel", "ln": "ln", "log": "ln"
+    "üstel": "üstel", "ustel": "üstel", "exp": "üstel", "ln": "ln", "log": "ln",
+    "ekran_aç": "ekran_aç", "ekran_ac": "ekran_aç", "screen_open": "ekran_aç",
+    "ekran_kapat": "ekran_kapat", "screen_close": "ekran_kapat",
+    "ekran_temizle": "ekran_temizle", "screen_clear": "ekran_temizle", "ekran_yaz": "ekran_yaz",
+    "screen_text": "ekran_yaz", "ekran_doldur": "ekran_doldur", "screen_fill": "ekran_doldur",
+    "ekran_çiz": "ekran_çiz", "ekran_ciz": "ekran_çiz", "screen_draw": "ekran_çiz", "rgb": "rgb"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -84,8 +89,22 @@ kullan "ayristirici.nehir"
     "call __sozluk_yeni": 1, "jz __sifira_bolme": 1, "jz __yok_hatasi": 1,
     "call __rastgele": 1, "call __tus": 1, "call __ucbirim_boyutu": 1,
     "call __ondalik_metin": 1, "call __metinden_ondalik": 1, "call __us_sayi": 1,
-    "call __liste_en": 1
+    "call __liste_en": 1, "call __ekran_ac": 1, "call __ekran_temizle": 1, "call __ekran_yaz": 1,
+    "call __ekran_doldur": 1, "call __ekran_ciz": 1
 } -> RİSKLİ
+
+# Ekran işlevleri: [kısa biçim, uzun biçim, açıklama, yordam]. Biçim, argüman türlerinin virgülle
+# birleşimidir; kısa biçimde eksik kalan renkler -1 olarak itilir. nehir.py'deki EKRAN_İŞLEVLERİ ile aynı.
+{
+    "ekran_aç": ["sayı,sayı", "sayı,sayı", "genişlik, yükseklik", "__ekran_ac"],
+    "ekran_kapat": ["", "", "argümansız", "__ekran_kapat"],
+    "ekran_temizle": ["", "sayı", "arka plan rengi", "__ekran_temizle"],
+    "ekran_yaz": ["sayı,sayı,metin", "sayı,sayı,metin,sayı,sayı",
+                  "x, y, metin, yazı rengi, arka plan rengi", "__ekran_yaz"],
+    "ekran_doldur": ["sayı,sayı,sayı,sayı,metin", "sayı,sayı,sayı,sayı,metin,sayı,sayı",
+                     "x, y, genişlik, yükseklik, karakter, yazı rengi, arka plan rengi", "__ekran_doldur"],
+    "ekran_çiz": ["", "", "argümansız", "__ekran_ciz"]
+} -> EKRAN_İŞLEVLERİ
 
 {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"} -> KARŞILAŞTIRMA
 
@@ -1435,6 +1454,37 @@ işlev yerleşik_çağır(ad, türler, d) {
         yaz("mov esi, " + metne(bul(işlev_adları, asıl)))
         yaz("call __ondalik_fonk")
         "ondalık" -> döndür
+    }
+    var(EKRAN_İŞLEVLERİ, asıl) -> eğer {
+        EKRAN_İŞLEVLERİ[asıl] -> biçim      # [kısa biçim, uzun biçim, açıklama, yordam]
+        birleş(türler, ",") -> verilen
+        verilen != biçim[0] ve verilen != biçim[1] -> eğer { yanlış_argüman(ad, biçim[2], türler, d) }
+        uzunluk(böl(biçim[1], ",")) -> sayısı
+        biçim[1] == "" -> eğer { 0 -> sayısı }
+        n < sayısı -> iken {
+            yaz("push -1")
+            n + 1 -> n
+        }
+        sayısı > 0 -> eğer { yaz("mov rdi, rsp") }
+        komut("call " + biçim[3], d)
+        sayısı > 0 -> eğer { yaz("add rsp, " + metne(8 * sayısı)) }
+        "sayı" -> döndür
+    }
+    asıl == "rgb" -> eğer {
+        n != 3 veya t0 != "sayı" veya t1 != "sayı" veya t2 != "sayı" -> eğer {
+            yanlış_argüman(ad, "kırmızı, yeşil, mavi (0-255)", türler, d)
+        }
+        yaz("pop rdx")
+        yaz("pop rcx")
+        yaz("pop rax")
+        yaz("and eax, 255")
+        yaz("shl eax, 16")
+        yaz("and ecx, 255")
+        yaz("shl ecx, 8")
+        yaz("or eax, ecx")
+        yaz("and edx, 255")
+        yaz("or eax, edx")
+        "sayı" -> döndür
     }
     asıl == "pi" -> eğer {
         n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }

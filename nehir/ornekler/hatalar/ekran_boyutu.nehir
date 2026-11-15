@@ -1,0 +1,2 @@
+# Ekranın boyutu pozitif olmalı.
+ekran_aç(0, 10)

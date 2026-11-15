@@ -1,0 +1,3 @@
+# Ekran açılmadan ekrana yazılamaz.
+"önce" -> yazdır
+ekran_yaz(0, 0, "a")

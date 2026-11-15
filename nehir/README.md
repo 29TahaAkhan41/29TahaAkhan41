@@ -280,6 +280,13 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `bit_ve(a, b)`, `bit_veya(a, b)`, `bit_yada(a, b)` | `bit_and`, `bit_or`, `bit_xor` | bit bit ve, veya, özel veya |
 | `bit_değil(a)` | `bit_not` | bütün bitleri çevirir |
 | `sola_kaydır(a, n)`, `sağa_kaydır(a, n)` | `shift_left`, `shift_right` | bitleri n (0–63) basamak kaydırır; sağa kaydırma işareti korur |
+| `ekran_aç(g, y)` | `screen_open` | g × y hücrelik ekran tamponunu kurar; uçbirimde ayrı ekrana geçer, imleci gizler |
+| `ekran_temizle(arka)` | `screen_clear` | bütün hücreleri boşluk yapar (arka plan rengi verilmezse uçbirimin rengi) |
+| `ekran_yaz(x, y, m, yazı, arka)` | `screen_text` | metni (x, y)'den başlayarak tampona yazar; `"\n"` alt satıra geçer; renkler verilmezse değişmez |
+| `ekran_doldur(x, y, g, y, k, yazı, arka)` | `screen_fill` | dikdörtgeni `k` karakteriyle doldurur (`""`: karakter değişmez) |
+| `ekran_çiz()` | `screen_draw` | yalnızca son çizimden bu yana değişen hücreleri uçbirime yazar; yazılan bayt sayısını verir |
+| `ekran_kapat()` | `screen_close` | uçbirimi eski hâline döndürür (program bitince ya da hata verince kendiliğinden) |
+| `rgb(k, y, m)` | | 0–255 arası bileşenlerden `0xRRGGBB` rengi |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
@@ -330,6 +337,21 @@ doğru -> iken {
     kalan > 0 -> eğer { bekle(kalan) }
 }
 tuş_kipi(0)
+```
+
+**Ekran tamponu.** Bir oyun her karede ekranı baştan yazmak yerine bir hücre ızgarasına çizer:
+`ekran_yaz` ve `ekran_doldur` yalnızca bellekteki tampona yazar, `ekran_çiz` bu kareyi bir öncekiyle
+karşılaştırıp yalnızca değişen hücreleri, en az imleç ve renk kaçış dizisiyle, tek seferde uçbirime
+gönderir. Bu yüzden ekran titremez, durağan bir sahne neredeyse hiç yazı tutmaz ve bir kare hiç bellek
+ayırmaz. Renkler `0xRRGGBB` (ya da `rgb(255, 128, 0)`) sayılarıdır; `-1` "değiştirme" demektir:
+bir metni zeminin rengini bozmadan yazmak için arka planı `-1` verilir. Ekranın dışına taşan kısım kırpılır.
+
+```nehir
+ekran_aç(40, 12)
+ekran_temizle(rgb(0, 0, 64))
+ekran_doldur(0, 0, 40, 1, "═", 0xFFD700, -1)
+ekran_yaz(2, 2, "Puan: " + metne(puan), 0xFFFFFF, -1)
+ekran_çiz()
 ```
 
 Girdinin tamamını okumak için koşulu döngüye akıtmak yeter:

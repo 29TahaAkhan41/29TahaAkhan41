@@ -1,0 +1,3 @@
+# Renkler sayıdır (0xRRGGBB).
+ekran_aç(5, 5)
+ekran_yaz(0, 0, "a", "kırmızı", -1)

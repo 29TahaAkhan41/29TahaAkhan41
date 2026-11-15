@@ -1448,6 +1448,435 @@ __liste_en:                     # rdi = liste, rsi = 0 en küçük, 1 en büyük
 8:  movq rax, xmm0
 9:  ret
 
+# ── ekran tamponu ──
+# ekran_aç ile bir hücre ızgarası kurulur. Program arka tampona yazar (ekran_yaz, ekran_doldur,
+# ekran_temizle); ekran_çiz arka tamponu en son çizilenle (ön tampon) karşılaştırır ve yalnızca
+# değişen hücreleri, en az imleç ve renk kaçış dizisiyle, tek seferde uçbirime yazar. Hücre
+# 16 bayttır: karakterin kod noktası ve renkler (alt 32 bit yazı, üst 32 bit arka plan rengi;
+# 0xRRGGBB ya da -1: uçbirimin kendi rengi). Ekran işlevlerinin argümanları yığındadır:
+# rdi, son argümanı gösterir (ilk argüman en yüksek adreste).
+
+__ekran_ac:                     # [genişlik, yükseklik] -> rax = 0
+    push rbx
+    push r12
+    push r13
+    mov r12, [rdi+8]            # genişlik
+    mov r13, [rdi]              # yükseklik
+    test r12, r12
+    jle __ekran_hatasi
+    test r13, r13
+    jle __ekran_hatasi
+    mov rax, r12
+    imul rax, r13
+    cmp rax, 200000
+    ja __ekran_hatasi
+    mov rbx, rax                # hücre sayısı
+    mov [rip+__ek_gen], r12
+    mov [rip+__ek_yuk], r13
+    mov [rip+__ek_hucre], rbx
+    mov rdi, rbx
+    shl rdi, 4
+    call __ayir
+    or qword ptr [rax-8], 2     # düz bloklar: içlerinde adres yok
+    mov [rip+__ek_arka], rax
+    mov rdi, rbx
+    shl rdi, 4
+    call __ayir
+    or qword ptr [rax-8], 2
+    mov [rip+__ek_on], rax
+    mov rdi, rbx
+    shl rdi, 6
+    add rdi, 256
+    call __ayir
+    or qword ptr [rax-8], 2
+    mov [rip+__ek_cikti], rax
+    mov rdi, [rip+__ek_arka]    # arka: boşluk ve uçbirimin renkleri; ön: geçersiz, ilk çizim her şeyi yazar
+    mov rsi, [rip+__ek_on]
+    mov rcx, rbx
+1:  mov qword ptr [rdi], 32
+    mov qword ptr [rdi+8], -1
+    mov qword ptr [rsi], -1
+    mov qword ptr [rsi+8], -1
+    add rdi, 16
+    add rsi, 16
+    dec rcx
+    jnz 1b
+    lea rsi, [rip+__ek_ac_dizi]     # ilk açılışta ayrı ekran ve gizli imleç
+    mov edx, __ek_ac_dizi_son - __ek_ac_dizi
+    cmp byte ptr [rip+__ek_acik], 0
+    je 2f
+    lea rsi, [rip+__ek_sil_dizi]    # yeniden açılış (boyut değişti): yalnızca silinir
+    mov edx, __ek_sil_dizi_son - __ek_sil_dizi
+2:  call __ham_yaz
+    mov byte ptr [rip+__ek_acik], 1
+    xor eax, eax
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
+__ekran_kapat:                  # açıksa uçbirimi eski hâline döndürür (yazmaçlar korunur) -> rax = 0
+    cmp byte ptr [rip+__ek_acik], 0
+    je 1f
+    push rsi
+    push rdx
+    push rdi
+    push rcx
+    push r11
+    mov byte ptr [rip+__ek_acik], 0
+    lea rsi, [rip+__ek_kapa_dizi]
+    mov edx, __ek_kapa_dizi_son - __ek_kapa_dizi
+    call __ham_yaz
+    pop r11
+    pop rcx
+    pop rdi
+    pop rdx
+    pop rsi
+1:  xor eax, eax
+    ret
+
+__ekran_temizle:                # [arka plan rengi] -> rax = 0
+    cmp byte ptr [rip+__ek_acik], 0
+    je __ekran_kapali_hatasi
+    mov rax, [rdi]
+    shl rax, 32
+    mov ecx, -1
+    or rax, rcx                 # yazı rengi -1, arka plan verilen
+    mov rdi, [rip+__ek_arka]
+    mov rcx, [rip+__ek_hucre]
+1:  mov qword ptr [rdi], 32
+    mov [rdi+8], rax
+    add rdi, 16
+    dec rcx
+    jnz 1b
+    xor eax, eax
+    ret
+
+__ek_hucre_koy:                 # rdx = hücre, r8 = kod noktası (-2: değiştirme), r9 = yazı, r10 = arka rengi (-1: değiştirme)
+    cmp r8, -2
+    je 1f
+    mov [rdx], r8
+1:  cmp r9, -1
+    je 2f
+    mov [rdx+8], r9d
+2:  cmp r10, -1
+    je 3f
+    mov [rdx+12], r10d
+3:  ret
+
+__ek_kod_noktasi:               # rsi = UTF-8 baytları -> r8 = kod noktası, rsi ilerler (rax, rcx değişir)
+    movzx r8d, byte ptr [rsi]
+    inc rsi
+    cmp r8d, 0x80
+    jb 9f
+    mov ecx, 1
+    and r8d, 0x1F
+    cmp byte ptr [rsi-1], 0xE0
+    jb 1f
+    mov ecx, 2
+    and r8d, 0x0F
+    cmp byte ptr [rsi-1], 0xF0
+    jb 1f
+    mov ecx, 3
+    and r8d, 0x07
+1:  shl r8d, 6
+    movzx eax, byte ptr [rsi]
+    and eax, 0x3F
+    or r8d, eax
+    inc rsi
+    dec ecx
+    jnz 1b
+9:  ret
+
+__ekran_yaz:                    # [x, y, metin, yazı rengi, arka rengi] -> rax = 0; "\n" alt satıra geçer
+    cmp byte ptr [rip+__ek_acik], 0
+    je __ekran_kapali_hatasi
+    push rbx
+    push r12
+    push r13
+    push r14
+    push r15
+    mov r12, [rdi+32]           # r12 = x, r13 = y, r14 = satır başı x
+    mov r13, [rdi+24]
+    mov r14, r12
+    mov rsi, [rdi+16]
+    mov r15, rsi
+    add r15, [rsi-8]            # r15 = metnin sonu
+    mov r9, [rdi+8]
+    mov r10, [rdi]
+1:  cmp rsi, r15
+    jae 9f
+    call __ek_kod_noktasi
+    cmp r8, 10
+    jne 2f
+    inc r13
+    mov r12, r14
+    jmp 1b
+2:  test r12, r12
+    js 3f
+    cmp r12, [rip+__ek_gen]
+    jge 3f
+    test r13, r13
+    js 3f
+    cmp r13, [rip+__ek_yuk]
+    jge 3f
+    mov rdx, r13
+    imul rdx, [rip+__ek_gen]
+    add rdx, r12
+    shl rdx, 4
+    add rdx, [rip+__ek_arka]
+    call __ek_hucre_koy
+3:  inc r12
+    jmp 1b
+9:  pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    xor eax, eax
+    ret
+
+__ekran_doldur:                 # [x, y, genişlik, yükseklik, karakter, yazı rengi, arka rengi] -> rax = 0
+    cmp byte ptr [rip+__ek_acik], 0
+    je __ekran_kapali_hatasi
+    push rbx
+    push r12
+    push r13
+    push r14
+    push r15
+    mov r12, [rdi+48]           # x1 = en_büyük(x, 0), x2 = en_küçük(x + g, genişlik)
+    mov r14, r12
+    add r14, [rdi+32]
+    mov r13, [rdi+40]           # y1, y2
+    mov r15, r13
+    add r15, [rdi+24]
+    xor eax, eax
+    test r12, r12
+    cmovs r12, rax
+    test r13, r13
+    cmovs r13, rax
+    mov rax, [rip+__ek_gen]
+    cmp r14, rax
+    cmovg r14, rax
+    mov rax, [rip+__ek_yuk]
+    cmp r15, rax
+    cmovg r15, rax
+    mov r8, -2                  # boş metin: karakter değişmez
+    mov rsi, [rdi+16]
+    cmp qword ptr [rsi-8], 0
+    je 1f
+    call __ek_kod_noktasi
+1:  mov r9, [rdi+8]
+    mov r10, [rdi]
+2:  cmp r13, r15                # satırlar
+    jge 9f
+    mov rbx, r12
+3:  cmp rbx, r14
+    jge 4f
+    mov rdx, r13
+    imul rdx, [rip+__ek_gen]
+    add rdx, rbx
+    shl rdx, 4
+    add rdx, [rip+__ek_arka]
+    call __ek_hucre_koy
+    inc rbx
+    jmp 3b
+4:  inc r13
+    jmp 2b
+9:  pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    xor eax, eax
+    ret
+
+__ek_sayi:                      # rax = sayı (>= 0) -> r13'e onluk yazar (rax, rcx, rdx, r8 değişir)
+    xor r8d, r8d
+    mov ecx, 10
+1:  xor edx, edx
+    div rcx
+    add dl, 48
+    push rdx
+    inc r8
+    test rax, rax
+    jnz 1b
+2:  pop rax
+    mov [r13], al
+    inc r13
+    dec r8
+    jnz 2b
+    ret
+
+__ek_renk:                      # eax = renk (0xRRGGBB), r9b = 38 yazı / 48 arka -> r13'e ";38;2;r;g;b"
+    push rbx
+    mov ebx, eax
+    mov byte ptr [r13], 59
+    inc r13
+    movzx eax, r9b
+    call __ek_sayi
+    mov word ptr [r13], 0x323B  # ";2"
+    add r13, 2
+    mov r9d, 16
+1:  mov byte ptr [r13], 59
+    inc r13
+    mov eax, ebx
+    mov ecx, r9d
+    shr eax, cl
+    and eax, 0xFF
+    call __ek_sayi
+    sub r9d, 8
+    jns 1b
+    pop rbx
+    ret
+
+__ekran_ciz:                    # -> rax = uçbirime yazılan bayt sayısı
+    cmp byte ptr [rip+__ek_acik], 0
+    je __ekran_kapali_hatasi
+    push rbx
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbp
+    sub rsp, 24                 # [rsp] imlecin bulunduğu hücre (-1: bilinmiyor), [rsp+8] geçerli renkler
+    mov qword ptr [rsp], -1
+    movabs rax, 0x7FFFFFFE7FFFFFFE
+    mov [rsp+8], rax
+    mov r12, [rip+__ek_cikti]
+    mov r13, r12
+    mov r14, [rip+__ek_arka]
+    mov r15, [rip+__ek_on]
+    xor ebx, ebx                # hücre dizini
+1:  cmp rbx, [rip+__ek_hucre]
+    jae 8f
+    mov rbp, rbx
+    shl rbp, 4
+    mov rax, [r14+rbp]
+    mov rdx, [r14+rbp+8]
+    cmp rax, [r15+rbp]
+    jne 2f
+    cmp rdx, [r15+rbp+8]
+    je 7f
+2:  mov [r15+rbp], rax          # ön tampon güncellenir
+    mov [r15+rbp+8], rdx
+    cmp rbx, [rsp]
+    je 3f
+    mov word ptr [r13], 0x5B1B  # ESC [ satır ; sütun H
+    add r13, 2
+    mov rax, rbx
+    xor edx, edx
+    div qword ptr [rip+__ek_gen]
+    push rdx
+    inc rax
+    call __ek_sayi
+    mov byte ptr [r13], 59
+    inc r13
+    pop rax
+    inc rax
+    call __ek_sayi
+    mov byte ptr [r13], 72
+    inc r13
+3:  mov rdx, [r14+rbp+8]
+    cmp rdx, [rsp+8]
+    je 5f
+    mov [rsp+8], rdx            # ESC [ 0 ; 38;2;r;g;b ; 48;2;r;g;b m
+    mov dword ptr [r13], 0x305B1B
+    add r13, 3
+    cmp edx, -1
+    je 4f
+    mov eax, edx
+    mov r9d, 38
+    call __ek_renk
+    mov rdx, [rsp+8]
+4:  shr rdx, 32
+    cmp edx, -1
+    je 41f
+    mov eax, edx
+    mov r9d, 48
+    call __ek_renk
+41: mov byte ptr [r13], 109
+    inc r13
+5:  mov rax, [r14+rbp]          # karakter, UTF-8 olarak
+    cmp rax, 0x80
+    jae 51f
+    mov [r13], al
+    inc r13
+    jmp 6f
+51: cmp rax, 0x800
+    jae 52f
+    mov rcx, rax
+    shr rcx, 6
+    or cl, 0xC0
+    mov [r13], cl
+    and al, 0x3F
+    or al, 0x80
+    mov [r13+1], al
+    add r13, 2
+    jmp 6f
+52: cmp rax, 0x10000
+    jae 53f
+    mov rcx, rax
+    shr rcx, 12
+    or cl, 0xE0
+    mov [r13], cl
+    mov rcx, rax
+    shr rcx, 6
+    and cl, 0x3F
+    or cl, 0x80
+    mov [r13+1], cl
+    and al, 0x3F
+    or al, 0x80
+    mov [r13+2], al
+    add r13, 3
+    jmp 6f
+53: mov rcx, rax
+    shr rcx, 18
+    or cl, 0xF0
+    mov [r13], cl
+    mov rcx, rax
+    shr rcx, 12
+    and cl, 0x3F
+    or cl, 0x80
+    mov [r13+1], cl
+    mov rcx, rax
+    shr rcx, 6
+    and cl, 0x3F
+    or cl, 0x80
+    mov [r13+2], cl
+    and al, 0x3F
+    or al, 0x80
+    mov [r13+3], al
+    add r13, 4
+6:  lea rax, [rbx+1]            # imleç bir sağa geçti; satır sonunda nerede olduğu belirsizdir
+    xor edx, edx
+    div qword ptr [rip+__ek_gen]
+    lea rax, [rbx+1]
+    test rdx, rdx
+    jnz 61f
+    mov rax, -1
+61: mov [rsp], rax
+7:  inc rbx
+    jmp 1b
+8:  cmp r13, r12
+    je 9f
+    mov dword ptr [r13], 0x6D305B1B # ESC [ 0 m
+    add r13, 4
+    mov rsi, r12
+    mov rdx, r13
+    sub rdx, r12
+    call __ham_yaz
+9:  mov rax, r13
+    sub rax, r12
+    add rsp, 24
+    pop rbp
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
 __deger_esit:                   # rdi = a, rsi = b, rdx = tür tanımı -> rax = eşitse 1, değilse 0
     mov rax, [rdx]
     cmp rax, 6                  # 6: ondalık (0.0 == -0.0; nan hiçbir şeye eşit değil)
@@ -2420,6 +2849,14 @@ __anahtar_hatasi:
     lea rsi, [rip+__h_anahtar]
     mov edx, __h_anahtar_son - __h_anahtar
     jmp __hata
+__ekran_hatasi:
+    lea rsi, [rip+__h_ekran]
+    mov edx, __h_ekran_son - __h_ekran
+    jmp __hata
+__ekran_kapali_hatasi:
+    lea rsi, [rip+__h_ekran_kapali]
+    mov edx, __h_ekran_kapali_son - __h_ekran_kapali
+    jmp __hata
 __us_hatasi:
     lea rsi, [rip+__h_us]
     mov edx, __h_us_son - __h_us
@@ -2444,6 +2881,7 @@ __bellek_bitti:
     lea rsi, [rip+__h_bellek]
     mov edx, __h_bellek_son - __h_bellek
 __hata:                         # rsi = mesaj, rdx = uzunluk, r15 = kaynak dosyası ve satırı
+    call __ekran_kapat          # hata mesajı ayrı ekranda kaybolmasın
     push rdx                    # stderr'e "dosya:satır: çalışma hatası: mesaj" yazıp 1 ile çıkar
     push rsi
     mov rax, r15                # r15'in üst yarısı dosya numarası, alt yarısı satır
@@ -2510,6 +2948,16 @@ __h_sayi: .ascii "metin sayıya çevrilemiyor"
 __h_sayi_son:
 __h_ondalik: .ascii "metin ondalık sayıya çevrilemiyor"
 __h_ondalik_son:
+__h_ekran: .ascii "ekran boyutu geçersiz (genişlik ve yükseklik pozitif, çarpımları en çok 200000 olmalı)"
+__h_ekran_son:
+__h_ekran_kapali: .ascii "ekran açık değil; önce ekran_aç(genişlik, yükseklik)"
+__h_ekran_kapali_son:
+__ek_ac_dizi: .ascii "\033[?1049h\033[?25l\033[0m\033[2J"    # ayrı ekran, imleç gizli, silinmiş
+__ek_ac_dizi_son:
+__ek_sil_dizi: .ascii "\033[0m\033[2J"
+__ek_sil_dizi_son:
+__ek_kapa_dizi: .ascii "\033[0m\033[?25h\033[?1049l"
+__ek_kapa_dizi_son:
 __h_us: .ascii "tam sayının üssü negatif olamaz (ondalıkla deneyin: üs(2.0, -1))"
 __h_us_son:
 __h_bos_liste: .ascii "boş listenin en küçüğü ya da en büyüğü yok"
@@ -2606,3 +3054,10 @@ __g_konum: .skip 8
 __g_son: .skip 8
 __rs_durum: .skip 8             # rastgele sayı üretecinin durumu
 __rs_tohumlu: .skip 8
+__ek_arka: .skip 8              # ekran tamponu: arka ve ön hücreler, çıktı tamponu (kökler)
+__ek_on: .skip 8
+__ek_cikti: .skip 8
+__ek_gen: .skip 8
+__ek_yuk: .skip 8
+__ek_hucre: .skip 8
+__ek_acik: .skip 8

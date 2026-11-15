@@ -11,6 +11,7 @@ _start:
 
 __cik:                          # rdi = çıkış kodu
     push rdi
+    call __ekran_kapat          # ekran tamponu açık kaldıysa ayrı ekrandan çıkılır
     call __tk_geri              # tuş kipi açık kaldıysa uçbirim eski hâline döner
     pop rdi
     mov eax, 60

@@ -1,0 +1,42 @@
+# Ekran tamponu: titremeden ve az yazarak ekran çizmek.
+#
+#   ekran_aç(g, y)                          g × y hücrelik ekranı kurar (ayrı ekran, gizli imleç)
+#   ekran_temizle(arka)                     bütün hücreleri boşluk yapar
+#   ekran_yaz(x, y, metin, yazı, arka)      metni (x, y)'den başlayarak yazar; "\n" alt satıra geçer
+#   ekran_doldur(x, y, g, y, kar, yazı, arka)   bir dikdörtgeni aynı karakterle doldurur
+#   ekran_çiz()                             değişen hücreleri uçbirime yazar; yazılan baytı verir
+#   ekran_kapat()                           uçbirimi eski hâline döndürür (program bitince kendiliğinden)
+#   rgb(k, y, m)                            0-255 bileşenlerden 0xRRGGBB rengi
+#
+# Renkler 0xRRGGBB sayılarıdır; -1 "değiştirme" demektir (ekran_temizle'de: uçbirimin rengi).
+# Ekrana dışından taşan yazılar kırpılır. Bu program çıktısını bir dosyaya yazdığında da aynı
+# kaçış dizilerini üretir; sınamalar onları bayt bayt karşılaştırır.
+
+ekran_aç(16, 5)
+ekran_temizle(rgb(0, 0, 64))
+ekran_doldur(0, 0, 16, 1, "═", 0xFFD700, -1)        # üst çerçeve
+ekran_doldur(0, 4, 16, 1, "═", 0xFFD700, -1)        # alt çerçeve
+ekran_yaz(2, 1, "Merhaba,\nNehir!", 0xFFFFFF, -1)
+ekran_yaz(12, 2, "taşan metin", 0xFF4136, -1)      # yalnızca "taşa" sığar
+ekran_çiz() -> ilk
+
+# Yalnızca değişen hücreler yazılır: bir karakterin rengini değiştirmek birkaç bayt tutar.
+ekran_yaz(2, 1, "M", 0x2ECC40, -1)
+ekran_çiz() -> ikinci
+ekran_çiz() -> üçüncü                               # hiçbir şey değişmedi: 0 bayt
+
+# Bir topu 10 kare boyunca kaydırmak
+0 -> x
+0 -> toplam
+x < 10 -> iken {
+    ekran_doldur(1, 3, 14, 1, " ", -1, -1)          # eski konumu sil
+    ekran_yaz(1 + x, 3, "●", 0xFF851B, -1)
+    toplam + ekran_çiz() -> toplam
+    x + 1 -> x
+}
+ekran_kapat()
+
+"ilk çizim: " + metne(ilk) + " bayt" -> yazdır
+"bir hücre değişince: " + metne(ikinci) + " bayt" -> yazdır
+"hiçbir şey değişmeyince: " + metne(üçüncü) + " bayt" -> yazdır
+"top 10 karede: " + metne(toplam) + " bayt" -> yazdır

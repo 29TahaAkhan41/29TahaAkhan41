@@ -19,7 +19,6 @@
 3 -> KIYI
 
 uçbirim_mi(0) ve uçbirim_mi(1) -> EKRANDA
-karakter(27) -> ESC
 
 kayıt Oyun {
     satırlar: [[sayı]],     # BOY satırlık halka: ekranın en üstü satırlar[üst]
@@ -100,46 +99,31 @@ işlev adım_at(o, basılan) {
 
 # ── ekran ──
 
-# Hücre türüne göre renk kodu ve karakter; renk dizileri bir kez kurulur.
-["36;44", "1;37;44", "1;33;44", "32;42"] -> HÜCRE_KODU
+# Hücre türüne göre karakter, yazı ve arka plan rengi (0xRRGGBB).
 [" ", "●", "◆", "▒"] -> HÜCRE_KARAKTERİ
-"1;31;44" -> KANON_KODU
-{} -> RENK
-HÜCRE_KODU -> her (kod) { ESC + "[0;" + kod + "m" -> RENK[kod] }
-ESC + "[0;" + KANON_KODU + "m" -> RENK[KANON_KODU]
+[0x7FDBFF, 0xFFFFFF, 0xFFD700, 0x2E8B57] -> HÜCRE_YAZI
+[0x1E5AA8, 0x1E5AA8, 0x1E5AA8, 0x14502D] -> HÜCRE_ARKA
 
-# Ekran, parçaları bir listede toplayıp tek seferde birleştirerek kurulur: art arda + ile
-# büyüyen metin her adımda baştan kopyalanırdı. Önceki karelerin belleğini çöp toplayıcı geri alır.
+# Ekran tamponuna yazılır; ekran_çiz yalnızca önceki kareden farklı hücreleri uçbirime gönderir.
+# Sabit metinler kullanıldığı için bir kare neredeyse hiç bellek ayırmaz.
 işlev çiz(o) {
-    [ESC + "[H" + ESC + "[0;1m  AKINTI" + ESC + "[0m   puan " + metne(puan(o))
-        + "   altın " + metne(o.altın) + "      \n"] -> parçalar
+    ekran_yaz(2, 0, "AKINTI", 0xFFFFFF, -1)
+    ekran_yaz(11, 0, "puan " + metne(puan(o)) + "   altın " + metne(o.altın) + "   ", 0xC0C0C0, -1)
     0 -> r
     r < BOY -> iken {
         satır_al(o, r) -> satır
-        "" -> son_kod
-        parçalar -> ekle("  ")
         0 -> i
         i < GEN -> iken {
             satır[i] -> h
-            HÜCRE_KODU[h] -> kod
             HÜCRE_KARAKTERİ[h] -> k
             h == SU ve (o.adım + BOY - r + i * 5) % 13 == 0 -> eğer { "~" -> k }
-            r == BOY - 1 ve i == o.x -> eğer {
-                KANON_KODU -> kod
-                "▲" -> k
-            }
-            kod != son_kod -> eğer {
-                parçalar -> ekle(RENK[kod])
-                kod -> son_kod
-            }
-            parçalar -> ekle(k)
+            ekran_yaz(2 + i, 1 + r, k, HÜCRE_YAZI[h], HÜCRE_ARKA[h])
             i + 1 -> i
         }
-        parçalar -> ekle(ESC + "[0m\n")
         r + 1 -> r
     }
-    parçalar -> ekle("  ← → ya da a d: yön    q: çık\n")
-    göster(birleş(parçalar, ""))
+    ekran_yaz(2 + o.x, BOY, "▲", 0xFF4136, -1)     # kanon (en alt satırda)
+    ekran_çiz()
 }
 
 işlev kare_süresi(o) {          # milisaniye; nehir hızlandıkça kısalır
@@ -158,7 +142,8 @@ işlev rekoru_oku() {
 işlev oyna() {
     EKRANDA -> eğer {
         tuş_kipi(1)
-        göster(ESC + "[2J" + ESC + "[?25l")        # ekranı sil, imleci gizle
+        ekran_aç(GEN + 8, BOY + 2)
+        ekran_yaz(2, BOY + 1, "← → / a d: yön   q: çık", 0x808080, -1)
     } değilse {
         rastgele_tohum(7)
     }
@@ -184,7 +169,8 @@ işlev oyna() {
         }
     }
     EKRANDA -> eğer {
-        göster(ESC + "[0m" + ESC + "[?25h")         # imleci geri getir
+        bekle(600)                                  # son kareyi bir an göster
+        ekran_kapat()
         tuş_kipi(0)
     }
     "" -> yazdır
