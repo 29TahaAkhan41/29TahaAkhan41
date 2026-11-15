@@ -199,13 +199,328 @@ __yaz_deger:                    # rdi = değer, rsi = tür tanımı
     call __deger_ham
     jmp __satir_sonu
 
-__ayir:                         # rdi = bayt sayısı -> rax = adres
-    mov rax, [rip+__yigin_uc]
+# ── bellek: ayırma ve çöp toplama ──
+# Yığın (__yigin ... __yigin_uc) art arda bloklardan oluşur. Her bloğun önünde 8 baytlık bir
+# başlık vardır: bloğun başlıkla birlikte bayt sayısı (8'in katı) ve alt üç bitte bayraklar
+# (1 işaretli, 2 düz: içinde adres yok (metin), 4 boş). __ayir'in verdiği adres başlıktan hemen
+# sonradır ve __gc_baslar bit haritasında (8 bayta bir bit) işaretlidir.
+#
+# Çöp toplayıcı işaretle-süpür türündedir ve muhafazakârdır: kökler (çağrı yığını, yazmaçlar,
+# programın küresel değişkenleri ve çalışma zamanının değişkenleri) ile ulaşılan blokların
+# içindeki her sözcük, bir bloğun adresi (ya da metinlerde olduğu gibi adresi + 8) olabilir
+# diye denenir. Ulaşılamayan bloklar süpürülür: komşu boş bloklar birleşir, sondakiler
+# yığının ucunu geri çeker, diğerleri boyutlarına göre boş listelerine girer. Bloklar
+# taşınmaz. Son toplamadan bu yana ayrılan bellek, toplamadan sağ çıkan kadarı (en az 8 MB)
+# olunca yeniden toplanır.
+
+__ayir:                         # rdi = bayt sayısı -> rax = sıfırlanmış bellek (yalnızca rax, rcx, rdx değişir)
+    push rdi
+    push rsi
+    push r8
+    lea rdi, [rdi+15]           # başlıkla birlikte, 8'in katına yuvarlanmış; en az 16
+    and rdi, -8
+    cmp rdi, 16
+    jae 1f
+    mov edi, 16
+1:  mov rax, [rip+__gc_ayrilan]
+    cmp rax, [rip+__gc_esik]
+    jb 2f
+    call __cop_topla
+2:  call __blok_bul
+    test rax, rax
+    jnz 3f
+    call __cop_topla
+    call __blok_bul
+    test rax, rax
+    jz __bellek_bitti
+3:  add [rip+__gc_ayrilan], rdi
+    lea r8, [rax+8]
+    mov rcx, r8
+    lea rdx, [rip+__yigin]
+    sub rcx, rdx
+    shr rcx, 3
+    lea rdx, [rip+__gc_baslar]
+    bts qword ptr [rdx], rcx
+    mov rcx, [rax]
+    shr rcx, 3
+    dec rcx
+    mov rdi, r8
+    xor eax, eax
+    rep stosq
+    mov rax, r8
+    pop r8
+    pop rsi
+    pop rdi
+    ret
+
+__blok_bul:                     # rdi = blok boyutu -> rax = başlığı yazılmış bloğun başlığı ya da 0
+    cmp rdi, 512
+    ja 3f
+    lea rdx, [rip+__gc_listeler]    # küçük bloklar: tam bu boyuttakilerin listesi
+    mov rax, [rdx+rdi]
+    test rax, rax
+    jz 3f
+    mov rcx, [rax+8]
+    mov [rdx+rdi], rcx
+    mov [rax], rdi
+    ret
+3:  lea rsi, [rip+__gc_buyuk]   # büyük boş bloklar: ilk yeten bölünür
+4:  mov rax, [rsi]
+    test rax, rax
+    jz 6f
+    mov rcx, [rax]
+    and rcx, -8
+    cmp rcx, rdi
+    jae 5f
+    lea rsi, [rax+8]
+    jmp 4b
+5:  mov rdx, [rax+8]
+    mov [rsi], rdx
+    sub rcx, rdi
+    cmp rcx, 16
+    jb 7f
+    push rdi
+    lea rdi, [rax+rdi]
+    mov rsi, rcx
+    call __bos_ekle
+    pop rdi
+    mov [rax], rdi
+    ret
+7:  add rcx, rdi
+    mov [rax], rcx
+    ret
+6:  mov rax, [rip+__yigin_uc]   # yığının ucundan
     lea rdx, [rax+rdi]
     lea rcx, [rip+__yigin_son]
     cmp rdx, rcx
-    ja __bellek_bitti
+    ja 8f
     mov [rip+__yigin_uc], rdx
+    mov [rax], rdi
+    ret
+8:  xor eax, eax
+    ret
+
+__bos_ekle:                     # rdi = başlık, rsi = boyut: boş blok olarak listesine ekler (rax korunur)
+    lea rcx, [rsi+4]
+    mov [rdi], rcx
+    lea rcx, [rip+__gc_buyuk]
+    cmp rsi, 512
+    ja 1f
+    lea rcx, [rip+__gc_listeler]
+    add rcx, rsi
+1:  mov rdx, [rcx]
+    mov [rdi+8], rdx
+    mov [rcx], rdi
+    ret
+
+# Metin doğrudan yığının ucunda büyütülürken (__oku, __dosya_oku): önce gerekirse toplanır.
+__uc_bas:                       # -> rax = metnin baytlarının yazılacağı adres (uç + 16)
+    call __gc_belki
+    mov rax, [rip+__yigin_uc]
+    add rax, 16
+    ret
+
+__uc_bitir:                     # rdi = __uc_bas'ın verdiği adres, rsi = bayt uzunluğu -> rax = metin
+    mov [rdi-8], rsi
+    mov byte ptr [rdi+rsi], 0
+    lea rax, [rdi+rsi+8]
+    and rax, -8
+    lea rcx, [rdi-16]
+    mov rdx, rax
+    sub rdx, rcx
+    add [rip+__gc_ayrilan], rdx
+    or rdx, 2                   # düz blok
+    mov [rcx], rdx
+    mov [rip+__yigin_uc], rax
+    lea rcx, [rdi-8]
+    lea rdx, [rip+__yigin]
+    sub rcx, rdx
+    shr rcx, 3
+    lea rdx, [rip+__gc_baslar]
+    bts qword ptr [rdx], rcx
+    mov rax, rdi
+    ret
+
+__gc_belki:                     # son toplamadan bu yana eşik kadar ayrıldıysa toplar
+    push rax
+    mov rax, [rip+__gc_ayrilan]
+    cmp rax, [rip+__gc_esik]
+    pop rax
+    jae __cop_topla
+    ret
+
+__bellek_topla:                 # çöp_topla() -> rax = toplamadan sağ çıkan bayt sayısı
+    call __cop_topla
+    mov rax, [rip+__gc_canli]
+    ret
+
+__cop_topla:                    # bütün yazmaçlar korunur (yığına itilir, böylece kök de olurlar)
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push rbp
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+    mov qword ptr [rip+__ma_metin], 0   # önbellekler, süpürülüp yeniden kullanılacak metinleri göstermesin
+    mov qword ptr [rip+__mu_metin], 0
+    lea rbx, [rip+__gc_isaret]  # işaretlenip içi taranacak bloklar
+    xor r12, r12
+    mov byte ptr [rip+__gc_tasti], 0
+    mov rsi, rsp
+    mov rdx, [rip+__cagri_tepe]
+    call __gc_aralik
+    lea rsi, [rip+__kokler_bas]
+    lea rdx, [rip+__kokler_son]
+    call __gc_aralik
+    call __gc_bosalt
+1:  cmp byte ptr [rip+__gc_tasti], 0    # işaret yığını taştıysa: işaretli blokların içi yeniden taranır
+    je 4f
+    mov byte ptr [rip+__gc_tasti], 0
+    lea r13, [rip+__yigin]
+2:  cmp r13, [rip+__yigin_uc]
+    jae 1b
+    mov rax, [r13]
+    mov r14, rax
+    and r14, -8
+    and eax, 7
+    cmp eax, 1                  # işaretli, düz değil, boş değil
+    jne 3f
+    lea rsi, [r13+8]
+    lea rdx, [r13+r14]
+    call __gc_aralik
+    call __gc_bosalt
+3:  add r13, r14
+    jmp 2b
+4:  call __gc_supur
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbp
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+    ret
+
+__gc_aralik:                    # rsi = baş, rdx = son: aradaki her sözcük aday
+1:  cmp rsi, rdx
+    jae 2f
+    mov rdi, [rsi]
+    call __gc_aday
+    add rsi, 8
+    jmp 1b
+2:  ret
+
+__gc_aday:                      # rdi = bir blok adresi olabilecek değer: öyleyse işaretler
+    test dil, 7
+    jnz 9f
+    lea rax, [rip+__yigin]
+    cmp rdi, rax
+    jbe 9f
+    cmp rdi, [rip+__yigin_uc]
+    jae 9f
+    mov rcx, rdi
+    sub rcx, rax
+    shr rcx, 3
+    lea r8, [rip+__gc_baslar]
+    bt qword ptr [r8], rcx
+    jc 1f
+    dec rcx                     # metinler: adres, bloğun başı + 8'dir
+    bt qword ptr [r8], rcx
+    jnc 9f
+    sub rdi, 8
+1:  mov rax, [rdi-8]
+    test al, 1
+    jnz 9f
+    or rax, 1
+    mov [rdi-8], rax
+    test al, 2
+    jnz 9f
+    cmp r12, 1048576
+    jae 8f
+    mov [rbx+r12*8], rdi
+    inc r12
+9:  ret
+8:  mov byte ptr [rip+__gc_tasti], 1
+    ret
+
+__gc_bosalt:                    # işaret yığınındaki blokların içini tarar
+1:  test r12, r12
+    jz 2f
+    dec r12
+    mov rsi, [rbx+r12*8]
+    mov rdx, [rsi-8]
+    and rdx, -8
+    lea rdx, [rsi+rdx-8]
+    call __gc_aralik
+    jmp 1b
+2:  ret
+
+__gc_supur:                     # işaretsiz blokları boşaltır, boş komşuları birleştirir
+    lea rdi, [rip+__gc_listeler]
+    mov ecx, 66
+    xor eax, eax
+    rep stosq                   # __gc_listeler ve __gc_buyuk sıfırlanır
+    lea r13, [rip+__yigin]      # r13 = başlık, r14 = süren boş dizinin başı (0: yok), r15 = canlı bayt
+    xor r14, r14
+    xor r15, r15
+    lea rbx, [rip+__gc_baslar]
+1:  cmp r13, [rip+__yigin_uc]
+    jae 5f
+    mov rax, [r13]
+    mov rcx, rax
+    and rcx, -8
+    test al, 1
+    jz 3f
+    and rax, -2
+    mov [r13], rax
+    add r15, rcx
+    test r14, r14
+    jz 4f
+    push rcx
+    mov rdi, r14
+    mov rsi, r13
+    sub rsi, r14
+    call __bos_ekle
+    pop rcx
+    xor r14, r14
+    jmp 4f
+3:  lea rdx, [r13+8]
+    lea rax, [rip+__yigin]
+    sub rdx, rax
+    shr rdx, 3
+    btr qword ptr [rbx], rdx
+    test r14, r14
+    jnz 4f
+    mov r14, r13
+4:  add r13, rcx
+    jmp 1b
+5:  test r14, r14
+    jz 6f
+    mov [rip+__yigin_uc], r14
+6:  mov [rip+__gc_canli], r15
+    mov rax, r15
+    cmp rax, 8388608
+    jae 7f
+    mov eax, 8388608
+7:  mov [rip+__gc_esik], rax
+    mov qword ptr [rip+__gc_ayrilan], 0
     ret
 
 __liste_yeni:                   # rdi = kapasite (>= 1) -> rax = boş liste
@@ -298,6 +613,7 @@ __metin_yeni:                   # rdi = bayt uzunluğu -> rax = metin (içeriği
     add rdi, 16                 # başlık + baytlar + en az bir sıfır baytı (yeni bellek sıfırdır)
     and rdi, -8
     call __ayir
+    or qword ptr [rax-8], 2     # düz blok: içinde adres yok
     pop rcx
     mov [rax], rcx
     add rax, 8
@@ -1188,8 +1504,8 @@ __dosya_oku:                    # rdi = yol -> rax = dosyanın tüm içeriği (m
     test rax, rax
     js __dosya_hatasi
     mov r13, rax
-    mov rbx, [rip+__yigin_uc]   # içerik doğrudan yığının ucuna okunur
-    add rbx, 8
+    call __uc_bas               # içerik doğrudan yığının ucuna okunur
+    mov rbx, rax
     xor r12, r12
 1:  lea rsi, [rbx+r12]
     lea rdx, [rip+__yigin_son]
@@ -1204,12 +1520,10 @@ __dosya_oku:                    # rdi = yol -> rax = dosyanın tüm içeriği (m
     jmp 1b
 2:  mov rdi, r13
     call __sis_kapat
-    mov [rbx-8], r12
-    lea rax, [rbx+r12+8]
-    and rax, -8
-    mov [rip+__yigin_uc], rax
+    mov rdi, rbx
+    mov rsi, r12
+    call __uc_bitir
     mov qword ptr [rip+__h_ek], 0
-    mov rax, rbx
     pop r13
     pop r12
     pop rbx
@@ -1287,8 +1601,8 @@ __girdi_var:                    # -> rax = okunacak girdi kaldıysa 1, yoksa 0
 __oku:                          # -> rax = bir satır (satır sonu olmadan); girdi bittiyse ""
     push rbx
     push r12
-    mov rbx, [rip+__yigin_uc]   # metin doğrudan yığının ucunda büyütülür
-    add rbx, 8
+    call __uc_bas               # metin doğrudan yığının ucunda büyütülür
+    mov rbx, rax
     xor r12, r12
 1:  mov rax, [rip+__g_konum]
     cmp rax, [rip+__g_son]
@@ -1315,11 +1629,9 @@ __oku:                          # -> rax = bir satır (satır sonu olmadan); gir
     cmp byte ptr [rbx+r12-1], 13
     jne 3f
     dec r12
-3:  mov [rbx-8], r12
-    lea rax, [rbx+r12+8]
-    and rax, -8
-    mov [rip+__yigin_uc], rax
-    mov rax, rbx
+3:  mov rdi, rbx
+    mov rsi, r12
+    call __uc_bitir
     pop r12
     pop rbx
     ret
@@ -1684,13 +1996,25 @@ __t_geri: .ascii "geri"
     .byte 0
 
     .section .data
-__yigin_uc: .quad __yigin
+__yigin_uc: .quad __yigin       # yığının ucu: bir sonraki bloğun başlığı buraya yazılır
+__gc_esik: .quad 8388608        # bu kadar ayrılınca çöp toplanır
 
     .section .bss
+    .balign 16
+__gc_listeler: .skip 520        # boş bloklar: 16, 24, ..., 512 baytlıkların listeleri (boyut / 8. göz)
+__gc_buyuk: .skip 8             # daha büyük boş blokların listesi (__gc_listeler'le birlikte sıfırlanır)
+__gc_ayrilan: .skip 8           # son toplamadan bu yana ayrılan bayt
+__gc_canli: .skip 8             # son toplamadan sağ çıkan bayt
+__gc_tasti: .skip 8             # işaret yığını taştı mı
+__cagri_tepe: .skip 8           # çağrı yığınının programın başındaki tepesi
+__gc_baslar: .skip YIGIN_BOYUTU / 64 + 64   # blok başları bit haritası
+__gc_isaret: .skip 8388608      # işaret yığını (1M blok)
     .balign 16
 __yigin: .skip YIGIN_BOYUTU
 __yigin_son:
     .skip 64                    # __oku'nun başlık ve yuvarlama payı
+__kokler_bas:                   # buradan programın küresel değişkenlerinin sonuna (__kokler_son) dek
+                                # her sözcük çöp toplayıcı için köktür
 __g_tampon: .skip 65536
 __h_ek: .skip 8
 __ma_metin: .skip 8             # __metin_al önbelleği: metin, karakter dizini, bayt konumu

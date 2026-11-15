@@ -4,6 +4,7 @@
     .section .text
 _start:
     mov [rip+__baslangic_sp], rsp
+    mov [rip+__cagri_tepe], rsp
     call nehir_ana
     xor edi, edi
     jmp __cik

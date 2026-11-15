@@ -262,10 +262,19 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `tuş()` | `key` | basılmış bir tuş varsa onu, yoksa beklemeden `""` verir |
 | `göster(m)` | `show` | metni satır sonu eklemeden yazar |
 | `uçbirim_boyutu()` | `terminal_size` | `[genişlik, yükseklik]`; çıktı bir uçbirim değilse `[80, 24]` |
+| `çöp_topla()` | `collect_garbage` | çöp toplayıcıyı hemen çalıştırır; toplamadan sağ çıkan bayt sayısını verir |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
 `program.nehir:3: çalışma hatası: dosya bulunamadı: yok.txt`. Önce `dosya_var` ile sorulabilir.
+
+**Bellek** kendiliğinden yönetilir: artık ulaşılamayan metinler, listeler, sözlükler ve kayıtları
+bir çöp toplayıcı geri kazanır. Bu yüzden her karede yeni metinler üreten bir oyun döngüsü ya da
+milyonlarca geçici değer üreten bir hesap, belleği tüketmeden sonsuza dek çalışabilir; yalnızca aynı anda
+canlı tutulan veri 256 MB ile sınırlıdır. `çöp_topla()` (`collect_garbage`) hemen toplar ve sağ çıkan
+bayt sayısını verir; genellikle çağırmak gerekmez. Toplayıcı işaretle-süpür türündedir: son toplamadan
+bu yana, sağ çıkan kadar (en az 8 MB) bellek ayrılınca çalışır, blokları taşımaz ve kökleri (çağrı
+yığını, yazmaçlar, küresel değişkenler) muhafazakâr biçimde tarar.
 
 **Oyun döngüsü.** `tuş()` oklar için `"yukarı"`, `"aşağı"`, `"sağ"`, `"sol"`; Enter için `"enter"`,
 Esc için `"esc"`, Tab için `"tab"`, geri silme için `"geri"`, diğer tuşlar için yazdıkları karakteri
@@ -526,8 +535,7 @@ değilse bu aşama atlanır.
 - Sözlükler `==` ile karşılaştırılamaz; anahtar olarak liste kullanılamaz
 - Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken adı olamaz (işlev, kayıt ve parametre adı olabilir)
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
-- Bellek geri toplanmaz: program en çok 256 MB liste ve metin belleği ayırabilir (her karede ekran
-  çizen bir oyun için bu, kare başına harcanan belleğe göre dakikalar ya da saatler eder)
+- Program aynı anda en çok 256 MB canlı liste, metin, sözlük ve kayıt tutabilir
 - Ondalıklı sayı yok
 - Modüllerin kendi ad alanı yok; adların çakışmaması programcıya kalır
 - Kayıtlar kurulurken değerler yalnızca sırayla verilir (`Nokta(x: 3, y: 4)` yazılamaz); kayıtların yöntemi yok

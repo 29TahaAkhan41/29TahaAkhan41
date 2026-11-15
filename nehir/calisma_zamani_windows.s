@@ -49,6 +49,7 @@
 
     .section .text
 _start:
+    mov [rip+__cagri_tepe], rsp
     and rsp, -16
     sub rsp, 32
     mov ecx, -10                # STD_INPUT_HANDLE

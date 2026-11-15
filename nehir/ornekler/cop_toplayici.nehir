@@ -1,0 +1,53 @@
+# Çöp toplayıcı: artık kullanılmayan metinler, listeler, sözlükler ve kayıtlar kendiliğinden
+# geri kazanılır. Program yine de en çok 256 MB'ı aynı anda canlı tutabilir, ama toplamda
+# istediği kadar bellek ayırabilir.
+#
+#   çöp_topla()     hemen toplar ve toplamadan sağ çıkan bayt sayısını verir (genellikle gerekmez)
+
+kayıt Düğüm { değer: sayı, sonraki: Düğüm }
+
+# Canlı kalacak yapılar: bir bağlı liste, bir sözlük ve bir metin listesi.
+yok -> baş
+{} -> kareler
+[] -> adlar
+0 -> i
+i < 1000 -> iken {
+    Düğüm(i, baş) -> baş
+    i * i -> kareler[metne(i)]
+    adlar -> ekle("ad" + metne(i))
+    i + 1 -> i
+}
+
+# Bol çöp: her tur yeni metinler, listeler, sözlükler ve kayıtlar üretir; hiçbiri saklanmaz.
+# Toplamda 256 MB'tan çok daha fazlası ayrılır.
+0 -> tur
+tur < 1000000 -> iken {
+    "geçici metin " + metne(tur) + " ........................................................" -> m
+    [tur, tur * 2, tur * 3, uzunluk(m)] -> l
+    {"a": tur, "b": l[1]} -> s
+    Düğüm(s["a"], yok) -> d
+    tur + 1 -> tur
+}
+"bir milyon tur bitti" -> yazdır
+
+# Canlı yapılar bozulmadan duruyor mu?
+0 -> toplam
+0 -> say
+baş -> düğüm
+düğüm != yok -> iken {
+    toplam + düğüm.değer -> toplam
+    say + 1 -> say
+    düğüm.sonraki -> düğüm
+}
+say -> yazdır                        # 1000
+toplam -> yazdır                     # 499500
+kareler["999"] -> yazdır             # 998001
+adlar[500] -> yazdır                 # ad500
+uzunluk(kareler) -> yazdır           # 1000
+
+# Büyük bir yapıyı bırakınca kullanılan bellek azalır.
+aralık(0, 200000) -> büyük
+çöp_topla() -> önce
+[] -> büyük
+çöp_topla() -> sonra
+önce - sonra > 1000000 -> yazdır     # 1: en az 1 MB geri kazanıldı

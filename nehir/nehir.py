@@ -106,6 +106,7 @@ YERLEŞİKLER = {
     "göster": "göster", "goster": "göster", "show": "göster",
     "uçbirim_boyutu": "uçbirim_boyutu", "ucbirim_boyutu": "uçbirim_boyutu",
     "terminal_size": "uçbirim_boyutu",
+    "çöp_topla": "çöp_topla", "cop_topla": "çöp_topla", "collect_garbage": "çöp_topla",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -1012,10 +1013,12 @@ class KodÜretici:
                 son.append(f"    .quad {len(veri)}")
                 son.append(f"m{i}:")
                 son.append("    .byte " + ", ".join(str(b) for b in veri + b"\0"))
-        if self.küreseller:
-            son.append("    .section .bss")
-            for ad, kayıt in self.küreseller.items():
-                son.append(f"{kayıt[0]}: .skip 8    # {ad}")
+        # Küresel değişkenler çalışma zamanının .bss'inden hemen sonra gelir; çöp toplayıcı
+        # __kokler_bas ile __kokler_son arasını kök sayar.
+        son.append("    .section .bss")
+        for ad, kayıt in self.küreseller.items():
+            son.append(f"{kayıt[0]}: .skip 8    # {ad}")
+        son.append("__kokler_son:")
         if self.tür_tanımları:
             son += ["    .section .rodata", "    .balign 8"] + self.tür_tanımları
         return "\n".join(baş + kod + son) + "\n"
@@ -1611,12 +1614,13 @@ class KodÜretici:
                 yanlış("argümansız")
             self.yaz("call __girdi_var")
             return "sayı"
-        if asıl in ("zaman", "tuş", "uçbirim_boyutu"):
+        if asıl in ("zaman", "tuş", "uçbirim_boyutu", "çöp_topla"):
             if türler:
                 yanlış("argümansız")
             self.yaz({"zaman": "call __zaman", "tuş": "call __tus",
-                      "uçbirim_boyutu": "call __ucbirim_boyutu"}[asıl])
-            return {"zaman": "sayı", "tuş": "metin", "uçbirim_boyutu": Liste("sayı")}[asıl]
+                      "uçbirim_boyutu": "call __ucbirim_boyutu", "çöp_topla": "call __bellek_topla"}[asıl])
+            return {"zaman": "sayı", "tuş": "metin", "uçbirim_boyutu": Liste("sayı"),
+                    "çöp_topla": "sayı"}[asıl]
         if asıl in ("bekle", "rastgele", "rastgele_tohum", "tuş_kipi"):
             if türler != ["sayı"]:
                 yanlış({"bekle": "milisaniye", "rastgele": "üst sınır", "rastgele_tohum": "tohum",

@@ -108,8 +108,8 @@ işlev adım_at(o, basılan) {
 HÜCRE_KODU -> her (kod) { ESC + "[0;" + kod + "m" -> RENK[kod] }
 ESC + "[0;" + KANON_KODU + "m" -> RENK[KANON_KODU]
 
-# Bellek geri toplanmadığı için her kare az bellek harcamalı: ekran, parçaları bir listede
-# toplayıp tek seferde birleştirerek kurulur (art arda + ile büyüyen metin her adımda kopyalanır).
+# Ekran, parçaları bir listede toplayıp tek seferde birleştirerek kurulur: art arda + ile
+# büyüyen metin her adımda baştan kopyalanırdı. Önceki karelerin belleğini çöp toplayıcı geri alır.
 işlev çiz(o) {
     [ESC + "[H" + ESC + "[0;1m  AKINTI" + ESC + "[0m   puan " + metne(puan(o))
         + "   altın " + metne(o.altın) + "      \n"] -> parçalar

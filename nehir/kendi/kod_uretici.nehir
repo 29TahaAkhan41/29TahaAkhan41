@@ -52,7 +52,8 @@ kullan "ayristirici.nehir"
     "seed_random": "rastgele_tohum", "tuş_kipi": "tuş_kipi", "tus_kipi": "tuş_kipi",
     "key_mode": "tuş_kipi", "tuş": "tuş", "tus": "tuş", "key": "tuş", "göster": "göster",
     "goster": "göster", "show": "göster", "uçbirim_boyutu": "uçbirim_boyutu",
-    "ucbirim_boyutu": "uçbirim_boyutu", "terminal_size": "uçbirim_boyutu"
+    "ucbirim_boyutu": "uçbirim_boyutu", "terminal_size": "uçbirim_boyutu",
+    "çöp_topla": "çöp_topla", "cop_topla": "çöp_topla", "collect_garbage": "çöp_topla"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -1181,8 +1182,12 @@ işlev yerleşik_çağır(ad, türler, d) {
         komut("call __girdi_var", d)
         "sayı" -> döndür
     }
-    asıl == "zaman" veya asıl == "tuş" veya asıl == "uçbirim_boyutu" -> eğer {
+    asıl == "zaman" veya asıl == "tuş" veya asıl == "uçbirim_boyutu" veya asıl == "çöp_topla" -> eğer {
         n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
+        asıl == "çöp_topla" -> eğer {
+            komut("call __bellek_topla", d)
+            "sayı" -> döndür
+        }
         asıl == "zaman" -> eğer {
             komut("call __zaman", d)
             "sayı" -> döndür
@@ -1973,10 +1978,11 @@ işlev üret(kök, çalışma_zamanı) {
         satırlar -> ekle(bayt_satırı(m))
         i + 1 -> i
     }
-    uzunluk(k_küreseller) > 0 -> eğer {
-        satırlar -> ekle("    .section .bss")
-        k_küreseller -> her (ad) { satırlar -> ekle(k_küresel_etiket[ad] + ": .skip 8    # " + ad) }
-    }
+    # Küresel değişkenler çalışma zamanının .bss'inden hemen sonra gelir; çöp toplayıcı
+    # __kokler_bas ile __kokler_son arasını kök sayar.
+    satırlar -> ekle("    .section .bss")
+    k_küreseller -> her (ad) { satırlar -> ekle(k_küresel_etiket[ad] + ": .skip 8    # " + ad) }
+    satırlar -> ekle("__kokler_son:")
     uzunluk(k_tür_tanımları) > 0 -> eğer {
         satırlar -> ekle("    .section .rodata")
         satırlar -> ekle("    .balign 8")
