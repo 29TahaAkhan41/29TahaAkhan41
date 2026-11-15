@@ -97,6 +97,90 @@ kullan "ayristirici.nehir"
     "call __ondalik_yuvarla": 1
 } -> RİSKLİ
 
+# ── gözetleme deliği eniyilemesi ──
+# Üretilen kod her ara değeri yığına iter. Ardışık birkaç satırlık kalıplar daha kısa ve eşdeğer
+# satırlarla değiştirilir. nehir.py'deki gözetle ile birebir aynı olmalıdır.
+
+işlev başlar_mı(m, ön) { dilim(m, 0, uzunluk(ön)) == ön -> döndür }
+
+işlev adı_geçer(m, adlar) {
+    yanlış -> sonuç
+    adlar -> her (a) { bul(m, a) >= 0 -> eğer { doğru -> sonuç } }
+    sonuç -> döndür
+}
+
+# j'den sonra, bir çağrıdan önce bu yazmaçlar (adlarının geçtiği bir satır) okunmuyor mu?
+# Etiket, sıçrama ya da dönüşte bilinemez sayılır.
+işlev ölü_mü(satırlar, j, yazmaçlar) {
+    j < uzunluk(satırlar) -> iken {
+        satırlar[j] -> l
+        başlar_mı(l, "    call ") -> eğer { değil adı_geçer(l, yazmaçlar) -> döndür }
+        değil başlar_mı(l, "    ") veya başlar_mı(l, "    j") veya l == "    ret" veya adı_geçer(l, yazmaçlar) -> eğer {
+            yanlış -> döndür
+        }
+        j + 1 -> j
+    }
+    yanlış -> döndür
+}
+
+["rax", "eax", "al", "ah"] -> RAX_ADLARI
+["rax", "eax", "al", "ah", "rcx", "ecx", "cl", "ch"] -> RAX_RCX_ADLARI
+
+işlev gözetle(satırlar) {
+    doğru -> değişti
+    değişti -> iken {
+        yanlış -> değişti
+        [] -> yeni
+        0 -> i
+        uzunluk(satırlar) -> n
+        i < n -> iken {
+            satırlar[i] -> a
+            a == "    push rax" ve i + 3 < n -> eğer {
+                satırlar[i + 3] -> d
+                satırlar[i + 2] == "    mov rcx, rax" ve (d == "    pop rax" veya d == "    pop rsi")
+                    ve (başlar_mı(satırlar[i + 1], "    mov rax, ") veya başlar_mı(satırlar[i + 1], "    lea rax, ")) -> eğer {
+                    # push rax / mov rax, X / mov rcx, rax / pop rax  ->  mov rcx, X
+                    dilim(satırlar[i + 1], 13, uzunluk(satırlar[i + 1])) -> x
+                    bul(x, "rax") < 0 ve bul(x, "rsp") < 0 ve bul(x, "rcx") < 0
+                        ve (d == "    pop rax" veya ölü_mü(satırlar, i + 4, RAX_ADLARI)) -> eğer {
+                        d == "    pop rsi" -> eğer { yeni -> ekle("    mov rsi, rax") }
+                        yeni -> ekle(dilim(satırlar[i + 1], 0, 8) + "rcx, " + x)
+                        i + 4 -> i
+                        doğru -> değişti
+                        devam
+                    }
+                }
+            }
+            a == "    mov rcx, rax" ve i + 3 < n -> eğer {
+                satırlar[i + 1] == "    pop rax" ve satırlar[i + 2] == "    mov rdi, rax" ve satırlar[i + 3] == "    mov rsi, rcx"
+                    ve ölü_mü(satırlar, i + 4, RAX_RCX_ADLARI) -> eğer {
+                    # mov rcx, rax / pop rax / mov rdi, rax / mov rsi, rcx  ->  mov rsi, rax / pop rdi
+                    yeni -> ekle("    mov rsi, rax")
+                    yeni -> ekle("    pop rdi")
+                    i + 4 -> i
+                    doğru -> değişti
+                    devam
+                }
+            }
+            a == "    push rax" ve i + 1 < n -> eğer {
+                başlar_mı(satırlar[i + 1], "    pop ") -> eğer {
+                    # push rax / pop r  ->  mov r, rax
+                    satırlar[i + 1] != "    pop rax" -> eğer {
+                        yeni -> ekle("    mov " + dilim(satırlar[i + 1], 8, uzunluk(satırlar[i + 1])) + ", rax")
+                    }
+                    i + 2 -> i
+                    doğru -> değişti
+                    devam
+                }
+            }
+            yeni -> ekle(a)
+            i + 1 -> i
+        }
+        yeni -> satırlar
+    }
+    satırlar -> döndür
+}
+
 # Yan etkisi olmayan yerleşikler (nehir.py'deki SAF_YERLEŞİKLER ile aynı)
 {} -> SAF_YERLEŞİKLER
 ["uzunluk", "aralık", "metne", "sayıya", "dilim", "bul", "böl", "birleş", "var", "anahtarlar",
@@ -2390,18 +2474,19 @@ işlev üret(kök, çalışma_zamanı) {
     }
 
     # Ertelenen satırlar (tür tanımları, işlev başlıkları) son sırayla çözülür.
-    [".intel_syntax noprefix", ".global _start", ".section .text"] -> satırlar
+    [] -> kod
     k_kod + k_işlev_kodu -> her (s) {
         dilim(s, 0, 5) == "§TÜR§" -> eğer {
-            satırlar -> ekle("    lea " + dilim(s, 5, 8) + ", [rip+" + tür_etiketi(dilim(s, 8, uzunluk(s))) + "]")
+            kod -> ekle("    lea " + dilim(s, 5, 8) + ", [rip+" + tür_etiketi(dilim(s, 8, uzunluk(s))) + "]")
         } değilse {
             dilim(s, 0, 8) == "§BAŞLIK§" -> eğer {
-                satırlar -> ekle(işlev_başlığı(dilim(s, 8, uzunluk(s))))
+                kod -> ekle(işlev_başlığı(dilim(s, 8, uzunluk(s))))
             } değilse {
-                satırlar -> ekle(s)
+                kod -> ekle(s)
             }
         }
     }
+    [".intel_syntax noprefix", ".global _start", ".section .text"] + gözetle(kod) -> satırlar
     çalışma_zamanı -> böl("YIGIN_BOYUTU") -> birleş(YIĞIN_BOYUTU) -> çz
     satırlar -> ekle(çz)
     satırlar -> ekle("    .section .rodata")

@@ -12,14 +12,76 @@
 #   __sis_boyut() -> (yükseklik << 32) | genişlik; uçbirim değilse 0
     .section .text
 
-__ham_yaz:                      # rsi = adres, rdx = uzunluk
-    mov edi, 1
+# ── standart çıktı tamponu ──
+# Standart çıktıya yazılanlar 64 KB'lık bir tamponda toplanır ve topluca yazılır. Tampon;
+# dolunca, girdi okunmadan, beklenmeden, standart hataya yazılmadan, ekran çizilince ve program
+# biterken boşaltılır. Çıktı bir uçbirimse her satır sonunda da boşaltılır. Bir yazma hiçbir
+# zaman bölünmez (Windows konsolunda UTF-8 karakterleri parçalanmasın diye).
+
+__ham_yaz:                      # rsi = adres, rdx = uzunluk (rsi ve rdx korunur; rax, rcx, rdi, r11 değişir)
+    mov rax, [rip+__ct_dolu]
+    lea rcx, [rax+rdx]
+    cmp rcx, 65536
+    ja 1f
+    push rsi
+    lea rdi, [rip+__ct_tampon]
+    add rdi, rax
+    mov rcx, rdx
+    rep movsb
+    pop rsi
+    add [rip+__ct_dolu], rdx
+    mov rax, rdx
+    ret
+1:  call __cikti_bosalt         # sığmıyor: önce tampon boşaltılır
+    cmp rdx, 65536
+    jbe __ham_yaz
+    mov edi, 1                  # tampondan büyük: doğrudan yazılır
     jmp __sis_yaz
 
-__satir_sonu:
+__cikti_bosalt:                 # tampondakileri standart çıktıya yazar (rax, rcx, r11 dışı korunur)
+    mov rax, [rip+__ct_dolu]
+    test rax, rax
+    jz 2f
+    push rdi
+    push rsi
+    push rdx
+    lea rsi, [rip+__ct_tampon]
+    mov rdx, rax
+1:  mov edi, 1
+    call __sis_yaz
+    test rax, rax
+    jle 3f                      # yazılamıyor (kapanmış boru gibi): tampon atılır
+    add rsi, rax
+    sub rdx, rax
+    jnz 1b
+3:  mov qword ptr [rip+__ct_dolu], 0
+    pop rdx
+    pop rsi
+    pop rdi
+2:  ret
+
+__satir_sonu:                   # satır sonu; çıktı bir uçbirimse satır hemen yazılır
     lea rsi, [rip+__yeni_satir]
     mov edx, 1
-    jmp __ham_yaz
+    call __ham_yaz
+    mov al, [rip+__ct_ucbirim]  # 0: henüz bakılmadı, 1: uçbirim, 2: değil
+    test al, al
+    jnz 1f
+    push rdi
+    push rsi
+    push rdx
+    mov edi, 1
+    call __ucbirim_mi
+    pop rdx
+    pop rsi
+    pop rdi
+    mov cl, 2
+    sub cl, al
+    mov [rip+__ct_ucbirim], cl
+    mov al, cl
+1:  cmp al, 1
+    je __cikti_bosalt
+    ret
 
 __sayi_basamak:                 # rdi = sayı, rsi = tampon sonu -> rsi = baş, rdx = uzunluk
     mov rax, rdi
@@ -212,7 +274,7 @@ __yaz_deger:                    # rdi = değer, rsi = tür tanımı
 # içindeki her sözcük, bir bloğun adresi (ya da metinlerde olduğu gibi adresi + 8) olabilir
 # diye denenir. Ulaşılamayan bloklar süpürülür: komşu boş bloklar birleşir, sondakiler
 # yığının ucunu geri çeker, diğerleri boyutlarına göre boş listelerine girer. Bloklar
-# taşınmaz. Son toplamadan bu yana ayrılan bellek, toplamadan sağ çıkan kadarı (en az 8 MB)
+# taşınmaz. Son toplamadan bu yana ayrılan bellek, toplamadan sağ çıkan kadarı (en az 32 MB)
 # olunca yeniden toplanır.
 
 __ayir:                         # rdi = bayt sayısı -> rax = sıfırlanmış bellek (yalnızca rax, rcx, rdx değişir)
@@ -245,13 +307,20 @@ __ayir:                         # rdi = bayt sayısı -> rax = sıfırlanmış b
     shr rcx, 3
     lea rdx, [rip+__gc_baslar]
     bts qword ptr [rdx], rcx
-    mov rcx, [rax]
+    mov rcx, [rax]              # blok sonu; yalnızca daha önce kullanılmış kısmı sıfırlanır:
+    add rcx, rax                # hiç dokunulmamış bellek (__yigin_tavan'ın üstü) zaten sıfırdır
+    mov rdx, [rip+__yigin_tavan]
+    cmp rcx, rdx
+    jbe 4f
+    mov [rip+__yigin_tavan], rcx
+    mov rcx, rdx
+4:  sub rcx, r8
+    jbe 5f
     shr rcx, 3
-    dec rcx
     mov rdi, r8
     xor eax, eax
     rep stosq
-    mov rax, r8
+5:  mov rax, r8
     pop r8
     pop rsi
     pop rdi
@@ -263,11 +332,18 @@ __blok_bul:                     # rdi = blok boyutu -> rax = başlığı yazılm
     lea rdx, [rip+__gc_listeler]    # küçük bloklar: tam bu boyuttakilerin listesi
     mov rax, [rdx+rdi]
     test rax, rax
-    jz 3f
+    jz 2f
     mov rcx, [rax+8]
     mov [rdx+rdi], rcx
     mov [rax], rdi
     ret
+2:  lea rsi, [rip+__gc_buyuk]   # listesi boş küçük blok: büyük listenin ilk bloğu her zaman yeter,
+    mov rax, [rsi]              # aramadan bölünür; büyük boş blok yoksa yığının ucundan
+    test rax, rax
+    jz 6f
+    mov rcx, [rax]
+    and rcx, -8
+    jmp 5f
 3:  lea rsi, [rip+__gc_buyuk]   # büyük boş bloklar: ilk yeten bölünür
 4:  mov rax, [rsi]
     test rax, rax
@@ -336,7 +412,10 @@ __uc_bitir:                     # rdi = __uc_bas'ın verdiği adres, rsi = bayt 
     or rdx, 2                   # düz blok
     mov [rcx], rdx
     mov [rip+__yigin_uc], rax
-    lea rcx, [rdi-8]
+    cmp rax, [rip+__yigin_tavan]    # metin, hiç kullanılmamış belleğe yazıldıysa tavan yükselir
+    jbe 1f
+    mov [rip+__yigin_tavan], rax
+1:  lea rcx, [rdi-8]
     lea rdx, [rip+__yigin]
     sub rcx, rdx
     shr rcx, 3
@@ -520,9 +599,9 @@ __gc_supur:                     # işaretsiz blokları boşaltır, boş komşula
     mov [rip+__yigin_uc], r14
 6:  mov [rip+__gc_canli], r15
     mov rax, r15
-    cmp rax, 8388608
+    cmp rax, 33554432
     jae 7f
-    mov eax, 8388608
+    mov eax, 33554432
 7:  mov [rip+__gc_esik], rax
     mov qword ptr [rip+__gc_ayrilan], 0
     ret
@@ -649,9 +728,29 @@ __metin_birlestir:              # rdi = a, rsi = b -> rax = a + b
     ret
 
 __metin_karsilastir:            # rdi = a, rsi = b -> rax = -1 / 0 / 1 (sözlük sırası)
+    xor eax, eax
+    cmp rdi, rsi                # aynı metin
+    je 9f
     mov rcx, [rdi-8]
     mov rdx, [rsi-8]
     xor r8, r8
+    mov r10, rcx                # r10 = kısa olanın uzunluğu
+    cmp rdx, r10
+    cmovb r10, rdx
+6:  lea r9, [r8+8]              # 8'er bayt karşılaştırılır
+    cmp r9, r10
+    ja 1f
+    mov rax, [rdi+r8]
+    mov r9, [rsi+r8]
+    cmp rax, r9
+    jne 7f
+    add r8, 8
+    jmp 6b
+7:  bswap rax                   # ilk farklı bayt en anlamlı olur
+    bswap r9
+    cmp rax, r9
+    jb 3f
+    jmp 4f
 1:  cmp r8, rcx
     jae 2f
     cmp r8, rdx
@@ -669,7 +768,7 @@ __metin_karsilastir:            # rdi = a, rsi = b -> rax = -1 / 0 / 1 (sözlük
 3:  mov rax, -1
     ret
 5:  xor eax, eax
-    ret
+9:  ret
 
 __metin_uzunluk:                # rdi = metin -> rax = karakter sayısı (UTF-8)
     cmp rdi, [rip+__mu_metin]   # son ölçülen metin mi? (metinler değişmez, bellek
@@ -852,6 +951,7 @@ __karakter:                     # rdi = Unicode kod noktası -> rax = o karakter
     ret
 
 __uyar:                         # rdi = metin; stderr'e satır olarak yazar -> rax = metin
+    call __cikti_bosalt         # sıra korunsun: önce standart çıktıdakiler
     push rdi
     mov rsi, rdi
     mov rdx, [rdi-8]
@@ -1522,6 +1622,7 @@ __ekran_ac:                     # [genişlik, yükseklik] -> rax = 0
     lea rsi, [rip+__ek_sil_dizi]    # yeniden açılış (boyut değişti): yalnızca silinir
     mov edx, __ek_sil_dizi_son - __ek_sil_dizi
 2:  call __ham_yaz
+    call __cikti_bosalt
     mov byte ptr [rip+__ek_acik], 1
     xor eax, eax
     pop r13
@@ -1541,6 +1642,7 @@ __ekran_kapat:                  # açıksa uçbirimi eski hâline döndürür (y
     lea rsi, [rip+__ek_kapa_dizi]
     mov edx, __ek_kapa_dizi_son - __ek_kapa_dizi
     call __ham_yaz
+    call __cikti_bosalt
     pop r11
     pop rcx
     pop rdi
@@ -1880,6 +1982,7 @@ __ekran_ciz:                    # -> rax = uçbirime yazılan bayt sayısı
     mov rdx, r13
     sub rdx, r12
     call __ham_yaz
+    call __cikti_bosalt
 9:  mov rax, r13
     sub rax, r12
     add rsp, 24
@@ -2517,6 +2620,10 @@ __sozluk_yeni:                  # -> rax = boş sözlük
     call __ayir
     mov rdx, [rsp]
     mov [rdx+24], rax
+    mov edi, 64
+    call __ayir
+    mov rdx, [rsp]
+    mov [rdx+48], rax           # her girdinin tablodaki gözü (silmeyi hızlandırır)
     mov edi, 128
     call __ayir                 # yeni ayrılan bellek sıfırdır: tablo boş başlar
     pop rdx
@@ -2536,27 +2643,8 @@ __sozluk_ara:                   # rdi = sözlük, rsi = anahtar, rdx = anahtar t
     mov rbx, rdi
     mov r12, rsi
     mov r13, rdx
-    test r13, r13
-    jnz 1f
-    mov rax, r12                # sayı: çarpımsal hash
-    mov rcx, 0x9E3779B97F4A7C15
-    imul rax, rcx
-    mov rcx, rax
-    shr rcx, 32
-    xor rax, rcx
-    jmp 3f
-1:  mov rax, 0xCBF29CE484222325 # metin: FNV-1a
-    mov rcx, [r12-8]
-    xor edx, edx
-    mov r8, 0x100000001B3
-2:  cmp rdx, rcx
-    jae 3f
-    movzx r9d, byte ptr [r12+rdx]
-    xor rax, r9
-    imul rax, r8
-    inc rdx
-    jmp 2b
-3:  mov r14, [rbx+32]
+    call __sozluk_ozet
+    mov r14, [rbx+32]
     dec r14                     # tablo boyu 2'nin kuvveti: maske
     and rax, r14
     mov rbp, rax
@@ -2591,6 +2679,29 @@ __sozluk_ara:                   # rdi = sözlük, rsi = anahtar, rdx = anahtar t
     pop rbx
     ret
 
+__sozluk_ozet:                  # rsi = anahtar, rdx = anahtar türü -> rax = özet (rcx, rdx, r8, r9 değişir)
+    test rdx, rdx
+    jnz 1f
+    mov rax, rsi                # sayı: çarpımsal özet
+    mov rcx, 0x9E3779B97F4A7C15
+    imul rax, rcx
+    mov rcx, rax
+    shr rcx, 32
+    xor rax, rcx
+    ret
+1:  mov rax, 0xCBF29CE484222325 # metin: FNV-1a
+    mov rcx, [rsi-8]
+    xor edx, edx
+    mov r8, 0x100000001B3
+2:  cmp rdx, rcx
+    jae 3f
+    movzx r9d, byte ptr [rsi+rdx]
+    xor rax, r9
+    imul rax, r8
+    inc rdx
+    jmp 2b
+3:  ret
+
 __sozluk_dizinle:               # rdi = sözlük, rsi = anahtar türü; tabloyu baştan kurar
     push rbx
     push r12
@@ -2609,6 +2720,8 @@ __sozluk_dizinle:               # rdi = sözlük, rsi = anahtar türü; tabloyu 
     mov rsi, [rax+r12*8]
     mov rdx, r13
     call __sozluk_ara
+    mov rax, [rbx+48]
+    mov [rax+r12*8], r8
     inc r12
     mov rax, [rbx+40]
     mov [rax+r8*8], r12
@@ -2646,6 +2759,14 @@ __sozluk_koy:                   # rdi = sözlük, rsi = anahtar, rdx = anahtar t
     mov rcx, [rbx]
     rep movsq
     mov [rbx+24], rax
+    mov rdi, [rbx+8]
+    shl rdi, 4
+    call __ayir
+    mov rdi, rax
+    mov rsi, [rbx+48]
+    mov rcx, [rbx]
+    rep movsq
+    mov [rbx+48], rax
     shl qword ptr [rbx+8], 1
 1:  mov rax, [rbx]              # tablo yarıdan fazla dolacaksa iki katına çıkar
     inc rax
@@ -2674,6 +2795,8 @@ __sozluk_koy:                   # rdi = sözlük, rsi = anahtar, rdx = anahtar t
     mov [rcx+rax*8], r12
     mov rcx, [rbx+24]
     mov [rcx+rax*8], r14
+    mov rcx, [rbx+48]
+    mov [rcx+rax*8], r8
     inc rax
     mov [rbx], rax
     mov rcx, [rbx+40]
@@ -2696,32 +2819,91 @@ __sozluk_al:                    # rdi = sözlük, rsi = anahtar, rdx = anahtar t
     ret
 
 __sozluk_sil:                   # rdi = sözlük, rsi = anahtar, rdx = anahtar türü -> rax = silinen değer
-    push rbx
-    push r12
+    push rbx                    # Tablo baştan kurulmaz: silinen gözün ardındaki küme geriye kaydırılır
+    push r12                    # (doğrusal yoklamada silme), sonraki girdilerin dizinleri bir azaltılır.
     push r13
+    push r14
+    push r15
+    push rbp
     mov rbx, rdi
     mov r13, rdx
-    call __sozluk_ara
+    call __sozluk_ara           # rax = girdi dizini, r8 = tablo gözü
     test rax, rax
     js __anahtar_hatasi
+    mov r15, rax
     mov rcx, [rbx+24]
-    mov r12, [rcx+rax*8]
-    mov rsi, [rbx+16]
-    mov rdx, [rbx]
-    dec rdx
-    mov [rbx], rdx
-1:  cmp rax, rdx                # sonraki girdileri bir göz geri kaydır
-    jae 2f
-    mov r8, [rsi+rax*8+8]
-    mov [rsi+rax*8], r8
-    mov r8, [rcx+rax*8+8]
-    mov [rcx+rax*8], r8
+    mov r12, [rcx+rax*8]        # silinen değer
+    mov r14, [rbx+32]
+    dec r14                     # maske
+    mov rbp, r8                 # delik
+    mov rax, [rbx+40]
+    mov qword ptr [rax+rbp*8], 0
+    sub rsp, 8
+    mov [rsp], rbp              # j
+1:  mov rax, [rsp]
     inc rax
+    and rax, r14
+    mov [rsp], rax
+    mov rcx, [rbx+40]
+    mov rdx, [rcx+rax*8]
+    test rdx, rdx
+    jz 5f                       # boş göz: küme bitti
+    dec rdx
+    mov rcx, [rbx+16]
+    mov rsi, [rcx+rdx*8]
+    mov rdx, r13
+    call __sozluk_ozet
+    and rax, r14                # ev gözü
+    mov rcx, [rsp]
+    mov rdx, rcx
+    sub rdx, rax
+    and rdx, r14                # evden j'ye uzaklık
+    mov r8, rcx
+    sub r8, rbp
+    and r8, r14                 # delikten j'ye uzaklık
+    cmp rdx, r8
+    jb 1b                       # ev gözü (delik, j] arasında: girdi yerinde kalır
+    mov rax, [rbx+40]
+    mov rdx, [rax+rcx*8]
+    mov [rax+rbp*8], rdx
+    mov qword ptr [rax+rcx*8], 0
+    mov rax, [rbx+48]           # taşınan girdinin gözü
+    mov [rax+rdx*8-8], rbp
+    mov rbp, rcx
     jmp 1b
-2:  mov rdi, rbx
-    mov rsi, r13
-    call __sozluk_dizinle
+5:  add rsp, 8
+    mov rdi, [rbx+40]           # silinenden sonraki girdilerin tablodaki dizinleri (dizin + 1) bir azalır
+    mov rsi, [rbx+48]
+    lea rcx, [r15+1]
+6:  cmp rcx, [rbx]
+    jae 7f
+    mov rax, [rsi+rcx*8]
+    dec qword ptr [rdi+rax*8]
+    inc rcx
+    jmp 6b
+7:  mov rcx, [rbx]              # girdi dizileri bir göz geri kaydırılır (sıra korunur)
+    dec rcx
+    mov [rbx], rcx
+    sub rcx, r15
+    mov rdi, [rbx+16]
+    lea rdi, [rdi+r15*8]
+    lea rsi, [rdi+8]
+    push rcx
+    rep movsq
+    mov rcx, [rsp]
+    mov rdi, [rbx+24]
+    lea rdi, [rdi+r15*8]
+    lea rsi, [rdi+8]
+    rep movsq
+    pop rcx
+    mov rdi, [rbx+48]
+    lea rdi, [rdi+r15*8]
+    lea rsi, [rdi+8]
+    rep movsq
     mov rax, r12
+    pop rbp
+    pop r15
+    pop r14
     pop r13
     pop r12
     pop rbx
@@ -2834,6 +3016,7 @@ __dosya_sil:                    # rdi = yol
     ret
 
 __girdi_doldur:                 # tamponu stdin'den doldurur -> rax = 1, girdi bittiyse 0
+    call __cikti_bosalt         # soru ekranda görünsün
     xor edi, edi
     lea rsi, [rip+__g_tampon]
     mov edx, 65536
@@ -2898,6 +3081,7 @@ __zaman:                        # -> rax = milisaniye (tekdüze saat; yalnızca 
     jmp __sis_zaman
 
 __bekle:                        # rdi = milisaniye -> rax = milisaniye
+    call __cikti_bosalt
     test rdi, rdi
     jle 1f
     call __sis_bekle
@@ -2941,11 +3125,12 @@ __rastgele:                     # rdi = n (> 0) -> rax = 0, 1, ..., n-1 (splitmi
     mov rax, rdx
     ret
 
-__goster:                       # rdi = metin; satır sonu eklemeden yazar -> rax = metin
+__goster:                       # rdi = metin; satır sonu eklemeden yazar ve hemen gösterir -> rax = metin
     push rdi
     mov rsi, rdi
     mov rdx, [rdi-8]
     call __ham_yaz
+    call __cikti_bosalt
     pop rax
     ret
 
@@ -2986,6 +3171,7 @@ __tus:                          # -> rax = tuş (metin); basılan tuş yoksa ""
     mov rax, [rip+__g_konum]
     cmp rax, [rip+__g_son]
     jb 1f
+    call __cikti_bosalt
     call __sis_tus_doldur
     test rax, rax
     jz 20f
@@ -3203,6 +3389,7 @@ __hata:                         # rsi = mesaj, rdx = uzunluk, r15 = kaynak dosya
     mov edi, 1
     jmp __cik
 __hata_yaz:
+    call __cikti_bosalt
     mov edi, 2
     jmp __sis_yaz
 
@@ -3313,7 +3500,8 @@ __t_geri: .ascii "geri"
 
     .section .data
 __yigin_uc: .quad __yigin       # yığının ucu: bir sonraki bloğun başlığı buraya yazılır
-__gc_esik: .quad 8388608        # bu kadar ayrılınca çöp toplanır
+__gc_esik: .quad 33554432       # bu kadar ayrılınca çöp toplanır
+__yigin_tavan: .quad __yigin    # yığının bugüne dek ulaşılan en yüksek ucu; üstü hiç kullanılmadı
 
     .section .bss
     .balign 16
@@ -3333,6 +3521,7 @@ __yigin_son:
 __kokler_bas:                   # buradan programın küresel değişkenlerinin sonuna (__kokler_son) dek
                                 # her sözcük çöp toplayıcı için köktür
 __g_tampon: .skip 65536
+__ct_tampon: .skip 65536        # standart çıktı tamponu
 __h_ek: .skip 8
 __ma_metin: .skip 8             # __metin_al önbelleği: metin, karakter dizini, bayt konumu
 __ma_dizin: .skip 8
@@ -3340,6 +3529,8 @@ __ma_bayt: .skip 8
 __mu_metin: .skip 8             # __metin_uzunluk önbelleği: metin, karakter sayısı
 __mu_uzunluk: .skip 8                 # hata mesajına eklenecek metin (dosya yolu) ya da 0
 __g_konum: .skip 8
+__ct_dolu: .skip 8              # çıktı tamponundaki bayt sayısı
+__ct_ucbirim: .skip 8
 __g_son: .skip 8
 __rs_durum: .skip 8             # rastgele sayı üretecinin durumu
 __rs_tohumlu: .skip 8

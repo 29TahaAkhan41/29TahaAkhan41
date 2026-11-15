@@ -844,6 +844,68 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__ekran_temizle", "__ekran_yaz", "__ekran_doldur", "__ekran_ciz", "__liste_sirala",
     "__liste_ters", "__sayi_bol", "__sayi_kalan", "__ondalik_tama", "__ondalik_yuvarla")}
 
+# ── gözetleme deliği eniyilemesi ──
+# Üretilen kod her ara değeri yığına iter. Ardışık birkaç satırlık kalıplar daha kısa ve eşdeğer
+# satırlarla değiştirilir. Kendi/kod_uretici.nehir'deki gözetle ile birebir aynı olmalıdır.
+
+def ölü_mü(satırlar, j, yazmaçlar):
+    """j'den sonra, bir çağrıdan önce bu yazmaçlar (adlarının geçtiği bir satır) okunmuyor mu?
+    Etiket, sıçrama ya da dönüşte bilinemez sayılır."""
+    while j < len(satırlar):
+        l = satırlar[j]
+        if l.startswith("    call "):
+            return all(y not in l for y in yazmaçlar)
+        if not l.startswith("    ") or l.startswith("    j") or l == "    ret" \
+                or any(y in l for y in yazmaçlar):
+            return False
+        j += 1
+    return False
+
+
+RAX_ADLARI = ["rax", "eax", "al", "ah"]
+RAX_RCX_ADLARI = RAX_ADLARI + ["rcx", "ecx", "cl", "ch"]
+
+
+def gözetle(satırlar):
+    değişti = True
+    while değişti:
+        değişti = False
+        yeni, i, n = [], 0, len(satırlar)
+        while i < n:
+            a = satırlar[i]
+            if a == "    push rax" and i + 3 < n and satırlar[i + 2] == "    mov rcx, rax" \
+                    and satırlar[i + 3] in ("    pop rax", "    pop rsi") \
+                    and (satırlar[i + 1].startswith("    mov rax, ") or satırlar[i + 1].startswith("    lea rax, ")):
+                # push rax / mov rax, X / mov rcx, rax / pop rax  ->  mov rcx, X
+                x = satırlar[i + 1][13:]
+                if "rax" not in x and "rsp" not in x and "rcx" not in x \
+                        and (satırlar[i + 3] == "    pop rax" or ölü_mü(satırlar, i + 4, RAX_ADLARI)):
+                    if satırlar[i + 3] == "    pop rsi":
+                        yeni.append("    mov rsi, rax")
+                    yeni.append(satırlar[i + 1][:8] + "rcx, " + x)
+                    i += 4
+                    değişti = True
+                    continue
+            if a == "    mov rcx, rax" and satırlar[i + 1:i + 4] == ["    pop rax", "    mov rdi, rax", "    mov rsi, rcx"] \
+                    and ölü_mü(satırlar, i + 4, RAX_RCX_ADLARI):
+                # mov rcx, rax / pop rax / mov rdi, rax / mov rsi, rcx  ->  mov rsi, rax / pop rdi
+                yeni += ["    mov rsi, rax", "    pop rdi"]
+                i += 4
+                değişti = True
+                continue
+            if a == "    push rax" and i + 1 < n and satırlar[i + 1].startswith("    pop "):
+                # push rax / pop r  ->  mov r, rax
+                if satırlar[i + 1] != "    pop rax":
+                    yeni.append("    mov " + satırlar[i + 1][8:] + ", rax")
+                i += 2
+                değişti = True
+                continue
+            yeni.append(a)
+            i += 1
+        satırlar = yeni
+    return satırlar
+
+
 # Yan etkisi olmayan yerleşikler: sonuçları atılıyorsa büyük olasılıkla bir yanlışlık vardır.
 SAF_YERLEŞİKLER = {
     "uzunluk", "aralık", "metne", "sayıya", "dilim", "bul", "böl", "birleş", "var", "anahtarlar",
@@ -1104,6 +1166,7 @@ class KodÜretici:
         # kod, metinler dökülmeden önce son hâline getirilir.
         kod = [f"    lea {x.yazmaç}, [rip+{self.tür_etiketi(x.tür)}]"
                if isinstance(x, TürKoduSatırı) else str(x) for x in self.çıktı + self.işlev_kodu]
+        kod = gözetle(kod)
 
         baş = [".intel_syntax noprefix", ".global _start", ".section .text"]
         son = [çalışma_zamanı(self.hedef_sistem), "    .section .rodata", "    .balign 8",

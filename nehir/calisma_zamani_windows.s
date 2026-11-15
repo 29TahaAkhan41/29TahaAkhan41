@@ -91,6 +91,7 @@ __vt_ac:                        # rcx = tutamaç; konsolsa renk kodlarını (san
 __cik:                          # rdi = çıkış kodu
     and rsp, -16
     sub rsp, 32
+    call __cikti_bosalt
     call __ekran_kapat          # ekran tamponu açık kaldıysa ayrı ekrandan çıkılır (rdi korunur)
     call __tk_geri              # tuş kipi açık kaldıysa konsol eski hâline döner
     mov ecx, edi

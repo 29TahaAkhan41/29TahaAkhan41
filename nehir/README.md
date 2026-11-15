@@ -325,7 +325,7 @@ bir çöp toplayıcı geri kazanır. Bu yüzden her karede yeni metinler üreten
 milyonlarca geçici değer üreten bir hesap, belleği tüketmeden sonsuza dek çalışabilir; yalnızca aynı anda
 canlı tutulan veri 256 MB ile sınırlıdır. `çöp_topla()` (`collect_garbage`) hemen toplar ve sağ çıkan
 bayt sayısını verir; genellikle çağırmak gerekmez. Toplayıcı işaretle-süpür türündedir: son toplamadan
-bu yana, sağ çıkan kadar (en az 8 MB) bellek ayrılınca çalışır, blokları taşımaz ve kökleri (çağrı
+bu yana, sağ çıkan kadar (en az 32 MB) bellek ayrılınca çalışır, blokları taşımaz ve kökleri (çağrı
 yığını, yazmaçlar, küresel değişkenler) muhafazakâr biçimde tarar.
 
 **Oyun döngüsü.** `tuş()` oklar için `"yukarı"`, `"aşağı"`, `"sağ"`, `"sol"`; Enter için `"enter"`,
