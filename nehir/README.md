@@ -457,6 +457,18 @@ olur). Bunun için gereken Unicode tabloları ve işletim sistemi hata metinleri
 dosyasındadır; bu dosya `python3 kendi/veri_uret.py` ile çalışan Python'dan üretilir ve testler güncel
 olduğunu denetler.
 
+## Oyun: Nehrin Kaynağı
+
+`ornekler/nehrin_kaynagi.nehir`, tamamen Nehir ile yazılmış bir metin oyunudur. Bir salla nehrin
+kaynağına, 20 km yukarıya kürek çekersin; her gün kürek çekmeye, dinlenmeye, balık tutmaya ya da
+köydeki pazara uğramaya karar verirsin. Erzak, enerji, sağlık ve para idaresi, karadan aşılması gereken
+bir şelale, fırtına, ters akıntı, yolda bulunanlar ve aç yolcular oyunun parçalarıdır. Rastgelelik
+kaptanın adından türetilir: aynı adla aynı nehir, başka bir adla başka bir yolculuk.
+
+```bash
+python3 nehir.py ornekler/nehrin_kaynagi.nehir --çalıştır
+```
+
 ## Sınamalar
 
 ```bash

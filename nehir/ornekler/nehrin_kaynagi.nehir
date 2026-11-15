@@ -1,0 +1,281 @@
+# ≈≈≈ NEHRİN KAYNAĞI ≈≈≈
+#
+# Nehir ile yazılmış bir metin oyunu. Bir salla nehrin kaynağına, 20 km yukarıya kürek
+# çekiyorsun. Her gün bir karar verirsin: kürek çek, dinlen, balık tut ya da köydeki pazara
+# uğra. Erzağını, gücünü, sağlığını ve paranı idare et; yolda bir şelale ve beklenmedik
+# olaylar seni bekliyor.
+#
+# Rastgelelik kaptanın adından türetilir: aynı adla aynı nehir, başka bir adla başka bir yolculuk.
+#
+#   python3 nehir.py ornekler/nehrin_kaynagi.nehir --çalıştır
+
+# ── nehir ──
+
+20 -> YOL                       # kaynağa uzaklık (km)
+9 -> ŞELALE                     # salın karadan taşınması gereken yer
+{5: "Söğütlü", 14: "Kayalı"} -> KÖYLER
+10 -> EN_ÇOK                    # enerji ve sağlığın üst sınırı
+
+kayıt Sal { km: sayı, erzak: sayı, enerji: sayı, sağlık: sayı, para: sayı, gün: sayı }
+
+# ── rastgelelik ──
+# Doğrusal eşlik üreteci (LCG); tohum kaptanın adından gelir.
+
+0 -> ortak tohum
+
+işlev rastgele(n) {             # 0, 1, ..., n-1
+    (tohum * 1103515245 + 12345) % 2147483648 -> tohum
+    (tohum / 65536) % n -> döndür
+}
+
+işlev tohumla(m) {
+    m -> baytlar -> her (b) { (tohum * 31 + b + 7) % 2147483648 -> tohum }
+}
+
+# ── ekran ──
+
+uçbirim_mi(1) ve değil ortam_var("NO_COLOR") -> RENKLİ
+karakter(27) -> ESC
+
+işlev renk(m, kod) {
+    RENKLİ -> eğer { ESC + "[" + kod + "m" + m + ESC + "[0m" -> döndür }
+    m -> döndür
+}
+
+işlev tekrarla(m, n) {
+    "" -> sonuç
+    n > 0 -> iken {
+        sonuç + m -> sonuç
+        n - 1 -> n
+    }
+    sonuç -> döndür
+}
+
+işlev çubuk(değer, kod) {
+    renk(tekrarla("■", değer), kod) + tekrarla("□", EN_ÇOK - değer) -> döndür
+}
+
+işlev en_az(a, b) {
+    a < b -> eğer { a -> döndür }
+    b -> döndür
+}
+
+işlev köyde_mi(s) { var(KÖYLER, s.km) -> döndür }
+
+işlev hücre(i, km) {
+    i == km -> eğer { renk("▲", "1;33") -> döndür }
+    i == YOL -> eğer { renk("★", "1;36") -> döndür }
+    i == ŞELALE -> eğer { renk("‖", "1;37") -> döndür }
+    var(KÖYLER, i) -> eğer { renk("⌂", "1;32") -> döndür }
+    renk("≈", "34") -> döndür
+}
+
+işlev durumu_yaz(s) {
+    "" -> yazdır
+    "" -> çizgi
+    0 -> i
+    i <= YOL -> iken {
+        çizgi + hücre(i, s.km) -> çizgi
+        i + 1 -> i
+    }
+    "  " + çizgi + "   " + renk("Gün " + metne(s.gün), "1") + " · " + metne(s.km) + "/" + metne(YOL) + " km" -> yazdır
+    "  enerji  " + çubuk(s.enerji, "33") + "   sağlık  " + çubuk(s.sağlık, "31") -> yazdır
+    "  erzak " + metne(s.erzak) + "   para " + metne(s.para) -> yazdır
+    "  1) kürek çek   2) dinlen   3) balık tut" -> menü
+    köyde_mi(s) -> eğer { menü + "   4) " + KÖYLER[s.km] + " pazarı" -> menü }
+    menü + "   0) bırak" -> yazdır
+}
+
+işlev anlat(m) { "  " + m -> yazdır }
+
+# ── günün işleri ──
+# Her iş bir gün sürerse doğru, sürmezse (yapılamadıysa) yanlış verir.
+
+işlev ye(s) {
+    s.erzak > 0 -> eğer {
+        s.erzak - 1 -> s.erzak
+    } değilse {
+        s.sağlık - 2 -> s.sağlık
+        anlat(renk("Yiyecek bir şey kalmadı; açlık seni zayıflatıyor.", "31"))
+    }
+}
+
+işlev kürek_çek(s) {
+    s.km == ŞELALE -> eğer {
+        s.enerji < 5 -> eğer {
+            anlat("Salı şelalenin yanından karadan taşımak için en az 5 enerji gerekir.")
+            yanlış -> döndür
+        }
+        s.enerji - 5 -> s.enerji
+        s.km + 1 -> s.km
+        ye(s)
+        anlat("Salı sırtlanıp kayalıkların arasından şelalenin üstüne taşıdın.")
+        doğru -> döndür
+    }
+    s.enerji < 3 -> eğer {
+        anlat("Kollarında güç kalmadı; önce dinlenmelisin.")
+        yanlış -> döndür
+    }
+    1 + rastgele(4) -> ilerleme
+    s.km + ilerleme -> yeni
+    s.km < ŞELALE ve yeni >= ŞELALE -> eğer {
+        ŞELALE -> yeni
+        anlat(renk("Önünde gürleyen bir şelale var! Burada kürek çekilemez.", "1;37"))
+    }
+    yeni > YOL -> eğer { YOL -> yeni }
+    anlat(metne(yeni - s.km) + " km yol aldın.")
+    yeni -> s.km
+    s.enerji - 3 -> s.enerji
+    ye(s)
+    doğru -> döndür
+}
+
+işlev dinlen(s) {
+    en_az(s.enerji + 4, EN_ÇOK) -> s.enerji
+    en_az(s.sağlık + 1, EN_ÇOK) -> s.sağlık
+    ye(s)
+    anlat("Kıyıya çekip dinlendin; güç topladın.")
+    doğru -> döndür
+}
+
+işlev balık_tut(s) {
+    s.enerji < 1 -> eğer {
+        anlat("Oltayı tutacak gücün bile yok.")
+        yanlış -> döndür
+    }
+    s.enerji - 1 -> s.enerji
+    rastgele(10) -> şans
+    şans < 5 -> eğer {
+        s.erzak + 2 -> s.erzak
+        anlat(renk("İki iri balık tuttun! (erzak +2)", "32"))
+    } değilse {
+        anlat("Bütün gün bekledin ama balıklar oltaya yanaşmadı.")
+    }
+    doğru -> döndür
+}
+
+işlev pazar(s) {
+    KÖYLER[s.km] -> köy
+    anlat(renk(köy + " köyünün pazarındasın.", "1;32"))
+    doğru -> iken {
+        oku("  1) erzak al (2 para)   2) şifacı (3 para, sağlık +3)   0) sala dön > ") -> seçim
+        seçim == "" ve değil girdi_var() -> eğer { dur }
+        seçim == "0" -> eğer { dur }
+        seçim == "1" -> eğer {
+            s.para >= 2 -> eğer {
+                s.para - 2 -> s.para
+                s.erzak + 1 -> s.erzak
+                anlat("Bir torba kuru yemiş aldın. (erzak " + metne(s.erzak) + ", para " + metne(s.para) + ")")
+            } değilse { anlat("Paran yetmiyor.") }
+            devam
+        }
+        seçim == "2" -> eğer {
+            s.para >= 3 -> eğer {
+                s.para - 3 -> s.para
+                en_az(s.sağlık + 3, EN_ÇOK) -> s.sağlık
+                anlat("Şifacının otları iyi geldi. (sağlık " + metne(s.sağlık) + ")")
+            } değilse { anlat("Paran yetmiyor.") }
+            devam
+        }
+        anlat("Pazarcı ne demek istediğini anlamadı.")
+    }
+    yanlış -> döndür        # pazar gün harcatmaz
+}
+
+# ── gün sonu olayları ──
+
+işlev gün_sonu(s, dinlendi) {
+    rastgele(10) -> olay
+    olay == 0 -> eğer {
+        dinlendi -> eğer {
+            s.sağlık - 1 -> s.sağlık
+            anlat(renk("Gece fırtına koptu; kıyıda olduğun için az etkilendin.", "35"))
+        } değilse {
+            s.sağlık - 2 -> s.sağlık
+            anlat(renk("Gece fırtına koptu; sal sarsıldı, ıslanıp üşüdün.", "35"))
+        }
+    }
+    olay == 1 ve s.km > 0 ve s.km != ŞELALE + 1 -> eğer {
+        s.km - 1 -> s.km
+        anlat(renk("Ters bir akıntı salı 1 km geri sürükledi.", "34"))
+    }
+    olay == 2 -> eğer {
+        s.erzak + 1 -> s.erzak
+        anlat(renk("Kıyıda yabani böğürtlen buldun. (erzak +1)", "32"))
+    }
+    olay == 3 -> eğer {
+        s.para + 3 -> s.para
+        anlat(renk("Sığlıkta birinin düşürdüğü bir kese buldun. (para +3)", "33"))
+    }
+    olay == 4 ve s.erzak > 0 -> eğer {
+        oku("  Aç bir yolcu bir lokma erzak istiyor. Verir misin? (e/h) > ") -> cevap
+        cevap == "e" veya cevap == "E" -> eğer {
+            s.erzak - 1 -> s.erzak
+            s.para + 2 -> s.para
+            anlat("Yolcu teşekkür edip eline iki sikke bıraktı. (para +2)")
+        } değilse {
+            anlat("Yolcu başını eğip yoluna devam etti.")
+        }
+    }
+}
+
+# ── oyun ──
+
+işlev puan(s) { YOL * 10 - s.gün * 3 + s.erzak * 2 + s.para + s.sağlık * 3 -> döndür }
+
+işlev oyna() {
+    renk("≈≈≈ NEHRİN KAYNAĞI ≈≈≈", "1;36") -> yazdır
+    "Nehrin kaynağına, 20 km yukarıya bir salla ulaşmalısın. Akıntıya karşı kürek çek," -> yazdır
+    "erzağını idare et, şelaleyi aş; köylerde pazar kurulur." -> yazdır
+    "" -> yazdır
+    oku("Kaptanın adı nedir? > ") -> kaptan
+    kaptan == "" -> eğer { "Adsız Kaptan" -> kaptan }
+    tohumla(kaptan)
+    "Yolun açık olsun, " + renk(kaptan, "1") + "!" -> yazdır
+
+    Sal(0, 6, EN_ÇOK, EN_ÇOK, 5, 1) -> s
+    doğru -> iken {
+        durumu_yaz(s)
+        oku("Ne yapacaksın? > ") -> seçim
+        seçim == "" ve değil girdi_var() -> eğer {
+            "Nehir bir gün yine seni bekleyecek." -> yazdır
+            dur
+        }
+        yanlış -> gün_geçti
+        yanlış -> dinlendi
+        seçim == "1" -> eğer { kürek_çek(s) -> gün_geçti }
+        seçim == "2" -> eğer {
+            dinlen(s) -> gün_geçti
+            doğru -> dinlendi
+        }
+        seçim == "3" -> eğer { balık_tut(s) -> gün_geçti }
+        seçim == "4" -> eğer {
+            köyde_mi(s) -> eğer { pazar(s) } değilse { anlat("Burada pazar kuran bir köy yok.") }
+        }
+        seçim == "0" -> eğer {
+            "Salı kıyıya bağladın. Nehir bir gün yine seni bekleyecek." -> yazdır
+            dur
+        }
+        seçim != "1" ve seçim != "2" ve seçim != "3" ve seçim != "4" -> eğer {
+            anlat("Seçenekler: 1, 2, 3, 4 ya da 0.")
+        }
+        s.km >= YOL -> eğer {
+            "" -> yazdır
+            renk("★ Kaynağa ulaştın! Buz gibi suyun çıktığı kayanın başındasın. ★", "1;36") -> yazdır
+            kaptan + ", yolculuğun " + metne(s.gün) + " gün sürdü. Puanın: " + renk(metne(puan(s)), "1;33") -> yazdır
+            dur
+        }
+        gün_geçti -> eğer {
+            gün_sonu(s, dinlendi)
+            s.gün + 1 -> s.gün
+        }
+        s.sağlık <= 0 -> eğer {
+            "" -> yazdır
+            renk("Gücün tükendi. Sal akıntıya kapılıp aşağıya, köye sürüklendi.", "1;31") -> yazdır
+            kaptan + ", " + metne(s.km) + ". kilometrede, " + metne(s.gün) + ". günde yolculuğun sona erdi." -> yazdır
+            dur
+        }
+    }
+}
+
+oyna()

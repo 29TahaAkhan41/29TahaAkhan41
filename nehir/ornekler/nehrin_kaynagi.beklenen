@@ -1,0 +1,150 @@
+≈≈≈ NEHRİN KAYNAĞI ≈≈≈
+Nehrin kaynağına, 20 km yukarıya bir salla ulaşmalısın. Akıntıya karşı kürek çek,
+erzağını idare et, şelaleyi aş; köylerde pazar kurulur.
+
+Kaptanın adı nedir? > Yolun açık olsun, Deniz!
+
+  ▲≈≈≈≈⌂≈≈≈‖≈≈≈≈⌂≈≈≈≈≈★   Gün 1 · 0/20 km
+  enerji  ■■■■■■■■■■   sağlık  ■■■■■■■■■■
+  erzak 6   para 5
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   3 km yol aldın.
+
+  ≈≈≈▲≈⌂≈≈≈‖≈≈≈≈⌂≈≈≈≈≈★   Gün 2 · 3/20 km
+  enerji  ■■■■■■■□□□   sağlık  ■■■■■■■■■■
+  erzak 5   para 5
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   4 km yol aldın.
+  Ters bir akıntı salı 1 km geri sürükledi.
+
+  ≈≈≈≈≈⌂▲≈≈‖≈≈≈≈⌂≈≈≈≈≈★   Gün 3 · 6/20 km
+  enerji  ■■■■□□□□□□   sağlık  ■■■■■■■■■■
+  erzak 4   para 5
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Önünde gürleyen bir şelale var! Burada kürek çekilemez.
+  3 km yol aldın.
+
+  ≈≈≈≈≈⌂≈≈≈▲≈≈≈≈⌂≈≈≈≈≈★   Gün 4 · 9/20 km
+  enerji  ■□□□□□□□□□   sağlık  ■■■■■■■■■■
+  erzak 3   para 5
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Kıyıya çekip dinlendin; güç topladın.
+  Ters bir akıntı salı 1 km geri sürükledi.
+
+  ≈≈≈≈≈⌂≈≈▲‖≈≈≈≈⌂≈≈≈≈≈★   Gün 5 · 8/20 km
+  enerji  ■■■■■□□□□□   sağlık  ■■■■■■■■■■
+  erzak 2   para 5
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Önünde gürleyen bir şelale var! Burada kürek çekilemez.
+  1 km yol aldın.
+
+  ≈≈≈≈≈⌂≈≈≈▲≈≈≈≈⌂≈≈≈≈≈★   Gün 6 · 9/20 km
+  enerji  ■■□□□□□□□□   sağlık  ■■■■■■■■■■
+  erzak 1   para 5
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Bütün gün bekledin ama balıklar oltaya yanaşmadı.
+
+  ≈≈≈≈≈⌂≈≈≈▲≈≈≈≈⌂≈≈≈≈≈★   Gün 7 · 9/20 km
+  enerji  ■□□□□□□□□□   sağlık  ■■■■■■■■■■
+  erzak 1   para 5
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   İki iri balık tuttun! (erzak +2)
+
+  ≈≈≈≈≈⌂≈≈≈▲≈≈≈≈⌂≈≈≈≈≈★   Gün 8 · 9/20 km
+  enerji  □□□□□□□□□□   sağlık  ■■■■■■■■■■
+  erzak 3   para 5
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Kıyıya çekip dinlendin; güç topladın.
+  Sığlıkta birinin düşürdüğü bir kese buldun. (para +3)
+
+  ≈≈≈≈≈⌂≈≈≈▲≈≈≈≈⌂≈≈≈≈≈★   Gün 9 · 9/20 km
+  enerji  ■■■■□□□□□□   sağlık  ■■■■■■■■■■
+  erzak 2   para 8
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Kıyıya çekip dinlendin; güç topladın.
+
+  ≈≈≈≈≈⌂≈≈≈▲≈≈≈≈⌂≈≈≈≈≈★   Gün 10 · 9/20 km
+  enerji  ■■■■■■■■□□   sağlık  ■■■■■■■■■■
+  erzak 1   para 8
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Salı sırtlanıp kayalıkların arasından şelalenin üstüne taşıdın.
+
+  ≈≈≈≈≈⌂≈≈≈‖▲≈≈≈⌂≈≈≈≈≈★   Gün 11 · 10/20 km
+  enerji  ■■■□□□□□□□   sağlık  ■■■■■■■■■■
+  erzak 0   para 8
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   1 km yol aldın.
+  Yiyecek bir şey kalmadı; açlık seni zayıflatıyor.
+
+  ≈≈≈≈≈⌂≈≈≈‖≈▲≈≈⌂≈≈≈≈≈★   Gün 12 · 11/20 km
+  enerji  □□□□□□□□□□   sağlık  ■■■■■■■■□□
+  erzak 0   para 8
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Yiyecek bir şey kalmadı; açlık seni zayıflatıyor.
+  Kıyıya çekip dinlendin; güç topladın.
+
+  ≈≈≈≈≈⌂≈≈≈‖≈▲≈≈⌂≈≈≈≈≈★   Gün 13 · 11/20 km
+  enerji  ■■■■□□□□□□   sağlık  ■■■■■■■□□□
+  erzak 0   para 8
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   3 km yol aldın.
+  Yiyecek bir şey kalmadı; açlık seni zayıflatıyor.
+
+  ≈≈≈≈≈⌂≈≈≈‖≈≈≈≈▲≈≈≈≈≈★   Gün 14 · 14/20 km
+  enerji  ■□□□□□□□□□   sağlık  ■■■■■□□□□□
+  erzak 0   para 8
+  1) kürek çek   2) dinlen   3) balık tut   4) Kayalı pazarı   0) bırak
+Ne yapacaksın? >   Kayalı köyünün pazarındasın.
+  1) erzak al (2 para)   2) şifacı (3 para, sağlık +3)   0) sala dön >   Bir torba kuru yemiş aldın. (erzak 1, para 6)
+  1) erzak al (2 para)   2) şifacı (3 para, sağlık +3)   0) sala dön >   Bir torba kuru yemiş aldın. (erzak 2, para 4)
+  1) erzak al (2 para)   2) şifacı (3 para, sağlık +3)   0) sala dön >   Bir torba kuru yemiş aldın. (erzak 3, para 2)
+  1) erzak al (2 para)   2) şifacı (3 para, sağlık +3)   0) sala dön >   Bir torba kuru yemiş aldın. (erzak 4, para 0)
+  1) erzak al (2 para)   2) şifacı (3 para, sağlık +3)   0) sala dön > 
+  ≈≈≈≈≈⌂≈≈≈‖≈≈≈≈▲≈≈≈≈≈★   Gün 14 · 14/20 km
+  enerji  ■□□□□□□□□□   sağlık  ■■■■■□□□□□
+  erzak 4   para 0
+  1) kürek çek   2) dinlen   3) balık tut   4) Kayalı pazarı   0) bırak
+Ne yapacaksın? >   Kıyıya çekip dinlendin; güç topladın.
+  Kıyıda yabani böğürtlen buldun. (erzak +1)
+
+  ≈≈≈≈≈⌂≈≈≈‖≈≈≈≈▲≈≈≈≈≈★   Gün 15 · 14/20 km
+  enerji  ■■■■■□□□□□   sağlık  ■■■■■■□□□□
+  erzak 4   para 0
+  1) kürek çek   2) dinlen   3) balık tut   4) Kayalı pazarı   0) bırak
+Ne yapacaksın? >   1 km yol aldın.
+  Kıyıda yabani böğürtlen buldun. (erzak +1)
+
+  ≈≈≈≈≈⌂≈≈≈‖≈≈≈≈⌂▲≈≈≈≈★   Gün 16 · 15/20 km
+  enerji  ■■□□□□□□□□   sağlık  ■■■■■■□□□□
+  erzak 4   para 0
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Kıyıya çekip dinlendin; güç topladın.
+
+  ≈≈≈≈≈⌂≈≈≈‖≈≈≈≈⌂▲≈≈≈≈★   Gün 17 · 15/20 km
+  enerji  ■■■■■■□□□□   sağlık  ■■■■■■■□□□
+  erzak 3   para 0
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   2 km yol aldın.
+
+  ≈≈≈≈≈⌂≈≈≈‖≈≈≈≈⌂≈≈▲≈≈★   Gün 18 · 17/20 km
+  enerji  ■■■□□□□□□□   sağlık  ■■■■■■■□□□
+  erzak 2   para 0
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   2 km yol aldın.
+  Ters bir akıntı salı 1 km geri sürükledi.
+
+  ≈≈≈≈≈⌂≈≈≈‖≈≈≈≈⌂≈≈≈▲≈★   Gün 19 · 18/20 km
+  enerji  □□□□□□□□□□   sağlık  ■■■■■■■□□□
+  erzak 1   para 0
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   Kıyıya çekip dinlendin; güç topladın.
+  Kıyıda yabani böğürtlen buldun. (erzak +1)
+
+  ≈≈≈≈≈⌂≈≈≈‖≈≈≈≈⌂≈≈≈▲≈★   Gün 20 · 18/20 km
+  enerji  ■■■■□□□□□□   sağlık  ■■■■■■■■□□
+  erzak 1   para 0
+  1) kürek çek   2) dinlen   3) balık tut   0) bırak
+Ne yapacaksın? >   2 km yol aldın.
+
+★ Kaynağa ulaştın! Buz gibi suyun çıktığı kayanın başındasın. ★
+Deniz, yolculuğun 20 gün sürdü. Puanın: 164
