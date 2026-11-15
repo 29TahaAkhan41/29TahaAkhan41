@@ -91,6 +91,7 @@ YERLEŞİKLER = {
     "uyar": "uyar", "warn": "uyar",
     "baytlar": "baytlar", "bytes": "baytlar",
     "karakter": "karakter", "char": "karakter",
+    "işletim_sistemi": "işletim_sistemi", "isletim_sistemi": "işletim_sistemi", "os_name": "işletim_sistemi",
     "uçbirim_mi": "uçbirim_mi", "ucbirim_mi": "uçbirim_mi", "is_terminal": "uçbirim_mi",
     "ortam_var": "ortam_var", "has_env": "ortam_var",
     "dosya_hatası": "dosya_hatası", "dosya_hatasi": "dosya_hatası", "file_error": "dosya_hatası",
@@ -758,16 +759,26 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
 
 YIĞIN_BOYUTU = 256 * 1024 * 1024    # bss'te ayrılır; dokunulmadıkça bellek harcamaz
 
-# Çalışma zamanı: üretilen her programın sonuna eklenen assembly. Ayrı bir dosyadadır,
-# çünkü Nehir ile yazılmış derleyici (kendi/) de aynı dosyayı kullanır.
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "calisma_zamani.s"),
-          encoding="utf-8") as _f:
-    ÇALIŞMA_ZAMANI = _f.read().replace("YIGIN_BOYUTU", str(YIĞIN_BOYUTU))
+# Çalışma zamanı: üretilen her programın sonuna eklenen assembly. İşletim sistemine özgü
+# katman (calisma_zamani_<hedef>.s) ile ortak kısımdan (calisma_zamani.s) oluşur. Ayrı
+# dosyalardadır, çünkü Nehir ile yazılmış derleyici (kendi/) de aynı dosyaları kullanır.
+HEDEFLER = ("linux", "windows")
+VARSAYILAN_HEDEF = "windows" if sys.platform == "win32" else "linux"
+
+
+def çalışma_zamanı(hedef):
+    dizin = os.path.dirname(os.path.abspath(__file__))
+    metin = ""
+    for ad in (f"calisma_zamani_{hedef}.s", "calisma_zamani.s"):
+        with open(os.path.join(dizin, ad), encoding="utf-8") as f:
+            metin += f.read()
+    return metin.replace("YIGIN_BOYUTU", str(YIĞIN_BOYUTU))
 
 
 class KodÜretici:
-    def __init__(self, deyimler, işlevler, dosya_adları=("<girdi>",), kayıtlar=None):
+    def __init__(self, deyimler, işlevler, dosya_adları=("<girdi>",), kayıtlar=None, hedef=VARSAYILAN_HEDEF):
         self.dosya_adları = dosya_adları
+        self.hedef_sistem = hedef
         # Önce bütün kayıt türleri oluşturulur, sonra alan türleri çözülür;
         # böylece kayıtlar kendilerine ve birbirlerine gönderme yapabilir.
         self.kayıtlar = {ad: Kayıt(ad, [a[0] for a in alanlar])
@@ -983,7 +994,7 @@ class KodÜretici:
                if isinstance(x, TürKoduSatırı) else str(x) for x in self.çıktı + self.işlev_kodu]
 
         baş = [".intel_syntax noprefix", ".global _start", ".section .text"]
-        son = [ÇALIŞMA_ZAMANI, "    .section .rodata", "    .balign 8",
+        son = [çalışma_zamanı(self.hedef_sistem), "    .section .rodata", "    .balign 8",
                "__dosyalar: .quad " + ", ".join(self.metin_etiketi(ad) for ad in self.dosya_adları)]
         if self.metinler:
             son.append("    .section .rodata")
@@ -1579,9 +1590,13 @@ class KodÜretici:
             if türler != ["sayı"]:
                 yanlış("çıkış kodu")
             self.yaz("pop rdi")
-            self.yaz("mov eax, 60")
-            self.yaz("syscall")
+            self.yaz("call __cik")
             return "sayı"
+        if asıl == "işletim_sistemi":
+            if türler:
+                yanlış("argümansız")
+            self.yaz("lea rax, [rip+__isletim_sistemi_adi]")
+            return "metin"
         if asıl == "girdi_var":
             if türler:
                 yanlış("argümansız")
@@ -1898,7 +1913,7 @@ def okuma_hatası(h):
             errno.EISDIR: "bu bir dizin, dosya değil"}.get(h.errno, h.strerror)
 
 
-def derle(yol, dosyalar):
+def derle(yol, dosyalar, hedef=VARSAYILAN_HEDEF):
     """Ana dosyayı ve `kullan` ile istediği modülleri derler; (assembly metni, uyarılar)
     verir. `dosyalar` listesi (görünen yol, kaynak metni) çiftleriyle doldurulur;
     konumlardaki dosya numarası bu listedeki sıradır."""
@@ -1927,7 +1942,7 @@ def derle(yol, dosyalar):
         return Ayrıştırıcı(sözcükle(kaynak, no), işlevler, kayıtlar, içe_aktar).program()
 
     deyimler = yükle(yol)
-    üretici = KodÜretici(deyimler, işlevler, [d[0] for d in dosyalar], kayıtlar)
+    üretici = KodÜretici(deyimler, işlevler, [d[0] for d in dosyalar], kayıtlar, hedef)
     return üretici.üret(), üretici.uyarılar
 
 
@@ -2029,6 +2044,17 @@ def ağaç_dökümü(kaynak):
     return "\n".join(satırlar) + "\n"
 
 
+def windows_renklerini_aç():
+    """Windows konsolunda renk kodlarının (sanal uçbirim kipi) yorumlanmasını açar; Nehir'in
+    Windows çalışma zamanı da programlar için aynısını yapar."""
+    import ctypes
+    kernel32 = ctypes.windll.kernel32
+    tutamaç = kernel32.GetStdHandle(-12)
+    kip = ctypes.c_uint32()
+    if kernel32.GetConsoleMode(tutamaç, ctypes.byref(kip)):
+        kernel32.SetConsoleMode(tutamaç, kip.value | 4)    # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+
+
 def bildir(dosya, kaynak, düzey, mesaj, konum=None, ipucu=None):
     """Hata ya da uyarıyı, kaynak satırı ve altı çizili yeriyle stderr'e yazar:
 
@@ -2038,6 +2064,8 @@ def bildir(dosya, kaynak, düzey, mesaj, konum=None, ipucu=None):
               = ipucu: 'xs' mi demek istediniz?
     """
     renkli = sys.stderr.isatty() and "NO_COLOR" not in os.environ
+    if renkli and sys.platform == "win32":
+        windows_renklerini_aç()
     def boya(metin, kod):
         return f"\033[{kod}m{metin}\033[0m" if renkli else metin
 
@@ -2066,7 +2094,9 @@ def bildir(dosya, kaynak, düzey, mesaj, konum=None, ipucu=None):
 
 KULLANIM = """kullanım: nehir.py <dosya.nehir> [seçenekler]
 
-  -o <ad>            çıktı dosyasının adı (varsayılan: kaynak dosya adı, uzantısız)
+  -o <ad>            çıktı dosyasının adı (varsayılan: kaynak dosya adı, uzantısız;
+                     Windows için .exe)
+  --hedef <sistem>   linux ya da windows (varsayılan: derleyicinin çalıştığı sistem)
   --asm              yalnızca assembly (.s) üret, derlemeyi orada bırak
   --çalıştır, --run  derledikten sonra programı çalıştır
   --sözcükler        derlemeden yalnızca sözcükleri dök
@@ -2078,6 +2108,7 @@ KULLANIM = """kullanım: nehir.py <dosya.nehir> [seçenekler]
 def ana(argv):
     girdi, çıktı, yalnız_asm, çalıştır, yalnız_sözcükler = None, None, False, False, False
     yalnız_ağaç = False
+    hedef = VARSAYILAN_HEDEF
     program_argümanları = []
     if "--" in argv:
         ayraç = argv.index("--")
@@ -2090,6 +2121,9 @@ def ana(argv):
             çıktı = argv[i]
         elif a == "--asm":
             yalnız_asm = True
+        elif a == "--hedef" and i + 1 < len(argv) and argv[i + 1] in HEDEFLER:
+            i += 1
+            hedef = argv[i]
         elif a in ("--sözcükler", "--sozcukler", "--tokens"):
             yalnız_sözcükler = True
         elif a in ("--ağaç", "--agac", "--ast"):
@@ -2120,7 +2154,7 @@ def ana(argv):
             dosyalar.append((girdi, kaynak))
             sys.stdout.write(sözcük_dökümü(kaynak) if yalnız_sözcükler else ağaç_dökümü(kaynak))
             return 0
-        asm, uyarılar = derle(girdi, dosyalar)
+        asm, uyarılar = derle(girdi, dosyalar, hedef)
     except (OSError, UnicodeDecodeError) as h:
         bildir(girdi, None, "hata", f"dosya okunamadı: {okuma_hatası(h)}")
         return 1
@@ -2134,23 +2168,40 @@ def ana(argv):
 
     kök = çıktı or os.path.splitext(girdi)[0]
     if yalnız_asm:
-        with open(çıktı or kök + ".s", "w", encoding="utf-8") as f:
+        # Windows'ta da satır sonları "\n" kalsın: iki derleyicinin çıktısı bayt bayt aynı olmalı.
+        with open(çıktı or kök + ".s", "w", encoding="utf-8", newline="\n") as f:
             f.write(asm)
         return 0
 
-    nesne = kök + ".o"
+    if hedef == "windows":
+        # MinGW-w64'ün gcc'si yalnızca birleştirici ve bağlayıcı olarak kullanılır; C kitaplığı
+        # bağlanmaz, program yalnızca kernel32.dll ve shell32.dll'i kullanır.
+        program = çıktı or kök + ".exe"
+        gcc = "gcc" if sys.platform == "win32" else "x86_64-w64-mingw32-gcc"
+        komutlar = [[gcc, "-nostdlib", "-x", "assembler", "-", "-o", program, "-lkernel32", "-lshell32",
+                     "-Wl,-e,_start", "-Wl,--subsystem,console"]]
+        nesne = None
+    else:
+        program = kök
+        nesne = kök + ".o"
+        komutlar = [["as", "-o", nesne, "-"], ["ld", "-o", program, nesne]]
     try:
-        subprocess.run(["as", "-o", nesne, "-"], input=asm.encode("utf-8"), check=True)
-        subprocess.run(["ld", "-o", kök, nesne], check=True)
+        for komut in komutlar:
+            subprocess.run(komut, input=asm.encode("utf-8") if "-" in komut else None, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError) as h:
         sys.stderr.write(f"hata: birleştirme/bağlama başarısız: {h}\n")
+        if isinstance(h, FileNotFoundError) and hedef == "windows":
+            sys.stderr.write("ipucu: Windows programları için MinGW-w64 gerekir (gcc)\n")
         return 1
     finally:
-        if os.path.exists(nesne):
+        if nesne and os.path.exists(nesne):
             os.remove(nesne)
 
     if çalıştır:
-        return subprocess.run([os.path.abspath(kök)] + program_argümanları).returncode
+        if hedef != VARSAYILAN_HEDEF:
+            sys.stderr.write(f"hata: {hedef} programı bu sistemde çalıştırılamaz; {program} üretildi\n")
+            return 1
+        return subprocess.run([os.path.abspath(program)] + program_argümanları).returncode
     return 0
 
 

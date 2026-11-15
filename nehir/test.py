@@ -102,7 +102,83 @@ def kendi_derleyiciyi_sına(geçici, kaynaklar):
             print(f"geçti     kendi {aşama} ({len(kaynaklar)} dosyada Python ile aynı çıktı)")
         başarısız += farklı
     return (başarısız + kendi_kod_üreticiyi_sına(geçici, kaynaklar) + kendini_derlemeyi_sına(geçici)
-            + renkleri_sına(geçici))
+            + renkleri_sına(geçici) + windowsu_sına(geçici))
+
+
+def windows_araçları():
+    """Linux'ta Windows programı üretip çalıştırmak için MinGW-w64 ve Wine; yoksa None."""
+    import shutil
+    gcc = shutil.which("x86_64-w64-mingw32-gcc")
+    wine = shutil.which("wine64") or ("/usr/lib/wine/wine64" if os.path.exists("/usr/lib/wine/wine64") else None)
+    return (gcc, wine) if gcc and wine else None
+
+
+def windowsu_sına(geçici):
+    """Windows hedefi: örnekler Windows için derlenip Wine'da çalıştırılır ve çıktıları Linux'takilerle
+    (.beklenen) karşılaştırılır; Windows için derlenmiş Nehir derleyicisi Wine'da kendini derleyip
+    sabit noktaya ulaşmalıdır. MinGW-w64 ya da Wine yoksa atlanır."""
+    araçlar = windows_araçları()
+    if sys.platform == "win32" or araçlar is None:
+        print("atlandı   windows (x86_64-w64-mingw32-gcc ve wine64 gerekir)")
+        return 0
+    gcc, wine = araçlar
+    from concurrent.futures import ThreadPoolExecutor
+    ortam = dict(os.environ, WINEDEBUG="-all", LANG="C.UTF-8", LC_ALL="C.UTF-8",
+                 WINEPREFIX=os.path.join(geçici, "wine"))
+    subprocess.run([wine, "cmd", "/c", "exit"], env=ortam, capture_output=True)    # Wine ortamını hazırla
+    dizin = os.path.join(geçici, "windows")
+    os.makedirs(dizin, exist_ok=True)
+
+    def örnek(kaynak):
+        göreli = os.path.relpath(kaynak, KÖK).replace(os.sep, "/")
+        exe = os.path.join(dizin, göreli.replace("/", "_")[:-6] + ".exe")
+        d = subprocess.run([sys.executable, "nehir.py", göreli, "--hedef", "windows", "-o", exe],
+                           cwd=KÖK, capture_output=True, text=True, encoding="utf-8")
+        p_çıktı, p_hata = "", ""
+        if d.returncode == 0:
+            girdi_yolu = os.path.splitext(kaynak)[0] + ".girdi"
+            with open(girdi_yolu, "rb") if os.path.exists(girdi_yolu) else open(os.devnull, "rb") as girdi:
+                p = subprocess.run([wine, exe], cwd=KÖK, stdin=girdi, capture_output=True, env=ortam, timeout=120)
+            p_çıktı, p_hata = p.stdout.decode("utf-8", "replace"), p.stderr.decode("utf-8", "replace")
+        # .beklenen, nehir.py --run'ın çıktısıdır: önce standart çıktı, sonra standart hata.
+        çıkan = d.stdout + p_çıktı + d.stderr + p_hata
+        with open(os.path.splitext(kaynak)[0] + ".beklenen", encoding="utf-8") as f:
+            beklenen = f.read()
+        return göreli, çıkan == beklenen, beklenen, çıkan
+
+    kaynaklar = sorted(glob.glob(os.path.join(KÖK, "ornekler", "*.nehir"))) + \
+        sorted(glob.glob(os.path.join(KÖK, "ornekler", "hatalar", "*.nehir")))
+    başarısız = 0
+    with ThreadPoolExecutor(max_workers=8) as havuz:
+        for göreli, tamam, beklenen, çıkan in havuz.map(örnek, kaynaklar):
+            if not tamam:
+                başarısız += 1
+                print(f"BAŞARISIZ windows örneği: {göreli}")
+                print("  beklenen:", repr(beklenen)[:300])
+                print("  çıkan:   ", repr(çıkan)[:300])
+
+    # Kendi kendini derleme: nehir.py -> derle1.exe -> derle2.exe -> sabit nokta
+    çz = os.path.join(KÖK, "calisma_zamani.s")
+    s1, s2, s3 = (os.path.join(dizin, f"derle{i}.s") for i in (1, 2, 3))
+    subprocess.run([sys.executable, "nehir.py", "kendi/derle.nehir", "--hedef", "windows", "--asm", "-o", s1],
+                   cwd=KÖK, capture_output=True, check=True)
+    for kaynak_s, ikili, hedef_s in ((s1, "derle1.exe", s2), (s2, "derle2.exe", s3)):
+        ikili = os.path.join(dizin, ikili)
+        subprocess.run([gcc, "-nostdlib", "-o", ikili, kaynak_s, "-lkernel32", "-lshell32",
+                        "-Wl,-e,_start", "-Wl,--subsystem,console"], check=True)
+        n = subprocess.run([wine, ikili, "kendi/derle.nehir", hedef_s, çz], cwd=KÖK, capture_output=True, env=ortam)
+        if n.returncode != 0:
+            print(f"BAŞARISIZ windows kendini derleme: {os.path.basename(ikili)}:", n.stderr[:300])
+            return başarısız + 1
+    with open(s1, "rb") as a, open(s2, "rb") as b, open(s3, "rb") as c:
+        b1, b2, b3 = a.read(), b.read(), c.read()
+    if b2 != b1 or b3 != b2:
+        başarısız += 1
+        print("BAŞARISIZ windows kendini derleme: çıktı nehir.py'ninkinden farklı ya da sabit nokta yok")
+    if not başarısız:
+        print(f"geçti     windows ({len(kaynaklar)} örnek Wine'da Linux'takiyle aynı çıktıyı veriyor; "
+              f"derleyici Windows'ta kendini derleyip sabit noktaya ulaşıyor)")
+    return başarısız
 
 
 def uçbirimde_çalıştır(komut, ortam):

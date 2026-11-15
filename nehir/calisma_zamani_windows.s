@@ -1,0 +1,451 @@
+
+# ── çalışma zamanı: Windows (x86-64) ──
+# Ortak kısmın (calisma_zamani.s) kullandığı işletim sistemi yordamları, kernel32.dll ve
+# shell32.dll işlevleriyle. Program MinGW-w64'ün gcc'siyle C kitaplığı olmadan bağlanır:
+#   gcc -nostdlib -o program.exe program.s -lkernel32 -lshell32 -Wl,-e,_start -Wl,--subsystem,console
+#
+# Ortak kısım bu yordamları Linux sistem çağrısı gibi kullanır: yalnızca rax, rcx ve r11
+# değişir, hata -errno olarak döner. Win64 çağrı düzeninde ise rdx ve r8-r10 de değişir,
+# yığın 16 bayta hizalı olmalı ve 32 baytlık gölge alan ayrılmalıdır. WIN_GIRIS ve
+# WIN_CIKIS bu farkı kapatır. Aradaki yerel alan:
+#   [rsp+32..63]  Win64 işlevlerinin 5.-8. argümanları
+#   [rsp+64]      tutamaç         [rsp+72]  uzunluk      [rsp+80]  sayaç
+#   [rsp+88]      toplam          [rsp+96]  konsol kipi  [rsp+104] yedek
+.macro WIN_GIRIS
+    push rbp
+    mov rbp, rsp
+    push rdx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    and rsp, -16
+    sub rsp, 112
+.endm
+
+.macro WIN_CIKIS
+    lea rsp, [rbp-48]
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rbp
+    ret
+.endm
+
+# rdi'deki dosya tanıtıcısını (0 girdi, 1 çıktı, 2 hata ya da açılmış dosyanın tutamacı)
+# Windows tutamacına çevirip rcx'e koyar.
+.macro TUTAMAC
+    mov rcx, rdi
+    cmp rdi, 3
+    jae 99f
+    lea rcx, [rip+__std_tutamac]
+    mov rcx, [rcx+rdi*8]
+99:
+.endm
+
+    .section .text
+_start:
+    and rsp, -16
+    sub rsp, 32
+    mov ecx, -10                # STD_INPUT_HANDLE
+    call GetStdHandle
+    mov [rip+__std_tutamac], rax
+    mov ecx, -11                # STD_OUTPUT_HANDLE
+    call GetStdHandle
+    mov [rip+__std_tutamac+8], rax
+    mov ecx, -12                # STD_ERROR_HANDLE
+    call GetStdHandle
+    mov [rip+__std_tutamac+16], rax
+    mov rcx, [rip+__std_tutamac+8]
+    call __vt_ac
+    mov rcx, [rip+__std_tutamac+16]
+    call __vt_ac
+    call nehir_ana
+    xor edi, edi
+    jmp __cik
+
+__vt_ac:                        # rcx = tutamaç; konsolsa renk kodlarını (sanal uçbirim) açar
+    push rbx
+    sub rsp, 48
+    mov rbx, rcx
+    lea rdx, [rsp+40]
+    call GetConsoleMode
+    test eax, eax
+    jz 1f
+    mov edx, [rsp+40]
+    or edx, 4                   # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    mov rcx, rbx
+    call SetConsoleMode
+1:  add rsp, 48
+    pop rbx
+    ret
+
+__cik:                          # rdi = çıkış kodu
+    and rsp, -16
+    sub rsp, 32
+    mov ecx, edi
+    call ExitProcess
+
+# rdi'deki UTF-8 (sıfırla biten) metni __genis_tampon'a UTF-16 olarak çevirir.
+__genis_yol:
+    sub rsp, 56
+    mov ecx, 65001              # CP_UTF8
+    xor edx, edx
+    mov r8, rdi
+    mov r9d, -1                 # sondaki sıfır dahil
+    lea rax, [rip+__genis_tampon]
+    mov [rsp+32], rax
+    mov qword ptr [rsp+40], 32768
+    call MultiByteToWideChar
+    add rsp, 56
+    ret
+
+# Son Windows hatasını errno'ya çevirir -> eax (artı).
+__win_errno:
+    sub rsp, 40
+    call GetLastError
+    add rsp, 40
+    cmp eax, 2                  # ERROR_FILE_NOT_FOUND
+    je 2f
+    cmp eax, 3                  # ERROR_PATH_NOT_FOUND
+    je 2f
+    cmp eax, 15                 # ERROR_INVALID_DRIVE
+    je 2f
+    cmp eax, 53                 # ERROR_BAD_NETPATH
+    je 2f
+    cmp eax, 161                # ERROR_BAD_PATHNAME
+    je 2f
+    cmp eax, 5                  # ERROR_ACCESS_DENIED
+    je 13f
+    cmp eax, 32                 # ERROR_SHARING_VIOLATION
+    je 13f
+    cmp eax, 33                 # ERROR_LOCK_VIOLATION
+    je 13f
+    cmp eax, 267                # ERROR_DIRECTORY
+    je 20f
+    cmp eax, 112                # ERROR_DISK_FULL
+    je 28f
+    mov eax, 22                 # EINVAL
+    ret
+2:  mov eax, 2                  # ENOENT
+    ret
+13: mov eax, 13                 # EACCES
+    ret
+20: mov eax, 20                 # ENOTDIR
+    ret
+28: mov eax, 28                 # ENOSPC
+    ret
+
+# __genis_tampon'daki yol bir dizin mi? -> eax = 1 ya da 0
+__genis_dizin_mi:
+    sub rsp, 40
+    lea rcx, [rip+__genis_tampon]
+    call GetFileAttributesW
+    add rsp, 40
+    cmp eax, -1
+    je 1f
+    and eax, 16                 # FILE_ATTRIBUTE_DIRECTORY
+    shr eax, 4
+    ret
+1:  xor eax, eax
+    ret
+
+__sis_yaz:                      # rdi = fd, rsi = adres, rdx = uzunluk -> rax = yazılan ya da -errno
+    WIN_GIRIS
+    TUTAMAC
+    mov [rsp+64], rcx
+    mov [rsp+72], rdx
+    lea rdx, [rsp+96]
+    call GetConsoleMode
+    test eax, eax
+    jnz 5f
+    mov rcx, [rsp+64]           # dosya ya da boru: baytlar olduğu gibi yazılır
+    mov rdx, rsi
+    mov r8, [rsp+72]
+    lea r9, [rsp+80]
+    mov qword ptr [rsp+32], 0
+    call WriteFile
+    test eax, eax
+    jz 9f
+    mov eax, [rsp+80]
+    WIN_CIKIS
+9:  mov rax, -5                 # EIO
+    WIN_CIKIS
+5:  mov rax, [rsp+72]           # konsol: UTF-8 parça parça UTF-16'ya çevrilip yazılır
+    mov [rsp+88], rax
+6:  mov r8, [rsp+72]
+    test r8, r8
+    jz 8f
+    cmp r8, 8192
+    jbe 7f
+    mov r8, 8192
+1:  movzx eax, byte ptr [rsi+r8]    # parça bir karakterin ortasında bitmesin
+    and eax, 0xC0
+    cmp eax, 0x80
+    jne 7f
+    dec r8
+    jnz 1b
+    mov r8, 8192
+7:  mov [rsp+80], r8
+    mov r9, r8
+    mov r8, rsi
+    mov ecx, 65001
+    xor edx, edx
+    lea rax, [rip+__genis_tampon]
+    mov [rsp+32], rax
+    mov qword ptr [rsp+40], 16384
+    call MultiByteToWideChar
+    mov rcx, [rsp+64]
+    lea rdx, [rip+__genis_tampon]
+    mov r8d, eax
+    lea r9, [rsp+104]
+    mov qword ptr [rsp+32], 0
+    call WriteConsoleW
+    mov rax, [rsp+80]
+    add rsi, rax
+    sub [rsp+72], rax
+    jmp 6b
+8:  mov rax, [rsp+88]
+    WIN_CIKIS
+
+__sis_oku:                      # rdi = fd, rsi = adres, rdx = uzunluk -> rax = okunan (0: son) ya da -errno
+    WIN_GIRIS
+    TUTAMAC
+    mov [rsp+64], rcx
+    mov [rsp+72], rdx
+    lea rdx, [rsp+96]
+    call GetConsoleMode
+    test eax, eax
+    jnz 5f
+    mov rcx, [rsp+64]
+    mov rdx, rsi
+    mov r8, [rsp+72]
+    lea r9, [rsp+80]
+    mov qword ptr [rsp+32], 0
+    call ReadFile
+    test eax, eax
+    jz 9f
+    mov eax, [rsp+80]
+    WIN_CIKIS
+9:  call GetLastError
+    cmp eax, 109                # ERROR_BROKEN_PIPE: borunun yazan ucu kapandı, girdi bitti
+    je 0f
+    cmp eax, 38                 # ERROR_HANDLE_EOF
+    je 0f
+    mov rax, -5
+    WIN_CIKIS
+5:  mov rax, [rsp+72]           # konsol: UTF-16 okunup UTF-8'e çevrilir (karakter başına en çok 3 bayt)
+    xor edx, edx
+    mov ecx, 3
+    div rcx
+    cmp rax, 16384
+    jbe 6f
+    mov eax, 16384
+6:  test rax, rax
+    jz 0f
+    mov rcx, [rsp+64]
+    lea rdx, [rip+__genis_tampon]
+    mov r8, rax
+    lea r9, [rsp+80]
+    mov qword ptr [rsp+32], 0
+    call ReadConsoleW
+    test eax, eax
+    jz 0f
+    mov r9d, [rsp+80]
+    test r9d, r9d
+    jz 0f
+    movzx eax, word ptr [rip+__genis_tampon]
+    cmp eax, 26                 # Ctrl+Z: girdinin sonu
+    je 0f
+    mov ecx, 65001
+    xor edx, edx
+    lea r8, [rip+__genis_tampon]
+    mov [rsp+32], rsi
+    mov rax, [rsp+72]
+    mov [rsp+40], rax
+    mov qword ptr [rsp+48], 0
+    mov qword ptr [rsp+56], 0
+    call WideCharToMultiByte
+    WIN_CIKIS
+0:  xor eax, eax
+    WIN_CIKIS
+
+__sis_ac:                       # rdi = yol, rsi = bayraklar (0 oku, 0x241 üstüne yaz, 0x441 ekle) -> rax = tutamaç ya da -errno
+    WIN_GIRIS
+    call __genis_yol
+    mov edx, 0x80000000         # GENERIC_READ
+    mov eax, 3                  # OPEN_EXISTING
+    cmp rsi, 0x241
+    jne 1f
+    mov edx, 0x40000000         # GENERIC_WRITE
+    mov eax, 2                  # CREATE_ALWAYS
+1:  cmp rsi, 0x441
+    jne 2f
+    mov edx, 4                  # FILE_APPEND_DATA: her yazma dosyanın sonuna
+    mov eax, 4                  # OPEN_ALWAYS
+2:  lea rcx, [rip+__genis_tampon]
+    mov r8d, 3                  # FILE_SHARE_READ | FILE_SHARE_WRITE
+    xor r9d, r9d
+    mov [rsp+32], rax
+    mov qword ptr [rsp+40], 0x80    # FILE_ATTRIBUTE_NORMAL
+    mov qword ptr [rsp+48], 0
+    call CreateFileW
+    cmp rax, -1
+    je 9f
+    WIN_CIKIS
+9:  call __win_errno
+    cmp eax, 13                 # bir dizini açmaya çalışmak Linux'taki gibi EISDIR olsun
+    jne 3f
+    call __genis_dizin_mi
+    test eax, eax
+    mov eax, 13
+    jz 3f
+    mov eax, 21
+3:  neg rax
+    WIN_CIKIS
+
+__sis_kapat:                    # rdi = tutamaç
+    WIN_GIRIS
+    mov rcx, rdi
+    call CloseHandle
+    xor eax, eax
+    WIN_CIKIS
+
+__sis_sil:                      # rdi = yol -> rax = 0 ya da -errno
+    WIN_GIRIS
+    call __genis_yol
+    lea rcx, [rip+__genis_tampon]
+    call DeleteFileW
+    test eax, eax
+    jz 9f
+    xor eax, eax
+    WIN_CIKIS
+9:  call __win_errno
+    neg rax
+    WIN_CIKIS
+
+__sis_erisim:                   # rdi = yol -> rax = dosya varsa 0, yoksa -errno
+    WIN_GIRIS
+    call __genis_yol
+    lea rcx, [rip+__genis_tampon]
+    call GetFileAttributesW
+    cmp eax, -1
+    je 9f
+    xor eax, eax
+    WIN_CIKIS
+9:  mov rax, -2
+    WIN_CIKIS
+
+__dosya_hata_kodu:              # rdi = yol -> rax = okumak için açılabiliyorsa 0, değilse errno
+    WIN_GIRIS                   # (dizinler için EISDIR, 21)
+    call __genis_yol
+    call __genis_dizin_mi
+    test eax, eax
+    jz 1f
+    mov eax, 21
+    WIN_CIKIS
+1:  xor esi, esi
+    call __sis_ac
+    test rax, rax
+    jns 2f
+    neg rax
+    WIN_CIKIS
+2:  mov rdi, rax
+    call __sis_kapat
+    xor eax, eax
+    WIN_CIKIS
+
+__ucbirim_mi:                   # rdi = dosya tanıtıcısı -> rax = uçbirime (konsola) bağlıysa 1
+    WIN_GIRIS
+    xor eax, eax
+    cmp rdi, 3
+    jae 1f
+    TUTAMAC
+    lea rdx, [rsp+96]
+    call GetConsoleMode
+    test eax, eax
+    setne al
+    movzx eax, al
+1:  WIN_CIKIS
+
+__ortam_var:                    # rdi = ad -> rax = ortam değişkeni tanımlıysa (boş olsa da) 1
+    WIN_GIRIS
+    call __genis_yol
+    lea rcx, [rip+__genis_tampon]
+    xor edx, edx
+    xor r8d, r8d
+    call GetEnvironmentVariableW    # tanımlıysa gereken boyutu (en az 1) verir
+    test eax, eax
+    setne al
+    movzx eax, al
+    WIN_CIKIS
+
+__argumanlar:                   # -> rax = komut satırı argümanlarının listesi (program adı hariç)
+    push rbp
+    mov rbp, rsp
+    push rbx
+    push r12
+    push r13
+    push r14
+    and rsp, -16
+    sub rsp, 80
+    call GetCommandLineW
+    mov rcx, rax
+    lea rdx, [rsp+64]
+    call CommandLineToArgvW     # Windows'un tırnak ve ters bölü kuralları
+    mov r12, rax
+    movsxd r13, dword ptr [rsp+64]
+    mov edi, 4
+    call __liste_yeni
+    mov r14, rax
+    mov ebx, 1
+1:  cmp rbx, r13
+    jae 2f
+    mov ecx, 65001
+    xor edx, edx
+    mov r8, [r12+rbx*8]
+    mov r9d, -1
+    lea rax, [rip+__dar_tampon]
+    mov [rsp+32], rax
+    mov qword ptr [rsp+40], 131072
+    mov qword ptr [rsp+48], 0
+    mov qword ptr [rsp+56], 0
+    call WideCharToMultiByte    # sondaki sıfır dahil bayt sayısı
+    lea rdi, [rax-1]
+    call __metin_yeni
+    mov rdi, rax
+    lea rsi, [rip+__dar_tampon]
+    mov rcx, [rax-8]
+    push rax
+    rep movsb
+    pop rsi
+    mov rdi, r14
+    call __liste_ekle
+    inc rbx
+    jmp 1b
+2:  mov rcx, r12
+    call LocalFree
+    mov rax, r14
+    lea rsp, [rbp-32]
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    pop rbp
+    ret
+
+    .section .rodata
+    .balign 8
+    .quad 7
+__isletim_sistemi_adi: .ascii "windows"
+    .byte 0
+
+    .section .bss
+    .balign 16
+__std_tutamac: .skip 24         # girdi, çıktı ve hata tutamaçları
+__genis_tampon: .skip 65536     # UTF-16 yollar ve konsol metni
+__dar_tampon: .skip 131072      # UTF-8'e çevrilen argümanlar

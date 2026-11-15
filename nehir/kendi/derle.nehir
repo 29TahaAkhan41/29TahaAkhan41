@@ -1,27 +1,55 @@
 # Nehir ile yazılmış Nehir derleyicisi: kaynak dosyadan assembly üretir.
 #
-#   kullanım: derle <dosya.nehir> <çıktı.s> [calisma_zamani.s]
+#   kullanım: derle [--hedef linux|windows] <dosya.nehir> <çıktı.s> [calisma_zamani.s]
 #
-# Çıktısı `nehir.py <dosya> --asm -o <çıktı.s>` ile bayt bayt aynıdır. Henüz
-# taşınmamış bir yapıyla karşılaşırsa "henüz desteklenmiyor" der ve 3 ile çıkar.
+# Çıktısı `nehir.py <dosya> --asm -o <çıktı.s>` ile bayt bayt aynıdır. Hedef verilmezse
+# derleyicinin çalıştığı sistem için üretir. calisma_zamani.s'nin yolu verilmezse
+# bulunulan dizinde aranır; aynı dizinde calisma_zamani_<hedef>.s de bulunmalıdır.
 # Assembly'yi çalıştırılabilir dosyaya çevirmek için:
-#   as -o program.o program.s && ld -o program program.o
+#   Linux:    as -o program.o program.s && ld -o program program.o
+#   Windows:  gcc -nostdlib -o program.exe program.s -lkernel32 -lshell32 -Wl,-e,_start -Wl,--subsystem,console
 
 kullan "kod_uretici.nehir"
 
-işlev ana() {
-    argümanlar() -> a
-    uzunluk(a) < 2 veya uzunluk(a) > 3 -> eğer {
-        "kullanım: derle <dosya.nehir> <çıktı.s> [calisma_zamani.s]" -> uyar
-        çık(2)
-    }
-    "calisma_zamani.s" -> çalışma_zamanı_yolu
-    uzunluk(a) == 3 -> eğer { a[2] -> çalışma_zamanı_yolu }
-    a[0] -> l_dosya
-    değil dosya_var(çalışma_zamanı_yolu) -> eğer {
-        konumsuz_bildir("hata", "çalışma zamanı okunamadı: dosya bulunamadı", çalışma_zamanı_yolu)
+işlev kullanım() {
+    "kullanım: derle [--hedef linux|windows] <dosya.nehir> <çıktı.s> [calisma_zamani.s]" -> uyar
+    çık(2)
+}
+
+# Çalışma zamanı dosyasını okur (satır sonlarını "\n"e çevirerek); okunamazsa derlemeyi bitirir.
+işlev çalışma_zamanı_oku(yol) {
+    kaynağı_oku(yol) -> okuma_hatası
+    okuma_hatası != "" -> eğer {
+        konumsuz_bildir("hata", "çalışma zamanı okunamadı: " + okuma_hatası, yol)
         çık(1)
     }
+    l_okunan -> döndür
+}
+
+işlev ana() {
+    işletim_sistemi() -> hedef_sistem
+    [] -> konumlu
+    argümanlar() -> a
+    0 -> i
+    i < uzunluk(a) -> iken {
+        a[i] == "--hedef" -> eğer {
+            i + 1 >= uzunluk(a) -> eğer { kullanım() }
+            a[i + 1] -> hedef_sistem
+            hedef_sistem != "linux" ve hedef_sistem != "windows" -> eğer { kullanım() }
+            i + 2 -> i
+            devam
+        }
+        konumlu -> ekle(a[i])
+        i + 1 -> i
+    }
+    uzunluk(konumlu) < 2 veya uzunluk(konumlu) > 3 -> eğer { kullanım() }
+    "calisma_zamani.s" -> ortak_yol
+    uzunluk(konumlu) == 3 -> eğer { konumlu[2] -> ortak_yol }
+    yol_birleştir(dizin_adı(ayraçları_düzelt(ortak_yol)), "calisma_zamani_" + hedef_sistem + ".s") -> katman_yol
+    çalışma_zamanı_oku(katman_yol) -> katman
+    çalışma_zamanı_oku(ortak_yol) -> ortak_kısım
+
+    konumlu[0] -> l_dosya
     kaynağı_oku(l_dosya) -> okuma_hatası
     okuma_hatası != "" -> eğer {
         konumsuz_bildir("hata", "dosya okunamadı: " + okuma_hatası, l_dosya)
@@ -29,9 +57,9 @@ işlev ana() {
     }
     doğru -> a_modül_yükle
     l_okunan -> sözcükle
-    program() -> üret(dosya_oku(çalışma_zamanı_yolu)) -> assembly
+    program() -> üret(katman + ortak_kısım) -> assembly
     uyarıları_yaz()
-    assembly -> dosya_yaz(a[1])
+    assembly -> dosya_yaz(konumlu[1])
 }
 
 ana()

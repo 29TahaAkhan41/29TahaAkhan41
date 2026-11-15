@@ -1,5 +1,5 @@
 # Dosyalar: içerik dosyaya akar, yol dosya_oku'ya akar.
-"/tmp/nehir_ornek.txt" -> yol
+"nehir_ornek.txt" -> yol     # bulunulan dizinde; program sonunda silinir
 
 "birinci satır\n" -> dosya_yaz(yol)             # dosyayı oluşturur ya da üstüne yazar
 "ikinci satır\n" -> dosya_ekle(yol)             # sonuna ekler

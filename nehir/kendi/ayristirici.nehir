@@ -510,7 +510,7 @@ işlev ifade_ipucu(k) {
 işlev program() {
     uzunluk(a_dosyalar) == 0 -> eğer {
         a_dosyalar -> ekle(l_dosya)
-        1 -> a_yüklenen[normal_yol(l_dosya)]
+        1 -> a_yüklenen[normal_yol(ayraçları_düzelt(l_dosya))]
     }
     Düğüm("program", "", 0, [], 0, 0, 0, 0) -> kök
     üst_düzey() -> deyimler
@@ -548,7 +548,7 @@ işlev üst_düzey() {
 # Modülü yükler ve üst düzey deyimlerini verir. Yol, `kullan` yazan dosyanın dizinine
 # göredir. Her modül bir kez yüklenir; modüller birbirini karşılıklı kullanabilir.
 işlev modül_yükle(ad, k) {
-    normal_yol(yol_birleştir(dizin_adı(a_dosyalar[s_dosya[k]]), ad)) -> yol
+    normal_yol(yol_birleştir(dizin_adı(ayraçları_düzelt(a_dosyalar[s_dosya[k]])), ayraçları_düzelt(ad))) -> yol
     a_yüklenen -> var(yol) -> eğer { [] -> döndür }
     1 -> a_yüklenen[yol]
     kaynağı_oku(yol) -> okuma_hatası
@@ -568,6 +568,12 @@ işlev modül_yükle(ad, k) {
     saklı_k -> a_k
     saklı_dosya -> l_dosya
     deyimler -> döndür
+}
+
+# Windows'ta yollarda '\' de ayraçtır; yol işlemlerinden önce '/'ye çevrilir.
+işlev ayraçları_düzelt(yol) {
+    işletim_sistemi() == "windows" -> eğer { yol -> böl("\\") -> birleş("/") -> döndür }
+    yol -> döndür
 }
 
 # Yol işlemleri (Python'un posixpath.dirname, join ve normpath'inin karşılıkları)

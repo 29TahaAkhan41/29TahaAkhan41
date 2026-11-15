@@ -49,8 +49,9 @@ n.x + 1 -> n.x                          # alan okuma ve alana yazma
 
 ## Derleyici
 
-`nehir.py`, kaynak kodu doğrudan x86-64 Linux assembly'sine çevirir; `as` ve `ld`
-ile libc kullanmayan, bağımsız bir çalıştırılabilir dosya üretir.
+`nehir.py`, kaynak kodu doğrudan x86-64 assembly'sine çevirir ve C kitaplığı kullanmayan, bağımsız
+bir çalıştırılabilir dosya üretir: Linux'ta `as` ve `ld` ile, Windows'ta MinGW-w64'ün `gcc`'siyle
+(yalnızca `kernel32.dll` ve `shell32.dll`'i kullanan bir `.exe`).
 
 ```bash
 python3 nehir.py ornekler/fibonacci.nehir --çalıştır
@@ -63,13 +64,64 @@ python3 nehir.py ornekler/merhaba.nehir --asm
 | Seçenek | Anlamı |
 | --- | --- |
 | `-o <ad>` | çıktı dosyasının adı |
+| `--hedef linux`, `--hedef windows` | hangi sistem için derleneceği (varsayılan: derleyicinin çalıştığı sistem) |
 | `--asm` | yalnızca assembly (`.s`) üret |
 | `--sözcükler` | derlemeden yalnızca sözcükleri dök |
 | `--ağaç` | derlemeden yalnızca sözdizimi ağacını dök |
 | `--çalıştır`, `--run` | derledikten sonra çalıştır |
 | `-- <argümanlar>` | `--çalıştır` ile birlikte: sonrası programa argüman olarak verilir |
 
-Gereksinimler: Python 3.8+, GNU binutils (`as`, `ld`), x86-64 Linux.
+Gereksinimler: x86-64 işlemci, Python 3.8+ ve Linux'ta GNU binutils (`as`, `ld`), Windows'ta MinGW-w64.
+Linux'ta `--hedef windows` ile Windows programı da üretilebilir (`x86_64-w64-mingw32-gcc` gerekir).
+
+## Windows
+
+Derleyici ve ürettiği programlar Windows'ta doğrudan çalışır; WSL gerekmez. Gerekenler Git, Python
+ve MinGW-w64 (yalnızca birleştirici ve bağlayıcı olarak). PowerShell'de:
+
+```powershell
+winget install --id Git.Git -e
+```
+
+```powershell
+winget install --id Python.Python.3.13 -e
+```
+
+```powershell
+winget install --id MSYS2.MSYS2 -e
+```
+
+Ardından Başlat menüsünden **MSYS2 UCRT64** kabuğunu açıp `gcc`'yi kur:
+
+```bash
+pacman -S --needed mingw-w64-ucrt-x86_64-gcc
+```
+
+ve `C:\msys64\ucrt64\bin` dizinini Windows'un `PATH`'ine ekle. Sonra yeni bir PowerShell'de:
+
+```powershell
+git clone --branch claude/ecstatic-cori-vzh9cx https://github.com/29TahaAkhan41/29TahaAkhan41.git nehir-dili
+cd nehir-dili\nehir
+python nehir.py ornekler\fibonacci.nehir --çalıştır
+```
+
+Nehir ile yazılmış derleyiciyi bir kez Python'la derledikten sonra Python'a gerek kalmaz:
+
+```powershell
+python nehir.py kendi\derle.nehir -o derle.exe
+.\derle.exe ornekler\fibonacci.nehir fibonacci.s
+gcc -nostdlib -o fibonacci.exe fibonacci.s -lkernel32 -lshell32 "-Wl,-e,_start" "-Wl,--subsystem,console"
+.\fibonacci.exe
+```
+
+(PowerShell'de `-Wl,...` argümanları tırnak içinde yazılmalıdır; virgüller yoksa dizi ayracı sayılır.)
+`derle.exe` de kendini derler: `.\derle.exe kendi\derle.nehir derle2.s`.
+
+Windows'taki programlar Linux'takilerle aynı davranır: konsola UTF-8 metni doğru yazar (Türkçe
+karakterler konsolun kod sayfasından bağımsız görünür), konsoldan girdiyi UTF-8'e çevirerek okur,
+hata mesajlarını renkli yazar, yollarda `\` ve `/` kullanılabilir, Türkçe dosya adları ve komut satırı
+argümanları desteklenir. Windows desteği Linux'ta Wine 9 ile sınanmıştır; gerçek bir Windows makinesinde
+henüz denenmemiştir.
 
 ## Hata mesajları
 
@@ -185,7 +237,7 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `birleş(l, ayraç)` | `join` | metin listesinin elemanlarını araya ayraç koyarak tek metin yapar |
 | `metne(n)` | `str` | sayıyı metne çevirir |
 | `sayıya(m)` | `num` | metni sayıya çevirir; metin geçerli bir tam sayı değilse program hatayla durur |
-| `oku()` | `read` | standart girdiden bir satır okur (satır sonu olmadan); girdi bittiyse `""` verir |
+| `oku()` | `read` | standart girdiden bir satır okur (satır sonu olmadan; `\n` ya da `\r\n`); girdi bittiyse `""` verir |
 | `oku(istem)` | `read` | önce `istem` metnini satır sonu eklemeden yazar, sonra bir satır okur |
 | `girdi_var()` | `has_input` | okunacak girdi kaldıysa 1, bittiyse 0 verir |
 | `dosya_oku(yol)` | `read_file` | dosyanın tüm içeriğini metin olarak verir |
@@ -197,6 +249,7 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `çık(kod)` | `exit` | programı verilen çıkış koduyla hemen bitirir |
 | `uyar(m)` | `warn` | metni standart hataya (stderr) bir satır olarak yazar |
 | `baytlar(m)` | `bytes` | metnin UTF-8 baytlarının sayı listesi |
+| `işletim_sistemi()` | `os_name` | programın derlendiği sistem: `"linux"` ya da `"windows"` |
 | `karakter(kod)` | `char` | Unicode kod noktasındaki karakter (`karakter(231)` = `"ç"`) |
 | `uçbirim_mi(fd)` | `is_terminal` | dosya tanıtıcısı (0 girdi, 1 çıktı, 2 hata) bir uçbirime bağlıysa 1 |
 | `ortam_var(ad)` | `has_env` | ortam değişkeni tanımlıysa (boş olsa da) 1 |
@@ -414,7 +467,9 @@ Her örnek derlenir, çalıştırılır ve çıktısı yanındaki `.beklenen` do
 `ornekler/hatalar/` altındaki programlar bilerek hatalıdır; onların beklenen çıktısı hata mesajlarıdır.
 Son olarak Nehir ile yazılmış derleyici aşamaları derlenir ve bütün `.nehir` dosyalarında
 Python'daki karşılıklarıyla aynı çıktıyı verdikleri doğrulanır; kod üreticide bu, bayt bayt aynı
-assembly demektir.
+assembly demektir. MinGW-w64 (`x86_64-w64-mingw32-gcc`) ve Wine (`wine64`) kuruluysa örnekler Windows
+için de derlenip Wine'da çalıştırılır ve derleyicinin Windows'ta kendini derlediği sınanır; kurulu
+değilse bu aşama atlanır.
 
 ## Şimdilik olmayanlar
 

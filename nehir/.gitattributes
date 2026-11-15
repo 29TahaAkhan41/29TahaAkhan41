@@ -1,0 +1,7 @@
+# Kaynak ve assembly dosyalarının satır sonları Windows'ta da "\n" kalsın: iki derleyicinin
+# çıktısı bayt bayt aynı olmalı ve sınama dosyaları kendi satır sonlarını sınar.
+*.nehir -text
+*.s text eol=lf
+*.beklenen -text
+*.girdi -text
+*.py text eol=lf

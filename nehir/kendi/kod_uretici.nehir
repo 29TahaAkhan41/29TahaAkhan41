@@ -41,11 +41,12 @@ kullan "ayristirici.nehir"
     "file_exists": "dosya_var", "dosya_sil": "dosya_sil", "delete_file": "dosya_sil",
     "argümanlar": "argümanlar", "argumanlar": "argümanlar", "args": "argümanlar", "çık": "çık",
     "cik": "çık", "exit": "çık", "uyar": "uyar", "warn": "uyar", "baytlar": "baytlar",
-    "bytes": "baytlar", "karakter": "karakter", "char": "karakter", "uçbirim_mi": "uçbirim_mi",
-    "ucbirim_mi": "uçbirim_mi", "is_terminal": "uçbirim_mi", "ortam_var": "ortam_var",
-    "has_env": "ortam_var", "dosya_hatası": "dosya_hatası", "dosya_hatasi": "dosya_hatası",
-    "file_error": "dosya_hatası", "oku": "oku", "read": "oku", "girdi_var": "girdi_var",
-    "has_input": "girdi_var"
+    "bytes": "baytlar", "karakter": "karakter", "char": "karakter",
+    "işletim_sistemi": "işletim_sistemi", "isletim_sistemi": "işletim_sistemi",
+    "os_name": "işletim_sistemi", "uçbirim_mi": "uçbirim_mi", "ucbirim_mi": "uçbirim_mi",
+    "is_terminal": "uçbirim_mi", "ortam_var": "ortam_var", "has_env": "ortam_var",
+    "dosya_hatası": "dosya_hatası", "dosya_hatasi": "dosya_hatası", "file_error": "dosya_hatası",
+    "oku": "oku", "read": "oku", "girdi_var": "girdi_var", "has_input": "girdi_var"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -1160,9 +1161,13 @@ işlev yerleşik_çağır(ad, türler, d) {
     asıl == "çık" -> eğer {
         n != 1 veya t0 != "sayı" -> eğer { yanlış_argüman(ad, "çıkış kodu", türler, d) }
         yaz("pop rdi")
-        yaz("mov eax, 60")
-        yaz("syscall")
+        yaz("call __cik")
         "sayı" -> döndür
+    }
+    asıl == "işletim_sistemi" -> eğer {
+        n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
+        yaz("lea rax, [rip+__isletim_sistemi_adi]")
+        "metin" -> döndür
     }
     asıl == "girdi_var" -> eğer {
         n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }

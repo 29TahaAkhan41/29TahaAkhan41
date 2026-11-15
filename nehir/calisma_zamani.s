@@ -1,17 +1,15 @@
 
-# ── çalışma zamanı ──
-_start:
-    mov [rip+__baslangic_sp], rsp
-    call nehir_ana
-    xor edi, edi
-    mov eax, 60
-    syscall
+
+# ── çalışma zamanı: işletim sisteminden bağımsız kısım ──
+# İşletim sistemiyle yalnızca calisma_zamani_<sistem>.s'deki şu yordamlar konuşur; hepsi
+# Linux sistem çağrısı gibi davranır (yalnızca rax, rcx ve r11 değişir, hata -errno döner):
+#   __sis_yaz(fd, adres, uzunluk)  __sis_oku(fd, adres, uzunluk)  __sis_ac(yol, bayraklar)
+#   __sis_kapat(fd)  __sis_sil(yol)  __sis_erisim(yol)  __cik(kod)
+    .section .text
 
 __ham_yaz:                      # rsi = adres, rdx = uzunluk
-    mov eax, 1
     mov edi, 1
-    syscall
-    ret
+    jmp __sis_yaz
 
 __satir_sonu:
     lea rsi, [rip+__yeni_satir]
@@ -524,75 +522,6 @@ __karakter:                     # rdi = Unicode kod noktası -> rax = o karakter
 6:  or r9, rdx
     mov [rax], r9b
 5:  pop rbx
-    ret
-
-__ucbirim_mi:                   # rdi = dosya tanıtıcısı -> rax = uçbirimse 1, değilse 0
-    sub rsp, 64                 # ioctl(fd, TCGETS, &termios) yalnızca uçbirimde başarılı olur
-    mov eax, 16
-    mov esi, 0x5401
-    mov rdx, rsp
-    syscall
-    add rsp, 64
-    test rax, rax
-    sete al
-    movzx eax, al
-    ret
-
-__ortam_var:                    # rdi = ad -> rax = ortamda "ad=..." varsa 1, yoksa 0
-    mov r8, [rip+__baslangic_sp]
-    mov rcx, [r8]               # argc; ortam, argv'den ve onun sonundaki 0'dan sonra başlar
-    lea r8, [r8+rcx*8+16]
-    mov r9, [rdi-8]
-1:  mov rsi, [r8]
-    test rsi, rsi
-    jz 4f
-    xor ecx, ecx
-2:  cmp rcx, r9
-    jae 3f
-    mov al, [rdi+rcx]
-    cmp al, [rsi+rcx]
-    jne 5f
-    inc rcx
-    jmp 2b
-3:  cmp byte ptr [rsi+rcx], 61  # '='
-    jne 5f
-    mov eax, 1
-    ret
-5:  add r8, 8
-    jmp 1b
-4:  xor eax, eax
-    ret
-
-__dosya_hata_kodu:              # rdi = yol -> rax = açılabiliyorsa 0, değilse hata kodu (errno);
-    push rbx                    # dizinler için EISDIR (21), Python'un open() işlevi gibi
-    mov eax, 2                  # open(yol, O_RDONLY)
-    xor esi, esi
-    xor edx, edx
-    syscall
-    test rax, rax
-    jns 1f
-    neg rax
-    pop rbx
-    ret
-1:  mov rbx, rax
-    sub rsp, 144                # fstat(fd, &st); st_mode 24. baytta
-    mov rdi, rbx
-    mov rsi, rsp
-    mov eax, 5
-    syscall
-    mov ecx, [rsp+24]
-    add rsp, 144
-    and ecx, 0xF000
-    mov rdi, rbx
-    mov eax, 3                  # close
-    push rcx
-    syscall
-    pop rcx
-    xor eax, eax
-    cmp ecx, 0x4000             # S_IFDIR
-    jne 2f
-    mov eax, 21
-2:  pop rbx
     ret
 
 __uyar:                         # rdi = metin; stderr'e satır olarak yazar -> rax = metin
@@ -1249,10 +1178,8 @@ __dosya_oku:                    # rdi = yol -> rax = dosyanın tüm içeriği (m
     push r12
     push r13
     mov [rip+__h_ek], rdi
-    mov eax, 2                  # open(yol, O_RDONLY)
-    xor esi, esi
-    xor edx, edx
-    syscall
+    xor esi, esi                # okumak için aç
+    call __sis_ac
     test rax, rax
     js __dosya_hatasi
     mov r13, rax
@@ -1264,16 +1191,14 @@ __dosya_oku:                    # rdi = yol -> rax = dosyanın tüm içeriği (m
     sub rdx, rsi
     jbe __bellek_bitti
     mov rdi, r13
-    xor eax, eax                # read
-    syscall
+    call __sis_oku
     test rax, rax
     js __dosya_hatasi
     jz 2f
     add r12, rax
     jmp 1b
 2:  mov rdi, r13
-    mov eax, 3                  # close
-    syscall
+    call __sis_kapat
     mov [rbx-8], r12
     lea rax, [rbx+r12+8]
     and rax, -8
@@ -1285,17 +1210,15 @@ __dosya_oku:                    # rdi = yol -> rax = dosyanın tüm içeriği (m
     pop rbx
     ret
 
-__dosya_yaz:                    # rdi = içerik, rsi = yol, rdx = open bayrakları -> rax = içerik
-    push rbx
+__dosya_yaz:                    # rdi = içerik, rsi = yol, rdx = 0x241 (üstüne yaz) ya da 0x441 (ekle)
+    push rbx                    #  -> rax = içerik
     push r12
     push r13
     mov rbx, rdi
     mov [rip+__h_ek], rsi
     mov rdi, rsi
     mov rsi, rdx
-    mov edx, 420                # 0644
-    mov eax, 2
-    syscall
+    call __sis_ac
     test rax, rax
     js __dosya_hatasi
     mov r13, rax
@@ -1305,15 +1228,13 @@ __dosya_yaz:                    # rdi = içerik, rsi = yol, rdx = open bayraklar
     jz 2f
     lea rsi, [rbx+r12]
     mov rdi, r13
-    mov eax, 1
-    syscall
+    call __sis_yaz
     test rax, rax
     js __dosya_hatasi
     add r12, rax
     jmp 1b
 2:  mov rdi, r13
-    mov eax, 3
-    syscall
+    call __sis_kapat
     mov qword ptr [rip+__h_ek], 0
     mov rax, rbx
     pop r13
@@ -1322,9 +1243,7 @@ __dosya_yaz:                    # rdi = içerik, rsi = yol, rdx = open bayraklar
     ret
 
 __dosya_var:                    # rdi = yol -> rax = dosya varsa 1, yoksa 0
-    mov eax, 21                 # access(yol, F_OK)
-    xor esi, esi
-    syscall
+    call __sis_erisim
     test rax, rax
     sete al
     movzx eax, al
@@ -1332,59 +1251,18 @@ __dosya_var:                    # rdi = yol -> rax = dosya varsa 1, yoksa 0
 
 __dosya_sil:                    # rdi = yol
     mov [rip+__h_ek], rdi
-    mov eax, 87                 # unlink
-    syscall
+    call __sis_sil
     test rax, rax
     js __dosya_hatasi
     mov qword ptr [rip+__h_ek], 0
     xor eax, eax
     ret
 
-__argumanlar:                   # -> rax = komut satırı argümanlarının listesi (program adı hariç)
-    push rbx
-    push r12
-    push r13
-    push r14
-    mov r12, [rip+__baslangic_sp]
-    mov r13, [r12]
-    mov edi, 4
-    call __liste_yeni
-    mov r14, rax
-    mov ebx, 1
-1:  cmp rbx, r13
-    jae 4f
-    mov rsi, [r12+8+rbx*8]
-    xor ecx, ecx
-2:  cmp byte ptr [rsi+rcx], 0
-    je 3f
-    inc rcx
-    jmp 2b
-3:  push rsi
-    push rcx
-    mov rdi, rcx
-    call __metin_yeni
-    pop rcx
-    pop rsi
-    mov rdi, rax
-    rep movsb
-    mov rsi, rax
-    mov rdi, r14
-    call __liste_ekle
-    inc rbx
-    jmp 1b
-4:  mov rax, r14
-    pop r14
-    pop r13
-    pop r12
-    pop rbx
-    ret
-
 __girdi_doldur:                 # tamponu stdin'den doldurur -> rax = 1, girdi bittiyse 0
-    xor eax, eax
     xor edi, edi
     lea rsi, [rip+__g_tampon]
     mov edx, 65536
-    syscall
+    call __sis_oku
     test rax, rax
     jle 1f
     mov [rip+__g_son], rax
@@ -1419,7 +1297,7 @@ __oku:                          # -> rax = bir satır (satır sonu olmadan); gir
     inc rax
     mov [rip+__g_konum], rax
     cmp edx, 10
-    je 3f
+    je 7f
     lea rcx, [rbx+r12]
     lea rax, [rip+__yigin_son]
     cmp rcx, rax
@@ -1427,6 +1305,11 @@ __oku:                          # -> rax = bir satır (satır sonu olmadan); gir
     mov [rcx], dl
     inc r12
     jmp 1b
+7:  test r12, r12               # "\r\n" ile biten satırın "\r"si de atılır
+    jz 3f
+    cmp byte ptr [rbx+r12-1], 13
+    jne 3f
+    dec r12
 3:  mov [rbx-8], r12
     lea rax, [rbx+r12+8]
     and rax, -8
@@ -1517,13 +1400,10 @@ __hata:                         # rsi = mesaj, rdx = uzunluk, r15 = kaynak dosya
     mov edx, 1
     call __hata_yaz
     mov edi, 1
-    mov eax, 60
-    syscall
+    jmp __cik
 __hata_yaz:
-    mov eax, 1
     mov edi, 2
-    syscall
-    ret
+    jmp __sis_yaz
 
     .section .rodata
 __yeni_satir: .byte 10
@@ -1573,7 +1453,6 @@ __yigin: .skip YIGIN_BOYUTU
 __yigin_son:
     .skip 64                    # __oku'nun başlık ve yuvarlama payı
 __g_tampon: .skip 65536
-__baslangic_sp: .skip 8         # süreç başlarken yığın: argc, argv...
 __h_ek: .skip 8
 __ma_metin: .skip 8             # __metin_al önbelleği: metin, karakter dizini, bayt konumu
 __ma_dizin: .skip 8
