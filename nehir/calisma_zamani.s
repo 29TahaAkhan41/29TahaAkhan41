@@ -1877,6 +1877,190 @@ __ekran_ciz:                    # -> rax = uçbirime yazılan bayt sayısı
     pop rbx
     ret
 
+# ── sıralama ──
+# Kararlı, alttan yukarı birleştirmeli sıralama. Karşılaştırma işlevi Nehir'de yazılmış
+# olabildiği için (ve çağrısı yazmaçları bozabildiği için) bütün durum çerçevededir:
+#   [rbp-8] kaynak liste  [rbp-16] kip  [rbp-24] işlev  [rbp-32] n  [rbp-40] sonuç listesi
+#   [rbp-48] geçici liste [rbp-56] okunan dizi  [rbp-64] yazılan dizi  [rbp-72] genişlik
+#   [rbp-80] i  [rbp-88] a  [rbp-96] a sonu  [rbp-104] b  [rbp-112] b sonu  [rbp-120] k
+
+__sr_once:                      # rdi = x, rsi = y -> rax = x, y'den önce gelmeliyse 1
+    mov rax, [rbp-16]
+    test rax, rax
+    jnz 1f
+    cmp rdi, rsi                # 0: sayı
+    setl al
+    movzx eax, al
+    ret
+1:  cmp rax, 1
+    jne 2f
+    call __metin_karsilastir    # 1: metin
+    shr rax, 63
+    ret
+2:  cmp rax, 2
+    jne 3f
+    movq xmm0, rdi              # 2: ondalık
+    movq xmm1, rsi
+    ucomisd xmm1, xmm0
+    seta al
+    movzx eax, al
+    ret
+3:  push rdi                    # 3: programın işlevi önce(x, y)
+    push rsi
+    call qword ptr [rbp-24]
+    add rsp, 16
+    test rax, rax
+    setne al
+    movzx eax, al
+    ret
+
+__liste_sirala:                 # rdi = liste, rsi = kip (0 sayı, 1 metin, 2 ondalık, 3 işlevle), rdx = işlev
+    push rbp                    #  -> rax = sıralanmış yeni liste
+    mov rbp, rsp
+    sub rsp, 128
+    mov [rbp-8], rdi
+    mov [rbp-16], rsi
+    mov [rbp-24], rdx
+    mov rax, [rdi]
+    mov [rbp-32], rax
+    mov rdi, rax
+    cmp rdi, 1
+    jae 1f
+    mov edi, 1
+1:  push rdi
+    call __liste_yeni
+    mov [rbp-40], rax
+    pop rdi
+    call __liste_yeni
+    mov [rbp-48], rax
+    mov rcx, [rbp-32]           # kaynak sonuca kopyalanır
+    mov rax, [rbp-40]
+    mov [rax], rcx
+    mov rdi, [rax+16]
+    mov rsi, [rbp-8]
+    mov rsi, [rsi+16]
+    rep movsq
+    mov rax, [rbp-40]
+    mov rax, [rax+16]
+    mov [rbp-56], rax
+    mov rax, [rbp-48]
+    mov rax, [rax+16]
+    mov [rbp-64], rax
+    mov qword ptr [rbp-72], 1
+2:  mov rax, [rbp-72]           # genişlik döngüsü
+    cmp rax, [rbp-32]
+    jae 9f
+    mov qword ptr [rbp-80], 0
+3:  mov rax, [rbp-80]           # her çift parça
+    cmp rax, [rbp-32]
+    jae 8f
+    mov [rbp-88], rax
+    mov [rbp-120], rax
+    add rax, [rbp-72]
+    cmp rax, [rbp-32]
+    jbe 31f
+    mov rax, [rbp-32]
+31: mov [rbp-96], rax
+    mov [rbp-104], rax
+    add rax, [rbp-72]
+    cmp rax, [rbp-32]
+    jbe 32f
+    mov rax, [rbp-32]
+32: mov [rbp-112], rax
+4:  mov rax, [rbp-88]
+    cmp rax, [rbp-96]
+    jae 6f
+    mov rax, [rbp-104]
+    cmp rax, [rbp-112]
+    jae 6f
+    mov rcx, [rbp-56]
+    mov rdx, [rbp-104]
+    mov rdi, [rcx+rdx*8]        # y = b'deki
+    mov rdx, [rbp-88]
+    mov rsi, [rcx+rdx*8]        # x = a'daki
+    call __sr_once              # önce(y, x) ise y alınır (kararlı)
+    mov rcx, [rbp-56]
+    mov r8, [rbp-64]
+    mov r9, [rbp-120]
+    test rax, rax
+    jz 5f
+    mov rdx, [rbp-104]
+    mov rax, [rcx+rdx*8]
+    mov [r8+r9*8], rax
+    inc qword ptr [rbp-104]
+    inc qword ptr [rbp-120]
+    jmp 4b
+5:  mov rdx, [rbp-88]
+    mov rax, [rcx+rdx*8]
+    mov [r8+r9*8], rax
+    inc qword ptr [rbp-88]
+    inc qword ptr [rbp-120]
+    jmp 4b
+6:  mov rcx, [rbp-56]           # kalanlar
+    mov r8, [rbp-64]
+    mov r9, [rbp-120]
+    mov rdx, [rbp-88]
+61: cmp rdx, [rbp-96]
+    jae 62f
+    mov rax, [rcx+rdx*8]
+    mov [r8+r9*8], rax
+    inc rdx
+    inc r9
+    jmp 61b
+62: mov rdx, [rbp-104]
+63: cmp rdx, [rbp-112]
+    jae 64f
+    mov rax, [rcx+rdx*8]
+    mov [r8+r9*8], rax
+    inc rdx
+    inc r9
+    jmp 63b
+64: mov rax, [rbp-72]
+    shl rax, 1
+    add [rbp-80], rax
+    jmp 3b
+8:  mov rax, [rbp-56]           # okunan ve yazılan diziler yer değiştirir
+    mov rcx, [rbp-64]
+    mov [rbp-56], rcx
+    mov [rbp-64], rax
+    shl qword ptr [rbp-72], 1
+    jmp 2b
+9:  mov rax, [rbp-40]           # sonuç geçici dizide kaldıysa sonuca kopyalanır
+    mov rdi, [rax+16]
+    mov rsi, [rbp-56]
+    cmp rdi, rsi
+    je 10f
+    mov rcx, [rbp-32]
+    rep movsq
+10: mov rax, [rbp-40]
+    leave
+    ret
+
+__liste_ters:                   # rdi = liste -> rax = elemanları ters sırada yeni liste
+    push rbx
+    push rdi
+    mov rdi, [rdi]
+    cmp rdi, 1
+    jae 1f
+    mov edi, 1
+1:  call __liste_yeni
+    pop rsi
+    mov rcx, [rsi]
+    mov [rax], rcx
+    mov rsi, [rsi+16]
+    mov rdi, [rax+16]
+    lea rdx, [rcx-1]
+2:  test rcx, rcx
+    jz 3f
+    mov rbx, [rsi+rdx*8]
+    mov [rdi], rbx
+    add rdi, 8
+    dec rdx
+    dec rcx
+    jmp 2b
+3:  pop rbx
+    ret
+
 __deger_esit:                   # rdi = a, rsi = b, rdx = tür tanımı -> rax = eşitse 1, değilse 0
     mov rax, [rdx]
     cmp rax, 6                  # 6: ondalık (0.0 == -0.0; nan hiçbir şeye eşit değil)

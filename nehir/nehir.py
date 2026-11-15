@@ -136,6 +136,8 @@ YERLEŞİKLER = {
     "ekran_doldur": "ekran_doldur", "screen_fill": "ekran_doldur",
     "ekran_çiz": "ekran_çiz", "ekran_ciz": "ekran_çiz", "screen_draw": "ekran_çiz",
     "rgb": "rgb",
+    "sırala": "sırala", "sirala": "sırala", "sort": "sırala",
+    "ters_çevir": "ters_çevir", "ters_cevir": "ters_çevir", "reverse": "ters_çevir",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -277,6 +279,7 @@ def sözcükle(kaynak, dosya=0):
 #   ("liste", [elemanlar], satır)     ("dizin", ifade, dizin_ifadesi, satır)
 #   ("sözlük", [(anahtar, değer), ...], satır)
 #   ("alan", ifade, alan_adı, satır)  ("yok", satır)
+#   ("yöntem", nesne_ifadesi, yöntem_adı, [argümanlar], satır)      nesne.yöntem(...)
 #   ("tekli", işleç, ifade, satır)    ("ikili", işleç, sol, sağ, satır)
 #   ("akış", kaynak_ifade, [hedefler], satır)
 #   ("dur", satır)  ("devam", satır)              döngüden çık / sonraki tura geç
@@ -285,6 +288,7 @@ def sözcükle(kaynak, dosya=0):
 #   ("yazdır", satır)  ("döndür", satır)  ("ad", ad, argümanlar|None, satır)
 #   ("eleman", kap_ifadesi, dizin_ifadesi, satır) değer -> liste[dizin], değer -> sözlük[anahtar]
 #   ("alan_yaz", kayıt_ifadesi, alan_adı, satır)  değer -> kayıt.alan
+#   ("yöntem_hedef", nesne_ifadesi, yöntem_adı, [argümanlar], satır)  değer -> nesne.yöntem(...)
 #   ("ortak", ad, satır)                          değer -> ortak ad
 #   ("eğer", blok, değilse_blok|None, satır)  ("iken", blok, satır)
 #   ("her", değişken, blok, satır)                liste -> her (x) { ... }
@@ -397,7 +401,17 @@ class Ayrıştırıcı:
     def işlev_tanımı(self):
         self.bekle("ANAHTAR", "işlev")
         ad_sözcüğü = self.bekle("AD")
-        ad, satır = self.yeni_ad(ad_sözcüğü), ad_sözcüğü.satır
+        if self.al("İŞLEÇ", "."):
+            # Yöntem:  işlev Kayıt.ad(nesne, ...) — kaydın adıyla ayrı bir ad alanında durur.
+            yöntem = self.bekle("AD")
+            if ad_sözcüğü.değer not in self.kayıtlar:
+                raise NehirHatası(f"'{ad_sözcüğü.değer}' adında bir kayıt yok", ad_sözcüğü.satır,
+                                  "yöntemin kaydı, yöntemden önce tanımlanmalı:  kayıt Ad { ... }")
+            ad, satır = ad_sözcüğü.değer + "." + yöntem.değer, ad_sözcüğü.satır
+            if ad in self.işlevler:
+                raise NehirHatası(f"'{ad}' yöntemi zaten tanımlanmış", yöntem.satır, ilgili=self.işlevler[ad][2])
+        else:
+            ad, satır = self.yeni_ad(ad_sözcüğü), ad_sözcüğü.satır
         self.bekle("İŞLEÇ", "(")
         parametreler = []
         if not self.bak("İŞLEÇ", ")"):
@@ -476,6 +490,9 @@ class Ayrıştırıcı:
             while True:
                 if self.al("İŞLEÇ", "."):
                     alan = self.bekle("AD")
+                    if self.aynı_satırda("("):
+                        # değer -> nesne.yöntem(...): akan değer, nesneden sonraki ilk argümandır
+                        return ("yöntem_hedef", kap, alan.değer, self.argümanlar(), alan.satır)
                     son = ("alan", kap, alan.değer, alan.satır)
                 else:
                     köşe = self.bekle("İŞLEÇ", "[")
@@ -566,7 +583,10 @@ class Ayrıştırıcı:
                 e = ("dizin", e, dizin, s.satır)
             elif self.al("İŞLEÇ", "."):
                 alan = self.bekle("AD")
-                e = ("alan", e, alan.değer, alan.satır)
+                if self.aynı_satırda("("):
+                    e = ("yöntem", e, alan.değer, self.argümanlar(), alan.satır)
+                else:
+                    e = ("alan", e, alan.değer, alan.satır)
             else:
                 return e
 
@@ -821,7 +841,8 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__sozluk_sil", "__sozluk_liste", "__dosya_oku", "__dosya_yaz", "__dosya_sil",
     "__argumanlar", "__metin_karakter", "__rastgele", "__tus", "__ucbirim_boyutu",
     "__ondalik_metin", "__metinden_ondalik", "__us_sayi", "__liste_en", "__ekran_ac",
-    "__ekran_temizle", "__ekran_yaz", "__ekran_doldur", "__ekran_ciz")}
+    "__ekran_temizle", "__ekran_yaz", "__ekran_doldur", "__ekran_ciz", "__liste_sirala",
+    "__liste_ters")}
 
 # Ekran işlevleri: kabul ettikleri argüman türleri, açıklaması ve çalışma zamanı yordamı.
 # Argümanlar yığında kalır; yordam onları rdi'nin gösterdiği yerden okur. Eksik renkler -1'dir.
@@ -1408,6 +1429,14 @@ class KodÜretici:
             self.yaz(f"mov [rax+{8 * sıra}], rcx")
             self.yaz("pop rax")
             return tür
+        if tip == "yöntem_hedef":
+            self.yaz("push rax")                    # akan değer
+            nesne_türü = self.ifade(h[1])
+            ad = self.yöntem_adı(nesne_türü, h[2], satır)
+            self.yaz("mov rcx, [rsp]")              # yığında önce nesne, sonra akan değer
+            self.yaz("mov [rsp], rax")
+            self.yaz("push rcx")
+            return self.çağır(ad, h[3], satır, önceki=[nesne_türü, tür])
         # tip == "ad": işlevse akan değer ilk argüman olur, değilse değişkene atanır.
         # Parametreler aynı adlı işlevleri gölgeler: parametreye akan değer ona atanır.
         _, ad, argümanlar, _ = h
@@ -1523,10 +1552,25 @@ class KodÜretici:
             raise NehirHatası(f"'{ad}' değişkeni {kayıt[1]} türünde; {tür} atanamaz", satır)
         self.yaz(f"mov {adres}, rax")
 
-    def çağır(self, ad, argümanlar, satır, akan=None):
+    def yöntem_adı(self, nesne_türü, yöntem, satır):
+        """nesne.yöntem(...) çağrısının işlev adı: Kayıt.yöntem"""
+        t = çöz(nesne_türü)
+        if not isinstance(t, Kayıt):
+            raise NehirHatası(f"'.{yöntem}(...)': yöntemler yalnızca kayıtlarda çağrılır, {t} bulundu", satır)
+        ad = f"{t.ad}.{yöntem}"
+        if ad not in self.işlevler:
+            yöntemler = [a.split(".", 1)[1] for a in self.işlevler if a.startswith(t.ad + ".")]
+            raise NehirHatası(f"'{t.ad}' kaydının '{yöntem}' adında bir yöntemi yok", satır,
+                              benzerler(yöntem, yöntemler)
+                              or (f"yöntemleri: {', '.join(yöntemler)}" if yöntemler else
+                                  f"yöntem tanımı:  işlev {t.ad}.{yöntem}(nesne, ...) {{ ... }}"))
+        return ad
+
+    def çağır(self, ad, argümanlar, satır, akan=None, önceki=None):
         """Argümanları yığına iter ve işlevi çağırır. `akan` verilmişse akıştan
-        gelen değer çağıran tarafından zaten itilmiştir ve ilk argümandır."""
-        türler = [akan] if akan else []
+        gelen değer çağıran tarafından zaten itilmiştir ve ilk argümandır; `önceki`
+        verilmişse türleri verilen değerlerin hepsi (sırayla) itilmiştir."""
+        türler = list(önceki) if önceki else [akan] if akan else []
         for a in argümanlar:
             türler.append(self.ifade(a))
             self.yaz("push rax")
@@ -1885,6 +1929,33 @@ class KodÜretici:
             if sayısı:
                 self.yaz(f"add rsp, {8 * sayısı}")
             return "sayı"
+        if asıl == "sırala":
+            eleman = çöz(türler[0]._eleman) if ilk_liste else None
+            if len(türler) == 1 and eleman in ("sayı", "metin", "ondalık"):
+                self.yaz("pop rdi")
+                self.yaz(f"mov esi, {['sayı', 'metin', 'ondalık'].index(eleman)}")
+                self.yaz("call __liste_sirala")
+                return türler[0]
+            if len(türler) == 2 and ilk_liste:
+                if not birleştir(türler[1], İşlevTürü([türler[0]._eleman, türler[0]._eleman], "sayı")):
+                    raise NehirHatası(f"'{ad}' için karşılaştırma işlevi iki eleman alıp sayı vermeli "
+                                      f"(a, b'den önce gelecekse 1); {türler[1]} verildi", satır)
+                self.yaz("pop rdx")
+                self.yaz("pop rdi")
+                self.yaz("mov esi, 3")
+                self.yaz("call __liste_sirala")
+                return türler[0]
+            if len(türler) == 1 and eleman is not None and not isinstance(eleman, TürDeğişkeni):
+                raise NehirHatası(f"'{ad}' {eleman} elemanlarını kendiliğinden sıralayamaz", satır,
+                                  "bir karşılaştırma işlevi verin:  sırala(liste, önce)   "
+                                  "(önce(a, b): a, b'den önce gelecekse 1)")
+            yanlış("sayı, metin ya da ondalık listesi; başka listeler için bir karşılaştırma işlevi de")
+        if asıl == "ters_çevir":
+            if len(türler) != 1 or not ilk_liste:
+                yanlış("liste")
+            self.yaz("pop rdi")
+            self.yaz("call __liste_ters")
+            return türler[0]
         if asıl == "rgb":
             if türler != ["sayı", "sayı", "sayı"]:
                 yanlış("kırmızı, yeşil, mavi (0-255)")
@@ -2050,6 +2121,11 @@ class KodÜretici:
                 self.yaz("call __liste_ekle")
             self.yaz("pop rax")
             return tür
+        if tip == "yöntem":
+            nesne_türü = self.ifade(e[1])
+            ad = self.yöntem_adı(nesne_türü, e[2], satır)
+            self.yaz("push rax")
+            return self.çağır(ad, e[3], satır, önceki=[nesne_türü])
         if tip == "dizin":
             kap = self.ifade(e[1])
             if kap == "sayı":
@@ -2326,6 +2402,8 @@ def ağaç_dökümü(kaynak):
             return (t, "", 0, [ifade(n[1]), ifade(n[2])], k)
         if t == "alan":
             return (t, n[2], 0, [ifade(n[1])], k)
+        if t == "yöntem":
+            return (t, n[2], 0, [ifade(n[1])] + [ifade(a) for a in n[3]], k)
         if t == "tekli":
             return (t, n[1], 0, [ifade(n[2])], k)
         if t == "ikili":
@@ -2343,6 +2421,8 @@ def ağaç_dökümü(kaynak):
             return (t, "", 0, [ifade(h[1]), ifade(h[2])], k)
         if t == "alan_yaz":
             return (t, h[2], 0, [ifade(h[1])], k)
+        if t == "yöntem_hedef":
+            return (t, h[2], 0, [ifade(h[1]), ("argümanlar", "", 0, [ifade(a) for a in h[3]], k)], k)
         if t == "ortak":
             return (t, h[1], 0, [], k)
         if t == "eğer":

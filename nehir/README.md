@@ -287,6 +287,9 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `ekran_çiz()` | `screen_draw` | yalnızca son çizimden bu yana değişen hücreleri uçbirime yazar; yazılan bayt sayısını verir |
 | `ekran_kapat()` | `screen_close` | uçbirimi eski hâline döndürür (program bitince ya da hata verince kendiliğinden) |
 | `rgb(k, y, m)` | | 0–255 arası bileşenlerden `0xRRGGBB` rengi |
+| `sırala(l)` | `sort` | sayı, metin ya da ondalık listesinin sıralanmış kopyası (metinler bayt sırasıyla) |
+| `sırala(l, önce)` | `sort` | `önce(a, b)` işlevine göre (a, b'den önce gelecekse 1) kararlı sıralanmış kopya |
+| `ters_çevir(l)` | `reverse` | elemanları ters sırada yeni liste |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
@@ -388,6 +391,21 @@ Nokta(3, 4) -> n
 n.x * n.x + n.y * n.y -> yazdır     # 25
 10 -> n.x                           # alana yazma
 n -> yazdır                         # Nokta(x: 10, y: 4)
+```
+
+**Yöntemler** bir kayda ait işlevlerdir: `işlev Kayıt.ad(nesne, ...)` diye tanımlanır,
+`nesne.ad(...)` diye çağrılır ve nesne ilk argüman olur. Her kaydın yöntemleri kendi ad alanındadır;
+iki ayrı kayıt aynı adlı yöntemler taşıyabilir. Yöntemler zincirlenebilir ve akışın hedefi olabilir
+(akan değer nesneden sonraki ilk argümandır). Kayıt, yöntemlerinden önce tanımlanmalıdır.
+
+```nehir
+kayıt Vektör { x: ondalık, y: ondalık }
+işlev Vektör.uzunluk(v) { karekök(v.x * v.x + v.y * v.y) -> döndür }
+işlev Vektör.çarp(v, k) { Vektör(v.x * k, v.y * k) -> döndür }
+
+Vektör(3.0, 4.0) -> v
+v.çarp(2.0).uzunluk() -> yazdır     # 10.0
+2.0 -> v.çarp() -> yazdır            # Vektör(x: 6.0, y: 8.0)
 ```
 
 Kayıtlar kopyalanmaz, paylaşılır: `n -> m` dedikten sonra `m.x`'e yazmak `n.x`'i de değiştirir.
@@ -589,14 +607,14 @@ değilse bu aşama atlanır.
 ## Şimdilik olmayanlar
 
 - Metinler değiştirilemez; büyük/küçük harf çevirme yok
-- Listeler `<` ve `>` ile karşılaştırılamaz; yerleşik sıralama işlevi yok
+- Listeler `<` ve `>` ile karşılaştırılamaz
 - Sözlükler `==` ile karşılaştırılamaz; anahtar olarak liste kullanılamaz
 - Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken adı olamaz (işlev, kayıt ve parametre adı olabilir)
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Program aynı anda en çok 256 MB canlı liste, metin, sözlük ve kayıt tutabilir
 - Kaynakta ondalık sayılar üslü yazılamaz (`1.5e3` yerine `1500.0`; `ondalığa("1.5e3")` olur)
 - Modüllerin kendi ad alanı yok; adların çakışmaması programcıya kalır
-- Kayıtlar kurulurken değerler yalnızca sırayla verilir (`Nokta(x: 3, y: 4)` yazılamaz); kayıtların yöntemi yok
+- Kayıtlar kurulurken değerler yalnızca sırayla verilir (`Nokta(x: 3, y: 4)` yazılamaz)
 - `yok` yalnızca kayıtlar içindir; "sayı yok" ya da "metin yok" diye bir değer yok
 - Dosyalar yalnızca bütün olarak okunur ve yazılır; dizin listeleme ya da oluşturma yok
 - Çalışma zamanı hataları yakalanamaz

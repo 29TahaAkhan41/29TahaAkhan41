@@ -166,7 +166,22 @@ işlev kayıt_tanımı() {
 işlev işlev_tanımı() {
     bekle("ANAHTAR", "işlev")
     bekle("AD", "") -> ad_k
-    yeni_ad(ad_k) -> ad
+    al("İŞLEÇ", ".") -> eğer {
+        # Yöntem:  işlev Kayıt.ad(nesne, ...) — kaydın adıyla ayrı bir ad alanında durur.
+        bekle("AD", "") -> yöntem_k
+        değil var(a_adlar, s_değer[ad_k]) veya a_adlar[s_değer[ad_k]] != "kayıt" -> eğer {
+            hata_sözcükte_i("'" + s_değer[ad_k] + "' adında bir kayıt yok", ad_k,
+                            "yöntemin kaydı, yöntemden önce tanımlanmalı:  kayıt Ad { ... }")
+        }
+        s_değer[ad_k] + "." + s_değer[yöntem_k] -> ad
+        var(a_adlar, ad) -> eğer {
+            a_ad_düğümü[ad] -> ilk
+            hata_ver("'" + ad + "' yöntemi zaten tanımlanmış", s_dosya[yöntem_k], s_satır[yöntem_k],
+                     s_sütun[yöntem_k], s_uzunluk[yöntem_k], "", ilk, "ilk tanım burada")
+        }
+    } değilse {
+        yeni_ad(ad_k) -> ad
+    }
     bekle("İŞLEÇ", "(")
     düğüm("işlev", ad, ad_k) -> işlev_d
     {} -> görülen
@@ -277,6 +292,15 @@ işlev hedef() {
         doğru -> iken {
             al("İŞLEÇ", ".") -> eğer {
                 bekle("AD", "") -> alan_k
+                aynı_satırda("(") -> eğer {
+                    # değer -> nesne.yöntem(...): akan değer, nesneden sonraki ilk argümandır
+                    düğüm("yöntem_hedef", s_değer[alan_k], alan_k) -> yd
+                    yd.çocuklar -> ekle(kap)
+                    düğüm("argümanlar", "", alan_k) -> arg_d
+                    argüman_listesi(arg_d)
+                    yd.çocuklar -> ekle(arg_d)
+                    yd -> döndür
+                }
                 düğüm("alan", s_değer[alan_k], alan_k) -> son
                 son.çocuklar -> ekle(kap)
             } değilse {
@@ -417,6 +441,13 @@ işlev ardıl() {
         }
         al("İŞLEÇ", ".") -> eğer {
             bekle("AD", "") -> alan_k
+            aynı_satırda("(") -> eğer {
+                düğüm("yöntem", s_değer[alan_k], alan_k) -> d
+                d.çocuklar -> ekle(e)
+                argüman_listesi(d)
+                d -> e
+                devam
+            }
             düğüm("alan", s_değer[alan_k], alan_k) -> d
             d.çocuklar -> ekle(e)
             d -> e

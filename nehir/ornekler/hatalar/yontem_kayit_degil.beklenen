@@ -1,0 +1,3 @@
+ornekler/hatalar/yontem_kayit_degil.nehir:3:3: hata: '.uzunluk(...)': yöntemler yalnızca kayıtlarda çağrılır, metin bulundu
+    3 | x.uzunluk() -> y
+      |   ^^^^^^^

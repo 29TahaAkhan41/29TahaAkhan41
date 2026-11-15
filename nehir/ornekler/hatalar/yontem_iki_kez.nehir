@@ -1,0 +1,4 @@
+# Aynı yöntem iki kez tanımlanamaz.
+kayıt Top { y }
+işlev Top.zıpla(t) { t -> döndür }
+işlev Top.zıpla(t) { t -> döndür }

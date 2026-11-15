@@ -1,0 +1,3 @@
+# Karşılaştırma işlevi iki eleman alıp sayı vermeli.
+işlev uzun(a) { uzunluk(a) -> döndür }
+sırala(["bb", "a"], uzun) -> yazdır

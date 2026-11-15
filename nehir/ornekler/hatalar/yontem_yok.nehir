@@ -1,0 +1,6 @@
+# Kaydın olmayan bir yöntemi çağrılamaz; yakın adlar önerilir.
+kayıt Top { y }
+işlev Top.zıpla(t) { t.y + 1 -> döndür }
+işlev Top.düş(t) { t.y - 1 -> döndür }
+Top(5) -> top
+top.zıpa() -> yazdır

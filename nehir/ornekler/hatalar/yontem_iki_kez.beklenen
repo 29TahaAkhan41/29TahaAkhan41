@@ -1,0 +1,6 @@
+ornekler/hatalar/yontem_iki_kez.nehir:4:11: hata: 'Top.zıpla' yöntemi zaten tanımlanmış
+    4 | işlev Top.zıpla(t) { t -> döndür }
+      |           ^^^^^
+ornekler/hatalar/yontem_iki_kez.nehir:3:7: not: ilk tanım burada
+    3 | işlev Top.zıpla(t) { t -> döndür }
+      |       ^^^

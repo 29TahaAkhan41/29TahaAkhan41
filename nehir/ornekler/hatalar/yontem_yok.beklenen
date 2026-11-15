@@ -1,0 +1,4 @@
+ornekler/hatalar/yontem_yok.nehir:6:5: hata: 'Top' kaydının 'zıpa' adında bir yöntemi yok
+    6 | top.zıpa() -> yazdır
+      |     ^^^^
+      = ipucu: 'zıpla' mi demek istediniz?

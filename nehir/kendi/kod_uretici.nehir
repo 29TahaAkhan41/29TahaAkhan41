@@ -72,7 +72,9 @@ kullan "ayristirici.nehir"
     "ekran_kapat": "ekran_kapat", "screen_close": "ekran_kapat",
     "ekran_temizle": "ekran_temizle", "screen_clear": "ekran_temizle", "ekran_yaz": "ekran_yaz",
     "screen_text": "ekran_yaz", "ekran_doldur": "ekran_doldur", "screen_fill": "ekran_doldur",
-    "ekran_çiz": "ekran_çiz", "ekran_ciz": "ekran_çiz", "screen_draw": "ekran_çiz", "rgb": "rgb"
+    "ekran_çiz": "ekran_çiz", "ekran_ciz": "ekran_çiz", "screen_draw": "ekran_çiz", "rgb": "rgb",
+    "sırala": "sırala", "sirala": "sırala", "sort": "sırala", "ters_çevir": "ters_çevir",
+    "ters_cevir": "ters_çevir", "reverse": "ters_çevir"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -90,7 +92,8 @@ kullan "ayristirici.nehir"
     "call __rastgele": 1, "call __tus": 1, "call __ucbirim_boyutu": 1,
     "call __ondalik_metin": 1, "call __metinden_ondalik": 1, "call __us_sayi": 1,
     "call __liste_en": 1, "call __ekran_ac": 1, "call __ekran_temizle": 1, "call __ekran_yaz": 1,
-    "call __ekran_doldur": 1, "call __ekran_ciz": 1
+    "call __ekran_doldur": 1, "call __ekran_ciz": 1, "call __liste_sirala": 1,
+    "call __liste_ters": 1
 } -> RİSKLİ
 
 # Ekran işlevleri: [kısa biçim, uzun biçim, açıklama, yordam]. Biçim, argüman türlerinin virgülle
@@ -953,8 +956,40 @@ işlev dönmeyenleri_bul() {
 
 işlev çağır(ad, arg_düğümleri, d, akan) {
     # Akan değer (varsa) çağıran tarafından zaten yığına itilmiştir ve ilk argümandır.
-    [] -> türler
-    akan != "" -> eğer { türler -> ekle(akan) }
+    [] -> önceki
+    akan != "" -> eğer { önceki -> ekle(akan) }
+    çağır_öncekiyle(ad, arg_düğümleri, d, önceki, akan) -> döndür
+}
+
+# nesne.yöntem(...) çağrısının işlev adı: Kayıt.yöntem
+işlev yöntem_adı(nesne_türü, yöntem, d) {
+    çöz(nesne_türü) -> t
+    değil kayıt_mı(t) -> eğer {
+        k_hata("'." + yöntem + "(...)': yöntemler yalnızca kayıtlarda çağrılır, " + ham_ad(t) + " bulundu", d)
+    }
+    dilim(t, 1, uzunluk(t)) -> sahip
+    sahip + "." + yöntem -> ad
+    değil var(k_işlev, ad) -> eğer {
+        [] -> yöntemler
+        k_işlev_adları -> her (a) {
+            dilim(a, 0, uzunluk(sahip) + 1) == sahip + "." -> eğer {
+                yöntemler -> ekle(dilim(a, uzunluk(sahip) + 1, uzunluk(a)))
+            }
+        }
+        benzerler(yöntem, yöntemler) -> ipucu
+        ipucu == "" -> eğer {
+            uzunluk(yöntemler) > 0 -> eğer { "yöntemleri: " + birleş(yöntemler, ", ") -> ipucu }
+            değilse { "yöntem tanımı:  işlev " + sahip + "." + yöntem + "(nesne, ...) { ... }" -> ipucu }
+        }
+        k_hata_i("'" + sahip + "' kaydının '" + yöntem + "' adında bir yöntemi yok", d, ipucu)
+    }
+    ad -> döndür
+}
+
+# Türleri `önceki`de verilen değerler (sırayla) çağıran tarafından zaten yığına itilmiştir.
+# `akan` boş değilse ilk değer akıştan gelmiştir (hata ipucu için).
+işlev çağır_öncekiyle(ad, arg_düğümleri, d, önceki, akan) {
+    [] + önceki -> türler
     arg_düğümleri -> her (a) {
         türler -> ekle(ifade_üret(a))
         yaz("push rax")
@@ -1470,6 +1505,39 @@ işlev yerleşik_çağır(ad, türler, d) {
         sayısı > 0 -> eğer { yaz("add rsp, " + metne(8 * sayısı)) }
         "sayı" -> döndür
     }
+    asıl == "sırala" -> eğer {
+        "" -> eleman
+        ilk_liste -> eğer { çöz(eleman_türü(t0)) -> eleman }
+        n == 1 ve (eleman == "sayı" veya eleman == "metin" veya eleman == "ondalık") -> eğer {
+            yaz("pop rdi")
+            yaz("mov esi, " + metne(bul(["sayı", "metin", "ondalık"], eleman)))
+            komut("call __liste_sirala", d)
+            t0 -> döndür
+        }
+        n == 2 ve ilk_liste -> eğer {
+            eleman_türü(t0) -> e_tür
+            değil birleştir(t1, işlev_türü([e_tür, e_tür], "sayı")) -> eğer {
+                k_hata("'" + ad + "' için karşılaştırma işlevi iki eleman alıp sayı vermeli "
+                       + "(a, b'den önce gelecekse 1); " + ham_ad(t1) + " verildi", d)
+            }
+            yaz("pop rdx")
+            yaz("pop rdi")
+            yaz("mov esi, 3")
+            komut("call __liste_sirala", d)
+            t0 -> döndür
+        }
+        n == 1 ve eleman != "" ve değil bilinmeyen_mi(eleman) -> eğer {
+            k_hata_i("'" + ad + "' " + ham_ad(eleman) + " elemanlarını kendiliğinden sıralayamaz", d,
+                     "bir karşılaştırma işlevi verin:  sırala(liste, önce)   (önce(a, b): a, b'den önce gelecekse 1)")
+        }
+        yanlış_argüman(ad, "sayı, metin ya da ondalık listesi; başka listeler için bir karşılaştırma işlevi de", türler, d)
+    }
+    asıl == "ters_çevir" -> eğer {
+        n != 1 veya değil ilk_liste -> eğer { yanlış_argüman(ad, "liste", türler, d) }
+        yaz("pop rdi")
+        komut("call __liste_ters", d)
+        t0 -> döndür
+    }
     asıl == "rgb" -> eğer {
         n != 3 veya t0 != "sayı" veya t1 != "sayı" veya t2 != "sayı" -> eğer {
             yanlış_argüman(ad, "kırmızı, yeşil, mavi (0-255)", türler, d)
@@ -1836,6 +1904,15 @@ işlev hedef_iç(h, tür, döngü_başı) {
         yaz("pop rax")
         tür -> döndür
     }
+    h.tür == "yöntem_hedef" -> eğer {
+        yaz("push rax")                     # akan değer
+        ifade_üret(h.çocuklar[0]) -> nesne_türü
+        yöntem_adı(nesne_türü, h.ad, h) -> ad
+        yaz("mov rcx, [rsp]")               # yığında önce nesne, sonra akan değer
+        yaz("mov [rsp], rax")
+        yaz("push rcx")
+        çağır_öncekiyle(ad, h.çocuklar[1].çocuklar, h, [nesne_türü, tür], "") -> döndür
+    }
     h.tür == "alan_yaz" -> eğer {
         yaz("push rax")                     # [rsp] = yazılacak değer
         ifade_üret(h.çocuklar[0]) -> kt
@@ -1943,6 +2020,13 @@ işlev ifade_iç(e) {
         yeni_tür_değişkeni() -> t
         1 -> k_yok[t]
         t -> döndür
+    }
+    e.tür == "yöntem" -> eğer {
+        ifade_üret(e.çocuklar[0]) -> nesne_türü
+        yöntem_adı(nesne_türü, e.ad, e) -> ad
+        yaz("push rax")
+        dilim(e.çocuklar, 1, uzunluk(e.çocuklar)) -> yöntem_argümanları
+        çağır_öncekiyle(ad, yöntem_argümanları, e, [nesne_türü], "") -> döndür
     }
     e.tür == "alan" -> eğer {
         ifade_üret(e.çocuklar[0]) -> kt

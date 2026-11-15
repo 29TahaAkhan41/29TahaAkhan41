@@ -1,0 +1,61 @@
+# Sıralama ve yöntemler.
+
+# ── sıralama ──
+# sırala(liste) yeni, sıralanmış bir liste verir; asıl liste değişmez.
+[5, 3, 9, 1, 4] -> sayılar
+sayılar -> sırala -> yazdır
+sayılar -> yazdır
+[2.5, -1.0, 0.5] -> sırala -> yazdır
+["kiraz", "elma", "armut", "Erik"] -> sırala -> yazdır    # metinler bayt sırasıyla: büyük harfler önce
+[1, 2, 3] -> ters_çevir -> yazdır
+
+# Başka bir sıra için karşılaştırma işlevi: önce(a, b), a b'den önce gelecekse 1 verir.
+işlev büyükten(a, b) { a > b -> döndür }
+sırala(sayılar, büyükten) -> yazdır
+
+# Kayıtlar her zaman bir karşılaştırma işleviyle sıralanır. Sıralama kararlıdır:
+# eşit sayılan elemanlar eski sıralarını korur.
+kayıt Oyuncu { ad: metin, puan: sayı }
+işlev puanca(a, b) { a.puan > b.puan -> döndür }
+[Oyuncu("Ada", 120), Oyuncu("Bora", 300), Oyuncu("Cem", 120), Oyuncu("Defne", 250)] -> skorlar
+skorlar -> sırala(puanca) -> her (o) { o.ad + ": " + metne(o.puan) -> yazdır }
+
+# ── yöntemler ──
+# Bir kayda ait işlevler "işlev Kayıt.ad(nesne, ...)" diye tanımlanır ve nesne.ad(...) diye
+# çağrılır; nesne ilk argümandır. Her kaydın yöntemleri kendi ad alanındadır: iki kayıt da
+# 'güncelle' adında bir yöntem taşıyabilir.
+kayıt Vektör { x: ondalık, y: ondalık }
+
+işlev Vektör.uzunluk(v) { karekök(v.x * v.x + v.y * v.y) -> döndür }
+işlev Vektör.topla(v, w) { Vektör(v.x + w.x, v.y + w.y) -> döndür }
+işlev Vektör.çarp(v, k) { Vektör(v.x * k, v.y * k) -> döndür }
+işlev Vektör.metin(v) { "(" + metne(v.x) + ", " + metne(v.y) + ")" -> döndür }
+
+Vektör(3.0, 4.0) -> v
+v.uzunluk() -> yazdır                                  # 5.0
+v.topla(Vektör(1.0, 1.0)).çarp(2.0).metin() -> yazdır # zincirleme: (8.0, 10.0)
+
+kayıt Top { konum: Vektör, hız: Vektör }
+kayıt Sayaç { değer: sayı }
+
+işlev Top.güncelle(t, dt) {
+    t.konum.topla(t.hız.çarp(dt)) -> t.konum
+    t -> döndür
+}
+işlev Sayaç.güncelle(s, adım) {
+    s.değer + adım -> s.değer
+    s -> döndür
+}
+
+Top(Vektör(0.0, 10.0), Vektör(2.0, -1.0)) -> top
+Sayaç(0) -> sayaç
+aralık(0, 3) -> her (kare) {
+    top.güncelle(0.5)
+    sayaç.güncelle(1)
+}
+top.konum.metin() -> yazdır                            # (3.0, 8.5)
+sayaç.değer -> yazdır                                  # 3
+
+# Akışla: akan değer nesneden sonraki ilk argüman olur.
+10 -> sayaç.güncelle()
+sayaç.değer -> yazdır                                  # 13

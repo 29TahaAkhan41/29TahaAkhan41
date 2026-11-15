@@ -1,0 +1,3 @@
+# Kayıt listesi bir karşılaştırma işleviyle sıralanır.
+kayıt Kişi { ad, yaş }
+[Kişi("Ali", 30)] -> sırala -> yazdır

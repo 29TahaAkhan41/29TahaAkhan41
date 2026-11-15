@@ -1,0 +1,4 @@
+ornekler/hatalar/yontem_kayit_yok.nehir:2:7: hata: 'Top' adında bir kayıt yok
+    2 | işlev Top.zıpla(t) { t -> döndür }
+      |       ^^^
+      = ipucu: yöntemin kaydı, yöntemden önce tanımlanmalı:  kayıt Ad { ... }

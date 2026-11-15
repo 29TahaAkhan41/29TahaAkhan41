@@ -1,0 +1,4 @@
+ornekler/hatalar/sirala_kayit.nehir:3:22: hata: 'sırala' Kişi elemanlarını kendiliğinden sıralayamaz
+    3 | [Kişi("Ali", 30)] -> sırala -> yazdır
+      |                      ^^^^^^
+      = ipucu: bir karşılaştırma işlevi verin:  sırala(liste, önce)   (önce(a, b): a, b'den önce gelecekse 1)

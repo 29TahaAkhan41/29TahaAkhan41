@@ -1,0 +1,2 @@
+# Yöntem, var olan bir kaydın adıyla tanımlanır.
+işlev Top.zıpla(t) { t -> döndür }
