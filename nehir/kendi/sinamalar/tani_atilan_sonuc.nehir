@@ -1,0 +1,9 @@
+# Yan etkisi olmayan bir yerleşiğin sonucu atılınca uyarılır.
+16 -> taban
+[3, 1] -> l
+l -> sırala
+l -> sırala -> l
+2.5 -> taban -> yazdır
+işlev f(taban) { taban -> yazdır }
+f(1)
+l -> yazdır

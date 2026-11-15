@@ -97,6 +97,15 @@ kullan "ayristirici.nehir"
     "call __ondalik_yuvarla": 1
 } -> RİSKLİ
 
+# Yan etkisi olmayan yerleşikler (nehir.py'deki SAF_YERLEŞİKLER ile aynı)
+{} -> SAF_YERLEŞİKLER
+["uzunluk", "aralık", "metne", "sayıya", "dilim", "bul", "böl", "birleş", "var", "anahtarlar",
+ "değerler", "baytlar", "karakter", "işletim_sistemi", "uçbirim_mi", "ortam_var", "dosya_hatası",
+ "dosya_var", "girdi_var", "zaman", "uçbirim_boyutu", "ondalığa", "yuvarla", "taban", "tavan",
+ "karekök", "mutlak", "sin", "cos", "atan2", "pi", "bit_ve", "bit_veya", "bit_yada", "bit_değil",
+ "sola_kaydır", "sağa_kaydır", "en_küçük", "en_büyük", "sınırla", "işaret", "üs", "tan", "atan",
+ "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar"] -> her (a) { 1 -> SAF_YERLEŞİKLER[a] }
+
 # Ekran işlevleri: [kısa biçim, uzun biçim, açıklama, yordam]. Biçim, argüman türlerinin virgülle
 # birleşimidir; kısa biçimde eksik kalan renkler -1 olarak itilir. nehir.py'deki EKRAN_İŞLEVLERİ ile aynı.
 {
@@ -1787,6 +1796,23 @@ işlev deyim_üret(d) {
         i < n -> iken {
             hedef_üret(c[i], tür, döngü_başı) -> tür
             i + 1 -> i
+        }
+        n > 1 -> eğer { atılan_sonucu_bildir(c[n - 1]) }
+    }
+}
+
+# `16 -> taban` gibi bir satır değişkene atamaz: akan değer yerleşik işleve argüman olur ve
+# sonuç atılır. Yan etkisi olmayan bir yerleşikte bu büyük olasılıkla bir yanlışlıktır.
+işlev atılan_sonucu_bildir(h) {
+    h.tür == "hedef_ad" ve uzunluk(h.çocuklar) == 0 ve değil var(k_işlev, h.ad)
+        ve değil var(k_kayıt_alanları, h.ad) ve değil yerel_mi(h.ad) ve var(YERLEŞİK_ADLAR, h.ad) -> eğer {
+        YERLEŞİK_ADLAR[h.ad] -> asıl
+        var(SAF_YERLEŞİKLER, asıl) -> eğer {
+            "bir değişkene atamak istediyseniz ona başka bir ad verin" -> ipucu
+            asıl == "sırala" veya asıl == "ters_çevir" -> eğer {
+                "'" + h.ad + "' yeni bir liste verir, asıl liste değişmez:  liste -> " + h.ad + " -> liste" -> ipucu
+            }
+            uyarı_ekle(h, "'" + h.ad + "' yerleşik bir işlev: akan değer ona argüman olur ve sonucu kullanılmıyor", ipucu)
         }
     }
 }

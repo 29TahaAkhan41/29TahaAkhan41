@@ -610,6 +610,10 @@ assembly demektir. MinGW-w64 (`x86_64-w64-mingw32-gcc`) ve Wine (`wine64`) kurul
 için de derlenip Wine'da çalıştırılır ve derleyicinin Windows'ta kendini derlediği sınanır; kurulu
 değilse bu aşama atlanır.
 
+Ayrıca `python3 bulanik_sinama.py [deneme sayısı] [tohum]`, örnek programları rastgele bozup iki
+derleyiciye verir: Python derleyicisi iç hata vermemeli, Nehir ile yazılmış derleyici çökmemeli ve ikisi
+aynı sonucu (aynı assembly ya da aynı hata mesajları) vermelidir.
+
 ## Şimdilik olmayanlar
 
 - Metinler değiştirilemez; büyük/küçük harf çevirme yok

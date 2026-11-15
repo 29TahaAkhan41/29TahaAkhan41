@@ -844,6 +844,15 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__ekran_temizle", "__ekran_yaz", "__ekran_doldur", "__ekran_ciz", "__liste_sirala",
     "__liste_ters", "__sayi_bol", "__sayi_kalan", "__ondalik_tama", "__ondalik_yuvarla")}
 
+# Yan etkisi olmayan yerleşikler: sonuçları atılıyorsa büyük olasılıkla bir yanlışlık vardır.
+SAF_YERLEŞİKLER = {
+    "uzunluk", "aralık", "metne", "sayıya", "dilim", "bul", "böl", "birleş", "var", "anahtarlar",
+    "değerler", "baytlar", "karakter", "işletim_sistemi", "uçbirim_mi", "ortam_var", "dosya_hatası",
+    "dosya_var", "girdi_var", "zaman", "uçbirim_boyutu", "ondalığa", "yuvarla", "taban", "tavan",
+    "karekök", "mutlak", "sin", "cos", "atan2", "pi", "bit_ve", "bit_veya", "bit_yada", "bit_değil",
+    "sola_kaydır", "sağa_kaydır", "en_küçük", "en_büyük", "sınırla", "işaret", "üs", "tan", "atan",
+    "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar"}
+
 # Ekran işlevleri: kabul ettikleri argüman türleri, açıklaması ve çalışma zamanı yordamı.
 # Argümanlar yığında kalır; yordam onları rdi'nin gösterdiği yerden okur. Eksik renkler -1'dir.
 EKRAN_İŞLEVLERİ = {
@@ -1282,6 +1291,23 @@ class KodÜretici:
         tür = self.ifade(kaynak)
         for h in hedefler:
             tür = self.hedef(h, tür, döngü_başı)
+        self.atılan_sonucu_bildir(hedefler)
+
+    def atılan_sonucu_bildir(self, hedefler):
+        """`16 -> taban` gibi bir satır değişkene atamaz: akan değer yerleşik işleve argüman
+        olur ve sonuç atılır. Yan etkisi olmayan bir yerleşikte bu büyük olasılıkla bir yanlışlıktır."""
+        if not hedefler:
+            return
+        h = hedefler[-1]
+        if h[0] != "ad" or h[2] is not None or h[1] in self.işlevler or h[1] in self.kayıtlar \
+                or YERLEŞİKLER.get(h[1]) not in SAF_YERLEŞİKLER \
+                or (self.yereller is not None and h[1] in self.yereller):
+            return
+        ipucu = (f"'{h[1]}' yeni bir liste verir, asıl liste değişmez:  liste -> {h[1]} -> liste"
+                 if YERLEŞİKLER[h[1]] in ("sırala", "ters_çevir")
+                 else "bir değişkene atamak istediyseniz ona başka bir ad verin")
+        self.uyarılar.append((h[-1], f"'{h[1]}' yerleşik bir işlev: akan değer ona argüman olur "
+                                     f"ve sonucu kullanılmıyor", ipucu))
 
     def blok(self, deyimler):
         for d in deyimler:
@@ -2622,5 +2648,18 @@ def ana(argv):
     return 0
 
 
+def büyük_yığında(iş):
+    """Derleyici özyinelemelidir; çok iç içe ya da çok uzun ifadeler Python'un varsayılan
+    sınırlarını aşmasın diye iş, büyük yığınlı bir iş parçacığında çalıştırılır."""
+    import threading
+    sonuç = []
+    sys.setrecursionlimit(1_000_000)
+    threading.stack_size(512 * 1024 * 1024)
+    t = threading.Thread(target=lambda: sonuç.append(iş()))
+    t.start()
+    t.join()
+    return sonuç[0] if sonuç else 1
+
+
 if __name__ == "__main__":
-    sys.exit(ana(sys.argv[1:]))
+    sys.exit(büyük_yığında(lambda: ana(sys.argv[1:])))
