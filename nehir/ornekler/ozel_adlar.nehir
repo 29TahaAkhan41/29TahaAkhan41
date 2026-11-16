@@ -1,0 +1,13 @@
+# Modüle özel adlar: bir dosyada '_' ile başlayan işlev, kayıt ve değişkenler yalnızca o
+# dosyada geçerlidir. Böylece bir kitaplığın iç yardımcıları, onu kullanan programın adlarıyla
+# çakışmaz. Alan ve yöntem adları (nokta sonrası) bu kurala girmez.
+kullan "moduller/sayac.nehir"
+
+# Bu programın kendi _artır'ı ve _durum'u, modüldekilerle karışmaz.
+işlev _artır(n) { n * 100 -> döndür }
+"programın" -> _durum
+
+sayaç_say(2) -> yazdır          # 2
+sayaç_say(3) -> yazdır          # 5
+_artır(3) -> yazdır             # 300
+_durum -> yazdır                # programın

@@ -1,0 +1,9 @@
+# Dosyaya özel adlar: '_' ile başlayan adlar yalnızca bu dosyada geçerlidir.
+kayıt _Kayıt { değer: sayı }
+_Kayıt(0) -> _durum
+
+işlev _artır(n) { _durum.değer + n -> _durum.değer }
+işlev sayaç_say(n) {
+    _artır(n)
+    _durum.değer -> döndür
+}

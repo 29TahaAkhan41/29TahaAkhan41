@@ -565,7 +565,24 @@ işlev eşleşen(a, b, alo, ahi, blo, bhi) {
 # Yazım hatası için "şunu mu demek istediniz" ipucu: difflib.get_close_matches(n=2,
 # cutoff=0.7) gibi, benzerlik oranı 2*M/T en az 0,7 olan en iyi iki aday (eşitlikte
 # sözlük sırasında büyük olan önce). Benzer ad yoksa "".
+# Dosyaya özel adların sonundaki görünmez işaretlerin (U+2063) sayısı; özel değilse 0.
+işlev gizli_eki(ad) {
+    uzunluk(ad) -> i
+    i > 0 -> iken {
+        ad[i - 1] != karakter(8291) -> eğer { dur }
+        i - 1 -> i
+    }
+    uzunluk(ad) - i -> döndür
+}
+
+"'_' ile başlayan adlar yalnızca tanımlandıkları dosyada geçerlidir" -> ÖZEL_AD_İPUCU
+
+# Başka dosyalara özel adlar önerilmez.
 işlev benzerler(ad, adaylar) {
+    gizli_eki(ad) -> ad_eki
+    [] -> süzülmüş
+    adaylar -> her (x) { gizli_eki(x) == ad_eki -> eğer { süzülmüş -> ekle(x) } }
+    süzülmüş -> adaylar
     karakterler(ad) -> a
     {} -> görülen
     [] -> uygun
@@ -1122,8 +1139,9 @@ işlev çağır_öncekiyle(ad, arg_düğümleri, d, önceki, akan) {
     değil var(k_işlev, ad) -> eğer {
         YERLEŞİK_ADLAR -> var(ad) -> eğer { yerleşik_çağır(ad, türler, d) -> döndür }
         değişken_var_mı(ad) -> eğer { k_hata("'" + ad + "' bir değişken, işlev değil", d) }
-        k_hata_i("'" + ad + "' adında bir işlev yok", d,
-                 benzerler(ad, k_işlev_adları + anahtarlar(YERLEŞİK_ADLAR)))
+        benzerler(ad, k_işlev_adları + anahtarlar(YERLEŞİK_ADLAR)) -> ipucu
+        ipucu == "" ve dilim(ad, 0, 1) == "_" -> eğer { ÖZEL_AD_İPUCU -> ipucu }
+        k_hata_i("'" + ad + "' adında bir işlev yok", d, ipucu)
     }
     parametre_sayısı(k_işlev[ad]) -> beklenen
     # Çağrı tutmuyorsa ve ad yerleşik bir işlevin de adıysa, çağıran büyük olasılıkla
@@ -2136,7 +2154,9 @@ işlev ifade_iç(e) {
             k_hata_i("'" + e.ad + "' yerleşik bir işlev; yerleşik işlevler değer olarak verilemez", e,
                      "onu çağıran bir işlev tanımlayın:  işlev benim_" + e.ad + "(x) { x -> " + e.ad + " -> döndür }")
         }
-        k_hata_i("'" + e.ad + "' adında bir değişken yok", e, benzerler(e.ad, bilinen_değişkenler()))
+        benzerler(e.ad, bilinen_değişkenler()) -> ipucu
+        ipucu == "" ve dilim(e.ad, 0, 1) == "_" -> eğer { ÖZEL_AD_İPUCU -> ipucu }
+        k_hata_i("'" + e.ad + "' adında bir değişken yok", e, ipucu)
     }
     e.tür == "çağrı" -> eğer { çağır(e.ad, e.çocuklar, e, "") -> döndür }
     e.tür == "yok" -> eğer {

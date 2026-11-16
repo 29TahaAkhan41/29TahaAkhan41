@@ -34,8 +34,18 @@ class NehirHatası(Exception):
         self.ilgili_not = ilgili_not    # o yerin yanına yazılacak açıklama
 
 
+def gizli_eki(ad):
+    """Dosyaya özel adların sonundaki görünmez işaretlerin sayısı (özel değilse 0)."""
+    return len(ad) - len(ad.rstrip("\u2063"))
+
+
+ÖZEL_AD_İPUCU = "'_' ile başlayan adlar yalnızca tanımlandıkları dosyada geçerlidir"
+
+
 def benzerler(ad, adaylar):
-    """Yazım hatası için 'şunu mu demek istediniz' ipucu; benzer ad yoksa None."""
+    """Yazım hatası için 'şunu mu demek istediniz' ipucu; benzer ad yoksa None. Başka
+    dosyalara özel adlar önerilmez."""
+    adaylar = [a for a in adaylar if gizli_eki(a) == gizli_eki(ad)]
     yakın = difflib.get_close_matches(ad, sorted(set(adaylar) - {ad}), n=2, cutoff=0.7)
     if not yakın:
         return None
@@ -269,8 +279,46 @@ def sözcükle(kaynak, dosya=0):
                     raise NehirHatası("Nehir'de '=' ile atama yok", konum(i, i + 1),
                                       "değer soldan sağa akar: 5 -> x   (eşitlik sınaması için ==)")
                 raise NehirHatası(f"tanınmayan karakter: {c!r}", konum(i, i + 1))
+    özel_adları_ayır(sözcükler, dosya)
     ekle("SON", None, n, n)
     return sözcükler
+
+
+# Bir dosyada '_' ile başlayan adlar (işlev, kayıt, değişken) yalnızca o dosyada geçerlidir:
+# adın sonuna dosyaya özgü, ekranda görünmeyen bir işaret (dosya numarası + 1 kez U+2063)
+# eklenir; böylece iki modüldeki '_yardımcı' karışmaz, hata mesajlarında ad aynen görünür.
+# '.' sonrasındaki alan ve yöntem adlarına ve kayıt tanımındaki alan adlarına dokunulmaz.
+# kendi/sozcukleyici.nehir'deki özel_adları_ayır ile aynı olmalıdır.
+GİZLİ_İŞARET = "\u2063"
+
+
+def özel_adları_ayır(sözcükler, dosya):
+    işaret = GİZLİ_İŞARET * (dosya + 1)
+    durum, derinlik, önceki = 0, 0, None     # durum: 1 kayıt adı, 2 '{' bekleniyor, 3 kayıt gövdesi
+    for s in sözcükler:
+        alan_adı = False
+        if s.tür == "ANAHTAR" and s.değer == "kayıt":
+            durum = 1
+        elif durum == 1 and s.tür == "AD":
+            durum = 2
+        elif durum == 2 and s.tür == "İŞLEÇ" and s.değer == "{":
+            durum, derinlik = 3, 1
+        elif durum == 3:
+            if s.tür == "İŞLEÇ" and s.değer in ("{", "["):
+                derinlik += 1
+            elif s.tür == "İŞLEÇ" and s.değer in ("}", "]"):
+                derinlik -= 1
+                if derinlik == 0:
+                    durum = 0
+            elif s.tür == "AD" and derinlik == 1 and önceki is not None and önceki.tür == "İŞLEÇ" \
+                    and önceki.değer in ("{", ","):
+                alan_adı = True
+        else:
+            durum = 0 if durum != 3 else durum
+        if s.tür == "AD" and s.değer.startswith("_") and not alan_adı \
+                and not (önceki is not None and önceki.tür == "İŞLEÇ" and önceki.değer == "."):
+            s.değer += işaret
+        önceki = s
 
 
 # ───────────────────────────── Ayrıştırıcı ─────────────────────────────
@@ -1613,7 +1661,8 @@ class KodÜretici:
         if self.değişken_kaydı(ad)[0] is not None:
             return NehirHatası(f"'{ad}' bir değişken, işlev değil", satır)
         return NehirHatası(f"'{ad}' adında bir işlev yok", satır,
-                           benzerler(ad, list(self.işlevler) + list(YERLEŞİKLER)))
+                           benzerler(ad, list(self.işlevler) + list(YERLEŞİKLER))
+                           or (ÖZEL_AD_İPUCU if ad.startswith("_") else None))
 
     def değişken_kaydı(self, ad):
         """(kayıt, bellek adresi metni) ya da değişken yoksa (None, None)."""
@@ -2187,7 +2236,8 @@ class KodÜretici:
                                       satır, f"onu çağıran bir işlev tanımlayın:  işlev benim_{e[1]}(x) "
                                              f"{{ x -> {e[1]} -> döndür }}")
                 raise NehirHatası(f"'{e[1]}' adında bir değişken yok", satır,
-                                  benzerler(e[1], self.bilinen_değişkenler()))
+                                  benzerler(e[1], self.bilinen_değişkenler())
+                                  or (ÖZEL_AD_İPUCU if e[1].startswith("_") else None))
             kayıt[3] = True
             if self.yereller is not None and e[1] not in self.yereller:
                 self.okunan_küreseller.setdefault(e[1], satır)

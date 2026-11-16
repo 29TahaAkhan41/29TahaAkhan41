@@ -1,0 +1,2 @@
+işlev _gizli(n) { n -> döndür }
+işlev açık(n) { _gizli(n) -> döndür }

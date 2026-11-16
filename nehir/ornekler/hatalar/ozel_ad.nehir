@@ -1,0 +1,3 @@
+# Başka bir dosyaya özel bir ada erişilemez.
+kullan "moduller/ozel.nehir"
+_gizli(1) -> yazdır

@@ -1,0 +1,4 @@
+ornekler/hatalar/ozel_ad.nehir:3:1: hata: '_gizli⁣' adında bir işlev yok
+    3 | _gizli(1) -> yazdır
+      | ^^^^^^
+      = ipucu: '_' ile başlayan adlar yalnızca tanımlandıkları dosyada geçerlidir

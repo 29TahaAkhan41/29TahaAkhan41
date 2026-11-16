@@ -333,6 +333,7 @@ işlev sayı_değeri(rakamlar) {
 
 # Kaynağın sözcüklerini s_* listelerinin sonuna ekler; her dosya SON ile biter.
 işlev sözcükle(kaynak) {
+    uzunluk(s_tür) -> ilk_sözcük
     kaynak -> l_kaynaklar[l_dosya_no]
     l_dosya -> l_dosya_adları[l_dosya_no]
     1 -> l_satır
@@ -484,7 +485,60 @@ işlev sözcükle(kaynak) {
         }
         i + uzunluk(işleç) -> i
     }
+    özel_adları_ayır(ilk_sözcük, l_dosya_no)
     sözcük_ekle("SON", "", n, n)
+}
+
+# Bir dosyada '_' ile başlayan adlar (işlev, kayıt, değişken) yalnızca o dosyada geçerlidir:
+# adın sonuna dosyaya özgü, ekranda görünmeyen bir işaret (dosya numarası + 1 kez U+2063)
+# eklenir. '.' sonrasındaki alan ve yöntem adlarına ve kayıt tanımındaki alan adlarına
+# dokunulmaz. nehir.py'deki özel_adları_ayır ile aynı olmalıdır.
+işlev özel_adları_ayır(baş, dosya) {
+    "" -> gizli
+    0 -> k
+    k <= dosya -> iken {
+        gizli + karakter(8291) -> gizli
+        k + 1 -> k
+    }
+    0 -> durum          # 1 kayıt adı, 2 '{' bekleniyor, 3 kayıt gövdesi
+    0 -> derinlik
+    -1 -> önceki
+    baş -> i
+    i < uzunluk(s_tür) -> iken {
+        s_tür[i] -> tür
+        s_değer[i] -> değer
+        yanlış -> alan_adı
+        tür == "ANAHTAR" ve değer == "kayıt" -> eğer { 1 -> durum } değilse {
+            durum == 1 ve tür == "AD" -> eğer { 2 -> durum } değilse {
+                durum == 2 ve tür == "İŞLEÇ" ve değer == "{" -> eğer {
+                    3 -> durum
+                    1 -> derinlik
+                } değilse {
+                    durum == 3 -> eğer {
+                        tür == "İŞLEÇ" ve (değer == "{" veya değer == "[") -> eğer { derinlik + 1 -> derinlik } değilse {
+                            tür == "İŞLEÇ" ve (değer == "}" veya değer == "]") -> eğer {
+                                derinlik - 1 -> derinlik
+                                derinlik == 0 -> eğer { 0 -> durum }
+                            } değilse {
+                                tür == "AD" ve derinlik == 1 ve önceki >= 0 -> eğer {
+                                    s_tür[önceki] == "İŞLEÇ" ve (s_değer[önceki] == "{" veya s_değer[önceki] == ",") -> eğer {
+                                        doğru -> alan_adı
+                                    }
+                                }
+                            }
+                        }
+                    } değilse { 0 -> durum }
+                }
+            }
+        }
+        tür == "AD" ve dilim(değer, 0, 1) == "_" ve değil alan_adı -> eğer {
+            önceki < 0 veya s_tür[önceki] != "İŞLEÇ" veya s_değer[önceki] != "." -> eğer {
+                değer + gizli -> s_değer[i]
+            }
+        }
+        i -> önceki
+        i + 1 -> i
+    }
 }
 
 # ── döküm ──

@@ -452,6 +452,10 @@ Nokta(3, 4) -> p
 p -> uzaklık_karesi(BAŞLANGIÇ) -> yazdır
 ```
 
+**Dosyaya özel adlar:** bir dosyada `_` ile başlayan işlev, kayıt ve değişken adları yalnızca o dosyada
+geçerlidir. İki modül de (ya da modül ve program) `_yardımcı` adında ayrı işlevler tanımlayabilir;
+birbirlerininkine erişemezler. Alan ve yöntem adları (`nesne._alan`) bu kurala girmez.
+
 - Bütün dosyalar tek bir ad alanını paylaşır: iki dosya aynı adda işlev ya da kayıt tanımlayamaz.
 - Modülün üst düzey kodu, `kullan` satırına gelindiğinde bir kez çalışır.
 - Bir modül kaç kez istenirse istensin bir kez yüklenir; modüller birbirini karşılıklı kullanabilir.
@@ -632,7 +636,7 @@ aynı sonucu (aynı assembly ya da aynı hata mesajları) vermelidir.
 - Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Program aynı anda en çok 256 MB canlı liste, metin, sözlük ve kayıt tutabilir
 - Kaynakta ondalık sayılar üslü yazılamaz (`1.5e3` yerine `1500.0`; `ondalığa("1.5e3")` olur)
-- Modüllerin kendi ad alanı yok; adların çakışmaması programcıya kalır
+- Modüllerin kendi ad alanı yok; `_` ile başlamayan adların çakışmaması programcıya kalır
 - Kayıtlar kurulurken değerler yalnızca sırayla verilir (`Nokta(x: 3, y: 4)` yazılamaz)
 - `yok` yalnızca kayıtlar içindir; "sayı yok" ya da "metin yok" diye bir değer yok
 - Dosyalar yalnızca bütün olarak okunur ve yazılır; dizin listeleme ya da oluşturma yok
