@@ -238,11 +238,14 @@ def tuşları_sına(geçici):
     ikili = os.path.join(geçici, "tus_kipi")
     subprocess.run([sys.executable, "nehir.py", "kendi/sinamalar/tus_kipi.nehir", "-o", ikili],
                    cwd=KÖK, check=True)
+    bırakmalı = os.path.join(geçici, "tus_birakma")
+    subprocess.run([sys.executable, "nehir.py", "kendi/sinamalar/tus_birakma.nehir", "-o", bırakmalı],
+                   cwd=KÖK, check=True)
 
-    def çalıştır(adımlar):
+    def çalıştır(adımlar, program=ikili):
         ana_uç, yan_uç = pty.openpty()
         önce = termios.tcgetattr(yan_uç)
-        süreç = subprocess.Popen([ikili], stdin=yan_uç, stdout=yan_uç, stderr=yan_uç)
+        süreç = subprocess.Popen([program], stdin=yan_uç, stdout=yan_uç, stderr=yan_uç)
         çıktı = b""
 
         def bekle(aranan, süre=5):
@@ -274,6 +277,13 @@ def tuşları_sına(geçici):
          (0, "1\n<a>\n<yukarı>\n0\nmerhaba\nsatır: merhaba\n".encode(), True)),
         ("Ctrl+C", çalıştır([(b"1\r\n", b"x"), (b"<x>", b"\x03")]),
          (130, b"1\n<x>\n\x1b[0m\x1b[?25h\n", True)),
+        # kitty klavye protokolü: basma, bırakma ("-a"), Shift'li tuş, tekrar; değiştirici tuş yok sayılır
+        ("kitty bırakmaları", çalıştır([(b"1\r\n", b"\x1b[?15u\x1b[97u\x1b[97;1:3u\x1b[1;1:3A\x1b[97:65;2u"
+                                                   b"\x1b[57441;2u\x1b[1;1:2A"),
+                                        (b"<yukar\xc4\xb1>", b"\x1b[113u")], bırakmalı),
+         (0, "\x1b[>15u\x1b[?u1\n<a>\n<-a>\n<-yukarı>\n<A>\n<yukarı>\n1\n\x1b[<u0\n".encode(), True)),
+        ("kitty Ctrl+C", çalıştır([(b"1\r\n", b"\x1b[?15u\x1b[98u"), (b"<b>", b"\x1b[99;5u")], bırakmalı),
+         (130, b"\x1b[>15u\x1b[?u1\n<b>\n\x1b[0m\x1b[?25h\n\x1b[<u", True)),
     ]
     başarısız = 0
     for ad, çıkan, beklenen in sonuçlar:
@@ -284,7 +294,7 @@ def tuşları_sına(geçici):
             print("  çıkan:   ", repr(çıkan))
     if not başarısız:
         print("geçti     tuşlar (uçbirimde ham kip: tuşlar beklemeden ve yankısız; kip kapanınca "
-              "ve Ctrl+C'de uçbirim eski hâline dönüyor)")
+              "ve Ctrl+C'de uçbirim eski hâline dönüyor; kitty protokolüyle tuş bırakmaları)")
     return başarısız
 
 

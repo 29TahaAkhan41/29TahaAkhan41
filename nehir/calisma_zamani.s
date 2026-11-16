@@ -3134,8 +3134,22 @@ __goster:                       # rdi = metin; satır sonu eklemeden yazar ve he
     pop rax
     ret
 
-__tus_kipi:                     # rdi = 1 aç, 0 kapat -> rax = ham kip açıksa 1
-    jmp __sis_tus_kipi
+__tus_kipi:                     # rdi = 1 aç, 2 aç ve bırakmaları da iste, 0 kapat -> rax = ham kip açıksa 1
+    push rdi
+    test rdi, rdi
+    jz 1f
+    mov edi, 1
+1:  call __sis_tus_kipi
+    pop rdi
+    cmp rdi, 2
+    jne 2f
+    test rax, rax
+    jz 2f
+    mov byte ptr [rip+__tk_genis], 1
+    push rax
+    call __sis_birakma_ac       # işletim sistemine özgü: kitty protokolünü ister ya da konsoldan alır
+    pop rax
+2:  ret
 
 __ucbirim_boyutu:               # -> rax = [genişlik, yükseklik]; uçbirim değilse [80, 24]
     push rbx
@@ -3243,16 +3257,10 @@ __tus:                          # -> rax = tuş (metin); basılan tuş yoksa ""
     lea rcx, [rip+__t_oklar]
     mov rax, [rcx+rax*8]
     jmp 21f
-13: cmp byte ptr [rbx+1], 91    # tanınmayan dizi: sonuna dek atlanır
+13: cmp byte ptr [rbx+1], 91    # Esc [ parametreler son: kitty klavye protokolü ya da tanınmayan dizi
     jne 12f
-    mov ecx, 2
-14: cmp rcx, r12
-    jae 15f
-    movzx eax, byte ptr [rbx+rcx]
-    inc rcx
-    cmp eax, 64
-    jb 14b
-15: add [rip+__g_konum], rcx
+    call __tus_csi
+    jmp 21f
 20: lea rax, [rip+__t_bos]
     jmp 21f
 12: lea rcx, [rip+__t_esc]
@@ -3267,6 +3275,131 @@ __tus:                          # -> rax = tuş (metin); basılan tuş yoksa ""
     call __ham_yaz
 31: mov edi, 130
     jmp __cik
+
+# Esc [ ile başlayan diziyi çözer (rbx = dizinin başı, r12 = tamponda kalan bayt).
+# kitty klavye protokolü:  Esc [ tuş[:kaydırılmış] ; değiştiriciler[:olay] u   (olay 1 bas, 2 tekrar, 3 bırak)
+# ve oklar için Esc [ 1 ; değiştiriciler[:olay] A/B/C/D. Bırakmalar "-" ile başlar: "-a", "-sol".
+# Uçbirimin bayrak yanıtı (Esc [ ? bayraklar u), bırakmaların bildirildiğini gösterir.
+__tus_csi:                      # -> rax = tuş metni ya da ""
+    push rbp
+    mov rbp, rsp
+    sub rsp, 48                 # [rbp-40..-16]: 4 alan (tuş, kaydırılmış, değiştiriciler, olay); [rbp-8] özel
+    xor eax, eax
+    mov [rbp-40], rax
+    mov [rbp-32], rax
+    mov [rbp-24], rax
+    mov [rbp-16], rax
+    mov [rbp-8], rax
+    mov ecx, 2                  # rcx = konum, r8 = alan sırası (alan * 2 + alt alan)
+    xor r8d, r8d
+1:  cmp rcx, r12
+    jae 9f                      # yarım kalmış dizi: atılır
+    movzx eax, byte ptr [rbx+rcx]
+    inc rcx
+    cmp eax, 64
+    jae 5f                      # son bayt
+    sub eax, 48
+    cmp eax, 9
+    ja 2f
+    cmp r8, 4                   # rakam
+    jae 1b
+    mov rdx, [rbp+r8*8-40]
+    imul rdx, rdx, 10
+    add rdx, rax
+    cmp rdx, 0x10FFFF
+    ja 1b
+    mov [rbp+r8*8-40], rdx
+    jmp 1b
+2:  add eax, 48
+    cmp eax, 58                 # ':' alt alan
+    jne 3f
+    test r8, 1
+    jnz 21f
+    inc r8
+    jmp 1b
+21: mov r8d, 99
+    jmp 1b
+3:  cmp eax, 59                 # ';' sonraki alan
+    jne 4f
+    or r8, 1
+    inc r8
+    jmp 1b
+4:  mov qword ptr [rbp-8], 1    # < = > ? : özel dizi
+    jmp 1b
+5:  add [rip+__g_konum], rcx    # dizinin tamamı tüketildi
+    cmp qword ptr [rbp-8], 0
+    je 6f
+    cmp eax, 117                # Esc [ ? bayraklar u: bırakmalar bildirilecek
+    jne 9f
+    cmp byte ptr [rip+__tk_genis], 0
+    je 9f
+    mov byte ptr [rip+__tk_birakma], 1
+    jmp 9f
+6:  cmp qword ptr [rbp-24], 0   # varsayılanlar: değiştiriciler 1, olay 1
+    jne 61f
+    mov qword ptr [rbp-24], 1
+61: cmp qword ptr [rbp-16], 0
+    jne 62f
+    mov qword ptr [rbp-16], 1
+62: cmp eax, 117                # 'u'
+    je 7f
+    sub eax, 65                 # 'A'..'D': oklar
+    cmp eax, 3
+    ja 9f
+    lea rcx, [rip+__t_oklar]
+    mov rax, [rcx+rax*8]
+    jmp 8f
+7:  mov rax, [rbp-40]           # tuş kodu
+    mov rcx, [rbp-24]
+    dec rcx
+    test cl, 4                  # Ctrl+C
+    jz 71f
+    cmp rax, 99
+    jne 71f
+    cmp qword ptr [rbp-16], 3
+    je 9f
+    jmp 30b
+71: test cl, 1                  # Shift: kaydırılmış tuş varsa o
+    jz 72f
+    mov rdx, [rbp-32]
+    test rdx, rdx
+    jz 72f
+    mov rax, rdx
+72: lea rcx, [rip+__t_esc]
+    cmp rax, 27
+    je 74f
+    lea rcx, [rip+__t_enter]
+    cmp rax, 13
+    je 74f
+    lea rcx, [rip+__t_tab]
+    cmp rax, 9
+    je 74f
+    lea rcx, [rip+__t_geri]
+    cmp rax, 127
+    je 74f
+    cmp rax, 8
+    je 74f
+    cmp rax, 32                 # denetim karakterleri ve özel tuşlar (kitty: 57344 ve üstü) atlanır
+    jb 9f
+    cmp rax, 0xE000
+    jae 9f
+    mov rdi, rax
+    call __karakter
+    jmp 8f
+74: mov rax, rcx
+8:  cmp qword ptr [rbp-16], 3   # bırakma: başına "-"
+    jne 99f
+    lea rdi, [rip+__t_eksi]
+    mov rsi, rax
+    call __metin_birlestir
+    jmp 99f
+9:  lea rax, [rip+__t_bos]
+99: leave
+    ret
+
+__tus_birakma_var:              # -> rax = uçbirim tuş bırakmalarını bildiriyorsa 1
+    movzx eax, byte ptr [rip+__tk_birakma]
+    ret
 
 __sifira_bolme:
     lea rsi, [rip+__h_sifir]
@@ -3463,6 +3596,10 @@ __h_rastgele_son:
 __t_oklar: .quad __t_yukari, __t_asagi, __t_sag, __t_sol
     .quad 0
 __t_bos: .byte 0
+    .balign 8
+    .quad 1
+__t_eksi: .ascii "-"
+    .byte 0
 __t_sifirla: .ascii "\033[0m\033[?25h\n"
 __t_sifirla_son:
     .balign 8
@@ -3534,6 +3671,8 @@ __ct_ucbirim: .skip 8
 __g_son: .skip 8
 __rs_durum: .skip 8             # rastgele sayı üretecinin durumu
 __rs_tohumlu: .skip 8
+__tk_genis: .skip 8             # tuş bırakmaları istendi mi
+__tk_birakma: .skip 8           # uçbirim bırakmaları bildiriyor mu
 __ek_arka: .skip 8              # ekran tamponu: arka ve ön hücreler, çıktı tamponu (kökler)
 __ek_on: .skip 8
 __ek_cikti: .skip 8

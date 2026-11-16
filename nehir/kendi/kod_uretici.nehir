@@ -74,7 +74,8 @@ kullan "ayristirici.nehir"
     "screen_text": "ekran_yaz", "ekran_doldur": "ekran_doldur", "screen_fill": "ekran_doldur",
     "ekran_çiz": "ekran_çiz", "ekran_ciz": "ekran_çiz", "screen_draw": "ekran_çiz", "rgb": "rgb",
     "sırala": "sırala", "sirala": "sırala", "sort": "sırala", "ters_çevir": "ters_çevir",
-    "ters_cevir": "ters_çevir", "reverse": "ters_çevir"
+    "ters_cevir": "ters_çevir", "reverse": "ters_çevir", "tuş_bırakma_var": "tuş_bırakma_var",
+    "tus_birakma_var": "tuş_bırakma_var", "key_release_supported": "tuş_bırakma_var"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -1354,8 +1355,13 @@ işlev yerleşik_çağır(ad, türler, d) {
         komut("call __girdi_var", d)
         "sayı" -> döndür
     }
-    asıl == "zaman" veya asıl == "tuş" veya asıl == "uçbirim_boyutu" veya asıl == "çöp_topla" -> eğer {
+    asıl == "zaman" veya asıl == "tuş" veya asıl == "uçbirim_boyutu" veya asıl == "çöp_topla"
+        veya asıl == "tuş_bırakma_var" -> eğer {
         n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
+        asıl == "tuş_bırakma_var" -> eğer {
+            komut("call __tus_birakma_var", d)
+            "sayı" -> döndür
+        }
         asıl == "çöp_topla" -> eğer {
             komut("call __bellek_topla", d)
             "sayı" -> döndür
@@ -1373,7 +1379,7 @@ işlev yerleşik_çağır(ad, türler, d) {
     }
     asıl == "bekle" veya asıl == "rastgele" veya asıl == "rastgele_tohum" veya asıl == "tuş_kipi" -> eğer {
         {"bekle": "milisaniye", "rastgele": "üst sınır", "rastgele_tohum": "tohum",
-         "tuş_kipi": "açmak için 1, kapatmak için 0"} -> açıklamalar
+         "tuş_kipi": "açmak için 1 (bırakmalarla 2), kapatmak için 0"} -> açıklamalar
         {"bekle": "call __bekle", "rastgele": "call __rastgele",
          "rastgele_tohum": "call __rastgele_tohum", "tuş_kipi": "call __tus_kipi"} -> çağrılar
         n != 1 veya t0 != "sayı" -> eğer { yanlış_argüman(ad, açıklamalar[asıl], türler, d) }

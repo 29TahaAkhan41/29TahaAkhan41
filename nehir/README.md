@@ -259,6 +259,7 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `rastgele(n)` | `random` | `0, 1, ..., n-1` arasından rastgele bir sayı; `n` pozitif olmalı |
 | `rastgele_tohum(t)` | `seed_random` | üreteci `t` ile başlatır: aynı tohum her zaman aynı sayıları verir (verilmezse tohum rastgeledir) |
 | `tuş_kipi(açık)` | `key_mode` | `1` uçbirimin ham kipini açar (tuşlar Enter beklemeden ve yankısız gelir), `0` kapatır; ham kip açıldıysa 1 verir |
+| `tuş_bırakma_var()` | `key_release_supported` | `tuş_kipi(2)` sonrası uçbirim tuş bırakmalarını bildiriyorsa 1 |
 | `tuş()` | `key` | basılmış bir tuş varsa onu, yoksa beklemeden `""` verir |
 | `göster(m)` | `show` | metni satır sonu eklemeden yazar |
 | `uçbirim_boyutu()` | `terminal_size` | `[genişlik, yükseklik]`; çıktı bir uçbirim değilse `[80, 24]` |
@@ -327,6 +328,14 @@ canlı tutulan veri 256 MB ile sınırlıdır. `çöp_topla()` (`collect_garbage
 bayt sayısını verir; genellikle çağırmak gerekmez. Toplayıcı işaretle-süpür türündedir: son toplamadan
 bu yana, sağ çıkan kadar (en az 32 MB) bellek ayrılınca çalışır, blokları taşımaz ve kökleri (çağrı
 yığını, yazmaçlar, küresel değişkenler) muhafazakâr biçimde tarar.
+
+**Tuş bırakmaları.** `tuş_kipi(2)` ham kipe ek olarak bırakmaları da ister: `tuş()` bir tuş
+bırakıldığında adının başına eksi koyar (`"-a"`, `"-sol"`), basılı tutulan tuşun tekrarları yine
+adıyla gelir. Böylece "tuş basılı mı" durumu tutulabilir. Windows konsolu bırakmaları her zaman
+bildirir; Linux'ta kitty klavye protokolünü destekleyen uçbirimler (kitty, WezTerm, foot, Ghostty
+ve yenileri) bildirir. Uçbirimin yanıtı ilk `tuş()` çağrılarında gelir; o zamandan sonra
+`tuş_bırakma_var()` 1 verir. Desteklemeyen uçbirimlerde bırakma gelmez; basılı tutmayı tekrarların
+sürmesinden anlamak gerekir.
 
 **Oyun döngüsü.** `tuş()` oklar için `"yukarı"`, `"aşağı"`, `"sağ"`, `"sol"`; Enter için `"enter"`,
 Esc için `"esc"`, Tab için `"tab"`, geri silme için `"geri"`, diğer tuşlar için yazdıkları karakteri

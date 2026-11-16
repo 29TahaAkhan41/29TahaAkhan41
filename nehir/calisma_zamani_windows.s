@@ -512,7 +512,14 @@ __sis_tus_kipi:                 # rdi = 1 aç, 0 kapat -> rax = ham kip açıksa
 8:  xor eax, eax
 9:  WIN_CIKIS
 
+__sis_birakma_ac:               # konsol tuş bırakmalarını zaten bildirir
+    movzx eax, byte ptr [rip+__tk_acik]
+    mov [rip+__tk_birakma], al
+    ret
+
 __tk_geri:                      # tuş kipi açıksa konsolun eski kipini geri yükler (hizalı yığınla çağrılır)
+    mov byte ptr [rip+__tk_genis], 0
+    mov byte ptr [rip+__tk_birakma], 0
     cmp byte ptr [rip+__tk_acik], 0
     je 1f
     mov byte ptr [rip+__tk_acik], 0
@@ -570,8 +577,13 @@ __sis_tus_doldur:               # -> rax = girdi hazırsa tampona doldurup 1, de
     lea rax, [rip+__w_kayit]
     cmp word ptr [rax], 1       # KEY_EVENT
     jne 6b
-    cmp dword ptr [rax+4], 0    # yalnızca basılma
+    cmp dword ptr [rax+4], 0    # bırakma: istendiyse kitty biçiminde (Esc [ kod ; 1:3 u) yazılır
+    jne 61f
+    cmp byte ptr [rip+__tk_genis], 0
     je 6b
+    call __w_birakma_yaz
+    jmp 6b
+61:
     movzx ecx, word ptr [rax+14]
     test ecx, ecx
     jnz 7f
@@ -610,6 +622,51 @@ __sis_tus_doldur:               # -> rax = girdi hazırsa tampona doldurup 1, de
     WIN_CIKIS
 0:  xor eax, eax
     WIN_CIKIS
+
+__w_birakma_yaz:                # [rsp+8..]: __sis_tus_doldur'un çerçevesi; __w_kayit'teki bırakmayı tampona yazar
+    lea rax, [rip+__w_kayit]
+    lea rdx, [rip+__g_tampon]
+    add rdx, [rsp+8+72]         # çağıranın [rsp+72]'si: tampondaki bayt sayısı
+    movzx ecx, word ptr [rax+14]
+    test ecx, ecx
+    jnz 2f
+    movzx ecx, word ptr [rax+10]    # karaktersiz: yalnızca oklar, Esc [ 1 ; 1 : 3 X
+    sub ecx, 0x25
+    cmp ecx, 3
+    ja 9f
+    mov byte ptr [rdx], 27
+    mov dword ptr [rdx+1], 0x3B315B     # "[1;"
+    mov dword ptr [rdx+4], 0x333A31     # "1:3"
+    lea r8, [rip+__w_oklar]
+    movzx ecx, byte ptr [r8+rcx]
+    mov [rdx+7], cl
+    add qword ptr [rsp+8+72], 8
+    ret
+2:  mov byte ptr [rdx], 27      # Esc [ kod ; 1 : 3 u
+    mov byte ptr [rdx+1], 91
+    lea r8, [rdx+2]
+    mov eax, ecx                # kod onluk yazılır (en çok 5 basamak)
+    xor r9d, r9d
+3:  xor edx, edx
+    mov ecx, 10
+    div ecx
+    add dl, 48
+    push rdx
+    inc r9
+    test eax, eax
+    jnz 3b
+4:  pop rax
+    mov [r8], al
+    inc r8
+    dec r9
+    jnz 4b
+    mov dword ptr [r8], 0x333A313B      # ";1:3"
+    mov byte ptr [r8+4], 117    # 'u'
+    add r8, 5
+    lea rax, [rip+__g_tampon]
+    sub r8, rax
+    mov [rsp+8+72], r8
+9:  ret
 
 __sis_boyut:                    # -> rax = (yükseklik << 32) | genişlik; konsol değilse 0
     WIN_GIRIS

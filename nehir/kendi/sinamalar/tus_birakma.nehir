@@ -1,0 +1,11 @@
+# test.py bunu bir sözde uçbirimde çalıştırır: tuş_kipi(2) kitty klavye protokolünü ister;
+# uçbirimin yanıtıyla bırakmalar bildirilir ("-a", "-yukarı").
+tuş_kipi(2) -> yazdır
+doğru -> iken {
+    tuş() -> t
+    t == "q" -> eğer { dur }
+    t != "" -> eğer { "<" + t + ">" -> yazdır }
+    bekle(5)
+}
+tuş_bırakma_var() -> yazdır
+tuş_kipi(0) -> yazdır

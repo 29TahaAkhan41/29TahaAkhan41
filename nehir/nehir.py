@@ -138,6 +138,8 @@ YERLEŞİKLER = {
     "rgb": "rgb",
     "sırala": "sırala", "sirala": "sırala", "sort": "sırala",
     "ters_çevir": "ters_çevir", "ters_cevir": "ters_çevir", "reverse": "ters_çevir",
+    "tuş_bırakma_var": "tuş_bırakma_var", "tus_birakma_var": "tuş_bırakma_var",
+    "key_release_supported": "tuş_bırakma_var",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -1832,17 +1834,18 @@ class KodÜretici:
                 yanlış("argümansız")
             self.yaz("call __girdi_var")
             return "sayı"
-        if asıl in ("zaman", "tuş", "uçbirim_boyutu", "çöp_topla"):
+        if asıl in ("zaman", "tuş", "uçbirim_boyutu", "çöp_topla", "tuş_bırakma_var"):
             if türler:
                 yanlış("argümansız")
             self.yaz({"zaman": "call __zaman", "tuş": "call __tus",
-                      "uçbirim_boyutu": "call __ucbirim_boyutu", "çöp_topla": "call __bellek_topla"}[asıl])
+                      "uçbirim_boyutu": "call __ucbirim_boyutu", "çöp_topla": "call __bellek_topla",
+                      "tuş_bırakma_var": "call __tus_birakma_var"}[asıl])
             return {"zaman": "sayı", "tuş": "metin", "uçbirim_boyutu": Liste("sayı"),
-                    "çöp_topla": "sayı"}[asıl]
+                    "çöp_topla": "sayı", "tuş_bırakma_var": "sayı"}[asıl]
         if asıl in ("bekle", "rastgele", "rastgele_tohum", "tuş_kipi"):
             if türler != ["sayı"]:
                 yanlış({"bekle": "milisaniye", "rastgele": "üst sınır", "rastgele_tohum": "tohum",
-                        "tuş_kipi": "açmak için 1, kapatmak için 0"}[asıl])
+                        "tuş_kipi": "açmak için 1 (bırakmalarla 2), kapatmak için 0"}[asıl])
             self.yaz("pop rdi")
             self.yaz({"bekle": "call __bekle", "rastgele": "call __rastgele",
                       "rastgele_tohum": "call __rastgele_tohum", "tuş_kipi": "call __tus_kipi"}[asıl])

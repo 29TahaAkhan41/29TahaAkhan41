@@ -272,8 +272,30 @@ __sis_tus_kipi:                 # rdi = 1 aç, 0 kapat -> rax = ham kip açıksa
     pop rdi
     ret
 
+__sis_birakma_ac:               # kitty klavye protokolü istenir (bayraklar 1|2|4|8: olay türleri, bütün
+    call __cikti_bosalt         # tuşlar kaçış dizisi olarak) ve desteklenip desteklenmediği sorulur
+    push rdi
+    push rsi
+    push rdx
+    mov edi, 1
+    lea rsi, [rip+__kitty_ac]
+    mov edx, __kitty_ac_son - __kitty_ac
+    call __sis_yaz
+    pop rdx
+    pop rsi
+    pop rdi
+    ret
+
 __tk_geri:                      # tuş kipi açıksa uçbirimin eski ayarlarını geri yükler
-    cmp byte ptr [rip+__tk_acik], 0
+    cmp byte ptr [rip+__tk_genis], 0
+    je 2f
+    mov byte ptr [rip+__tk_genis], 0
+    mov byte ptr [rip+__tk_birakma], 0
+    mov edi, 1                  # kitty protokolü kapatılır
+    lea rsi, [rip+__kitty_kapa]
+    mov edx, __kitty_kapa_son - __kitty_kapa
+    call __sis_yaz
+2:  cmp byte ptr [rip+__tk_acik], 0
     je 1f
     mov byte ptr [rip+__tk_acik], 0
     mov eax, 16                 # ioctl(0, TCSETS, &eski)
@@ -305,6 +327,10 @@ __sis_boyut:                    # -> rax = (yükseklik << 32) | genişlik; uçbi
     ret
 
     .section .rodata
+__kitty_ac: .ascii "\033[>15u\033[?u"
+__kitty_ac_son:
+__kitty_kapa: .ascii "\033[<u"
+__kitty_kapa_son:
     .balign 8
     .quad 5
 __isletim_sistemi_adi: .ascii "linux"
