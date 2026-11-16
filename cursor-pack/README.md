@@ -13,6 +13,14 @@ El yazısı, Kullanılamaz, 4 yeniden boyutlandırma, Taşı, Alternatif, Bağla
 "Meşgul" ve "Arka planda çalışıyor" animasyonludur (`.ani`). Her imleç 32, 48, 64, 96 ve
 128 px boyutlarını içerir, yani Windows'taki imleç boyutu ayarında da net görünür.
 
+## Pixel Bloom (hareketli piksel art)
+
+Özgün bir çibi maskotla 32x32 piksel art imleçler. Normal, Yardım, Çalışıyor, Meşgul, Bağlantı,
+Konum, Kişi, Kullanılamaz, Hassas seçim ve El yazısı imleçleri animasyonludur (`.ani`).
+Pikseller 32/64/96/128 px boyutlarında keskin kalır. Kaynak: `pixel.py`, çıktı: `dist/pixel/`.
+
+![Pixel Bloom](dist/pixel/preview.gif)
+
 ## Windows'a kurulum
 
 1. `dist/windows/NebulaDark` (veya `NebulaLight`) klasörünü açın.
