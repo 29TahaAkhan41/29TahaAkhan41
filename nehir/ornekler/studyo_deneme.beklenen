@@ -1,0 +1,5 @@
+dosya: adsız.nehir
+imleç: 3:8
+|işlev kare(n) {
+|    n * n -> döndx}
+|kareçok(5) -> yazdır

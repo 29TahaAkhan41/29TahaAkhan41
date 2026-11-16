@@ -667,6 +667,27 @@ Uçbirim yokken (girdi ya da çıktı bir dosyaysa) motor **deneme kipinde** ça
 sınanabilir; Yıldız Kaçağı'nın sınaması böyle çalışır. Motorun iç adları `_` ile başlar; oyun `Motor`,
 `Varlık`, `Sahne` ve `Zamanlayıcı` adlarını kendisi için kullanmamalıdır.
 
+## Nehir Stüdyo
+
+`studyo/studyo.nehir`, Nehir için uçbirimde çalışan, kendisi de Nehir ile yazılmış bir geliştirme
+ortamıdır: solda dosyalar, ortada satır numaralı ve sözdizimi renklendirmeli düzenleyici, altta derleme
+çıktısı. Windows paketinde `NehirStudyo.exe` olarak gelir; çift tıklanınca açılır.
+
+```bash
+python3 nehir.py studyo/studyo.nehir --çalıştır
+```
+
+| Tuş | İş |
+| --- | --- |
+| F5 / Ctrl+R | kaydet, derle ve çalıştır (program bitince Enter ile stüdyoya dönülür) |
+| F6 / Ctrl+D | yalnızca denetle: hatalar alt panelde, imleç hatalı satıra gider |
+| Ctrl+S, Ctrl+N | kaydet, yeni dosya |
+| F2 / Ctrl+O, Esc | dosya listesine geç, düzenleyiciye dön |
+| Ctrl+Q, F1 | çık, yardım |
+
+Düzenleyici `{` sonrasında girintiyi artırır, boş satırda `}` yazınca azaltır. Windows'ta `nehir.bat`
+(gcc gerekir), Linux'ta `python3 nehir.py` ile derler.
+
 ## Sınamalar
 
 ```bash

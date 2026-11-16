@@ -1,0 +1,3 @@
+# Nehir Stüdyo düzenleyicisinin sınaması: uçbirim yokken stüdyo tuşları girdiden okur ve
+# sonunda düzenleyicideki metni yazar (kendiliğinden girinti, silme, satır birleştirme, Home/End).
+kullan "../studyo/studyo.nehir"

@@ -1,0 +1,661 @@
+# ≈≈≈ NEHİR STÜDYO ≈≈≈
+#
+# Nehir için uçbirimde çalışan bir geliştirme ortamı; kendisi de Nehir ile yazılmıştır.
+# Solda dosyalar, ortada sözdizimi renklendirmeli düzenleyici, altta derleme çıktısı.
+#
+#   F5 / Ctrl+R   kaydet, derle ve çalıştır      F6 / Ctrl+D   yalnızca denetle (hataları göster)
+#   Ctrl+S        kaydet                         Ctrl+N        yeni dosya
+#   F2 / Ctrl+O   dosya listesine geç            Esc           düzenleyiciye dön
+#   Ctrl+Q        çık                            F1            yardım
+#
+# Windows'ta nehir.bat ile (gcc gerekir), Linux'ta python3 nehir.py ile derler. Uçbirim yoksa
+# (girdi bir dosyadan geliyorsa) deneme kipinde çalışır: tuşları girdiden okur, ekranı çizmez,
+# sonunda düzenleyicideki metni yazar; düzenleyicinin sınaması böyle yapılır.
+
+kayıt Düzen {
+    satırlar: [metin],
+    dosya: metin,
+    değişti: sayı,
+    sy: sayı, sx: sayı,             # imleç: satır, sütun (karakter)
+    üst: sayı, sol: sayı,           # görünen ilk satır ve sütun
+    odak: metin,                    # "düzenleyici", "dosyalar" ya da "soru"
+    dizin: metin,
+    dosyalar: [metin],
+    seçili: sayı, dosya_üst: sayı,
+    mesaj: metin, mesaj_rengi: sayı,
+    çıktı: [metin],
+    soru: metin, cevap: metin, soru_işi: metin,
+    gen: sayı, boy: sayı,
+    bitti: sayı
+}
+
+uçbirim_mi(0) ve uçbirim_mi(1) -> EKRANDA
+işletim_sistemi() == "windows" -> WINDOWS
+
+# ── renkler ──
+0x1E1F29 -> ZEMİN
+0x282A36 -> PANEL
+0x44475A -> SEÇİM
+0xF8F8F2 -> YAZI
+0x6272A4 -> SOLUK
+0xFF79C6 -> ANAHTAR_RENK
+0xF1FA8C -> METİN_RENK
+0xBD93F9 -> SAYI_RENK
+0x8BE9FD -> İŞLEV_RENK
+0x50FA7B -> OK_RENK
+0xFF5555 -> HATA_RENK
+24 -> DOSYA_GEN
+6 -> ÇIKTI_BOY
+
+{} -> ANAHTARLAR
+["eğer", "değilse", "iken", "her", "işlev", "döndür", "yazdır", "dur", "devam", "kayıt", "kullan",
+ "doğru", "yanlış", "yok", "ve", "veya", "değil", "ortak", "eger", "degilse", "islev", "fonksiyon",
+ "dondur", "yazdir", "dogru", "yanlis", "degil", "if", "else", "while", "each", "fn", "return",
+ "print", "break", "continue", "true", "false", "and", "or", "not"] -> her (k) { 1 -> ANAHTARLAR[k] }
+
+# ── dosyalar ──
+
+işlev satırlara_böl(içerik) {
+    [] -> sonuç
+    böl(içerik, "\n") -> parçalar
+    parçalar -> her (p) {
+        p -> satır
+        uzunluk(satır) > 0 -> eğer { satır[uzunluk(satır) - 1] == "\r" -> eğer { dilim(satır, 0, uzunluk(satır) - 1) -> satır } }
+        sonuç -> ekle(birleş(böl(satır, "\t"), "    "))
+    }
+    uzunluk(sonuç) > 1 ve sonuç[uzunluk(sonuç) - 1] == "" -> eğer { sil(sonuç, uzunluk(sonuç) - 1) }
+    uzunluk(sonuç) == 0 -> eğer { sonuç -> ekle("") }
+    sonuç -> döndür
+}
+
+işlev dosyaları_yenile(d) {
+    [] -> liste
+    d.dizin != "." -> eğer { liste -> ekle("../") }
+    dizin_listele(d.dizin) -> her (ad) {
+        uzunluk(ad) > 0 ve ad[uzunluk(ad) - 1] == "/" ve ad[0] != "." -> eğer { liste -> ekle(ad) }
+    }
+    dizin_listele(d.dizin) -> her (ad) {
+        uzunluk(ad) > 6 ve dilim(ad, uzunluk(ad) - 6, uzunluk(ad)) == ".nehir" -> eğer { liste -> ekle(ad) }
+    }
+    liste -> d.dosyalar
+    sınırla(d.seçili, 0, en_büyük(uzunluk(liste) - 1, 0)) -> d.seçili
+}
+
+işlev yol_birleştir(dizin, ad) {
+    dizin == "." -> eğer { ad -> döndür }
+    WINDOWS -> eğer { dizin + "\\" + ad -> döndür }
+    dizin + "/" + ad -> döndür
+}
+
+işlev üst_dizin(dizin) {
+    dizin -> yol
+    WINDOWS -> eğer { birleş(böl(yol, "\\"), "/") -> yol }
+    böl(yol, "/") -> parçalar
+    uzunluk(parçalar) <= 1 -> eğer { "." -> döndür }
+    sil(parçalar, uzunluk(parçalar) - 1)
+    birleş(parçalar, "/") -> yol
+    WINDOWS -> eğer { birleş(böl(yol, "/"), "\\") -> yol }
+    yol -> döndür
+}
+
+işlev mesaj_ver(d, m, renk) {
+    m -> d.mesaj
+    renk -> d.mesaj_rengi
+}
+
+işlev dosya_aç(d, yol) {
+    dosya_hatası(yol) != 0 -> eğer {
+        mesaj_ver(d, yol + " açılamadı", HATA_RENK)
+        0 -> döndür
+    }
+    satırlara_böl(dosya_oku(yol)) -> d.satırlar
+    yol -> d.dosya
+    0 -> d.değişti
+    0 -> d.sy
+    0 -> d.sx
+    0 -> d.üst
+    0 -> d.sol
+    "düzenleyici" -> d.odak
+    mesaj_ver(d, yol + " açıldı", SOLUK)
+}
+
+işlev kaydet(d) {
+    birleş(d.satırlar, "\n") + "\n" -> içerik
+    WINDOWS -> eğer { birleş(d.satırlar, "\r\n") + "\r\n" -> içerik }
+    dosya_yaz(içerik, d.dosya)
+    0 -> d.değişti
+    mesaj_ver(d, d.dosya + " kaydedildi", OK_RENK)
+    dosyaları_yenile(d)
+}
+
+# ── derleme ve çalıştırma ──
+
+işlev ekranı_kapat() {
+    EKRANDA -> eğer {
+        ekran_kapat()
+        tuş_kipi(0)
+    }
+}
+
+işlev ekranı_aç(d) {
+    EKRANDA -> eğer {
+        ekran_aç(d.gen, d.boy)
+        tuş_kipi(1)
+    }
+}
+
+işlev çalıştır(d) {
+    değil EKRANDA -> eğer { 0 -> döndür }
+    kaydet(d)
+    ekranı_kapat()
+    "\"" + d.dosya + "\"" -> tırnaklı
+    "python3 nehir.py " + tırnaklı + " --çalıştır" -> komut_metni
+    WINDOWS -> eğer { "nehir.bat " + tırnaklı -> komut_metni }
+    "≈≈≈ " + d.dosya + " ≈≈≈" -> yazdır
+    komut_çalıştır(komut_metni) -> kod
+    ""-> yazdır
+    oku("— program bitti (çıkış kodu " + metne(kod) + "). Stüdyo'ya dönmek için Enter — ") -> boşver
+    ekranı_aç(d)
+    mesaj_ver(d, "program çıkış koduyla bitti: " + metne(kod), SOLUK)
+    kod == 0 -> eğer { mesaj_ver(d, "program bitti", OK_RENK) }
+}
+
+# Hata satırından (dosya:satır:sütun: hata: ...) satır ve sütun
+işlev konum_bul(satır) {
+    böl(satır, ":") -> parçalar
+    0 -> i
+    i + 2 < uzunluk(parçalar) -> iken {
+        sayı_mı(parçalar[i]) ve sayı_mı(parçalar[i + 1]) ve dilim(parçalar[i + 2], 0, 5) == " hata" -> eğer {
+            [sayıya(parçalar[i]), sayıya(parçalar[i + 1])] -> döndür
+        }
+        i + 1 -> i
+    }
+    [0, 0] -> döndür
+}
+
+işlev sayı_mı(m) {
+    uzunluk(m) == 0 -> eğer { 0 -> döndür }
+    1 -> evet
+    m -> her (k) { (k < "0" veya k > "9") -> eğer { 0 -> evet } }
+    evet -> döndür
+}
+
+işlev denetle(d) {
+    değil EKRANDA -> eğer { 0 -> döndür }
+    kaydet(d)
+    "\"" + d.dosya + "\"" -> tırnaklı
+    "python3 nehir.py " + tırnaklı + " --asm -o nehir_denetim.s 2> nehir_denetim.txt" -> komut_metni
+    WINDOWS -> eğer { "derle.exe " + tırnaklı + " nehir_denetim.s calisma_zamani.s 2> nehir_denetim.txt" -> komut_metni }
+    komut_çalıştır(komut_metni) -> kod
+    [] -> d.çıktı
+    dosya_var("nehir_denetim.txt") -> eğer {
+        satırlara_böl(dosya_oku("nehir_denetim.txt")) -> d.çıktı
+        dosya_sil("nehir_denetim.txt")
+    }
+    dosya_var("nehir_denetim.s") -> eğer { dosya_sil("nehir_denetim.s") }
+    kod == 0 -> eğer {
+        mesaj_ver(d, "✓ hata yok", OK_RENK)
+        uzunluk(d.çıktı) == 1 ve d.çıktı[0] == "" -> eğer { ["✓ " + d.dosya + ": hata yok"] -> d.çıktı }
+    } değilse {
+        mesaj_ver(d, "✗ derleme hatası (aşağıda); imleç hatalı satırda", HATA_RENK)
+        konum_bul(d.çıktı[0]) -> k
+        k[0] > 0 -> eğer {
+            sınırla(k[0] - 1, 0, uzunluk(d.satırlar) - 1) -> d.sy
+            sınırla(k[1] - 1, 0, uzunluk(d.satırlar[d.sy])) -> d.sx
+        }
+    }
+}
+
+# ── düzenleme ──
+
+işlev satır_al(d) { d.satırlar[d.sy] -> döndür }
+işlev satır_koy(d, m) {
+    m -> d.satırlar[d.sy]
+    1 -> d.değişti
+}
+
+işlev girinti(m) {
+    0 -> n
+    n < uzunluk(m) -> iken {
+        m[n] != " " -> eğer { dur }
+        n + 1 -> n
+    }
+    n -> döndür
+}
+
+işlev araya_yaz(d, k) {
+    satır_al(d) -> s
+    # Yalnızca boşluklardan oluşan satırda '}' bir girinti geri alır
+    k == "}" ve girinti(s) == uzunluk(s) ve uzunluk(s) >= 4 ve d.sx == uzunluk(s) -> eğer {
+        dilim(s, 0, uzunluk(s) - 4) -> s
+        uzunluk(s) -> d.sx
+    }
+    satır_koy(d, dilim(s, 0, d.sx) + k + dilim(s, d.sx, uzunluk(s)))
+    d.sx + uzunluk(k) -> d.sx
+}
+
+işlev yeni_satır(d) {
+    satır_al(d) -> s
+    dilim(s, 0, d.sx) -> önce
+    dilim(s, d.sx, uzunluk(s)) -> sonra
+    girinti(önce) -> g
+    uzunluk(önce) > 0 ve önce[uzunluk(önce) - 1] == "{" -> eğer { g + 4 -> g }
+    satır_koy(d, önce)
+    [] -> yeni
+    0 -> i
+    i <= d.sy -> iken { yeni -> ekle(d.satırlar[i])  i + 1 -> i }
+    "" -> boşluklar
+    aralık(0, g) -> her (j) { boşluklar + " " -> boşluklar }
+    yeni -> ekle(boşluklar + sonra)
+    i < uzunluk(d.satırlar) -> iken { yeni -> ekle(d.satırlar[i])  i + 1 -> i }
+    yeni -> d.satırlar
+    d.sy + 1 -> d.sy
+    g -> d.sx
+}
+
+işlev geri_sil(d) {
+    d.sx > 0 -> eğer {
+        satır_al(d) -> s
+        satır_koy(d, dilim(s, 0, d.sx - 1) + dilim(s, d.sx, uzunluk(s)))
+        d.sx - 1 -> d.sx
+        0 -> döndür
+    }
+    d.sy > 0 -> eğer {
+        d.satırlar[d.sy - 1] -> önceki
+        satır_al(d) -> s
+        sil(d.satırlar, d.sy)
+        d.sy - 1 -> d.sy
+        uzunluk(önceki) -> d.sx
+        satır_koy(d, önceki + s)
+    }
+}
+
+işlev ileri_sil(d) {
+    satır_al(d) -> s
+    d.sx < uzunluk(s) -> eğer {
+        satır_koy(d, dilim(s, 0, d.sx) + dilim(s, d.sx + 1, uzunluk(s)))
+        0 -> döndür
+    }
+    d.sy + 1 < uzunluk(d.satırlar) -> eğer {
+        d.satırlar[d.sy + 1] -> sonraki
+        sil(d.satırlar, d.sy + 1)
+        satır_koy(d, s + sonraki)
+    }
+}
+
+işlev imleci_sığdır(d) {
+    sınırla(d.sy, 0, uzunluk(d.satırlar) - 1) -> d.sy
+    sınırla(d.sx, 0, uzunluk(satır_al(d))) -> d.sx
+}
+
+işlev görünen_satır(d) { en_büyük(d.boy - 3 - ÇIKTI_BOY, 3) -> döndür }
+işlev görünen_sütun(d) { en_büyük(d.gen - DOSYA_GEN - 7, 10) -> döndür }
+
+işlev kaydır(d) {
+    d.sy < d.üst -> eğer { d.sy -> d.üst }
+    d.sy >= d.üst + görünen_satır(d) -> eğer { d.sy - görünen_satır(d) + 1 -> d.üst }
+    d.sx < d.sol -> eğer { d.sx -> d.sol }
+    d.sx >= d.sol + görünen_sütun(d) -> eğer { d.sx - görünen_sütun(d) + 1 -> d.sol }
+}
+
+işlev soru_sor(d, soru, iş, varsayılan) {
+    soru -> d.soru
+    varsayılan -> d.cevap
+    iş -> d.soru_işi
+    "soru" -> d.odak
+}
+
+işlev soruyu_bitir(d) {
+    "düzenleyici" -> d.odak
+    d.soru_işi -> iş
+    d.cevap -> c
+    iş == "yeni" ve c != "" -> eğer {
+        uzunluk(c) < 6 veya dilim(c, uzunluk(c) - 6, uzunluk(c)) != ".nehir" -> eğer { c + ".nehir" -> c }
+        yol_birleştir(d.dizin, c) -> yol
+        dosya_var(yol) -> eğer { dosya_aç(d, yol) } değilse {
+            [""] -> d.satırlar
+            yol -> d.dosya
+            0 -> d.sy
+            0 -> d.sx
+            kaydet(d)
+        }
+    }
+    iş == "çık" ve (c == "e" veya c == "E") -> eğer { 1 -> d.bitti }
+    iş == "aç" ve (c == "e" veya c == "E") -> eğer { dosya_aç(d, d.soru) }
+}
+
+işlev seçili_dosyayı_aç(d) {
+    uzunluk(d.dosyalar) == 0 -> eğer { 0 -> döndür }
+    d.dosyalar[d.seçili] -> ad
+    ad == "../" -> eğer {
+        üst_dizin(d.dizin) -> d.dizin
+        0 -> d.seçili
+        dosyaları_yenile(d)
+        0 -> döndür
+    }
+    ad[uzunluk(ad) - 1] == "/" -> eğer {
+        yol_birleştir(d.dizin, dilim(ad, 0, uzunluk(ad) - 1)) -> d.dizin
+        0 -> d.seçili
+        dosyaları_yenile(d)
+        0 -> döndür
+    }
+    yol_birleştir(d.dizin, ad) -> yol
+    d.değişti -> eğer {
+        soru_sor(d, yol, "aç", "")
+        mesaj_ver(d, "kaydedilmemiş değişiklikler kaybolacak; açılsın mı? (e/h)", HATA_RENK)
+        0 -> döndür
+    }
+    dosya_aç(d, yol)
+}
+
+işlev yardım_göster(d) {
+    ["Nehir Stüdyo kısayolları:",
+     "  F5 / Ctrl+R  kaydet, derle, çalıştır     F6 / Ctrl+D  denetle (hatalar burada)",
+     "  Ctrl+S kaydet   Ctrl+N yeni dosya   F2 / Ctrl+O dosyalar   Esc düzenleyici",
+     "  Ctrl+Q çık      Tab 4 boşluk        oklar, Home, End, PageUp, PageDown, Delete",
+     "  '{' sonrası Enter girintiyi artırır; boş satırda '}' azaltır."] -> d.çıktı
+}
+
+işlev tuşu_işle(d, t) {
+    d.odak == "soru" -> eğer {
+        t == "enter" -> eğer { soruyu_bitir(d)   0 -> döndür }
+        t == "esc" -> eğer {
+            "düzenleyici" -> d.odak
+            mesaj_ver(d, "vazgeçildi", SOLUK)
+            0 -> döndür
+        }
+        t == "geri" -> eğer {
+            uzunluk(d.cevap) > 0 -> eğer { dilim(d.cevap, 0, uzunluk(d.cevap) - 1) -> d.cevap }
+            0 -> döndür
+        }
+        uzunluk(t) == 1 -> eğer { d.cevap + t -> d.cevap }
+        0 -> döndür
+    }
+    # her yerde geçerli kısayollar
+    t == "ctrl+q" -> eğer {
+        d.değişti -> eğer {
+            soru_sor(d, "", "çık", "")
+            mesaj_ver(d, "kaydedilmemiş değişiklikler var; yine de çıkılsın mı? (e/h)", HATA_RENK)
+        } değilse { 1 -> d.bitti }
+        0 -> döndür
+    }
+    t == "ctrl+s" -> eğer { kaydet(d)   0 -> döndür }
+    t == "f5" veya t == "ctrl+r" -> eğer { çalıştır(d)   0 -> döndür }
+    t == "f6" veya t == "ctrl+d" -> eğer { denetle(d)   0 -> döndür }
+    t == "f1" -> eğer { yardım_göster(d)   0 -> döndür }
+    t == "ctrl+n" -> eğer {
+        soru_sor(d, "", "yeni", "")
+        mesaj_ver(d, "yeni dosyanın adı:", YAZI)
+        0 -> döndür
+    }
+    t == "f2" veya t == "ctrl+o" -> eğer {
+        "dosyalar" -> d.odak
+        dosyaları_yenile(d)
+        0 -> döndür
+    }
+    d.odak == "dosyalar" -> eğer {
+        t == "esc" veya t == "tab" -> eğer { "düzenleyici" -> d.odak }
+        t == "yukarı" -> eğer { en_büyük(d.seçili - 1, 0) -> d.seçili }
+        t == "aşağı" -> eğer { en_küçük(d.seçili + 1, en_büyük(uzunluk(d.dosyalar) - 1, 0)) -> d.seçili }
+        t == "enter" -> eğer { seçili_dosyayı_aç(d) }
+        0 -> döndür
+    }
+    # düzenleyici
+    t == "sol" -> eğer {
+        d.sx > 0 -> eğer { d.sx - 1 -> d.sx } değilse {
+            d.sy > 0 -> eğer {
+                d.sy - 1 -> d.sy
+                uzunluk(satır_al(d)) -> d.sx
+            }
+        }
+    }
+    t == "sağ" -> eğer {
+        d.sx < uzunluk(satır_al(d)) -> eğer { d.sx + 1 -> d.sx } değilse {
+            d.sy + 1 < uzunluk(d.satırlar) -> eğer {
+                d.sy + 1 -> d.sy
+                0 -> d.sx
+            }
+        }
+    }
+    t == "yukarı" -> eğer { d.sy - 1 -> d.sy }
+    t == "aşağı" -> eğer { d.sy + 1 -> d.sy }
+    t == "sayfa_yukarı" -> eğer { d.sy - görünen_satır(d) -> d.sy }
+    t == "sayfa_aşağı" -> eğer { d.sy + görünen_satır(d) -> d.sy }
+    t == "baş" -> eğer {
+        girinti(satır_al(d)) -> g
+        d.sx != g -> eğer { g -> d.sx } değilse { 0 -> d.sx }
+    }
+    t == "son" -> eğer { uzunluk(satır_al(d)) -> d.sx }
+    t == "enter" -> eğer { yeni_satır(d) }
+    t == "geri" -> eğer { geri_sil(d) }
+    t == "sil" -> eğer { ileri_sil(d) }
+    t == "tab" -> eğer { araya_yaz(d, "    ") }
+    uzunluk(t) == 1 ve t != "-" -> eğer { araya_yaz(d, t) }
+    t == "-" -> eğer { araya_yaz(d, t) }
+    imleci_sığdır(d)
+    kaydır(d)
+}
+
+# ── çizim ──
+
+işlev harf_mi(k) {
+    (k >= "a" ve k <= "z") veya (k >= "A" ve k <= "Z") veya k == "_" veya metin_genişliği(k) == 1 ve baytlar(k)[0] >= 128 -> döndür
+}
+işlev rakam_mı(k) { k >= "0" ve k <= "9" -> döndür }
+
+# Satırın her karakteri için renk
+işlev renkler(satır) {
+    [] -> sonuç
+    böl(satır, "") -> k
+    uzunluk(k) -> n
+    0 -> i
+    i < n -> iken {
+        k[i] -> c
+        c == "#" -> eğer {
+            i < n -> iken { sonuç -> ekle(SOLUK)   i + 1 -> i }
+            dur
+        }
+        c == "\"" -> eğer {
+            sonuç -> ekle(METİN_RENK)
+            i + 1 -> i
+            i < n -> iken {
+                sonuç -> ekle(METİN_RENK)
+                k[i] == "\\" ve i + 1 < n -> eğer {
+                    sonuç -> ekle(METİN_RENK)
+                    i + 2 -> i
+                    devam
+                }
+                i + 1 -> i
+                k[i - 1] == "\"" -> eğer { dur }
+            }
+            devam
+        }
+        c == "-" ve i + 1 < n ve k[i + 1] == ">" -> eğer {
+            sonuç -> ekle(OK_RENK)
+            sonuç -> ekle(OK_RENK)
+            i + 2 -> i
+            devam
+        }
+        rakam_mı(c) -> eğer {
+            i < n ve (rakam_mı(k[i]) veya k[i] == "." veya k[i] == "_" veya k[i] == "x" veya k[i] == "b") -> iken {
+                sonuç -> ekle(SAYI_RENK)
+                i + 1 -> i
+            }
+            devam
+        }
+        harf_mi(c) -> eğer {
+            i -> baş
+            "" -> kelime
+            i < n ve (harf_mi(k[i]) veya rakam_mı(k[i])) -> iken {
+                kelime + k[i] -> kelime
+                i + 1 -> i
+            }
+            YAZI -> renk_
+            var(ANAHTARLAR, kelime) -> eğer { ANAHTAR_RENK -> renk_ } değilse {
+                i < n ve k[i] == "(" -> eğer { İŞLEV_RENK -> renk_ }
+            }
+            baş < i -> iken { sonuç -> ekle(renk_)   baş + 1 -> baş }
+            devam
+        }
+        sonuç -> ekle(YAZI)
+        i + 1 -> i
+    }
+    sonuç -> döndür
+}
+
+işlev kırp(m, n) {
+    metin_genişliği(m) <= n -> eğer { m -> döndür }
+    dilim(m, 0, en_büyük(n - 1, 0)) + "…" -> döndür
+}
+
+işlev çiz(d) {
+    değil EKRANDA -> eğer { 0 -> döndür }
+    d.gen -> G
+    d.boy -> B
+    ekran_temizle(ZEMİN)
+    # başlık
+    ekran_doldur(0, 0, G, 1, " ", YAZI, PANEL)
+    ekran_yaz(1, 0, "≈ Nehir Stüdyo", İŞLEV_RENK, -1)
+    "" -> işaret_
+    d.değişti -> eğer { " ●" -> işaret_ }
+    ekran_yaz(18, 0, kırp(d.dosya + işaret_, G - 40), YAZI, -1)
+    ekran_yaz(G - 23, 0, "F1 yardım  Ctrl+Q çık", SOLUK, -1)
+    # dosyalar
+    B - 2 -> panel_boy
+    ekran_doldur(0, 1, DOSYA_GEN, panel_boy, " ", YAZI, PANEL)
+    ekran_yaz(1, 1, kırp("📁 " + d.dizin, DOSYA_GEN - 2), SOLUK, -1)
+    panel_boy - 2 -> sığan
+    d.seçili < d.dosya_üst -> eğer { d.seçili -> d.dosya_üst }
+    d.seçili >= d.dosya_üst + sığan -> eğer { d.seçili - sığan + 1 -> d.dosya_üst }
+    0 -> i
+    i < sığan ve d.dosya_üst + i < uzunluk(d.dosyalar) -> iken {
+        d.dosyalar[d.dosya_üst + i] -> ad
+        YAZI -> renk_
+        ad[uzunluk(ad) - 1] == "/" -> eğer { İŞLEV_RENK -> renk_ }
+        yol_birleştir(d.dizin, ad) == d.dosya -> eğer { OK_RENK -> renk_ }
+        -1 -> arka_
+        d.odak == "dosyalar" ve d.dosya_üst + i == d.seçili -> eğer {
+            ekran_doldur(0, 2 + i, DOSYA_GEN, 1, " ", YAZI, SEÇİM)
+        }
+        ekran_yaz(2, 2 + i, kırp(ad, DOSYA_GEN - 3), renk_, -1)
+        i + 1 -> i
+    }
+    # düzenleyici
+    DOSYA_GEN + 1 -> ex
+    görünen_satır(d) -> gs
+    görünen_sütun(d) -> gsü
+    0 -> r
+    r < gs -> iken {
+        d.üst + r -> sn
+        sn < uzunluk(d.satırlar) -> eğer {
+            SOLUK -> nrenk
+            sn == d.sy -> eğer { YAZI -> nrenk }
+            metne(sn + 1) -> no
+            ekran_yaz(ex + 4 - uzunluk(no), 1 + r, no, nrenk, -1)
+            d.satırlar[sn] -> satır
+            renkler(satır) -> rk
+            böl(satır, "") -> karakterler
+            ex + 6 -> x
+            d.sol -> j
+            j < uzunluk(karakterler) ve x < G -> iken {
+                rk[j] -> renk_
+                "" -> parça
+                j < uzunluk(karakterler) ve rk[j] == renk_ ve x + metin_genişliği(parça) < G -> iken {
+                    parça + karakterler[j] -> parça
+                    j + 1 -> j
+                }
+                ekran_yaz(x, 1 + r, parça, renk_, -1)
+                x + metin_genişliği(parça) -> x
+            }
+        } değilse {
+            ekran_yaz(ex + 3, 1 + r, "~", SEÇİM, -1)
+        }
+        r + 1 -> r
+    }
+    # imleç
+    d.odak == "düzenleyici" -> eğer {
+        satır_al(d) -> s
+        " " -> altındaki
+        d.sx < uzunluk(s) -> eğer { s[d.sx] -> altındaki }
+        ex + 6 + metin_genişliği(dilim(s, d.sol, d.sx)) -> cx
+        ekran_yaz(cx, 1 + d.sy - d.üst, altındaki, ZEMİN, YAZI)
+    }
+    # çıktı
+    B - 1 - ÇIKTI_BOY -> oy
+    ekran_doldur(DOSYA_GEN, oy, G - DOSYA_GEN, 1, "─", SEÇİM, -1)
+    ekran_yaz(DOSYA_GEN + 2, oy, " çıktı ", SOLUK, -1)
+    0 -> i
+    i < ÇIKTI_BOY - 1 ve i < uzunluk(d.çıktı) -> iken {
+        YAZI -> renk_
+        bul(d.çıktı[i], "hata") >= 0 -> eğer { HATA_RENK -> renk_ }
+        bul(d.çıktı[i], "uyarı") >= 0 -> eğer { METİN_RENK -> renk_ }
+        bul(d.çıktı[i], "✓") >= 0 -> eğer { OK_RENK -> renk_ }
+        ekran_yaz(DOSYA_GEN + 1, oy + 1 + i, kırp(d.çıktı[i], G - DOSYA_GEN - 2), renk_, -1)
+        i + 1 -> i
+    }
+    # durum çubuğu
+    ekran_doldur(0, B - 1, G, 1, " ", YAZI, PANEL)
+    d.odak == "soru" -> eğer {
+        ekran_yaz(1, B - 1, kırp(d.mesaj + " " + d.cevap + "▏", G - 2), YAZI, -1)
+    } değilse {
+        ekran_yaz(1, B - 1, kırp(d.mesaj, G - 30), d.mesaj_rengi, -1)
+        "satır " + metne(d.sy + 1) + ", sütun " + metne(d.sx + 1) -> konum_
+        ekran_yaz(G - 1 - uzunluk(konum_), B - 1, konum_, SOLUK, -1)
+    }
+    ekran_çiz()
+}
+
+# ── ana döngü ──
+
+işlev boyutu_al(d) {
+    uçbirim_boyutu() -> b
+    en_büyük(b[0], 60) -> g
+    en_büyük(b[1], 16) -> y
+    g != d.gen veya y != d.boy -> eğer {
+        g -> d.gen
+        y -> d.boy
+        EKRANDA -> eğer { ekran_aç(g, y) }
+        1 -> döndür
+    }
+    0 -> döndür
+}
+
+işlev stüdyo() {
+    Düzen([""], "adsız.nehir", 0, 0, 0, 0, 0, "düzenleyici", ".", [], 0, 0,
+          "F1: yardım   F5: çalıştır   F6: denetle   Ctrl+S: kaydet", SOLUK, [], "", "", "", 0, 0, 0) -> d
+    EKRANDA -> eğer {
+        dosyaları_yenile(d)
+        argümanlar() -> a
+        uzunluk(a) > 0 -> eğer { dosya_aç(d, a[0]) } değilse {
+            dosya_var("adsız.nehir") -> eğer { dosya_aç(d, "adsız.nehir") } değilse {
+                ["# Nehir Stüdyo'ya hoş geldin! F5 ile çalıştır, F1 ile yardım.",
+                 "\"Merhaba, Nehir!\" -> yazdır"] -> d.satırlar
+            }
+        }
+        boyutu_al(d)
+        tuş_kipi(1)
+        çiz(d)
+    }
+    doğru -> iken {
+        0 -> değişim
+        tuş() -> t
+        t != "" -> iken {
+            tuşu_işle(d, t)
+            1 -> değişim
+            d.bitti -> eğer { dur }
+            tuş() -> t
+        }
+        d.bitti -> eğer { dur }
+        değil EKRANDA -> eğer { dur }       # deneme kipi: girdi bitti
+        boyutu_al(d) -> eğer { 1 -> değişim }
+        değişim -> eğer { çiz(d) } değilse { bekle(15) }
+    }
+    ekranı_kapat()
+    değil EKRANDA -> eğer {
+        "dosya: " + d.dosya -> yazdır
+        "imleç: " + metne(d.sy + 1) + ":" + metne(d.sx + 1) -> yazdır
+        d.satırlar -> her (s) { "|" + s -> yazdır }
+    }
+}
+
+stüdyo()
