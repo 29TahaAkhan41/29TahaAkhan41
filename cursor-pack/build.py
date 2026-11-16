@@ -38,6 +38,15 @@ VARIANTS = {
         "accent2": (124, 58, 237), "danger": (225, 29, 72),
         "glyph": (255, 255, 255),
     },
+    # Pastel theme inspired by bellflowers (kikyo) and a cake-shop vibe
+    "Kikyo Bloom": {
+        "top": (255, 246, 250), "bottom": (249, 214, 232),
+        "outline": (76, 54, 116), "accent": (155, 135, 245),
+        "accent2": (244, 114, 182), "danger": (236, 72, 153),
+        "glyph": (255, 255, 255),
+        "motif": "kikyo",
+        "petal": (139, 124, 236), "petal_hi": (196, 186, 252), "core": (255, 247, 214),
+    },
 }
 
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
@@ -228,13 +237,61 @@ def pin_icon(cx, cy):
     return m, hole
 
 
+def bellflower(cx, cy, r, rot=0.0):
+    """five pointed petals (kikyo). returns (petals, highlights, core) masks"""
+    petals, hi = new_mask(), new_mask()
+    dp, dh = ImageDraw.Draw(petals), ImageDraw.Draw(hi)
+    for i in range(5):
+        th = math.radians(rot + i * 72 - 90)
+        pts, hpts = [], []
+        for k in range(48):
+            t = 2 * math.pi * k / 48
+            u = 0.5 * r + 0.5 * r * math.cos(t)
+            v = 0.36 * r * math.sin(t) * (1 - 0.45 * max(0.0, math.cos(t)) ** 2)
+            pts.append((u, v))
+            hpts.append((0.25 * r + u * 0.55, v * 0.32))
+        for src, d in ((pts, dp), (hpts, dh)):
+            d.polygon([((cx + u * math.cos(th) - v * math.sin(th)) * S,
+                        (cy + u * math.sin(th) + v * math.cos(th)) * S) for u, v in src], fill=255)
+    core = disc(cx, cy, r * 0.24)
+    return union(petals, disc(cx, cy, r * 0.42)), hi, core
+
+
+def add_flower(cur, t, cx, cy, r, rot=0.0, stroke=1.1):
+    petals, hi, core = bellflower(cx, cy, r, rot)
+    cur.body(petals, "solid", t["petal"], stroke=stroke)
+    cur.body(hi, "solid", t["petal_hi"], stroke=0)
+    cur.body(core, "solid", t["core"], stroke=0)
+    cur.body(disc(cx, cy, r * 0.09), "solid", t["accent2"], stroke=0)
+    return cur
+
+
+def add_cake(cur, t, x, y):
+    """strawberry shortcake slice, top-left at (x, y), ~11 x 10 units"""
+    cream = (255, 252, 245)
+    sponge = (247, 214, 160)
+    cur.body(rrect(x, y + 3, x + 11, y + 10, 1.2), "solid", sponge, stroke=1.1)
+    cur.body(rrect(x, y + 5.6, x + 11, y + 6.9, 0.4), "solid", cream, stroke=0)
+    cur.body(rrect(x, y + 2.4, x + 11, y + 4.2, 0.9), "solid", cream, stroke=0)
+    straw = disc(x + 5.5, y + 1.8, 2.2)
+    ImageDraw.Draw(straw).polygon(p([(x + 3.5, y + 2.4), (x + 7.5, y + 2.4), (x + 5.5, y + 5)]), fill=255)
+    cur.body(straw, "solid", (235, 52, 88), stroke=0.9)
+    cur.body(rrect(x + 4.6, y - 1, x + 6.4, y + 0.3, 0.6), "solid", (74, 170, 92), stroke=0)
+    return cur
+
+
 # ---------------------------------------------------------------- cursor set
 def build_set(t):
     """returns dict name -> (frames:list[Image], hotspot(units), delay_jiffies)"""
     C = lambda: Cursor(t)
     res = {}
 
-    res["pointer"] = ([C().body(arrow_mask()).render()], (3, 2), 0)
+    kikyo = t.get("motif") == "kikyo"
+    if kikyo:
+        res["pointer"] = ([add_flower(C().body(arrow_mask(2, 1, 0.92)), t, 22.5, 22.5, 6.2).render()],
+                          (2, 1), 0)
+    else:
+        res["pointer"] = ([C().body(arrow_mask()).render()], (3, 2), 0)
 
     # help: arrow + ? badge
     img = C().body(arrow_mask(2, 1, 0.92)).body(disc(23, 22.5, 6.2), "solid", t["accent"]) \
@@ -245,6 +302,9 @@ def build_set(t):
     frames = []
     for i in range(18):
         a = i * 20
+        if kikyo:
+            frames.append(add_flower(C().body(arrow_mask(2, 1, 0.92)), t, 22.5, 22.5, 6.6, a * 72 / 360).render())
+            continue
         frames.append(C().body(arrow_mask(2, 1, 0.92))
                       .body(disc(23.5, 23, 6.4), "solid", t["bottom"])
                       .body(arc_mask(23.5, 23, 5.3, 2.1, a - 90, 250), "solid", t["accent"], stroke=0)
@@ -255,6 +315,9 @@ def build_set(t):
     frames = []
     for i in range(18):
         a = i * 20
+        if kikyo:
+            frames.append(add_flower(C(), t, 16, 16, 12.5, a * 72 / 360, stroke=1.35).render())
+            continue
         cur = C().body(ring(16, 16, 11.5, 6.6))
         img = cur.render()
         arc1 = arc_mask(16, 16, 10.9, 3.6, a - 90, 140)
@@ -317,6 +380,9 @@ def build_set(t):
     res["pin"] = ([img], (2, 1), 0)
 
     # person select
+    if kikyo:
+        res["person"] = ([add_cake(C().body(arrow_mask(2, 1, 0.92)), t, 17.5, 18.5).render()], (2, 1), 0)
+        return res
     img = C().body(arrow_mask(2, 1, 0.92)).body(disc(23.5, 23, 7), "solid", t["accent2"]) \
         .body(ImageChops.multiply(person_icon(23.5, 22.4), disc(23.5, 23, 6.3)),
               "solid", t["glyph"], stroke=0).render()

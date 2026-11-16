@@ -1,9 +1,10 @@
 # Nebula Cursor Pack
 
-Modern, kenarlıkları yumuşak, gölgeli bir fare imleci paketi. İki tema içerir:
+Modern, kenarlıkları yumuşak, gölgeli bir fare imleci paketi. Üç tema içerir:
 
 - **Nebula Dark**: koyu gövde, beyaz kenarlık, camgöbeği/mor vurgular
 - **Nebula Light**: beyaz gövde, koyu kenarlık
+- **Kikyo Bloom**: pastel pembe/lavanta; ok imlecinde çan çiçeği (kikyo), meşgul imlecinde dönen çiçek, "kişi" imlecinde çilekli pasta dilimi
 
 ![Önizleme](dist/preview.png)
 
