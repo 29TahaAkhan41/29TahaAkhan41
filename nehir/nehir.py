@@ -1235,11 +1235,20 @@ class KodÜretici:
 
         self.dönüşleri_denetle()
         self.okunmayanları_bildir(self.küreseller)
-        for ad, b in self.bilgi.items():
-            # Modüller kitaplıktır; her işlevlerinin kullanılması beklenmez.
-            if b["türler"] is None and getattr(self.işlevler[ad][2], "dosya", 0) == 0:
-                self.uyarılar.append((self.işlevler[ad][2],
-                                      f"'{ad}' işlevi hiç çağrılmıyor; derlenmedi", None))
+        # Modüller kitaplıktır; her işlevlerinin kullanılması beklenmez. Ana dosyada çok sayıda
+        # çağrılmayan işlev varsa (dosyanın kendisi bir kitaplıksa) tek bir özet uyarı verilir.
+        çağrılmayan = [ad for ad, b in self.bilgi.items()
+                       if b["türler"] is None and getattr(self.işlevler[ad][2], "dosya", 0) == 0]
+        if len(çağrılmayan) > 3:
+            self.uyarılar.append((self.işlevler[çağrılmayan[0]][2],
+                                  f"{len(çağrılmayan)} işlev hiç çağrılmıyor ve derlenmedi: "
+                                  + ", ".join(f"'{ad}'" for ad in çağrılmayan[:3])
+                                  + f" ve {len(çağrılmayan) - 3} işlev daha",
+                                  "bu dosya bir kitaplıksa (örneğin motor/motor.nehir), onu 'kullan' ile "
+                                  "kullanan programı derleyin"))
+        else:
+            for ad in çağrılmayan:
+                self.uyarılar.append((self.işlevler[ad][2], f"'{ad}' işlevi hiç çağrılmıyor; derlenmedi", None))
         self.uyarılar.sort(key=lambda u: (getattr(u[0], "dosya", 0), int(u[0])))
 
         # Tür tanımları yeni metinler (kayıt ve alan adları) ekleyebildiği için

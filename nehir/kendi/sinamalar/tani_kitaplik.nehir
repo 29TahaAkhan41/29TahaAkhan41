@@ -1,0 +1,6 @@
+# Çok sayıda çağrılmayan işlev tek bir özet uyarıyla bildirilir (dosya bir kitaplık olabilir).
+işlev a1(x) { x -> döndür }
+işlev a2(x) { x -> döndür }
+işlev a3(x) { x -> döndür }
+işlev a4(x) { x -> döndür }
+işlev a5(x) { x -> döndür }

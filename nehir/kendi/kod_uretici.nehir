@@ -2595,11 +2595,19 @@ işlev üret(kök, çalışma_zamanı) {
             okunmayanı_bildir(ad, k_küresel_konum[ad], yanlış)
         }
     }
-    # Modüller kitaplıktır; her işlevlerinin kullanılması beklenmez.
+    # Modüller kitaplıktır; her işlevlerinin kullanılması beklenmez. Ana dosyada çok sayıda
+    # çağrılmayan işlev varsa (dosyanın kendisi bir kitaplıksa) tek bir özet uyarı verilir.
+    [] -> çağrılmayan
     k_işlev_adları -> her (ad) {
-        değil var(k_işlev_türler, ad) ve k_işlev[ad].dosya == 0 -> eğer {
-            uyarı_ekle(k_işlev[ad], "'" + ad + "' işlevi hiç çağrılmıyor; derlenmedi", "")
-        }
+        değil var(k_işlev_türler, ad) ve k_işlev[ad].dosya == 0 -> eğer { çağrılmayan -> ekle(ad) }
+    }
+    uzunluk(çağrılmayan) > 3 -> eğer {
+        uyarı_ekle(k_işlev[çağrılmayan[0]], metne(uzunluk(çağrılmayan)) + " işlev hiç çağrılmıyor ve derlenmedi: '"
+                   + çağrılmayan[0] + "', '" + çağrılmayan[1] + "', '" + çağrılmayan[2] + "' ve "
+                   + metne(uzunluk(çağrılmayan) - 3) + " işlev daha",
+                   "bu dosya bir kitaplıksa (örneğin motor/motor.nehir), onu 'kullan' ile kullanan programı derleyin")
+    } değilse {
+        çağrılmayan -> her (ad) { uyarı_ekle(k_işlev[ad], "'" + ad + "' işlevi hiç çağrılmıyor; derlenmedi", "") }
     }
 
     # Ertelenen satırlar (tür tanımları, işlev başlıkları) son sırayla çözülür.
