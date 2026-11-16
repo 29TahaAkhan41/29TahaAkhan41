@@ -681,7 +681,7 @@ python3 nehir.py studyo/studyo.nehir --çalıştır
 | --- | --- |
 | F5 / Ctrl+R | kaydet, derle ve çalıştır (program bitince Enter ile stüdyoya dönülür) |
 | F6 / Ctrl+D | yalnızca denetle: hatalar alt panelde, imleç hatalı satıra gider |
-| Ctrl+S, Ctrl+N | kaydet, yeni dosya |
+| Ctrl+S (ya da F3), Ctrl+N | kaydet, yeni dosya |
 | F2 / Ctrl+O, Esc | dosya listesine geç, düzenleyiciye dön |
 | Ctrl+Q, F1 | çık, yardım |
 

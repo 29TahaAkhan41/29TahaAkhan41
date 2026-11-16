@@ -705,8 +705,21 @@ __sis_tus_doldur:               # -> rax = girdi hazırsa tampona doldurup 1, de
     movzx ecx, word ptr [rax+14]
     test ecx, ecx
     jnz 7f
-    movzx ecx, word ptr [rax+10]    # karaktersiz tuş: oklar, gezinme ve işlev tuşları,
-    sub ecx, 0x21                   # uçbirimlerdeki kaçış dizilerine çevrilir
+    movzx ecx, word ptr [rax+10]    # karaktersiz tuş
+    cmp ecx, 0x41                   # Ctrl + harf karakter kodu olmadan geldiyse (bazı klavye
+    jb 72f                          # düzenleri ve konsollar): denetim baytına (Ctrl+S = 0x13) çevrilir
+    cmp ecx, 0x5A
+    ja 72f
+    test dword ptr [rax+16], 0xC    # LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED
+    jz 72f
+    sub ecx, 0x40
+    lea rdx, [rip+__g_tampon]
+    add rdx, [rsp+72]
+    mov [rdx], cl
+    inc qword ptr [rsp+72]
+    jmp 6b
+72: sub ecx, 0x21                   # oklar, gezinme ve işlev tuşları, uçbirimlerdeki kaçış
+                                    # dizilerine çevrilir
     cmp ecx, 0x5A
     ja 6b
     lea rdx, [rip+__w_vk]

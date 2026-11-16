@@ -4,7 +4,7 @@
 # Solda dosyalar, ortada sözdizimi renklendirmeli düzenleyici, altta derleme çıktısı.
 #
 #   F5 / Ctrl+R   kaydet, derle ve çalıştır      F6 / Ctrl+D   yalnızca denetle (hataları göster)
-#   Ctrl+S        kaydet                         Ctrl+N        yeni dosya
+#   Ctrl+S / F3   kaydet                         Ctrl+N        yeni dosya
 #   F2 / Ctrl+O   dosya listesine geç            Esc           düzenleyiciye dön
 #   Ctrl+Q        çık                            F1            yardım
 #
@@ -351,7 +351,7 @@ işlev seçili_dosyayı_aç(d) {
 işlev yardım_göster(d) {
     ["Nehir Stüdyo kısayolları:",
      "  F5 / Ctrl+R  kaydet, derle, çalıştır     F6 / Ctrl+D  denetle (hatalar burada)",
-     "  Ctrl+S kaydet   Ctrl+N yeni dosya   F2 / Ctrl+O dosyalar   Esc düzenleyici",
+     "  Ctrl+S / F3 kaydet   Ctrl+N yeni dosya   F2 / Ctrl+O dosyalar   Esc düzenleyici",
      "  Ctrl+Q çık      Tab 4 boşluk        oklar, Home, End, PageUp, PageDown, Delete",
      "  '{' sonrası Enter girintiyi artırır; boş satırda '}' azaltır."] -> d.çıktı
 }
@@ -379,7 +379,7 @@ işlev tuşu_işle(d, t) {
         } değilse { 1 -> d.bitti }
         0 -> döndür
     }
-    t == "ctrl+s" -> eğer { kaydet(d)   0 -> döndür }
+    t == "ctrl+s" veya t == "f3" -> eğer { kaydet(d)   0 -> döndür }
     t == "f5" veya t == "ctrl+r" -> eğer { çalıştır(d)   0 -> döndür }
     t == "f6" veya t == "ctrl+d" -> eğer { denetle(d)   0 -> döndür }
     t == "f1" -> eğer { yardım_göster(d)   0 -> döndür }
@@ -430,8 +430,10 @@ işlev tuşu_işle(d, t) {
     t == "geri" -> eğer { geri_sil(d) }
     t == "sil" -> eğer { ileri_sil(d) }
     t == "tab" -> eğer { araya_yaz(d, "    ") }
-    uzunluk(t) == 1 ve t != "-" -> eğer { araya_yaz(d, t) }
-    t == "-" -> eğer { araya_yaz(d, t) }
+    uzunluk(t) == 1 -> eğer { araya_yaz(d, t) }
+    dilim(t, 0, 5) == "ctrl+" veya (uzunluk(t) <= 3 ve dilim(t, 0, 1) == "f" ve uzunluk(t) > 1) -> eğer {
+        mesaj_ver(d, "'" + t + "' kısayolunun bir işi yok (F1: yardım)", SOLUK)
+    }
     imleci_sığdır(d)
     kaydır(d)
 }
@@ -622,7 +624,7 @@ işlev boyutu_al(d) {
 
 işlev stüdyo() {
     Düzen([""], "adsız.nehir", 0, 0, 0, 0, 0, "düzenleyici", ".", [], 0, 0,
-          "F1: yardım   F5: çalıştır   F6: denetle   Ctrl+S: kaydet", SOLUK, [], "", "", "", 0, 0, 0) -> d
+          "F1: yardım   F5: çalıştır   F6: denetle   Ctrl+S / F3: kaydet", SOLUK, [], "", "", "", 0, 0, 0) -> d
     EKRANDA -> eğer {
         dosyaları_yenile(d)
         argümanlar() -> a
