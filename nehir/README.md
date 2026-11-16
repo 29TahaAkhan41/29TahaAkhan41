@@ -288,6 +288,7 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `ekran_çiz()` | `screen_draw` | yalnızca son çizimden bu yana değişen hücreleri uçbirime yazar; yazılan bayt sayısını verir |
 | `ekran_kapat()` | `screen_close` | uçbirimi eski hâline döndürür (program bitince ya da hata verince kendiliğinden) |
 | `rgb(k, y, m)` | | 0–255 arası bileşenlerden `0xRRGGBB` rengi |
+| `metin_genişliği(m)` | `text_width` | metnin uçbirimde kapladığı sütun sayısı (Çince, Japonca, çoğu emoji 2; birleşen işaretler 0) |
 | `sırala(l)` | `sort` | sayı, metin ya da ondalık listesinin sıralanmış kopyası (metinler bayt sırasıyla) |
 | `sırala(l, önce)` | `sort` | `önce(a, b)` işlevine göre (a, b'den önce gelecekse 1) kararlı sıralanmış kopya |
 | `ters_çevir(l)` | `reverse` | elemanları ters sırada yeni liste |
@@ -362,7 +363,9 @@ tuş_kipi(0)
 karşılaştırıp yalnızca değişen hücreleri, en az imleç ve renk kaçış dizisiyle, tek seferde uçbirime
 gönderir. Bu yüzden ekran titremez, durağan bir sahne neredeyse hiç yazı tutmaz ve bir kare hiç bellek
 ayırmaz. Renkler `0xRRGGBB` (ya da `rgb(255, 128, 0)`) sayılarıdır; `-1` "değiştirme" demektir:
-bir metni zeminin rengini bozmadan yazmak için arka planı `-1` verilir. Ekranın dışına taşan kısım kırpılır.
+bir metni zeminin rengini bozmadan yazmak için arka planı `-1` verilir. Ekranın dışına taşan kısım kırpılır. Çift genişlikli karakterler (Çince, Japonca, çoğu
+emoji) iki hücre kaplar; birleşen işaretler yer kaplamaz. Satır sonuna sığmayan geniş karakter yerine
+boşluk konur; geniş bir karakterin yarısının üstüne yazılırsa öbür yarısı boşluk olur.
 
 ```nehir
 ekran_aç(40, 12)

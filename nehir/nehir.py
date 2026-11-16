@@ -150,6 +150,7 @@ YERLEŞİKLER = {
     "ters_çevir": "ters_çevir", "ters_cevir": "ters_çevir", "reverse": "ters_çevir",
     "tuş_bırakma_var": "tuş_bırakma_var", "tus_birakma_var": "tuş_bırakma_var",
     "key_release_supported": "tuş_bırakma_var",
+    "metin_genişliği": "metin_genişliği", "metin_genisligi": "metin_genişliği", "text_width": "metin_genişliği",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -963,7 +964,7 @@ SAF_YERLEŞİKLER = {
     "dosya_var", "girdi_var", "zaman", "uçbirim_boyutu", "ondalığa", "yuvarla", "taban", "tavan",
     "karekök", "mutlak", "sin", "cos", "atan2", "pi", "bit_ve", "bit_veya", "bit_yada", "bit_değil",
     "sola_kaydır", "sağa_kaydır", "en_küçük", "en_büyük", "sınırla", "işaret", "üs", "tan", "atan",
-    "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar"}
+    "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar", "metin_genişliği"}
 
 # Ekran işlevleri: kabul ettikleri argüman türleri, açıklaması ve çalışma zamanı yordamı.
 # Argümanlar yığında kalır; yordam onları rdi'nin gösterdiği yerden okur. Eksik renkler -1'dir.
@@ -1841,6 +1842,12 @@ class KodÜretici:
             self.yaz("pop rdi")
             self.yaz("call __metin_baytlar")
             return Liste("sayı")
+        if asıl == "metin_genişliği":
+            if türler != ["metin"]:
+                yanlış("metin")
+            self.yaz("pop rdi")
+            self.yaz("call __metin_genisligi")
+            return "sayı"
         if asıl == "karakter":
             if türler != ["sayı"]:
                 yanlış("karakter kodu")

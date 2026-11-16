@@ -75,7 +75,8 @@ kullan "ayristirici.nehir"
     "ekran_çiz": "ekran_çiz", "ekran_ciz": "ekran_çiz", "screen_draw": "ekran_çiz", "rgb": "rgb",
     "sırala": "sırala", "sirala": "sırala", "sort": "sırala", "ters_çevir": "ters_çevir",
     "ters_cevir": "ters_çevir", "reverse": "ters_çevir", "tuş_bırakma_var": "tuş_bırakma_var",
-    "tus_birakma_var": "tuş_bırakma_var", "key_release_supported": "tuş_bırakma_var"
+    "tus_birakma_var": "tuş_bırakma_var", "key_release_supported": "tuş_bırakma_var",
+    "metin_genişliği": "metin_genişliği", "metin_genisligi": "metin_genişliği", "text_width": "metin_genişliği"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -189,7 +190,8 @@ işlev gözetle(satırlar) {
  "dosya_var", "girdi_var", "zaman", "uçbirim_boyutu", "ondalığa", "yuvarla", "taban", "tavan",
  "karekök", "mutlak", "sin", "cos", "atan2", "pi", "bit_ve", "bit_veya", "bit_yada", "bit_değil",
  "sola_kaydır", "sağa_kaydır", "en_küçük", "en_büyük", "sınırla", "işaret", "üs", "tan", "atan",
- "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar"] -> her (a) { 1 -> SAF_YERLEŞİKLER[a] }
+ "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar",
+ "metin_genişliği"] -> her (a) { 1 -> SAF_YERLEŞİKLER[a] }
 
 # Ekran işlevleri: [kısa biçim, uzun biçim, açıklama, yordam]. Biçim, argüman türlerinin virgülle
 # birleşimidir; kısa biçimde eksik kalan renkler -1 olarak itilir. nehir.py'deki EKRAN_İŞLEVLERİ ile aynı.
@@ -1327,6 +1329,12 @@ işlev yerleşik_çağır(ad, türler, d) {
         }
         komut("call __uyar", d)
         "metin" -> döndür
+    }
+    asıl == "metin_genişliği" -> eğer {
+        n != 1 veya t0 != "metin" -> eğer { yanlış_argüman(ad, "metin", türler, d) }
+        yaz("pop rdi")
+        yaz("call __metin_genisligi")
+        "sayı" -> döndür
     }
     asıl == "karakter" -> eğer {
         n != 1 veya t0 != "sayı" -> eğer { yanlış_argüman(ad, "karakter kodu", türler, d) }

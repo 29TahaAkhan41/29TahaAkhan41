@@ -1,0 +1,14 @@
+# Çift genişlikli karakterler (Çince, Japonca, çoğu emoji) ekran tamponunda iki hücre kaplar;
+# birleşen işaretler yer kaplamaz. metin_genişliği(m), metnin uçbirimde kaç sütun tuttuğunu verir.
+[metin_genişliği("abc"), metin_genişliği("çğü"), metin_genişliği("日本"), metin_genişliği("😀x"), metin_genişliği("é")] -> yazdır
+ekran_aç(6, 3)
+ekran_yaz(0, 0, "日本語", -1, -1)
+ekran_yaz(1, 1, "😀😀😀", -1, -1)
+ekran_yaz(0, 2, "a😀b", -1, -1)
+ekran_çiz() -> b1
+ekran_yaz(1, 0, "x", -1, -1)
+ekran_çiz() -> b2
+ekran_doldur(0, 2, 5, 1, "猫", -1, -1)
+ekran_çiz() -> b3
+ekran_kapat()
+[b1, b2, b3] -> yazdır
