@@ -1,0 +1,2 @@
+# Olmayan bir dizin listelenemez.
+dizin_listele("olmayan_dizin") -> yazdır

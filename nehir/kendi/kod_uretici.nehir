@@ -76,7 +76,9 @@ kullan "ayristirici.nehir"
     "sırala": "sırala", "sirala": "sırala", "sort": "sırala", "ters_çevir": "ters_çevir",
     "ters_cevir": "ters_çevir", "reverse": "ters_çevir", "tuş_bırakma_var": "tuş_bırakma_var",
     "tus_birakma_var": "tuş_bırakma_var", "key_release_supported": "tuş_bırakma_var",
-    "metin_genişliği": "metin_genişliği", "metin_genisligi": "metin_genişliği", "text_width": "metin_genişliği"
+    "metin_genişliği": "metin_genişliği", "metin_genisligi": "metin_genişliği", "text_width": "metin_genişliği",
+    "komut_çalıştır": "komut_çalıştır", "komut_calistir": "komut_çalıştır", "run_command": "komut_çalıştır",
+    "dizin_listele": "dizin_listele", "list_dir": "dizin_listele"
 } -> YERLEŞİK_ADLAR
 
 # Çalışma zamanında hata verebilen işlemler; öncesinde r15'e kaynak satırı yüklenir.
@@ -96,7 +98,7 @@ kullan "ayristirici.nehir"
     "call __liste_en": 1, "call __ekran_ac": 1, "call __ekran_temizle": 1, "call __ekran_yaz": 1,
     "call __ekran_doldur": 1, "call __ekran_ciz": 1, "call __liste_sirala": 1,
     "call __liste_ters": 1, "call __sayi_bol": 1, "call __sayi_kalan": 1, "call __ondalik_tama": 1,
-    "call __ondalik_yuvarla": 1
+    "call __ondalik_yuvarla": 1, "call __komut_calistir": 1, "call __dizin_listele": 1
 } -> RİSKLİ
 
 # ── gözetleme deliği eniyilemesi ──
@@ -191,7 +193,7 @@ işlev gözetle(satırlar) {
  "karekök", "mutlak", "sin", "cos", "atan2", "pi", "bit_ve", "bit_veya", "bit_yada", "bit_değil",
  "sola_kaydır", "sağa_kaydır", "en_küçük", "en_büyük", "sınırla", "işaret", "üs", "tan", "atan",
  "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar",
- "metin_genişliği"] -> her (a) { 1 -> SAF_YERLEŞİKLER[a] }
+ "metin_genişliği", "dizin_listele"] -> her (a) { 1 -> SAF_YERLEŞİKLER[a] }
 
 # Ekran işlevleri: [kısa biçim, uzun biçim, açıklama, yordam]. Biçim, argüman türlerinin virgülle
 # birleşimidir; kısa biçimde eksik kalan renkler -1 olarak itilir. nehir.py'deki EKRAN_İŞLEVLERİ ile aynı.
@@ -1401,6 +1403,18 @@ işlev yerleşik_çağır(ad, türler, d) {
         }
         komut("call __uyar", d)
         "metin" -> döndür
+    }
+    asıl == "komut_çalıştır" veya asıl == "dizin_listele" -> eğer {
+        "dizin yolu" -> açıklama
+        asıl == "komut_çalıştır" -> eğer { "komut" -> açıklama }
+        n != 1 veya t0 != "metin" -> eğer { yanlış_argüman(ad, açıklama, türler, d) }
+        yaz("pop rdi")
+        asıl == "komut_çalıştır" -> eğer {
+            komut("call __komut_calistir", d)
+            "sayı" -> döndür
+        }
+        komut("call __dizin_listele", d)
+        "[metin]" -> döndür
     }
     asıl == "metin_genişliği" -> eğer {
         n != 1 veya t0 != "metin" -> eğer { yanlış_argüman(ad, "metin", türler, d) }

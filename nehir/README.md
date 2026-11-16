@@ -289,6 +289,8 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `ekran_kapat()` | `screen_close` | uçbirimi eski hâline döndürür (program bitince ya da hata verince kendiliğinden) |
 | `rgb(k, y, m)` | | 0–255 arası bileşenlerden `0xRRGGBB` rengi |
 | `metin_genişliği(m)` | `text_width` | metnin uçbirimde kapladığı sütun sayısı (Çince, Japonca, çoğu emoji 2; birleşen işaretler 0) |
+| `dizin_listele(yol)` | `list_dir` | dizindeki adlar, sıralı; dizinlerin sonunda `/` |
+| `komut_çalıştır(komut)` | `run_command` | komutu kabukta (Linux'ta `sh`, Windows'ta `cmd`) çalıştırır, bitmesini bekler, çıkış kodunu verir |
 | `sırala(l)` | `sort` | sayı, metin ya da ondalık listesinin sıralanmış kopyası (metinler bayt sırasıyla) |
 | `sırala(l, önce)` | `sort` | `önce(a, b)` işlevine göre (a, b'den önce gelecekse 1) kararlı sıralanmış kopya |
 | `ters_çevir(l)` | `reverse` | elemanları ters sırada yeni liste |
@@ -339,7 +341,9 @@ ve yenileri) bildirir. Uçbirimin yanıtı ilk `tuş()` çağrılarında gelir; 
 sürmesinden anlamak gerekir.
 
 **Oyun döngüsü.** `tuş()` oklar için `"yukarı"`, `"aşağı"`, `"sağ"`, `"sol"`; Enter için `"enter"`,
-Esc için `"esc"`, Tab için `"tab"`, geri silme için `"geri"`, diğer tuşlar için yazdıkları karakteri
+Esc için `"esc"`, Tab için `"tab"`, geri silme için `"geri"`, Ctrl kısayolları için `"ctrl+s"` gibi adlar,
+işlev tuşları için `"f1"`...`"f12"`, Home/End için `"baş"`/`"son"`, PageUp/PageDown için `"sayfa_yukarı"`/`"sayfa_aşağı"`,
+Insert/Delete için `"araya"`/`"sil"`, diğer tuşlar için yazdıkları karakteri
 (`"a"`, `" "`, `"ç"`) verir. Tuşlar `oku()` ile aynı girdiden gelir; girdi bir dosya ya da boruysa tuşlar
 oradan tek tek okunur. Ham kipte Ctrl+C programı (130 koduyla) bitirir; program nasıl biterse bitsin
 uçbirim eski hâline döner. Sabit hızlı bir döngü:

@@ -151,6 +151,8 @@ YERLEŞİKLER = {
     "tuş_bırakma_var": "tuş_bırakma_var", "tus_birakma_var": "tuş_bırakma_var",
     "key_release_supported": "tuş_bırakma_var",
     "metin_genişliği": "metin_genişliği", "metin_genisligi": "metin_genişliği", "text_width": "metin_genişliği",
+    "komut_çalıştır": "komut_çalıştır", "komut_calistir": "komut_çalıştır", "run_command": "komut_çalıştır",
+    "dizin_listele": "dizin_listele", "list_dir": "dizin_listele",
 }
 
 İŞLEÇLER = ["->", "→", "==", "!=", "<=", ">=",
@@ -915,7 +917,8 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__argumanlar", "__metin_karakter", "__rastgele", "__tus", "__ucbirim_boyutu",
     "__ondalik_metin", "__metinden_ondalik", "__us_sayi", "__liste_en", "__ekran_ac",
     "__ekran_temizle", "__ekran_yaz", "__ekran_doldur", "__ekran_ciz", "__liste_sirala",
-    "__liste_ters", "__sayi_bol", "__sayi_kalan", "__ondalik_tama", "__ondalik_yuvarla")}
+    "__liste_ters", "__sayi_bol", "__sayi_kalan", "__ondalik_tama", "__ondalik_yuvarla",
+    "__komut_calistir", "__dizin_listele")}
 
 # ── gözetleme deliği eniyilemesi ──
 # Üretilen kod her ara değeri yığına iter. Ardışık birkaç satırlık kalıplar daha kısa ve eşdeğer
@@ -986,7 +989,7 @@ SAF_YERLEŞİKLER = {
     "dosya_var", "girdi_var", "zaman", "uçbirim_boyutu", "ondalığa", "yuvarla", "taban", "tavan",
     "karekök", "mutlak", "sin", "cos", "atan2", "pi", "bit_ve", "bit_veya", "bit_yada", "bit_değil",
     "sola_kaydır", "sağa_kaydır", "en_küçük", "en_büyük", "sınırla", "işaret", "üs", "tan", "atan",
-    "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar", "metin_genişliği"}
+    "asin", "acos", "üstel", "ln", "rgb", "sırala", "ters_çevir", "argümanlar", "metin_genişliği", "dizin_listele"}
 
 # Ekran işlevleri: kabul ettikleri argüman türleri, açıklaması ve çalışma zamanı yordamı.
 # Argümanlar yığında kalır; yordam onları rdi'nin gösterdiği yerden okur. Eksik renkler -1'dir.
@@ -1892,6 +1895,12 @@ class KodÜretici:
             self.yaz("pop rdi")
             self.yaz("call __metin_genisligi")
             return "sayı"
+        if asıl in ("komut_çalıştır", "dizin_listele"):
+            if türler != ["metin"]:
+                yanlış("komut" if asıl == "komut_çalıştır" else "dizin yolu")
+            self.yaz("pop rdi")
+            self.yaz("call __komut_calistir" if asıl == "komut_çalıştır" else "call __dizin_listele")
+            return "sayı" if asıl == "komut_çalıştır" else Liste("metin")
         if asıl == "karakter":
             if türler != ["sayı"]:
                 yanlış("karakter kodu")

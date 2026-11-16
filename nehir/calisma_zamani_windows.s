@@ -512,6 +512,124 @@ __sis_tus_kipi:                 # rdi = 1 aç, 0 kapat -> rax = ham kip açıksa
 8:  xor eax, eax
 9:  WIN_CIKIS
 
+__sis_komut:                    # rdi = komut (metin) -> rax = cmd /s /c ile çalıştırılınca çıkış kodu
+    WIN_GIRIS
+    call __cikti_bosalt
+    mov rsi, rdi                # "cmd.exe /s /c \"" + komut + "\""
+    lea rdi, [rip+__cmd_on]
+    call __metin_birlestir
+    mov rdi, rax
+    lea rsi, [rip+__cmd_son]
+    call __metin_birlestir
+    mov rdi, rax
+    call __genis_yol
+    lea rdi, [rip+__w_si]       # STARTUPINFOW sıfırlanır, boyutu yazılır
+    xor eax, eax
+    mov ecx, 13
+    rep stosq
+    mov dword ptr [rip+__w_si], 104
+    xor ecx, ecx
+    lea rdx, [rip+__genis_tampon]
+    xor r8d, r8d
+    xor r9d, r9d
+    mov qword ptr [rsp+32], 1   # tutamaçlar devralınır (aynı konsol)
+    mov qword ptr [rsp+40], 0
+    mov qword ptr [rsp+48], 0
+    mov qword ptr [rsp+56], 0
+    lea rax, [rip+__w_si]
+    mov [rsp+64], rax
+    lea rax, [rip+__w_pi]
+    mov [rsp+72], rax
+    call CreateProcessW
+    test eax, eax
+    jz 8f
+    mov rcx, [rip+__w_pi]
+    mov edx, -1
+    call WaitForSingleObject
+    mov rcx, [rip+__w_pi]
+    lea rdx, [rsp+80]
+    mov dword ptr [rsp+80], -1
+    call GetExitCodeProcess
+    mov rcx, [rip+__w_pi]
+    call CloseHandle
+    mov rcx, [rip+__w_pi+8]
+    call CloseHandle
+    mov eax, [rsp+80]
+    WIN_CIKIS
+8:  mov rax, -1
+    WIN_CIKIS
+
+__sis_dizin:                    # rdi = yol -> rax = içindekilerin adları (dizinlerin sonunda "/")
+    WIN_GIRIS
+    mov [rsp+88], rbx           # Win64'te korunması gerekenler
+    mov [rsp+96], r12
+    mov [rip+__h_ek], rdi
+    lea rsi, [rip+__w_yildiz]   # yol + "\*"
+    call __metin_birlestir
+    mov rdi, rax
+    call __genis_yol
+    lea rcx, [rip+__genis_tampon]
+    lea rdx, [rip+__w_bul]
+    call FindFirstFileW
+    cmp rax, -1
+    jne 1f
+    call __win_errno
+    neg rax
+    mov rbx, [rsp+88]
+    mov r12, [rsp+96]
+    jmp __dosya_hatasi
+1:  mov rbx, rax
+    mov edi, 8
+    call __liste_yeni
+    mov r12, rax
+2:  lea rax, [rip+__w_bul+44]   # cFileName: "." ve ".." atlanır
+    cmp word ptr [rax], 46
+    jne 3f
+    cmp word ptr [rax+2], 0
+    je 6f
+    cmp word ptr [rax+2], 46
+    jne 3f
+    cmp word ptr [rax+4], 0
+    je 6f
+3:  mov ecx, 65001
+    xor edx, edx
+    lea r8, [rip+__w_bul+44]
+    mov r9d, -1
+    lea rax, [rip+__dar_tampon]
+    mov [rsp+32], rax
+    mov qword ptr [rsp+40], 131072
+    mov qword ptr [rsp+48], 0
+    mov qword ptr [rsp+56], 0
+    call WideCharToMultiByte    # sondaki sıfır dahil bayt sayısı
+    lea rdi, [rax-1]
+    mov [rsp+80], rdi
+    test dword ptr [rip+__w_bul], 0x10  # FILE_ATTRIBUTE_DIRECTORY: sona "/"
+    jz 4f
+    inc rdi
+4:  call __metin_yeni
+    mov rdi, rax
+    lea rsi, [rip+__dar_tampon]
+    mov rcx, [rsp+80]
+    rep movsb
+    test dword ptr [rip+__w_bul], 0x10
+    jz 5f
+    mov byte ptr [rdi], 47
+5:  mov rsi, rax
+    mov rdi, r12
+    call __liste_ekle
+6:  mov rcx, rbx
+    lea rdx, [rip+__w_bul]
+    call FindNextFileW
+    test eax, eax
+    jnz 2b
+    mov rcx, rbx
+    call FindClose
+    mov qword ptr [rip+__h_ek], 0
+    mov rax, r12
+    mov rbx, [rsp+88]
+    mov r12, [rsp+96]
+    WIN_CIKIS
+
 __sis_birakma_ac:               # konsol tuş bırakmalarını zaten bildirir
     movzx eax, byte ptr [rip+__tk_acik]
     mov [rip+__tk_birakma], al
@@ -587,18 +705,25 @@ __sis_tus_doldur:               # -> rax = girdi hazırsa tampona doldurup 1, de
     movzx ecx, word ptr [rax+14]
     test ecx, ecx
     jnz 7f
-    movzx ecx, word ptr [rax+10]    # karaktersiz tuş: yalnızca oklar
-    sub ecx, 0x25
-    cmp ecx, 3
+    movzx ecx, word ptr [rax+10]    # karaktersiz tuş: oklar, gezinme ve işlev tuşları,
+    sub ecx, 0x21                   # uçbirimlerdeki kaçış dizilerine çevrilir
+    cmp ecx, 0x5A
     ja 6b
-    lea rdx, [rip+__w_oklar]
-    movzx ecx, byte ptr [rdx+rcx]
-    lea rdx, [rip+__g_tampon]
-    add rdx, [rsp+72]
-    mov byte ptr [rdx], 27
-    mov byte ptr [rdx+1], 91
-    mov [rdx+2], cl
-    add qword ptr [rsp+72], 3
+    lea rdx, [rip+__w_vk]
+    mov rdx, [rdx+rcx*8]
+    test rdx, rdx
+    jz 6b
+    movzx ecx, byte ptr [rdx]       # dizinin uzunluğu, ardından baytları
+    inc rdx
+    lea r8, [rip+__g_tampon]
+    add r8, [rsp+72]
+    add [rsp+72], rcx
+71: mov al, [rdx]
+    mov [r8], al
+    inc rdx
+    inc r8
+    dec ecx
+    jnz 71b
     jmp 6b
 7:  lea r8, [rax+14]
     mov ecx, 65001
@@ -694,7 +819,66 @@ __sis_boyut:                    # -> rax = (yükseklik << 32) | genişlik; konso
     .quad 7
 __isletim_sistemi_adi: .ascii "windows"
     .byte 0
+    .balign 8
+    .quad 15
+__cmd_on: .ascii "cmd.exe /s /c \""
+    .byte 0
+    .balign 8
+    .quad 1
+__cmd_son: .ascii "\""
+    .byte 0
+    .balign 8
+    .quad 2
+__w_yildiz: .ascii "\\*"
+    .byte 0
 __w_oklar: .ascii "DACB"        # sol, yukarı, sağ, aşağı -> Esc [ D/A/C/B
+__w_vk_21: .byte 4
+    .ascii "\033[5~"
+__w_vk_22: .byte 4
+    .ascii "\033[6~"
+__w_vk_23: .byte 3
+    .ascii "\033[F"
+__w_vk_24: .byte 3
+    .ascii "\033[H"
+__w_vk_25: .byte 3
+    .ascii "\033[D"
+__w_vk_26: .byte 3
+    .ascii "\033[A"
+__w_vk_27: .byte 3
+    .ascii "\033[C"
+__w_vk_28: .byte 3
+    .ascii "\033[B"
+__w_vk_2D: .byte 4
+    .ascii "\033[2~"
+__w_vk_2E: .byte 4
+    .ascii "\033[3~"
+__w_vk_70: .byte 3
+    .ascii "\033OP"
+__w_vk_71: .byte 3
+    .ascii "\033OQ"
+__w_vk_72: .byte 3
+    .ascii "\033OR"
+__w_vk_73: .byte 3
+    .ascii "\033OS"
+__w_vk_74: .byte 5
+    .ascii "\033[15~"
+__w_vk_75: .byte 5
+    .ascii "\033[17~"
+__w_vk_76: .byte 5
+    .ascii "\033[18~"
+__w_vk_77: .byte 5
+    .ascii "\033[19~"
+__w_vk_78: .byte 5
+    .ascii "\033[20~"
+__w_vk_79: .byte 5
+    .ascii "\033[21~"
+__w_vk_7A: .byte 5
+    .ascii "\033[23~"
+__w_vk_7B: .byte 5
+    .ascii "\033[24~"
+    .balign 8
+__w_vk:     # sanal tuş kodu 0x21 + i -> kaçış dizisi (uzunluk baytı + baytlar) ya da 0
+    .quad __w_vk_21, __w_vk_22, __w_vk_23, __w_vk_24, __w_vk_25, __w_vk_26, __w_vk_27, __w_vk_28, 0, 0, 0, 0, __w_vk_2D, __w_vk_2E, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, __w_vk_70, __w_vk_71, __w_vk_72, __w_vk_73, __w_vk_74, __w_vk_75, __w_vk_76, __w_vk_77, __w_vk_78, __w_vk_79, __w_vk_7A, __w_vk_7B
 
     .section .bss
     .balign 16
@@ -703,5 +887,8 @@ __tk_eski: .skip 8              # tuş kipinden önceki konsol kipi
 __tk_acik: .skip 8
 __w_zamanlayici: .skip 8        # bekle() için yüksek çözünürlüklü zamanlayıcı
 __w_kayit: .skip 24             # konsoldan okunan bir INPUT_RECORD
+__w_si: .skip 104               # komut_çalıştır: STARTUPINFOW
+__w_pi: .skip 24                # PROCESS_INFORMATION
+__w_bul: .skip 600              # dizin_listele: WIN32_FIND_DATAW
 __genis_tampon: .skip 65536     # UTF-16 yollar ve konsol metni
 __dar_tampon: .skip 131072      # UTF-8'e çevrilen argümanlar

@@ -272,6 +272,138 @@ __sis_tus_kipi:                 # rdi = 1 aç, 0 kapat -> rax = ham kip açıksa
     pop rdi
     ret
 
+__sis_komut:                    # rdi = komut (metin) -> rax = /bin/sh -c ile çalıştırılınca çıkış kodu
+    push rbx
+    push r12
+    push rbp
+    mov rbp, rsp
+    mov rbx, rdi
+    call __cikti_bosalt
+    mov eax, 57                 # fork
+    syscall
+    test rax, rax
+    js 8f
+    jnz 3f
+    sub rsp, 32                 # çocuk süreç: execve("/bin/sh", ["sh", "-c", komut], ortam)
+    lea rax, [rip+__sh_yol]
+    mov [rsp], rax
+    lea rax, [rip+__sh_c]
+    mov [rsp+8], rax
+    mov [rsp+16], rbx
+    mov qword ptr [rsp+24], 0
+    mov r8, [rip+__baslangic_sp]
+    mov rcx, [r8]
+    lea rdx, [r8+rcx*8+16]
+    lea rdi, [rip+__sh_yol]
+    mov rsi, rsp
+    mov eax, 59
+    syscall
+    mov edi, 127                # çalıştırılamadı
+    mov eax, 60
+    syscall
+3:  mov r12, rax                # ana süreç: bitmesini bekle
+    sub rsp, 16
+4:  mov rdi, r12
+    mov rsi, rsp
+    xor edx, edx
+    xor r10d, r10d
+    mov eax, 61                 # wait4
+    syscall
+    cmp rax, -4                 # EINTR
+    je 4b
+    test rax, rax
+    js 8f
+    mov eax, [rsp]
+    mov ecx, eax
+    and ecx, 0x7F
+    jz 5f
+    lea eax, [rcx+128]          # sinyalle bittiyse 128 + sinyal
+    jmp 9f
+5:  shr eax, 8
+    and eax, 0xFF
+    jmp 9f
+8:  mov rax, -1
+9:  leave
+    pop r12
+    pop rbx
+    ret
+
+__sis_dizin:                    # rdi = yol -> rax = içindekilerin adları (dizinlerin sonunda "/")
+    push rbx
+    push r12
+    push r13
+    push r14
+    push rbp
+    mov [rip+__h_ek], rdi
+    mov eax, 2                  # open(yol, O_RDONLY | O_DIRECTORY)
+    mov esi, 0x10000
+    xor edx, edx
+    syscall
+    test rax, rax
+    js __dosya_hatasi
+    mov r12, rax
+    mov edi, 8
+    call __liste_yeni
+    mov r13, rax
+    sub rsp, 4096
+1:  mov edi, r12d               # getdents64
+    mov rsi, rsp
+    mov edx, 4096
+    mov eax, 217
+    syscall
+    test rax, rax
+    jle 7f
+    mov r14, rax
+    xor ebx, ebx
+2:  cmp rbx, r14
+    jae 1b
+    movzx ebp, word ptr [rsp+rbx+16]    # kayıt uzunluğu
+    lea rsi, [rsp+rbx+19]               # ad
+    cmp byte ptr [rsi], 46      # "." ve ".." atlanır
+    jne 3f
+    cmp byte ptr [rsi+1], 0
+    je 6f
+    cmp byte ptr [rsi+1], 46
+    jne 3f
+    cmp byte ptr [rsi+2], 0
+    je 6f
+3:  xor ecx, ecx
+4:  cmp byte ptr [rsi+rcx], 0
+    je 5f
+    inc rcx
+    jmp 4b
+5:  mov rdi, rcx
+    cmp byte ptr [rsp+rbx+18], 4        # DT_DIR: sona "/"
+    jne 51f
+    inc rdi
+51: push rcx
+    push rsi
+    call __metin_yeni
+    pop rsi
+    pop rcx
+    mov rdi, rax
+    rep movsb
+    cmp byte ptr [rsp+rbx+18], 4
+    jne 52f
+    mov byte ptr [rdi], 47
+52: mov rsi, rax
+    mov rdi, r13
+    call __liste_ekle
+6:  add rbx, rbp
+    jmp 2b
+7:  add rsp, 4096
+    mov rdi, r12
+    mov eax, 3
+    syscall
+    mov qword ptr [rip+__h_ek], 0
+    mov rax, r13
+    pop rbp
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    ret
+
 __sis_birakma_ac:               # kitty klavye protokolü istenir (bayraklar 1|2|4|8: olay türleri, bütün
     call __cikti_bosalt         # tuşlar kaçış dizisi olarak) ve desteklenip desteklenmediği sorulur
     push rdi
@@ -327,6 +459,8 @@ __sis_boyut:                    # -> rax = (yükseklik << 32) | genişlik; uçbi
     ret
 
     .section .rodata
+__sh_yol: .asciz "/bin/sh"
+__sh_c: .asciz "-c"
 __kitty_ac: .ascii "\033[>15u\033[?u"
 __kitty_ac_son:
 __kitty_kapa: .ascii "\033[<u"

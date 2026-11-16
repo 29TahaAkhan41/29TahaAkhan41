@@ -1,0 +1,7 @@
+# tuş() denetim tuşlarını adlarıyla verir: Ctrl kısayolları "ctrl+s", işlev tuşları "f1"..."f12",
+# gezinme tuşları "baş", "son", "sayfa_yukarı", "sayfa_aşağı", "araya" (Insert), "sil" (Delete).
+tuş() -> t
+t != "" -> iken {
+    "<" + t + ">" -> yazdır
+    tuş() -> t
+}

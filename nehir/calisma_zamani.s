@@ -3364,7 +3364,21 @@ __tus:                          # -> rax = tuş (metin); basılan tuş yoksa ""
     je 4f
     cmp eax, 3                  # Ctrl+C
     je 30f
-    mov ecx, 1                  # UTF-8 karakterinin bayt sayısı
+    cmp eax, 32                 # öteki denetim baytları: Ctrl+A ... Ctrl+Z
+    jae 40f
+    inc qword ptr [rip+__g_konum]
+    cmp eax, 1
+    jb 20f
+    cmp eax, 26
+    ja 20f
+    add eax, 96
+    mov edi, eax
+    call __karakter
+    lea rdi, [rip+__t_ctrl]
+    mov rsi, rax
+    call __metin_birlestir
+    jmp 21f
+40: mov ecx, 1                  # UTF-8 karakterinin bayt sayısı
     cmp eax, 0xC0
     jb 5f
     mov ecx, 2
@@ -3401,13 +3415,11 @@ __tus:                          # -> rax = tuş (metin); basılan tuş yoksa ""
     je 11f
     cmp eax, 79                 # 'O'
     jne 12f
-11: movzx eax, byte ptr [rbx+2]
-    sub eax, 65                 # 'A'
-    cmp eax, 3
-    ja 13f
+11: movzx edi, byte ptr [rbx+2]   # Esc [ X ya da Esc O X: oklar, Home, End, F1-F4
+    call __tus_son_harfi
+    test rax, rax
+    jz 13f
     add qword ptr [rip+__g_konum], 3
-    lea rcx, [rip+__t_oklar]
-    mov rax, [rcx+rax*8]
     jmp 21f
 13: cmp byte ptr [rbx+1], 91    # Esc [ parametreler son: kitty klavye protokolü ya da tanınmayan dizi
     jne 12f
@@ -3495,22 +3507,41 @@ __tus_csi:                      # -> rax = tuş metni ya da ""
     mov qword ptr [rbp-16], 1
 62: cmp eax, 117                # 'u'
     je 7f
-    sub eax, 65                 # 'A'..'D': oklar
-    cmp eax, 3
+    cmp eax, 126                # '~': Insert, Delete, PageUp/Down, Home, End, F5-F12
+    jne 63f
+    mov rcx, [rbp-40]
+    cmp rcx, 24
     ja 9f
-    lea rcx, [rip+__t_oklar]
-    mov rax, [rcx+rax*8]
+    lea rax, [rip+__t_tilda]
+    mov rax, [rax+rcx*8]
+    test rax, rax
+    jz 9f
+    jmp 8f
+63: mov edi, eax                # harfler: oklar, Home, End, F1-F4
+    call __tus_son_harfi
+    test rax, rax
+    jz 9f
     jmp 8f
 7:  mov rax, [rbp-40]           # tuş kodu
     mov rcx, [rbp-24]
     dec rcx
-    test cl, 4                  # Ctrl+C
+    test cl, 4                  # Ctrl+C programı bitirir
     jz 71f
     cmp rax, 99
-    jne 71f
+    jne 70f
     cmp qword ptr [rbp-16], 3
     je 9f
     jmp 30b
+70: cmp rax, 97                 # Ctrl + harf: "ctrl+s"
+    jb 71f
+    cmp rax, 122
+    ja 71f
+    mov rdi, rax
+    call __karakter
+    lea rdi, [rip+__t_ctrl]
+    mov rsi, rax
+    call __metin_birlestir
+    jmp 8f
 71: test cl, 1                  # Shift: kaydırılmış tuş varsa o
     jz 72f
     mov rdx, [rbp-32]
@@ -3548,6 +3579,39 @@ __tus_csi:                      # -> rax = tuş metni ya da ""
 9:  lea rax, [rip+__t_bos]
 99: leave
     ret
+
+__komut_calistir:               # rdi = komut -> rax = çıkış kodu (-1: çalıştırılamadı)
+    jmp __sis_komut
+
+__dizin_listele:                # rdi = yol -> rax = içindekilerin sıralı adları (dizinler "/" ile biter)
+    call __sis_dizin
+    mov rdi, rax
+    mov esi, 1
+    jmp __liste_sirala
+
+__tus_son_harfi:                # edi = dizinin son harfi -> rax = tuş adı ya da 0
+    xor eax, eax
+    lea rcx, [rip+__t_oklar]
+    cmp edi, 65                 # A B C D: oklar
+    jb 9f
+    cmp edi, 68
+    ja 1f
+    mov rax, [rcx+rdi*8-520]
+    ret
+1:  lea rax, [rip+__t_bas]
+    cmp edi, 72                 # H
+    je 9f
+    lea rax, [rip+__t_son]
+    cmp edi, 70                 # F
+    je 9f
+    xor eax, eax
+    cmp edi, 80                 # P Q R S: F1-F4
+    jb 9f
+    cmp edi, 83
+    ja 9f
+    lea rcx, [rip+__t_tilda]
+    mov rax, [rcx+rdi*8-552]    # __t_tilda[11 + (harf - 'P')]
+9:  ret
 
 __tus_birakma_var:              # -> rax = uçbirim tuş bırakmalarını bildiriyorsa 1
     movzx eax, byte ptr [rip+__tk_birakma]
@@ -3748,6 +3812,85 @@ __h_rastgele_son:
 __t_oklar: .quad __t_yukari, __t_asagi, __t_sag, __t_sol
     .quad 0
 __t_bos: .byte 0
+    .balign 8
+    .quad 4
+__t_bas: .ascii "baş"
+    .byte 0
+    .balign 8
+    .quad 3
+__t_son: .ascii "son"
+    .byte 0
+    .balign 8
+    .quad 5
+__t_araya: .ascii "araya"
+    .byte 0
+    .balign 8
+    .quad 3
+__t_sil: .ascii "sil"
+    .byte 0
+    .balign 8
+    .quad 13
+__t_sayfa_yukari: .ascii "sayfa_yukarı"
+    .byte 0
+    .balign 8
+    .quad 14
+__t_sayfa_asagi: .ascii "sayfa_aşağı"
+    .byte 0
+    .balign 8
+    .quad 5
+__t_ctrl: .ascii "ctrl+"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f1: .ascii "f1"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f2: .ascii "f2"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f3: .ascii "f3"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f4: .ascii "f4"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f5: .ascii "f5"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f6: .ascii "f6"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f7: .ascii "f7"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f8: .ascii "f8"
+    .byte 0
+    .balign 8
+    .quad 2
+__t_f9: .ascii "f9"
+    .byte 0
+    .balign 8
+    .quad 3
+__t_f10: .ascii "f10"
+    .byte 0
+    .balign 8
+    .quad 3
+__t_f11: .ascii "f11"
+    .byte 0
+    .balign 8
+    .quad 3
+__t_f12: .ascii "f12"
+    .byte 0
+    .balign 8
+__t_tilda:   # Esc [ n ~ dizilerinin adları (n = 0..24); 11-14 ayrıca F1-F4
+    .quad 0, __t_bas, __t_araya, __t_sil, __t_son, __t_sayfa_yukari, __t_sayfa_asagi, __t_bas, __t_son, 0, 0, __t_f1, __t_f2, __t_f3, __t_f4, __t_f5, 0, __t_f6, __t_f7, __t_f8, __t_f9, __t_f10, 0, __t_f11, __t_f12
     .balign 8
     .quad 1
 __t_eksi: .ascii "-"

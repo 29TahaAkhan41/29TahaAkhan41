@@ -1,0 +1,7 @@
+# dizin_listele(yol): bir dizindeki adlar, sıralı; dizinlerin sonunda "/" vardır.
+# komut_çalıştır(komut): komutu işletim sisteminin kabuğunda (Linux'ta sh, Windows'ta cmd)
+# çalıştırır, bitmesini bekler ve çıkış kodunu verir. Çıktısı programınkiyle aynı yere gider.
+dizin_listele("ornekler/moduller") -> yazdır
+dizin_listele("ornekler") -> her (ad) { ad == "moduller/" -> eğer { "alt dizin: " + ad -> yazdır } }
+komut_çalıştır("exit 3") -> yazdır
+komut_çalıştır("exit 0") -> yazdır
