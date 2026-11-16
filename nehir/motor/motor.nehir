@@ -1,0 +1,357 @@
+# ≈≈≈ NEHİR OYUN MOTORU ≈≈≈
+#
+# Uçbirimde çalışan, gerçek zamanlı oyunlar için küçük bir motor. Kullanmak için:
+#
+#   kullan "motor/motor.nehir"
+#   motor_yeni(60, 20) -> m
+#   m.sahne_ekle("oyun", oyun_giriş, oyun_güncelle, oyun_çiz)
+#   m.çalıştır("oyun")
+#
+# Sunduğu yapılar:
+#   Varlık    ekrandaki her şey: konum, hız, boyut, çok satırlı görünüş, renk, katman,
+#             çarpışma maskeleri, davranış(motor, varlık, dt) ve çarpınca(motor, varlık, öteki)
+#   Sahne     giriş(motor), güncelle(motor, dt), çiz(motor); menü → oyun → bitti gibi geçişler
+#   Motor     oyun döngüsü (sabit kare hızı), girdi (basılı / basıldı), çarpışma, katmanlı çizim,
+#             kamera, yardımcılar (yaz, ortala, çerçeve)
+#   Zamanlayıcı  belirli aralıklarla "doldu" diyen sayaç
+#
+# Uçbirim yoksa (örneğin girdi bir dosyadan geliyorsa) motor deneme kipinde çalışır: sabit
+# zaman adımı (1/30 sn), çizim yok, her karede girdiden bir tuş, sabit rastgelelik tohumu.
+# Böylece oyunlar otomatik olarak sınanabilir.
+#
+# Ad çakışmasın diye motorun iç adları '_' ile başlar (yalnızca bu dosyada geçerlidir); dışa
+# açık adlar motor_ ile ya da kayıtların yöntemleri olarak tanımlıdır. Oyun, Motor, Varlık,
+# Sahne ve Zamanlayıcı adlarını kendisi için kullanmamalıdır.
+
+kayıt Varlık {
+    tür: metin,                     # oyunun koyduğu ad: "gemi", "taş", ...
+    x: ondalık, y: ondalık,         # sol üst köşenin konumu (hücre)
+    hx: ondalık, hy: ondalık,       # hız (hücre / saniye); motor her karede uygular
+    genişlik: ondalık, yükseklik: ondalık,  # çarpışma kutusu (görünüşten hesaplanır)
+    görünüş: [metin],               # çok satırlı görünüş
+    renk: sayı, arka: sayı,         # 0xRRGGBB; arka -1: zemin görünür
+    katman: sayı,                   # küçük katman önce (altta) çizilir
+    maske: sayı,                    # bu varlığın ait olduğu çarpışma katmanları (bitler)
+    çarpışır: sayı,                 # bu varlığın ilgilendiği katmanlar; çakışınca çarpınca çağrılır
+    canlı: sayı,                    # 0 olunca karenin sonunda kaldırılır
+    saydam: sayı,                   # 1: görünüşteki boşluklar arkadakini örtmez
+    görünür: sayı,
+    sayaç: ondalık,                 # oyunun serbestçe kullanacağı sayaç (ömür, bekleme, ...)
+    değer: sayı,                    # oyunun serbestçe kullanacağı değer
+    davranış,                       # davranış(motor, varlık, dt): her karede çağrılır
+    çarpınca                        # çarpınca(motor, varlık, öteki)
+}
+
+kayıt Sahne { ad: metin, giriş, güncelle, çiz }
+
+kayıt Motor {
+    genişlik: sayı, yükseklik: sayı,
+    varlıklar: [Varlık],
+    eklenecekler: [Varlık],         # kare sırasında eklenenler karenin sonunda katılır
+    tuş_zamanı: {metin: ondalık},   # tuşun son görüldüğü an (sn); bırakılınca -1
+    basılanlar: {metin: sayı},      # bu karede yeni basılanlar
+    sahneler: {metin: Sahne},
+    sahne: metin,
+    sonraki_sahne: metin,
+    zaman: ondalık,                 # başlangıçtan bu yana geçen süre (sn)
+    kare: sayı,
+    kare_süresi: sayı,              # hedef kare süresi (ms)
+    zemin: sayı,                    # arka plan rengi (-1: uçbirimin rengi)
+    kamera_x: ondalık, kamera_y: ondalık,
+    çalışıyor: sayı,
+    deneme: sayı,                   # 1: uçbirim yok; sabit adım, çizim yok
+    en_çok_kare: sayı               # deneme kipinde bu kadar kareden sonra durur
+}
+
+kayıt Zamanlayıcı { aralık: ondalık, kalan: ondalık }
+
+0.15 -> _TUTMA                      # bırakma bildirmeyen uçbirimlerde basılı sayılma süresi (sn)
+
+işlev _davranışsız(m, v, dt) { 0 -> döndür }
+işlev _çarpışmasız(m, v, öteki) { 0 -> döndür }
+işlev _boş_giriş(m) { 0 -> döndür }
+işlev _boş_güncelle(m, dt) { 0 -> döndür }
+işlev _katmanca(a, b) { a.katman < b.katman -> döndür }
+
+# ── kurulum ──
+
+işlev motor_yeni(genişlik, yükseklik) {
+    Motor(genişlik, yükseklik, [], [], {}, {}, {}, "", "", 0.0, 0, 33, -1, 0.0, 0.0, 1, 0, 0) -> m
+    değil (uçbirim_mi(0) ve uçbirim_mi(1)) -> eğer {
+        1 -> m.deneme
+        rastgele_tohum(1)
+        20000 -> m.en_çok_kare
+    }
+    m -> döndür
+}
+
+# Yeni bir varlık (henüz eklenmemiş); boyutu görünüşünden hesaplanır.
+işlev motor_varlık(tür, x, y, görünüş, renk) {
+    0.0 -> g
+    görünüş -> her (satır) {
+        ondalığa(metin_genişliği(satır)) -> sg
+        sg > g -> eğer { sg -> g }
+    }
+    Varlık(tür, ondalığa(x), ondalığa(y), 0.0, 0.0, g, ondalığa(uzunluk(görünüş)), görünüş, renk, -1,
+           1, 0, 0, 1, 1, 1, 0.0, 0, _davranışsız, _çarpışmasız) -> döndür
+}
+
+işlev Motor.sahne_ekle(m, ad, giriş, güncelle, çiz) {
+    Sahne(ad, giriş, güncelle, çiz) -> m.sahneler[ad]
+    0 -> döndür
+}
+
+işlev Motor.ekle(m, v) {
+    m.eklenecekler -> ekle(v)
+    v -> döndür
+}
+
+işlev Motor.sahneye_geç(m, ad) {
+    ad -> m.sonraki_sahne
+    0 -> döndür
+}
+
+işlev Motor.bitir(m) {
+    0 -> m.çalışıyor
+    0 -> döndür
+}
+
+# Bu türdeki canlı varlıklar
+işlev Motor.bul(m, tür) {
+    [] -> bulunan
+    m.varlıklar -> her (v) { v.canlı ve v.tür == tür -> eğer { bulunan -> ekle(v) } }
+    m.eklenecekler -> her (v) { v.canlı ve v.tür == tür -> eğer { bulunan -> ekle(v) } }
+    bulunan -> döndür
+}
+
+# ── girdi ──
+
+# Tuş basılı mı? Bırakmaları bildiren uçbirimlerde (tuş_kipi(2)) kesin; ötekilerde tuş son
+# _TUTMA saniye içinde görüldüyse (basılı tutulan tuşun tekrarları) basılı sayılır.
+işlev Motor.basılı(m, ad) {
+    değil var(m.tuş_zamanı, ad) -> eğer { 0 -> döndür }
+    m.tuş_zamanı[ad] -> son
+    son < 0 -> eğer { 0 -> döndür }
+    tuş_bırakma_var() -> eğer { 1 -> döndür }
+    m.zaman - son < _TUTMA -> döndür
+}
+
+# Tuşa bu karede mi basıldı? (tekrarlar sayılmaz)
+işlev Motor.basıldı(m, ad) { var(m.basılanlar, ad) -> döndür }
+
+# Yön tuşlarından (oklar ya da WASD) -1, 0, 1
+işlev Motor.yatay(m) {
+    0 -> yön
+    m.basılı("sol") veya m.basılı("a") -> eğer { yön - 1 -> yön }
+    m.basılı("sağ") veya m.basılı("d") -> eğer { yön + 1 -> yön }
+    yön -> döndür
+}
+işlev Motor.dikey(m) {
+    0 -> yön
+    m.basılı("yukarı") veya m.basılı("w") -> eğer { yön - 1 -> yön }
+    m.basılı("aşağı") veya m.basılı("s") -> eğer { yön + 1 -> yön }
+    yön -> döndür
+}
+
+işlev Motor.girdiyi_oku(m) {
+    {} -> m.basılanlar
+    m.deneme -> eğer {
+        tuş() -> t                  # deneme kipi: karede bir tuş
+        t != "" ve dilim(t, 0, 1) != "-" -> eğer {
+            1 -> m.basılanlar[t]
+            m.zaman -> m.tuş_zamanı[t]
+        }
+        0 -> döndür
+    }
+    tuş() -> t
+    t != "" -> iken {
+        uzunluk(t) > 1 ve dilim(t, 0, 1) == "-" -> eğer {
+            -1.0 -> m.tuş_zamanı[dilim(t, 1, uzunluk(t))]
+        } değilse {
+            değil m.basılı(t) -> eğer { 1 -> m.basılanlar[t] }
+            m.zaman -> m.tuş_zamanı[t]
+        }
+        tuş() -> t
+    }
+    0 -> döndür
+}
+
+# ── çarpışma ──
+
+işlev Varlık.çakışır(a, b) {
+    a.x < b.x + b.genişlik ve b.x < a.x + a.genişlik
+        ve a.y < b.y + b.yükseklik ve b.y < a.y + a.yükseklik -> döndür
+}
+
+# Her varlık, ilgilendiği katmanlardaki (çarpışır & öteki.maske) varlıklarla çakışınca
+# kendi çarpınca işlevini çağırır.
+işlev Motor.çarpışmaları_bul(m) {
+    m.varlıklar -> l
+    uzunluk(l) -> n
+    0 -> i
+    i < n -> iken {
+        l[i] -> a
+        a.canlı ve a.çarpışır != 0 -> eğer {
+            0 -> j
+            j < n -> iken {
+                l[j] -> b
+                i != j ve a.canlı ve b.canlı ve bit_ve(a.çarpışır, b.maske) != 0 ve a.çakışır(b) -> eğer {
+                    a.çarpınca -> çarpma
+                    çarpma(m, a, b)
+                }
+                j + 1 -> j
+            }
+        }
+        i + 1 -> i
+    }
+    0 -> döndür
+}
+
+# ── döngü ──
+
+işlev Motor.sahneyi_değiştir(m) {
+    m.sonraki_sahne -> ad
+    "" -> m.sonraki_sahne
+    [] -> m.varlıklar
+    [] -> m.eklenecekler
+    {} -> m.basılanlar
+    ad -> m.sahne
+    m.sahneler[ad] -> sh
+    sh.giriş -> giriş
+    giriş(m)
+    0 -> döndür
+}
+
+işlev Motor.güncelle(m, dt) {
+    m.sahneler[m.sahne] -> sh
+    sh.güncelle -> güncelleme
+    güncelleme(m, dt)
+    m.varlıklar -> her (v) {
+        v.canlı -> eğer {
+            v.davranış -> davran
+            davran(m, v, dt)
+            v.x + v.hx * dt -> v.x
+            v.y + v.hy * dt -> v.y
+        }
+    }
+    m.çarpışmaları_bul()
+    [] -> kalan
+    m.varlıklar -> her (v) { v.canlı -> eğer { kalan -> ekle(v) } }
+    m.eklenecekler -> her (v) { v.canlı -> eğer { kalan -> ekle(v) } }
+    kalan -> m.varlıklar
+    [] -> m.eklenecekler
+    0 -> döndür
+}
+
+işlev Motor.çiz(m) {
+    m.deneme -> eğer { 0 -> döndür }
+    ekran_temizle(m.zemin)
+    sırala(m.varlıklar, _katmanca) -> sıralı
+    sıralı -> her (v) { v.canlı ve v.görünür -> eğer { m.varlığı_çiz(v) } }
+    m.sahneler[m.sahne] -> sh
+    sh.çiz -> çizim
+    çizim(m)
+    ekran_çiz()
+    0 -> döndür
+}
+
+işlev Motor.varlığı_çiz(m, v) {
+    taban(v.x - m.kamera_x) -> sx
+    taban(v.y - m.kamera_y) -> sy
+    v.görünüş -> her (satır) {
+        v.saydam -> eğer { _saydam_yaz(sx, sy, satır, v.renk, v.arka) }
+        değilse { ekran_yaz(sx, sy, satır, v.renk, v.arka) }
+        sy + 1 -> sy
+    }
+    0 -> döndür
+}
+
+işlev _saydam_yaz(x, y, satır, renk, arka) {
+    böl(satır, "") -> karakterler
+    karakterler -> her (k) {
+        k != " " -> eğer { ekran_yaz(x, y, k, renk, arka) }
+        x + metin_genişliği(k) -> x
+    }
+    0 -> döndür
+}
+
+# Oyunu ilk_sahne ile başlatır; Motor.bitir çağrılana dek (ya da Ctrl+C) sürer.
+işlev Motor.çalıştır(m, ilk_sahne) {
+    değil m.deneme -> eğer {
+        ekran_aç(m.genişlik, m.yükseklik)
+        tuş_kipi(2)
+    }
+    ilk_sahne -> m.sonraki_sahne
+    zaman() -> önceki
+    önceki -> şimdi
+    m.çalışıyor -> iken {
+        m.sonraki_sahne != "" -> eğer { m.sahneyi_değiştir() }
+        1.0 / 30.0 -> dt
+        değil m.deneme -> eğer {
+            zaman() -> şimdi
+            sınırla(ondalığa(şimdi - önceki) / 1000.0, 0.0, 0.1) -> dt
+            şimdi -> önceki
+        }
+        m.zaman + dt -> m.zaman
+        m.girdiyi_oku()
+        m.güncelle(dt)
+        m.sonraki_sahne == "" -> eğer { m.çiz() }
+        m.kare + 1 -> m.kare
+        m.deneme -> eğer {
+            m.kare >= m.en_çok_kare -> eğer { 0 -> m.çalışıyor }
+        } değilse {
+            m.kare_süresi - (zaman() - şimdi) -> kalan
+            kalan > 0 -> eğer { bekle(kalan) }
+        }
+    }
+    değil m.deneme -> eğer {
+        ekran_kapat()
+        tuş_kipi(0)
+    }
+    0 -> döndür
+}
+
+# ── yardımcılar ──
+
+işlev Motor.yaz(m, x, y, metin_, renk) {
+    değil m.deneme -> eğer { ekran_yaz(x, y, metin_, renk, -1) }
+    0 -> döndür
+}
+
+işlev Motor.ortala(m, y, metin_, renk) {
+    m.yaz((m.genişlik - metin_genişliği(metin_)) / 2, y, metin_, renk) -> döndür
+}
+
+işlev Motor.çerçeve(m, x, y, g, yük, renk) {
+    m.deneme -> eğer { 0 -> döndür }
+    ekran_doldur(x + 1, y + 1, g - 2, yük - 2, " ", -1, m.zemin)   # iç kısım: arkadakiler görünmez
+    ekran_doldur(x + 1, y, g - 2, 1, "─", renk, -1)
+    ekran_doldur(x + 1, y + yük - 1, g - 2, 1, "─", renk, -1)
+    ekran_doldur(x, y + 1, 1, yük - 2, "│", renk, -1)
+    ekran_doldur(x + g - 1, y + 1, 1, yük - 2, "│", renk, -1)
+    ekran_yaz(x, y, "┌", renk, -1)
+    ekran_yaz(x + g - 1, y, "┐", renk, -1)
+    ekran_yaz(x, y + yük - 1, "└", renk, -1)
+    ekran_yaz(x + g - 1, y + yük - 1, "┘", renk, -1)
+    0 -> döndür
+}
+
+işlev motor_zamanlayıcı(aralık) { Zamanlayıcı(ondalığa(aralık), ondalığa(aralık)) -> döndür }
+
+# Aralık dolduysa 1 verir ve yeniden kurulur.
+işlev Zamanlayıcı.doldu(z, dt) {
+    z.kalan - dt -> z.kalan
+    z.kalan <= 0 -> eğer {
+        z.kalan + z.aralık -> z.kalan
+        z.kalan < 0 -> eğer { z.aralık -> z.kalan }
+        1 -> döndür
+    }
+    0 -> döndür
+}
+
+# a ile b arasında rastgele bir ondalık
+işlev motor_rastgele(a, b) {
+    ondalığa(a) + ondalığa(rastgele(1000000)) / 1000000.0 * (ondalığa(b) - ondalığa(a)) -> döndür
+}
+
+işlev motor_ara_değer(a, b, t) { a + (b - a) * sınırla(t, 0.0, 1.0) -> döndür }

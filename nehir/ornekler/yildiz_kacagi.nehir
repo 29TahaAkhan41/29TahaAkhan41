@@ -1,0 +1,229 @@
+# ≈≈≈ YILDIZ KAÇAĞI ≈≈≈
+#
+# Nehir oyun motoruyla yazılmış bir uzay oyunu. Gemini oklarla (ya da WASD) yönet, Boşluk ile
+# ateş et. Taşları vur, altın yıldızları topla, çarpma! Üç canın var; taşlar gittikçe sıklaşır.
+#
+#   python3 nehir.py ornekler/yildiz_kacagi.nehir --çalıştır
+#
+# Motorun parçalarını gösterir: sahneler (menü → oyun → bitti), varlıklar ve davranışları,
+# çarpışma katmanları, katmanlı çizim, basılı tutulan tuşlar, zamanlayıcılar.
+
+kullan "../motor/motor.nehir"
+
+62 -> GEN
+22 -> BOY
+
+# Çarpışma katmanları
+0b0001 -> GEMİ
+0b0010 -> TAŞ
+0b0100 -> MERMİ
+0b1000 -> ÖDÜL
+
+0 -> ortak puan
+3 -> ortak can
+0.0 -> ortak dokunulmaz         # çarpıştıktan sonra kısa bir süre hasar almaz
+0.0 -> ortak ateş_bekleme
+1.0 -> ortak taş_aralığı
+motor_zamanlayıcı(1.0) -> ortak taş_saati
+motor_zamanlayıcı(7.0) -> ortak ödül_saati
+
+işlev rekoru_oku() {
+    dosya_var("yildiz_rekor.txt") -> eğer { sayıya(dosya_oku("yildiz_rekor.txt")) -> döndür }
+    0 -> döndür
+}
+
+# ── arka plan: kayan yıldızlar ──
+
+işlev yıldız_davranışı(m, v, dt) {
+    v.x < -1.0 -> eğer {
+        ondalığa(GEN) -> v.x
+        ondalığa(1 + rastgele(BOY - 1)) -> v.y
+    }
+}
+
+işlev yıldızları_kur(m) {
+    aralık(0, 40) -> her (i) {
+        rastgele(3) -> uzaklık
+        motor_varlık("yıldız", rastgele(GEN), 1 + rastgele(BOY - 1), ["·"], [0x444466, 0x8888AA, 0xFFFFFF][uzaklık]) -> v
+        0.0 - 4.0 * ondalığa(uzaklık + 1) -> v.hx
+        0 -> v.katman
+        yıldız_davranışı -> v.davranış
+        m.ekle(v)
+    }
+}
+
+# ── patlama ──
+
+işlev parça_davranışı(m, v, dt) {
+    v.sayaç - dt -> v.sayaç
+    v.sayaç < 0.25 -> eğer { 0xAA3300 -> v.renk }
+    v.sayaç <= 0 -> eğer { 0 -> v.canlı }
+}
+
+işlev patlat(m, x, y, renk) {
+    aralık(0, 8) -> her (i) {
+        motor_varlık("parça", x, y, [["✶", "∙", "*"][rastgele(3)]], renk) -> p
+        motor_rastgele(-14, 14) -> p.hx
+        motor_rastgele(-7, 7) -> p.hy
+        motor_rastgele(0.3, 0.7) -> p.sayaç
+        3 -> p.katman
+        parça_davranışı -> p.davranış
+        m.ekle(p)
+    }
+}
+
+# ── gemi ──
+
+işlev gemi_davranışı(m, v, dt) {
+    ondalığa(m.yatay()) * 26.0 -> v.hx
+    ondalığa(m.dikey()) * 14.0 -> v.hy
+    sınırla(v.x, 0.0, ondalığa(GEN) - v.genişlik) -> v.x
+    sınırla(v.y, 1.0, ondalığa(BOY) - v.yükseklik) -> v.y
+    ateş_bekleme - dt -> ateş_bekleme
+    (m.basılı(" ") veya m.basıldı(" ")) ve ateş_bekleme <= 0 -> eğer {
+        0.16 -> ateş_bekleme
+        motor_varlık("mermi", v.x + v.genişlik, v.y + 1.0, ["━"], 0xFFE066) -> mermi
+        45.0 -> mermi.hx
+        MERMİ -> mermi.maske
+        TAŞ -> mermi.çarpışır
+        mermi_davranışı -> mermi.davranış
+        mermi_çarpınca -> mermi.çarpınca
+        m.ekle(mermi)
+    }
+    dokunulmaz - dt -> dokunulmaz
+    dokunulmaz > 0 -> eğer { taban(dokunulmaz * 10.0) % 2 -> v.görünür } değilse { 1 -> v.görünür }
+}
+
+işlev gemi_çarpınca(m, v, öteki) {
+    öteki.tür == "ödül" -> eğer {
+        puan + 50 -> puan
+        0 -> öteki.canlı
+        patlat(m, öteki.x, öteki.y, 0xFFD700)
+    }
+    öteki.tür == "taş" ve dokunulmaz <= 0 -> eğer {
+        can - 1 -> can
+        2.0 -> dokunulmaz
+        0 -> öteki.canlı
+        patlat(m, v.x + 1.0, v.y + 1.0, 0xFF6B35)
+        can <= 0 -> eğer {
+            0 -> v.canlı
+            m.sahneye_geç("bitti")
+        }
+    }
+}
+
+# ── mermi ve taşlar ──
+
+işlev mermi_davranışı(m, v, dt) { v.x > ondalığa(GEN) -> eğer { 0 -> v.canlı } }
+
+işlev mermi_çarpınca(m, v, öteki) {
+    0 -> v.canlı
+    0 -> öteki.canlı
+    puan + 10 -> puan
+    patlat(m, öteki.x + 1.0, öteki.y + 0.5, 0xC8A27A)
+}
+
+işlev taş_davranışı(m, v, dt) { v.x < -4.0 -> eğer { 0 -> v.canlı } }
+
+işlev taş_at(m) {
+    rastgele(3) -> boy
+    ["●"] -> görünüş
+    boy == 1 -> eğer { ["▟▙", "▜▛"] -> görünüş }
+    boy == 2 -> eğer { ["▗▟█▙", "▐███▌", " ▜█▛"] -> görünüş }
+    motor_varlık("taş", GEN, 1 + rastgele(BOY - 3), görünüş, 0x9C8B7A) -> t
+    0.0 - motor_rastgele(9, 16) - ondalığa(puan) / 40.0 -> t.hx
+    motor_rastgele(-2, 2) -> t.hy
+    TAŞ -> t.maske
+    2 -> t.katman
+    taş_davranışı -> t.davranış
+    m.ekle(t)
+}
+
+işlev ödül_at(m) {
+    motor_varlık("ödül", GEN, 2 + rastgele(BOY - 4), ["✦"], 0xFFD700) -> ö
+    -10.0 -> ö.hx
+    ÖDÜL -> ö.maske
+    taş_davranışı -> ö.davranış
+    m.ekle(ö)
+}
+
+# ── sahneler ──
+
+işlev menü_giriş(m) { yıldızları_kur(m) }
+
+işlev menü_güncelle(m, dt) {
+    m.basıldı("enter") veya m.basıldı(" ") veya m.deneme -> eğer { m.sahneye_geç("oyun") }
+    m.basıldı("q") veya m.basıldı("esc") -> eğer { m.bitir() }
+}
+
+işlev menü_çiz(m) {
+    m.çerçeve(9, 5, 44, 10, 0x5577AA)
+    m.ortala(7, "★  YILDIZ KAÇAĞI  ★", 0xFFD700)
+    m.ortala(9, "oklar / WASD: yön    Boşluk: ateş", 0xBBBBBB)
+    m.ortala(10, "taşları vur, ✦ yıldızları topla", 0xBBBBBB)
+    m.ortala(12, "başlamak için Enter    çıkmak için q", 0xFFFFFF)
+}
+
+işlev oyun_giriş(m) {
+    0 -> puan
+    3 -> can
+    0.0 -> dokunulmaz
+    1.0 -> taş_aralığı
+    motor_zamanlayıcı(1.0) -> taş_saati
+    motor_zamanlayıcı(7.0) -> ödül_saati
+    yıldızları_kur(m)
+    motor_varlık("gemi", 4, BOY / 2, ["▄▄▖ ", "███▶", "▀▀▘ "], 0x66D9EF) -> gemi
+    GEMİ -> gemi.maske
+    bit_veya(TAŞ, ÖDÜL) -> gemi.çarpışır
+    4 -> gemi.katman
+    gemi_davranışı -> gemi.davranış
+    gemi_çarpınca -> gemi.çarpınca
+    m.ekle(gemi)
+}
+
+işlev oyun_güncelle(m, dt) {
+    taş_saati.doldu(dt) -> eğer {
+        taş_at(m)
+        sınırla(taş_aralığı * 0.97, 0.3, 1.0) -> taş_aralığı
+        taş_aralığı -> taş_saati.aralık
+    }
+    ödül_saati.doldu(dt) -> eğer { ödül_at(m) }
+    m.basıldı("q") veya m.basıldı("esc") -> eğer { m.sahneye_geç("bitti") }
+}
+
+işlev oyun_çiz(m) {
+    m.yaz(1, 0, "PUAN " + metne(puan), 0xFFFFFF)
+    "" -> kalpler
+    aralık(0, can) -> her (i) { kalpler + "♥ " -> kalpler }
+    m.yaz(GEN - 10, 0, "CAN " + kalpler, 0xFF5577)
+}
+
+işlev bitti_giriş(m) {
+    yıldızları_kur(m)
+    m.deneme -> eğer {
+        "puan: " + metne(puan) + ", kare: " + metne(m.kare) -> yazdır
+        m.bitir()
+    } değilse {
+        rekoru_oku() -> rekor
+        puan > rekor -> eğer { dosya_yaz(metne(puan), "yildiz_rekor.txt") }
+    }
+}
+
+işlev bitti_güncelle(m, dt) {
+    m.basıldı("enter") veya m.basıldı(" ") -> eğer { m.sahneye_geç("oyun") }
+    m.basıldı("q") veya m.basıldı("esc") -> eğer { m.bitir() }
+}
+
+işlev bitti_çiz(m) {
+    m.çerçeve(14, 6, 34, 9, 0xAA5555)
+    m.ortala(8, "OYUN BİTTİ", 0xFF5577)
+    m.ortala(10, "puan " + metne(puan) + "   rekor " + metne(rekoru_oku()), 0xFFFFFF)
+    m.ortala(12, "yeniden: Enter    çık: q", 0xBBBBBB)
+}
+
+motor_yeni(GEN, BOY) -> m
+0x05060F -> m.zemin
+m.sahne_ekle("menü", menü_giriş, menü_güncelle, menü_çiz)
+m.sahne_ekle("oyun", oyun_giriş, oyun_güncelle, oyun_çiz)
+m.sahne_ekle("bitti", bitti_giriş, bitti_güncelle, bitti_çiz)
+m.çalıştır("menü")

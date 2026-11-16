@@ -615,6 +615,54 @@ dünya üretimi ve ekranın tek seferde çizilmesini gösterir. En yüksek puan 
 python3 nehir.py ornekler/akinti.nehir --çalıştır
 ```
 
+## Oyun motoru
+
+`motor/motor.nehir`, Nehir ile yazılmış, uçbirimde çalışan gerçek zamanlı oyunlar için bir modüldür.
+`ornekler/yildiz_kacagi.nehir` (Yıldız Kaçağı) onunla yazılmış bir uzay oyunudur:
+
+```bash
+python3 nehir.py ornekler/yildiz_kacagi.nehir --çalıştır
+```
+
+Bir oyun sahnelerden ve varlıklardan oluşur:
+
+```nehir
+kullan "motor/motor.nehir"
+
+işlev gemi_davranışı(m, v, dt) {
+    ondalığa(m.yatay()) * 20.0 -> v.hx          # oklar / WASD; motor hızı her karede uygular
+    m.basıldı(" ") -> eğer { ... }               # bu karede basılan tuş
+}
+
+işlev oyun_giriş(m) {
+    motor_varlık("gemi", 4, 10, ["▄▄▖ ", "███▶", "▀▀▘ "], 0x66D9EF) -> gemi
+    gemi_davranışı -> gemi.davranış
+    m.ekle(gemi)
+}
+işlev oyun_güncelle(m, dt) { ... }
+işlev oyun_çiz(m) { m.yaz(1, 0, "PUAN " + metne(puan), 0xFFFFFF) }
+
+motor_yeni(60, 20) -> m
+m.sahne_ekle("oyun", oyun_giriş, oyun_güncelle, oyun_çiz)
+m.çalıştır("oyun")
+```
+
+| Parça | Ne sağlar |
+| --- | --- |
+| `motor_yeni(g, y)`, `m.çalıştır(sahne)`, `m.bitir()` | ekranı ve tuş kipini açan, sabit kare hızlı (30 kare/sn) oyun döngüsü |
+| `m.sahne_ekle(ad, giriş, güncelle, çiz)`, `m.sahneye_geç(ad)` | sahneler; geçişte varlıklar temizlenir, `giriş(m)` çağrılır |
+| `motor_varlık(tür, x, y, görünüş, renk)`, `m.ekle(v)`, `m.bul(tür)` | varlıklar: konum (`x`, `y`), hız (`hx`, `hy`), çok satırlı görünüş, renk, `katman`, `canlı`, `görünür`, `saydam`, `sayaç`, `değer` |
+| `v.davranış`, `v.çarpınca` | her karede `davranış(m, v, dt)`; çakışınca `çarpınca(m, v, öteki)` |
+| `v.maske`, `v.çarpışır` | çarpışma katmanları (bitler): bir varlık, `çarpışır` bitleri ötekinin `maske`siyle kesişen varlıklarla çakışınca haber alır |
+| `m.basılı(tuş)`, `m.basıldı(tuş)`, `m.yatay()`, `m.dikey()` | basılı tutulan ve bu karede basılan tuşlar (bırakmaları bildiren uçbirimlerde kesin, ötekilerde tekrarlardan tahmin) |
+| `m.kamera_x`, `m.kamera_y`, `m.zemin` | kamera ve arka plan rengi; varlıklar katmana göre sıralanıp çizilir |
+| `m.yaz`, `m.ortala`, `m.çerçeve`, `motor_zamanlayıcı(sn)` + `z.doldu(dt)`, `motor_rastgele(a, b)`, `motor_ara_değer(a, b, t)` | yardımcılar |
+
+Uçbirim yokken (girdi ya da çıktı bir dosyaysa) motor **deneme kipinde** çalışır: sabit zaman adımı,
+çizim yok, her karede girdiden tek tuş, sabit rastgelelik tohumu. Böylece oyunlar otomatik olarak
+sınanabilir; Yıldız Kaçağı'nın sınaması böyle çalışır. Motorun iç adları `_` ile başlar; oyun `Motor`,
+`Varlık`, `Sahne` ve `Zamanlayıcı` adlarını kendisi için kullanmamalıdır.
+
 ## Sınamalar
 
 ```bash
