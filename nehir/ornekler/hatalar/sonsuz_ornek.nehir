@@ -1,0 +1,3 @@
+# Kendini her seferinde başka türde bir argümanla çağıran işlevin sonsuz sayıda örneği olurdu.
+işlev sar(x) { sar([x]) -> yazdır   0 -> döndür }
+sar(1)

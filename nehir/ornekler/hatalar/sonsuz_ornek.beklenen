@@ -1,0 +1,4 @@
+ornekler/hatalar/sonsuz_ornek.nehir:2:16: hata: 'sar' işlevi 32 farklı tür imzasıyla derlendi; daha fazlası derlenmez
+    2 | işlev sar(x) { sar([x]) -> yazdır   0 -> döndür }
+      |                ^^^
+      = ipucu: işlev kendini her seferinde başka türde bir argümanla (örneğin [x]) mı çağırıyor?

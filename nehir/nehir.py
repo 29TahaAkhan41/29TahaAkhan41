@@ -853,6 +853,28 @@ def birleştir(a, b):
     return all(birleştir(x, y) for x, y in zip(a.parametreler(), b.parametreler()))
 
 
+def uyumlu(a, b):
+    """İki tür birleştirilebilir mi? birleştir'in tersine hiçbir bilinmeyeni bağlamaz."""
+    a, b = çöz(a), çöz(b)
+    if a is b:
+        return True
+    if isinstance(a, TürDeğişkeni) or isinstance(b, TürDeğişkeni):
+        t, öteki = (a, b) if isinstance(a, TürDeğişkeni) else (b, a)
+        return not (t.yalnız_kayıt and not isinstance(öteki, (Kayıt, TürDeğişkeni)))
+    if type(a) is not type(b) or isinstance(a, Kayıt):
+        return False
+    if isinstance(a, str):
+        return a == b
+    if len(a.parametreler()) != len(b.parametreler()):
+        return False
+    return all(uyumlu(x, y) for x, y in zip(a.parametreler(), b.parametreler()))
+
+
+# Bir işlevin en çok bu kadar farklı tür imzalı örneği derlenir (f(x)'in f([x])'i çağırması
+# gibi sonsuz örnek üretimine karşı).
+EN_ÇOK_ÖRNEK = 32
+
+
 class İşlevBaşlığı:
     """İşlevin etiket satırı. Açıklamadaki türler derlemenin sonunda kesinleşir."""
 
@@ -1017,6 +1039,10 @@ class KodÜretici:
         self.bilgi = {ad: {"etiket": f"f{i}", "türler": None, "dönüş": None,
                            "başladı": False, "bitti": False, "sona_ulaşır": False}
                       for i, ad in enumerate(işlevler)}
+        # Bir işlev uyuşmayan türlerle de çağrılabilir: her tür imzası için ayrı bir örnek
+        # (f3, f3_1, f3_2, ...) derlenir. İlk örnek bilgi[ad]'dır.
+        self.örnekler = {ad: [b] for ad, b in self.bilgi.items()}
+        self.geçerli_bilgi = None
         # Hiç dönmeyen işlevler: gövdesi hiçbir yoldan sona ulaşmayan ve hiç 'döndür'
         # içermeyen işlevler (her yolu programı bitirir). Birbirlerini çağırabildikleri
         # için küme, değişmeyene dek yeniden hesaplanır.
@@ -1246,7 +1272,7 @@ class KodÜretici:
         """Bütün program derlendikten sonra dönüş türleri kesinleşir. Sonuna değer
         döndürmeden ulaşılabilen bir işlev 0 döndürür: bu, sayı için 0, kayıt için
         `yok` demektir; başka türlerde geçerli bir değer değildir."""
-        for ad, b in self.bilgi.items():
+        for ad, b in ((ad, b) for ad, örnekler in self.örnekler.items() for b in örnekler):
             if not b["bitti"]:
                 continue
             dönüş = çöz(b["dönüş"])
@@ -1345,25 +1371,25 @@ class KodÜretici:
                 for dal in h[1]:
                     self.hedeflerden_topla(dal)
 
-    def işlevi_derle(self, ad):
-        """İşlevi, parametre türleri belli olduktan sonra ayrı bir tampona derler."""
+    def işlevi_derle(self, ad, b=None):
+        """İşlevin (b örneğini), parametre türleri belli olduktan sonra ayrı bir tampona derler."""
         parametreler, gövde, satır = self.işlevler[ad]
-        b = self.bilgi[ad]
+        b = b or self.bilgi[ad]
         b["başladı"] = True
         n = len(parametreler)
         saklanan = (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
-                    self.döngüler, self.çatal_derinliği, self.okunan_küreseller)
+                    self.döngüler, self.çatal_derinliği, self.okunan_küreseller, self.geçerli_bilgi)
         # Argümanlar soldan sağa itilir: ilk argüman en derinde durur.
         self.yereller = {p: [16 + 8 * (n - 1 - i), b["türler"][i], None, True]
                          for i, p in enumerate(parametreler)}
-        self.çıktı, self.geçerli, self.yerel_sayısı = [], ad, 0
+        self.çıktı, self.geçerli, self.yerel_sayısı, self.geçerli_bilgi = [], ad, 0, b
         self.döngüler, self.çatal_derinliği, self.okunan_küreseller = [], 0, {}
         for d in gövde:
             self.deyim(d)
         gövde_kodu, yerel_sayısı = self.çıktı, self.yerel_sayısı
         self.okunmayanları_bildir(self.yereller)
         (self.çıktı, self.geçerli, self.yereller, self.yerel_sayısı,
-         self.döngüler, self.çatal_derinliği, self.okunan_küreseller) = saklanan
+         self.döngüler, self.çatal_derinliği, self.okunan_küreseller, self.geçerli_bilgi) = saklanan
 
         if b["dönüş"] is None:
             b["dönüş"] = "sayı"     # hiç 'döndür' yok: işlev 0 döndürür
@@ -1451,7 +1477,7 @@ class KodÜretici:
         if tip == "döndür":
             if self.geçerli is None:
                 raise NehirHatası("'döndür' yalnızca işlev içinde kullanılabilir", satır)
-            b = self.bilgi[self.geçerli]
+            b = self.geçerli_bilgi
             if b["dönüş"] is None:
                 b["dönüş"] = tür
             elif not birleştir(b["dönüş"], tür):
@@ -1641,6 +1667,25 @@ class KodÜretici:
             self.yaz(f"add rsp, {8 * len(türler)}")
         return çöz(tür._dönüş)
 
+    def örnek_seç(self, ad, türler, satır, gölge):
+        """Türlerle uyuşan ilk örnek (türleri onlarla birleştirilerek) ya da yeni bir örnek."""
+        for ö in self.örnekler[ad]:
+            if ö["türler"] is not None and all(uyumlu(x, y) for x, y in zip(ö["türler"], türler)):
+                if not all(birleştir(x, y) for x, y in zip(ö["türler"], türler)):
+                    raise NehirHatası(f"'{ad}' işlevi ({', '.join(map(str, map(çöz, ö['türler'])))}) ile "
+                                      f"çağrılmıştı; şimdi ({', '.join(map(str, türler))}) veriliyor",
+                                      satır, **gölge)
+                return ö
+        if len(self.örnekler[ad]) >= EN_ÇOK_ÖRNEK:
+            raise NehirHatası(f"'{ad}' işlevi {EN_ÇOK_ÖRNEK} farklı tür imzasıyla derlendi; daha fazlası "
+                              f"derlenmez", satır,
+                              "işlev kendini her seferinde başka türde bir argümanla (örneğin [x]) mı çağırıyor?",
+                              **gölge)
+        yeni = {"etiket": f"{self.bilgi[ad]['etiket']}_{len(self.örnekler[ad])}", "türler": türler,
+                "dönüş": None, "başladı": False, "bitti": False, "sona_ulaşır": False}
+        self.örnekler[ad].append(yeni)
+        return yeni
+
     def çağrılabilir(self, ad):
         return ad in self.işlevler or ad in self.kayıtlar or ad in YERLEŞİKLER
 
@@ -1760,11 +1805,10 @@ class KodÜretici:
                               + ("; akıştan gelen değer ilk argüman sayılır" if akan else ""), **gölge)
         if b["türler"] is None:
             b["türler"] = türler
-        elif not all(birleştir(x, y) for x, y in zip(b["türler"], türler)):
-            raise NehirHatası(f"'{ad}' işlevi ({', '.join(map(str, map(çöz, b['türler'])))}) ile çağrılmıştı; "
-                              f"şimdi ({', '.join(map(str, türler))}) veriliyor", satır, **gölge)
+        else:
+            b = self.örnek_seç(ad, türler, satır, gölge)
         if not b["başladı"]:
-            self.işlevi_derle(ad)
+            self.işlevi_derle(ad, b)
         self.yaz(f"call {b['etiket']}")
         if türler:
             self.yaz(f"add rsp, {8 * len(türler)}")

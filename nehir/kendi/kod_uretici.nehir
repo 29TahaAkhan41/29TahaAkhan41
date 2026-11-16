@@ -438,6 +438,7 @@ işlev ham_listesi(türler) {
 {} -> k_işlev_dönüş         # ad -> dönüş türü ("" henüz belli değil)
 {} -> k_işlev_durum         # ad -> 0 derlenmedi, 1 derleniyor, 2 derlendi
 {} -> k_işlev_sona          # ad -> gövdenin sonuna ulaşılabiliyor mu
+{} -> k_işlev_örnekleri     # ad -> örneklerin anahtarları (ad, ad§1, ...); yalnızca birden çok örnekte
 {} -> k_dönmeyen            # hiç geri dönmeyen işlevler (her yolu çık'a varır)
 [] -> k_değer_işlevler      # değer olarak verilip henüz derlenmemiş işlevler
 
@@ -1163,26 +1164,97 @@ işlev çağır_öncekiyle(ad, arg_düğümleri, d, önceki, akan) {
         k_hata_not("'" + ad + "' işlevi " + metne(beklenen) + " argüman bekliyor, "
                    + metne(uzunluk(türler)) + " verildi", d, ipucu, gölge, gölge_notu)
     }
+    ad -> anahtar
     değil var(k_işlev_türler, ad) -> eğer { türler -> k_işlev_türler[ad] } değilse {
-        k_işlev_türler[ad] -> önceki
-        0 -> i
-        i < uzunluk(türler) -> iken {
-            değil birleştir(önceki[i], türler[i]) -> eğer {
-                k_hata_not("'" + ad + "' işlevi (" + tür_listesi(önceki) + ") ile çağrılmıştı; şimdi ("
-                           + tür_listesi(türler) + ") veriliyor", d, "", gölge, gölge_notu)
-            }
-            i + 1 -> i
-        }
+        örnek_seç(ad, türler, d, gölge, gölge_notu) -> anahtar
     }
-    k_işlev_durum[ad] == 0 -> eğer { işlevi_derle(ad) }
-    yaz("call " + k_işlev_etiket[ad])
+    k_işlev_durum[anahtar] == 0 -> eğer { işlevi_derle(anahtar) }
+    yaz("call " + k_işlev_etiket[anahtar])
     uzunluk(türler) > 0 -> eğer { yaz("add rsp, " + metne(8 * uzunluk(türler))) }
-    k_işlev_dönüş[ad] == "" -> eğer {
+    k_işlev_dönüş[anahtar] == "" -> eğer {
         # Özyineleme: işlev hâlâ derleniyor ve henüz bir şey döndürmedi. Dönüş türü,
         # ilk 'döndür'de ya da sonucun kullanıldığı yerde belli olacak bir bilinmeyendir.
-        yeni_tür_değişkeni() -> k_işlev_dönüş[ad]
+        yeni_tür_değişkeni() -> k_işlev_dönüş[anahtar]
     }
-    k_işlev_dönüş[ad] -> döndür
+    k_işlev_dönüş[anahtar] -> döndür
+}
+
+# İki tür birleştirilebilir mi? birleştir'in tersine hiçbir bilinmeyeni bağlamaz.
+işlev uyumlu(a, b) {
+    çöz(a) -> a
+    çöz(b) -> b
+    a == b -> eğer { doğru -> döndür }
+    bilinmeyen_mi(a) veya bilinmeyen_mi(b) -> eğer {
+        a -> t
+        b -> öteki
+        değil bilinmeyen_mi(a) -> eğer {
+            b -> t
+            a -> öteki
+        }
+        yok_mu(t) ve değil bilinmeyen_mi(öteki) ve değil kayıt_mı(öteki) -> eğer { yanlış -> döndür }
+        doğru -> döndür
+    }
+    liste_mi(a) ve liste_mi(b) -> eğer { uyumlu(eleman_türü(a), eleman_türü(b)) -> döndür }
+    sözlük_mi(a) ve sözlük_mi(b) -> eğer {
+        uyumlu(anahtar_kısmı(a), anahtar_kısmı(b)) ve uyumlu(değer_kısmı(a), değer_kısmı(b)) -> döndür
+    }
+    işlev_türü_mü(a) ve işlev_türü_mü(b) -> eğer {
+        işlev_parçaları(a) -> pa
+        işlev_parçaları(b) -> pb
+        uzunluk(pa) != uzunluk(pb) -> eğer { yanlış -> döndür }
+        0 -> i
+        i < uzunluk(pa) -> iken {
+            değil uyumlu(pa[i], pb[i]) -> eğer { yanlış -> döndür }
+            i + 1 -> i
+        }
+        doğru -> döndür
+    }
+    yanlış -> döndür
+}
+
+# Bir işlev uyuşmayan türlerle de çağrılabilir: her tür imzası için ayrı bir örnek derlenir.
+# Örneklerin anahtarları: ad (ilk örnek), ad§1, ad§2, ...; etiketleri f3, f3_1, f3_2, ...
+# En çok EN_ÇOK_ÖRNEK örnek derlenir (f(x)'in f([x])'i çağırması gibi sonsuz üretime karşı).
+32 -> EN_ÇOK_ÖRNEK
+
+işlev görünen_ad(anahtar) { böl(anahtar, "§")[0] -> döndür }
+
+işlev örnek_seç(ad, türler, d, gölge, gölge_notu) {
+    değil var(k_işlev_örnekleri, ad) -> eğer { [ad] -> k_işlev_örnekleri[ad] }
+    k_işlev_örnekleri[ad] -> örnekler
+    örnekler -> her (anahtar) {
+        k_işlev_türler[anahtar] -> önceki
+        doğru -> uyar_mı
+        0 -> i
+        i < uzunluk(türler) -> iken {
+            değil uyumlu(önceki[i], türler[i]) -> eğer { yanlış -> uyar_mı }
+            i + 1 -> i
+        }
+        uyar_mı -> eğer {
+            0 -> i
+            i < uzunluk(türler) -> iken {
+                değil birleştir(önceki[i], türler[i]) -> eğer {
+                    k_hata_not("'" + ad + "' işlevi (" + tür_listesi(önceki) + ") ile çağrılmıştı; şimdi ("
+                               + tür_listesi(türler) + ") veriliyor", d, "", gölge, gölge_notu)
+                }
+                i + 1 -> i
+            }
+            anahtar -> döndür
+        }
+    }
+    uzunluk(örnekler) >= EN_ÇOK_ÖRNEK -> eğer {
+        k_hata_not("'" + ad + "' işlevi " + metne(EN_ÇOK_ÖRNEK) + " farklı tür imzasıyla derlendi; daha fazlası derlenmez",
+                   d, "işlev kendini her seferinde başka türde bir argümanla (örneğin [x]) mı çağırıyor?",
+                   gölge, gölge_notu)
+    }
+    ad + "§" + metne(uzunluk(örnekler)) -> yeni
+    k_işlev[ad] -> k_işlev[yeni]
+    k_işlev_etiket[ad] + "_" + metne(uzunluk(örnekler)) -> k_işlev_etiket[yeni]
+    türler -> k_işlev_türler[yeni]
+    "" -> k_işlev_dönüş[yeni]
+    0 -> k_işlev_durum[yeni]
+    örnekler -> ekle(yeni)
+    yeni -> döndür
 }
 
 # İşlev tutan bir değişken üzerinden çağrı; argümanlar yığına itilmiştir.
@@ -1850,21 +1922,27 @@ işlev işlevi_derle(ad) {
 
 # İşlevin etiket satırı; türler derlemenin sonunda kesinleşmiş olur.
 işlev işlev_başlığı(ad) {
-    k_işlev_etiket[ad] + ":    # işlev " + ad + "(" + tür_listesi(k_işlev_türler[ad]) + ") -> "
+    k_işlev_etiket[ad] + ":    # işlev " + görünen_ad(ad) + "(" + tür_listesi(k_işlev_türler[ad]) + ") -> "
         + tür_adı(k_işlev_dönüş[ad]) -> döndür
 }
 
 # Bütün program derlendikten sonra dönüş türleri kesinleşir. Sonuna değer
 # döndürmeden ulaşılabilen bir işlev 0 döndürür; bu yalnızca sayı için geçerlidir.
 işlev dönüşleri_denetle() {
+    [] -> anahtarlar_
     k_işlev_adları -> her (ad) {
-        k_işlev_durum[ad] == 2 -> eğer {
-            çöz(k_işlev_dönüş[ad]) -> dönüş
+        var(k_işlev_örnekleri, ad) -> eğer { anahtarlar_ + k_işlev_örnekleri[ad] -> anahtarlar_ }
+        değilse { anahtarlar_ -> ekle(ad) }
+    }
+    anahtarlar_ -> her (anahtar) {
+        görünen_ad(anahtar) -> ad
+        k_işlev_durum[anahtar] == 2 -> eğer {
+            çöz(k_işlev_dönüş[anahtar]) -> dönüş
             bilinmeyen_mi(dönüş) ve değil yok_mu(dönüş) -> eğer {   # yalnızca kendi sonucunu döndüren özyineleme
                 "sayı" -> k_bağ[dönüş]
                 "sayı" -> dönüş
             }
-            k_işlev_sona[ad] ve dönüş != "sayı" ve değil kayıtsı(dönüş) -> eğer {
+            k_işlev_sona[anahtar] ve dönüş != "sayı" ve değil kayıtsı(dönüş) -> eğer {
                 k_hata_i("'" + ad + "' işlevi " + ham_ad(dönüş)
                          + " döndürüyor ama sonuna değer döndürmeden ulaşılabiliyor", k_işlev[ad],
                          "her yol bir değer döndürmeli ya da programı bitirmeli; yalnızca sayı ve kayıt "
@@ -1949,7 +2027,7 @@ işlev hedef_iç(h, tür, döngü_başı) {
         k_işlev_dönüş[k_geçerli] -> önceki
         önceki == "" -> eğer { tür -> k_işlev_dönüş[k_geçerli] } değilse {
             değil birleştir(önceki, tür) -> eğer {
-                k_hata("'" + k_geçerli + "' işlevi hem " + ham_ad(önceki) + " hem " + tür_adı(tür)
+                k_hata("'" + görünen_ad(k_geçerli) + "' işlevi hem " + ham_ad(önceki) + " hem " + tür_adı(tür)
                        + " döndürüyor", h)
             }
         }

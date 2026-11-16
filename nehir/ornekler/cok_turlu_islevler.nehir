@@ -1,0 +1,35 @@
+# Bir işlev farklı türlerle çağrılabilir: her tür imzası için işlevin ayrı bir örneği derlenir.
+# Türler yine derleme anında denetlenir; yalnızca aynı işlevi yeniden yazmak gerekmez.
+
+işlev ilk(l) { l[0] -> döndür }
+işlev ikile(x) { [x, x] -> döndür }
+işlev en_uzun(l) {
+    l[0] -> sonuç
+    l -> her (x) { uzunluk(x) > uzunluk(sonuç) -> eğer { x -> sonuç } }
+    sonuç -> döndür
+}
+
+ilk([3, 4]) -> yazdır                         # sayı listesiyle
+ilk(["elma", "armut"]) -> yazdır              # metin listesiyle
+ilk([[1, 2], [3]]) -> yazdır                  # liste listesiyle
+[ikile(5), ikile(7)] -> yazdır
+ikile("ğ") -> yazdır
+ikile(2.5) -> yazdır
+en_uzun(["a", "üç", "kuş"]) -> yazdır         # metinlerin uzunluğu
+en_uzun([[1], [1, 2, 3], [4]]) -> yazdır      # listelerin uzunluğu
+
+# Özyinelemeli işlevler de her türle ayrı derlenir.
+işlev tekrarla(x, n) {
+    n == 0 -> eğer { [] -> boş   boş -> ekle(x)   sil(boş, 0)   boş -> döndür }
+    tekrarla(x, n - 1) -> l
+    l -> ekle(x)
+    l -> döndür
+}
+tekrarla(1, 3) -> yazdır
+tekrarla("ab", 2) -> yazdır
+
+# Kayıtlarla: her kayıt türü için ayrı bir örnek
+kayıt Kedi { ad: metin, can: sayı }
+kayıt Kuş { ad: metin, kanat: sayı }
+işlev adı(h) { h.ad -> döndür }
+[adı(Kedi("Tekir", 9)), adı(Kuş("Serçe", 2))] -> yazdır

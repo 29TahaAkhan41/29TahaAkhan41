@@ -468,7 +468,10 @@ birbirlerininkine erişemezler. Alan ve yöntem adları (`nesne._alan`) bu kural
 **Türler:** 64 bit tam sayılar, ondalık sayılar, metinler, listeler, sözlükler ve kayıtlar. Bir listenin bütün elemanları aynı türdendir:
 sayı listesi, metin listesi ya da liste listesi (`[[1, 2], [3]]`). Boş listenin (`[]`) türü,
 içine akan ilk elemandan anlaşılır; boş sözlük (`{}`) için de aynısı geçerlidir. Türler derleme anında denetlenir; bir değişkenin türü değişemez. İşlevlerin parametre ve dönüş türleri yazılmaz, ilk çağrıdan
-çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır. Birbirini çağıran işlevlerin dönüş türleri de çıkarılır.
+çıkarılır; bir işlev hep aynı türlerle çağrılmalıdır. Birbirini çağıran işlevlerin dönüş türleri de çıkarılır. Bir işlev farklı türlerle de
+çağrılabilir: her tür imzası için işlevin ayrı bir örneği derlenir (`ilk([1, 2])` ve `ilk(["a"])`
+aynı `ilk` işlevini kullanır). Kendini her seferinde başka türde bir argümanla çağıran (örneğin
+`f([x])`) bir işlevin en çok 32 örneği derlenir.
 
 **İşlevler değerdir.** Bir işlevin adı değer olarak yazılınca işlevin kendisi akar; değişkende
 tutulabilir, başka işleve verilebilir, listeye konabilir. İşlev tutan bir değişken adının ardına
@@ -636,7 +639,6 @@ aynı sonucu (aynı assembly ya da aynı hata mesajları) vermelidir.
 - Listeler `<` ve `>` ile karşılaştırılamaz
 - Sözlükler `==` ile karşılaştırılamaz; anahtar olarak liste kullanılamaz
 - Yerleşik işlev adları (`bul`, `sil`, `böl`, `dilim`, `var`, ...) değişken adı olamaz (işlev, kayıt ve parametre adı olabilir)
-- Bir işlev hem sayı listesiyle hem metin listesiyle çağrılamaz (her işlevin tek bir tür imzası vardır)
 - Program aynı anda en çok 256 MB canlı liste, metin, sözlük ve kayıt tutabilir
 - Kaynakta ondalık sayılar üslü yazılamaz (`1.5e3` yerine `1500.0`; `ondalığa("1.5e3")` olur)
 - Modüllerin kendi ad alanı yok; `_` ile başlamayan adların çakışmaması programcıya kalır
