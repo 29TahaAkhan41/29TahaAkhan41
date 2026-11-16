@@ -1,0 +1,3 @@
+ornekler/hatalar/yerlesik_yanlis_tur.nehir:2:6: hata: 'uyar' (metin) bekliyor; (sayı) verildi
+    2 | 5 -> uyar
+      |      ^^^^

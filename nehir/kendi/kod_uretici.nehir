@@ -2071,7 +2071,10 @@ işlev hedef_iç(h, tür, döngü_başı) {
             yaz("push rax")
             [] -> arg_düğümleri
             uzunluk(h.çocuklar) > 0 -> eğer { h.çocuklar[0].çocuklar -> arg_düğümleri }
-            uzunluk(h.çocuklar) == 0 ve yerleşik_mi(h.ad) ve değil var(k_işlev, h.ad) -> eğer {
+            # Yan etkisiz bir yerleşik büyük olasılıkla değişken sanılmıştır (`"a" -> taban`);
+            # `5 -> uyar` gibi bir çağrıda ise niyet bellidir, bu ipucu yanıltır.
+            uzunluk(h.çocuklar) == 0 ve yerleşik_mi(h.ad) ve değil var(k_işlev, h.ad)
+                ve var(SAF_YERLEŞİKLER, YERLEŞİK_ADLAR[h.ad]) -> eğer {
                 "'" + h.ad + "' yerleşik bir işlevdir; akan değer ona argüman olur. "
                     + "Değişkene başka bir ad verin" -> k_varsayılan_ipucu
             }

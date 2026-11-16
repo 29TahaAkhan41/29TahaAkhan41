@@ -1540,8 +1540,10 @@ class KodÜretici:
             try:
                 return self.çağır(ad, argümanlar or [], satır, akan=tür)
             except NehirHatası as hata:
+                # Yan etkisiz bir yerleşik büyük olasılıkla değişken sanılmıştır (`"a" -> taban`);
+                # `5 -> uyar` gibi bir çağrıda ise niyet bellidir, bu ipucu yanıltır.
                 if argümanlar is None and ad in YERLEŞİKLER and ad not in self.işlevler \
-                        and hata.ipucu is None:
+                        and YERLEŞİKLER[ad] in SAF_YERLEŞİKLER and hata.ipucu is None:
                     hata.ipucu = (f"'{ad}' yerleşik bir işlevdir; akan değer ona argüman olur. "
                                   f"Değişkene başka bir ad verin")
                 raise
