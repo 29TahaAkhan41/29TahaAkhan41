@@ -1,0 +1,1598 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "kanveruh"
+	group: ""
+	icon: {
+		id: "evilcraft:dark_gem"
+	}
+	id: "0646FFEBE0BBC584"
+	order_index: 12
+	quest_links: [ ]
+	quests: [
+		{
+			id: "A9D00F94477C66BA"
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "412013A0F7AAC4EF"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "C018D4330791EF52"
+					item: {
+						count: 1
+						id: "evilcraft:dark_gem"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			id: "38DC6AA2523B3F13"
+			dependencies: [
+				"A9D00F94477C66BA"
+			]
+			rewards: [
+				{
+					id: "424356D660B45DFF"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "34404DF98549F8C5"
+					item: {
+						count: 1
+						id: "evilcraft:dark_stick"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 1.5d
+			y: 0.0d
+		}
+		{
+			id: "B1584BA943D78561"
+			dependencies: [
+				"38DC6AA2523B3F13"
+			]
+			rewards: [
+				{
+					id: "EAD2BDEB8DA2AA3D"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "C9D82814FA4C10DD"
+					item: {
+						count: 1
+						id: "evilcraft:blood_extractor"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 0.0d
+		}
+		{
+			id: "38630158BF890E08"
+			dependencies: [
+				"B1584BA943D78561"
+			]
+			rewards: [
+				{
+					id: "1ED6FA437091D5D2"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "4FCDC0B14314A1D5"
+					item: {
+						count: 1
+						id: "evilcraft:blood_infuser"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 0.0d
+		}
+		{
+			id: "DCD85AE962930660"
+			dependencies: [
+				"38630158BF890E08"
+			]
+			rewards: [
+				{
+					id: "E29C2909BFC006BE"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "A045FC1BA53BE169"
+					item: {
+						count: 1
+						id: "evilcraft:blood_infusion_core"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			id: "7B74235AE641D6F9"
+			dependencies: [
+				"DCD85AE962930660"
+			]
+			rewards: [
+				{
+					id: "EB4BB3332F101875"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "A3F7F3910FAA3F17"
+					item: {
+						count: 1
+						id: "evilcraft:hardened_blood_shard"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 7.5d
+			y: 0.0d
+		}
+		{
+			id: "8AC007D8FE9327F5"
+			dependencies: [
+				"7B74235AE641D6F9"
+			]
+			rewards: [
+				{
+					id: "B4FDC73F255F5FF7"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "9C32A5720C46D27F"
+					item: {
+						count: 1
+						id: "evilcraft:dark_power_gem"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 9.0d
+			y: 0.0d
+		}
+		{
+			id: "8E028C54DB016E9F"
+			dependencies: [
+				"8AC007D8FE9327F5"
+			]
+			rewards: [
+				{
+					id: "F82A1D27AC72AF25"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "E04BB4D2689312BA"
+					item: {
+						count: 1
+						id: "evilcraft:spirit_furnace"
+					}
+					type: "item"
+				}
+			]
+			x: 10.5d
+			y: 0.0d
+		}
+		{
+			id: "B3DFCBA2DF22877C"
+			dependencies: [
+				"8E028C54DB016E9F"
+			]
+			rewards: [
+				{
+					id: "7A959C7114FAF625"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "B329A5F764A7ECF7"
+					item: {
+						count: 1
+						id: "evilcraft:environmental_accumulator"
+					}
+					type: "item"
+				}
+			]
+			x: 12.0d
+			y: 0.0d
+		}
+		{
+			id: "751ED168D69EAADF"
+			dependencies: [
+				"B3DFCBA2DF22877C"
+			]
+			rewards: [
+				{
+					id: "97375BC6A1823E81"
+					type: "xp"
+					xp: 120
+				}
+			]
+			tasks: [
+				{
+					id: "2E4B218F6BA34E54"
+					item: {
+						count: 1
+						id: "evilcraft:sanguinary_environmental_accumulator"
+					}
+					type: "item"
+				}
+			]
+			x: 13.5d
+			y: 0.0d
+		}
+		{
+			id: "1090A2DC0CBD4AFA"
+			dependencies: [
+				"751ED168D69EAADF"
+			]
+			rewards: [
+				{
+					id: "924260B4A5FC8DE8"
+					type: "xp"
+					xp: 120
+				}
+			]
+			tasks: [
+				{
+					id: "71E4E760824C48EA"
+					item: {
+						count: 1
+						id: "evilcraft:exalted_crafter"
+					}
+					type: "item"
+				}
+			]
+			x: 15.0d
+			y: 0.0d
+		}
+		{
+			id: "371157C4A37D8B3E"
+			dependencies: [
+				"1090A2DC0CBD4AFA"
+			]
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "A481A4118DD2A0CC"
+					type: "xp"
+					xp: 120
+				}
+				{
+					id: "FFA87827775B3CBD"
+					item: {
+						count: 1
+						id: "evilcraft:dark_gem"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "A8763847A65D52AA"
+					item: {
+						count: 1
+						id: "evilcraft:origins_of_darkness"
+					}
+					type: "item"
+				}
+			]
+			x: 16.5d
+			y: 0.0d
+		}
+		{
+			id: "7D38AEEE42B1F88E"
+			dependencies: [
+				"A9D00F94477C66BA"
+			]
+			rewards: [
+				{
+					id: "38DBB423C19B9B09"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "3605FEFE669C73FA"
+					item: {
+						count: 1
+						id: "evilcraft:dark_tank"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "77D36DD8105D33CE"
+			dependencies: [
+				"7D38AEEE42B1F88E"
+			]
+			rewards: [
+				{
+					id: "B397171578E3A531"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "1EE33660F903C3A3"
+					item: {
+						count: 1
+						id: "evilcraft:blood_orb_filled"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "0659D34CB470FD6B"
+			dependencies: [
+				"77D36DD8105D33CE"
+			]
+			rewards: [
+				{
+					id: "1B89142304247E41"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "BB7D1D9F58D36568"
+					item: {
+						count: 1
+						id: "evilcraft:condensed_blood"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 3.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "1BA8465CCE3E11B8"
+			dependencies: [
+				"0659D34CB470FD6B"
+			]
+			rewards: [
+				{
+					id: "26D2659318B20F5B"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "E86EE8128BF3ABAD"
+					item: {
+						count: 1
+						id: "evilcraft:blood_chest"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "5612B1419B39E8E6"
+			dependencies: [
+				"1BA8465CCE3E11B8"
+			]
+			rewards: [
+				{
+					id: "42BA22C447597677"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "D21C6416AB230268"
+					item: {
+						count: 1
+						id: "evilcraft:purifier"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "D381AC1680DAC3B4"
+			dependencies: [
+				"5612B1419B39E8E6"
+			]
+			rewards: [
+				{
+					id: "6C3C9D07403EBB4F"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "7704B31F369DC7A1"
+					item: {
+						count: 1
+						id: "evilcraft:vengeance_ring"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "E79250A25398CD89"
+			dependencies: [
+				"D381AC1680DAC3B4"
+			]
+			rewards: [
+				{
+					id: "32732C404113F2BF"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "F4961B9CDF25DCD1"
+					item: {
+						count: 1
+						id: "evilcraft:vengeance_essence"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 9.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "EA6E316326FD6FE5"
+			dependencies: [
+				"E79250A25398CD89"
+			]
+			rewards: [
+				{
+					id: "97DD18A55A984B51"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "CE08B07B480F1DBD"
+					item: {
+						count: 1
+						id: "evilcraft:vengeance_pickaxe"
+					}
+					type: "item"
+				}
+			]
+			x: 10.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "D9F64187F26E23F3"
+			dependencies: [
+				"EA6E316326FD6FE5"
+			]
+			rewards: [
+				{
+					id: "5D98B36B862D972C"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "210F55316851EA8C"
+					item: {
+						count: 1
+						id: "evilcraft:mace_of_distortion"
+					}
+					type: "item"
+				}
+			]
+			x: 12.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "BB4AC2730F0E6EDA"
+			dependencies: [
+				"D9F64187F26E23F3"
+			]
+			rewards: [
+				{
+					id: "1F8DD5A1E3B7C51A"
+					type: "xp"
+					xp: 120
+				}
+				{
+					id: "7F00F780833DA129"
+					item: {
+						count: 1
+						id: "evilcraft:dark_gem"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "FD6AFC101C31C788"
+					item: {
+						count: 1
+						id: "evilcraft:mace_of_destruction"
+					}
+					type: "item"
+				}
+			]
+			x: 13.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "C30E50D8D93A2946"
+			dependencies: [
+				"A9D00F94477C66BA"
+			]
+			rewards: [
+				{
+					id: "A9C05C179415511D"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "91CA72E5578642F0"
+					item: {
+						count: 1
+						id: "evilcraft:werewolf_bone"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 0.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "768CB401DB0F481A"
+			dependencies: [
+				"C30E50D8D93A2946"
+			]
+			rewards: [
+				{
+					id: "843E5034769071C3"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "FFF761B93C45E261"
+					item: {
+						count: 1
+						id: "evilcraft:werewolf_fur"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 1.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "C7A5816F18FCC90C"
+			dependencies: [
+				"768CB401DB0F481A"
+			]
+			rewards: [
+				{
+					id: "B3B6EC4192E06722"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "E858178AB00BF0DB"
+					item: {
+						count: 1
+						id: "evilcraft:poison_sac"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 3.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "ED40B37434E84004"
+			dependencies: [
+				"C7A5816F18FCC90C"
+			]
+			rewards: [
+				{
+					id: "3B68E079D0B80EEC"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "C30910948F13AE34"
+					item: {
+						count: 1
+						id: "evilcraft:broom"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "1FE83469A79B9931"
+			dependencies: [
+				"ED40B37434E84004"
+			]
+			rewards: [
+				{
+					id: "98C7EFE5B005A59D"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "2788BF0FBCFC2478"
+					item: {
+						count: 1
+						id: "evilcraft:necromancer_staff"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "B93AC08FFF94F635"
+			dependencies: [
+				"1FE83469A79B9931"
+			]
+			rewards: [
+				{
+					id: "A141184DF0DE5F07"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "F8BD5321812AAF80"
+					item: {
+						count: 1
+						id: "evilcraft:sceptre_of_thunder"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "BCBFC483FA757A97"
+			dependencies: [
+				"B93AC08FFF94F635"
+			]
+			rewards: [
+				{
+					id: "E2DC88A75BEE5CDE"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "B80A4C9796C0059F"
+					item: {
+						count: 1
+						id: "evilcraft:spectral_glasses"
+					}
+					type: "item"
+				}
+			]
+			x: 9.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "24C63A863EC88AA4"
+			dependencies: [
+				"BCBFC483FA757A97"
+			]
+			rewards: [
+				{
+					id: "45CD45CC6BB0B162"
+					type: "xp"
+					xp: 90
+				}
+				{
+					id: "86DB69A6CC91AD77"
+					item: {
+						count: 1
+						id: "evilcraft:dark_gem"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "32211083CD144F1F"
+					item: {
+						count: 1
+						id: "evilcraft:box_of_eternal_closure"
+					}
+					type: "item"
+				}
+			]
+			x: 10.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "32E7A15C77CF16C6"
+			dependencies: [
+				"A9D00F94477C66BA"
+			]
+			rewards: [
+				{
+					id: "7B70CD093D6A1FA3"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "B9DC36B85C32F954"
+					item: {
+						count: 1
+						id: "malum:encyclopedia_arcana"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 6.3d
+		}
+		{
+			id: "9C5A342B7754A5E6"
+			dependencies: [
+				"32E7A15C77CF16C6"
+			]
+			rewards: [
+				{
+					id: "21B4C5ABCF248704"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "1B629396FB15A2A6"
+					item: {
+						count: 1
+						id: "malum:crude_scythe"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 6.3d
+		}
+		{
+			id: "609E15290D74C4AF"
+			dependencies: [
+				"9C5A342B7754A5E6"
+			]
+			rewards: [
+				{
+					id: "540FD30337711BCB"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "CB75ED9C375053B4"
+					item: {
+						count: 1
+						id: "malum:spirit_altar"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 6.3d
+		}
+		{
+			id: "97A276986B261B6F"
+			dependencies: [
+				"609E15290D74C4AF"
+			]
+			rewards: [
+				{
+					id: "E0AF8939FDC346B3"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "58BA76A61F846F75"
+					item: {
+						count: 1
+						id: "malum:soul_stained_steel_ingot"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 4.5d
+			y: 6.3d
+		}
+		{
+			id: "9907C82A9987E27E"
+			dependencies: [
+				"97A276986B261B6F"
+			]
+			rewards: [
+				{
+					id: "EC46F0957C43F60B"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "C6A74CED00E34DF0"
+					item: {
+						count: 1
+						id: "malum:hallowed_gold_ingot"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 6.0d
+			y: 6.3d
+		}
+		{
+			id: "62720B3503D46349"
+			dependencies: [
+				"9907C82A9987E27E"
+			]
+			rewards: [
+				{
+					id: "DE28CAD848AA4FA9"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "4F0BF4E614F6E808"
+					item: {
+						count: 1
+						id: "malum:spirit_jar"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 6.3d
+		}
+		{
+			id: "F2EDFF90CBE4E5EE"
+			dependencies: [
+				"62720B3503D46349"
+			]
+			rewards: [
+				{
+					id: "9581628A01E520D3"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "C18DB09B416299FA"
+					item: {
+						count: 1
+						id: "malum:spirit_crucible"
+					}
+					type: "item"
+				}
+			]
+			x: 9.0d
+			y: 6.3d
+		}
+		{
+			id: "3EBFB653FFA59359"
+			dependencies: [
+				"F2EDFF90CBE4E5EE"
+			]
+			rewards: [
+				{
+					id: "8619140D29EE529E"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "B581703BCFF6DC09"
+					item: {
+						count: 1
+						id: "malum:runic_workbench"
+					}
+					type: "item"
+				}
+			]
+			x: 10.5d
+			y: 6.3d
+		}
+		{
+			id: "C98F7966DB886CC0"
+			dependencies: [
+				"3EBFB653FFA59359"
+			]
+			rewards: [
+				{
+					id: "A9805BC37B816336"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "794FD71394CA146F"
+					item: {
+						count: 1
+						id: "malum:soul_stained_steel_scythe"
+					}
+					type: "item"
+				}
+			]
+			x: 12.0d
+			y: 6.3d
+		}
+		{
+			id: "6B1C854B82B68696"
+			dependencies: [
+				"C98F7966DB886CC0"
+			]
+			rewards: [
+				{
+					id: "E39D0104FF81DA02"
+					type: "xp"
+					xp: 120
+				}
+			]
+			tasks: [
+				{
+					id: "7A1F7C22F92089E5"
+					item: {
+						count: 1
+						id: "malum:encyclopedia_esoterica"
+					}
+					type: "item"
+				}
+			]
+			x: 13.5d
+			y: 6.3d
+		}
+		{
+			id: "7D3F8123BE5C0A94"
+			dependencies: [
+				"6B1C854B82B68696"
+			]
+			rewards: [
+				{
+					id: "4FA4573668E8A063"
+					type: "xp"
+					xp: 120
+				}
+			]
+			tasks: [
+				{
+					id: "D7FF3D75A31DC802"
+					item: {
+						count: 1
+						id: "malum:malignant_pewter_ingot"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 15.0d
+			y: 6.3d
+		}
+		{
+			id: "D69677790147609D"
+			dependencies: [
+				"7D3F8123BE5C0A94"
+			]
+			rewards: [
+				{
+					id: "5D5E1F0F1175C423"
+					type: "xp"
+					xp: 120
+				}
+				{
+					id: "2983270FA8955372"
+					item: {
+						count: 1
+						id: "evilcraft:dark_gem"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "D03DC8E23DE5D7AF"
+					item: {
+						count: 1
+						id: "malum:edge_of_deliverance"
+					}
+					type: "item"
+				}
+			]
+			x: 16.5d
+			y: 6.3d
+		}
+		{
+			id: "45194084AD2E8DAC"
+			dependencies: [
+				"A9D00F94477C66BA"
+			]
+			rewards: [
+				{
+					id: "C64AE99CC01957B5"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "C1524BFC3C49AF9C"
+					item: {
+						count: 1
+						id: "malum:sacred_spirit"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 0.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "D947B38B8BC2977D"
+			dependencies: [
+				"45194084AD2E8DAC"
+			]
+			rewards: [
+				{
+					id: "AEC402F5B783A9E0"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "6903FCB052FEFC58"
+					item: {
+						count: 1
+						id: "malum:wicked_spirit"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 1.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "8C2BED16F097C93D"
+			dependencies: [
+				"D947B38B8BC2977D"
+			]
+			rewards: [
+				{
+					id: "054744FD94368C01"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "4C6BBBAFE8ACF1F7"
+					item: {
+						count: 1
+						id: "malum:arcane_spirit"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 3.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "89BD0D0405CFDA66"
+			dependencies: [
+				"8C2BED16F097C93D"
+			]
+			rewards: [
+				{
+					id: "31677413FB80CDC3"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "8F6004F45BD89EC0"
+					item: {
+						count: 1
+						id: "malum:eldritch_spirit"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 4.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "9D3457B027C225E6"
+			dependencies: [
+				"89BD0D0405CFDA66"
+			]
+			rewards: [
+				{
+					id: "11B713C43A539E91"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "6573639D2E1C6756"
+					item: {
+						count: 1
+						id: "malum:aerial_spirit"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 6.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "C094D539BF4845E6"
+			dependencies: [
+				"9D3457B027C225E6"
+			]
+			rewards: [
+				{
+					id: "CD298EB27F8A2045"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "666326D8BD5D3900"
+					item: {
+						count: 1
+						id: "malum:aqueous_spirit"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 7.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "C40CF52BB5B7E213"
+			dependencies: [
+				"C094D539BF4845E6"
+			]
+			rewards: [
+				{
+					id: "EF1862336A78D314"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "6DCD6BB06F27953F"
+					item: {
+						count: 1
+						id: "malum:earthen_spirit"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 9.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "F5E10ABAAD6B258A"
+			dependencies: [
+				"C40CF52BB5B7E213"
+			]
+			rewards: [
+				{
+					id: "96747A0B077ADD02"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "33B58F16FED01E20"
+					item: {
+						count: 1
+						id: "malum:infernal_spirit"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 10.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "64E01DBF2BCA8014"
+			dependencies: [
+				"F5E10ABAAD6B258A"
+			]
+			rewards: [
+				{
+					id: "201A7DA3BA4F50A8"
+					type: "xp"
+					xp: 90
+				}
+				{
+					id: "75102B2DB2BE0D20"
+					item: {
+						count: 1
+						id: "evilcraft:dark_gem"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "63BF12F7D4C19F8D"
+					item: {
+						count: 1
+						id: "malum:umbral_spirit"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 12.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "9BD5DED69D234F91"
+			dependencies: [
+				"A9D00F94477C66BA"
+			]
+			rewards: [
+				{
+					id: "465D43891B1B5A00"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "900B8379ACD620FF"
+					item: {
+						count: 1
+						id: "malum:raw_soulstone"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 0.0d
+			y: 10.5d
+		}
+		{
+			id: "66F9E13ABC7A9AC5"
+			dependencies: [
+				"9BD5DED69D234F91"
+			]
+			rewards: [
+				{
+					id: "2B3F8F7DF0D5EA32"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "A789757D89327E7E"
+					item: {
+						count: 1
+						id: "malum:blazing_quartz"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 1.5d
+			y: 10.5d
+		}
+		{
+			id: "7056F0F060591CF3"
+			dependencies: [
+				"66F9E13ABC7A9AC5"
+			]
+			rewards: [
+				{
+					id: "4E6E5B93E50D81DC"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "90A0E8A15600DF0B"
+					item: {
+						count: 1
+						id: "malum:arcane_charcoal"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 3.0d
+			y: 10.5d
+		}
+		{
+			id: "B7581AE83FBBE18E"
+			dependencies: [
+				"7056F0F060591CF3"
+			]
+			rewards: [
+				{
+					id: "5AACCE9D370B92CC"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "32ED084D44A481E2"
+					item: {
+						count: 1
+						id: "malum:hex_ash"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 4.5d
+			y: 10.5d
+		}
+		{
+			id: "D2CFACD2CCB37C5A"
+			dependencies: [
+				"B7581AE83FBBE18E"
+			]
+			rewards: [
+				{
+					id: "EBC4D6448C42AB56"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "27916D5F2683399E"
+					item: {
+						count: 1
+						id: "malum:living_flesh"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 6.0d
+			y: 10.5d
+		}
+		{
+			id: "C650F38EF9D3D24F"
+			dependencies: [
+				"D2CFACD2CCB37C5A"
+			]
+			rewards: [
+				{
+					id: "6BFE3A8755D27CCF"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "511C473CCA5D6069"
+					item: {
+						count: 1
+						id: "malum:void_salts"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 7.5d
+			y: 10.5d
+		}
+		{
+			id: "93AC9587713EFD6A"
+			dependencies: [
+				"C650F38EF9D3D24F"
+			]
+			rewards: [
+				{
+					id: "E6A443061306E411"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "C3EA102B6D5D0A59"
+					item: {
+						count: 1
+						id: "malum:null_slate"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 9.0d
+			y: 10.5d
+		}
+		{
+			id: "97225C2BA59C8EE0"
+			dependencies: [
+				"93AC9587713EFD6A"
+			]
+			rewards: [
+				{
+					id: "D67C35A041C937EC"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "85C204942F8FA2A9"
+					item: {
+						count: 1
+						id: "malum:astral_weave"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 10.5d
+			y: 10.5d
+		}
+		{
+			id: "EE31CF6A01A2CF03"
+			dependencies: [
+				"97225C2BA59C8EE0"
+			]
+			rewards: [
+				{
+					id: "2C00869FF940F361"
+					type: "xp"
+					xp: 90
+				}
+				{
+					id: "7041899E0AEFD3CF"
+					item: {
+						count: 1
+						id: "evilcraft:dark_gem"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "5BF2EB339A1E4A5F"
+					item: {
+						count: 1
+						id: "malum:stellar_mechanism"
+					}
+					type: "item"
+				}
+			]
+			x: 12.0d
+			y: 10.5d
+		}
+	]
+}

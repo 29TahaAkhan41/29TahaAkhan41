@@ -575,6 +575,36 @@
 	quest.C9E8FAEF01598584.title: "Orkide"
 	quest.7FB394961FB732F2.title: "Protea"
 	quest.3F510EA41F87D4B6.title: "Devedikeni"
+	quest.9FE8E72386701287.title: "Astral Fluix Kristali"
+	quest.9FE8E72386701287.quest_desc: [
+		"Applied AstralSorcery: yıldızlar ME ağıyla buluşuyor."
+	]
+	quest.31C6C961EA41F6A3.title: "Astral İşlemci Kalıbı"
+	quest.85D6B9144839142A.title: "Basılı Astral İşlemci"
+	quest.3110358AE60EBD9D.title: "Astral İşlemci"
+	quest.54DEC259FDF5A623.title: "Lümen İşlemcisi"
+	quest.523F57519A6C84AC.title: "Lümen Hücre Kasası"
+	quest.06C0D64F198CCFA7.title: "1k Lümen Hücresi"
+	quest.06C0D64F198CCFA7.quest_desc: [
+		"Lümeni ME ağında depola."
+	]
+	quest.3BD494E025EA8F3C.title: "64k Lümen Hücresi"
+	quest.0ACE305EAB178DE2.title: "ME Lümen Kristalleştirici"
+	quest.0DB12022EA314612.title: "ME Yıldız Işığı Aşılayıcı"
+	quest.BB3D759610054C72.title: "Yanardöner Uyumlama Sunağı"
+	quest.77B67650A5CDCC8E.title: "ME Göksel Geçit"
+	quest.77B67650A5CDCC8E.quest_desc: [
+		"Astral ve AE2'nin zirvesi."
+	]
+	quest.C4C35B688117E6DA.title: "Ezilmiş Yıldız Metali"
+	quest.C4C35B688117E6DA.quest_desc: [
+		"Create: Astral Sorcery ile yıldız metalini Create'te işle."
+	]
+	quest.888000DFA41BF6C9.title: "Yıldız Metali Parçası"
+	quest.D1D1A06FF0AF5F32.title: "Yıldız Metali Kasası"
+	quest.F10A74BF20B776F1.title: "Yıldız Kasalı Mil"
+	quest.D7FAA85A24C84151.title: "Yıldız Kasalı Dişli"
+	quest.9815DA19A5ED79C9.title: "Yıldız Kasalı Büyük Dişli"
 	chapter.A2342087C3E31DF2.title: "&6Create"
 	quest.2A6343F5ED0023ED.title: "Andezit Alaşımı"
 	quest.2A6343F5ED0023ED.quest_desc: [
@@ -915,58 +945,94 @@
 	quest.747D8CFBF03F418D.title: "Huni Arabası"
 	quest.01E4136213D27651.title: "Bırakıcı"
 	quest.4D1E560B6A9B73CF.title: "Karşılaştırıcı"
-	chapter.2EE3D32B8FC983B7.title: "&aBotania"
-	quest.FD0A61B7F2103A48.title: "Lexica Botania"
-	quest.FD0A61B7F2103A48.quest_desc: [
-		"Botania'nın rehber kitabı."
+	chapter.0646FFEBE0BBC584.title: "&4Kan ve Ruh: EvilCraft & Malum"
+	quest.A9D00F94477C66BA.title: "Karanlık Mücevher"
+	quest.A9D00F94477C66BA.quest_desc: [
+		"EvilCraft'a başlangıç. Derinlerde karanlık cevher ara."
 	]
-	quest.6BF83051FB570078.title: "Saf Papatya"
-	quest.01CD72696454E114.title: "Canlı Kaya"
-	quest.DBF2C2452B26A73C.title: "Mana Yayıcı"
-	quest.F7D724AF7AA6A172.title: "Mana Havuzu"
-	quest.22AC7A9AD27F1503.title: "Manaçelik"
-	quest.BB0720635F24BD16.title: "Rün Sunağı"
-	quest.626CF249CFE3EE14.title: "Terra Plakası"
-	quest.5CCB038AC3BF7D7D.title: "Terraçelik"
-	quest.FE22D43FCD93432F.title: "Alfheim Geçidi"
-	quest.FE22D43FCD93432F.quest_desc: [
-		"Elflerle ticaret."
+	quest.38DC6AA2523B3F13.title: "Karanlık Çubuk"
+	quest.B1584BA943D78561.title: "Kan Çıkarıcı"
+	quest.B1584BA943D78561.quest_desc: [
+		"Yaratıklardan kan topla."
 	]
-	quest.A00C0A717580F091.title: "Elementyum"
-	quest.91DE3608410D5B2C.title: "Gaia Pilonları"
-	quest.BC0B93983E61B66A.title: "Gaia'nın Ruhu"
-	quest.BC0B93983E61B66A.quest_desc: [
-		"Gaia Muhafızını yen."
+	quest.38630158BF890E08.title: "Kan Aşılayıcı"
+	quest.DCD85AE962930660.title: "Kan Aşılama Çekirdeği"
+	quest.7B74235AE641D6F9.title: "Sertleşmiş Kan"
+	quest.8AC007D8FE9327F5.title: "Karanlık Güç Mücevheri"
+	quest.8E028C54DB016E9F.title: "Ruh Fırını"
+	quest.B3DFCBA2DF22877C.title: "Çevresel Biriktirici"
+	quest.751ED168D69EAADF.title: "Kanlı Biriktirici"
+	quest.1090A2DC0CBD4AFA.title: "Yüce Üretici"
+	quest.371157C4A37D8B3E.title: "Karanlığın Kökeni"
+	quest.371157C4A37D8B3E.quest_desc: [
+		"EvilCraft'ın zirvesi."
 	]
-	quest.1FA8AAD3386F17B0.title: "Gaia Külçesi"
-	quest.516C45601847CABD.title: "Dal Asası"
-	quest.A69924F372870CC4.title: "Endoalev"
-	quest.A69924F372870CC4.quest_desc: [
-		"İlk üretici çiçek."
+	quest.7D38AEEE42B1F88E.title: "Karanlık Tank"
+	quest.77D36DD8105D33CE.title: "Dolu Kan Küresi"
+	quest.0659D34CB470FD6B.title: "Yoğun Kan"
+	quest.1BA8465CCE3E11B8.title: "Kan Sandığı"
+	quest.1BA8465CCE3E11B8.quest_desc: [
+		"Eşyalarını kanla tamir eder."
 	]
-	quest.CD336C3A674FAEC2.title: "Hidroanjeas"
-	quest.C779908735606976.title: "Mana Tableti"
-	quest.964738A04A3E0552.title: "Mana İncisi"
-	quest.E1AC9AC03CC4EBAD.title: "Mana Elması"
-	quest.5F400F7145860A7A.title: "Canlı Odun"
-	quest.BDDA4E8E830BACA0.title: "Seyreltilmiş Havuz"
-	quest.05E47EBB1C1CA745.title: "Muhteşem Havuz"
-	quest.239B023792ADF647.title: "Su Rünü"
-	quest.5B865EF5198DBAF9.title: "Ateş Rünü"
-	quest.1A6856FA70BC441A.title: "Toprak Rünü"
-	quest.34811F84A353A0FD.title: "Hava Rünü"
-	quest.598AED05FD31FEB3.title: "Mana Rünü"
-	quest.4D18DF56F0FCB699.title: "Doğa Pilonu"
-	quest.74EAC8C8D61FCB14.title: "Peri Tozu"
-	quest.890F28711C3D822E.title: "Ejder Taşı"
-	quest.26B06D9FED52C503.title: "Simya Katalizörü"
-	quest.E29E9DD27192FCE3.title: "Çağırma Katalizörü"
-	quest.5CA11ED286C9C77F.title: "Terra Kılıcı"
-	quest.FC989197410EC094.title: "Flügel Tacı"
-	quest.FC989197410EC094.quest_desc: [
-		"Uçmanı sağlar."
+	quest.5612B1419B39E8E6.title: "Arıtıcı"
+	quest.D381AC1680DAC3B4.title: "İntikam Yüzüğü"
+	quest.E79250A25398CD89.title: "İntikam Özü"
+	quest.EA6E316326FD6FE5.title: "İntikam Kazması"
+	quest.D9F64187F26E23F3.title: "Çarpıtma Topuzu"
+	quest.BB4AC2730F0E6EDA.title: "Yıkım Topuzu"
+	quest.C30E50D8D93A2946.title: "Kurtadam Kemiği"
+	quest.768CB401DB0F481A.title: "Kurtadam Kürkü"
+	quest.C7A5816F18FCC90C.title: "Zehir Kesesi"
+	quest.ED40B37434E84004.title: "Süpürge"
+	quest.ED40B37434E84004.quest_desc: [
+		"Uçan süpürge!"
 	]
-	quest.E748119A61D6FDE8.title: "Kralın Anahtarı"
+	quest.1FE83469A79B9931.title: "Ölü Çağıran Asası"
+	quest.B93AC08FFF94F635.title: "Gök Gürültüsü Asası"
+	quest.BCBFC483FA757A97.title: "Hayalet Gözlüğü"
+	quest.24C63A863EC88AA4.title: "Ebedi Kapanış Kutusu"
+	quest.32E7A15C77CF16C6.title: "Arcana Ansiklopedisi"
+	quest.32E7A15C77CF16C6.quest_desc: [
+		"Malum ile ruh büyüsüne başla."
+	]
+	quest.9C5A342B7754A5E6.title: "Kaba Tırpan"
+	quest.9C5A342B7754A5E6.quest_desc: [
+		"Yaratıklardan ruh topla."
+	]
+	quest.609E15290D74C4AF.title: "Ruh Sunağı"
+	quest.97A276986B261B6F.title: "Ruh Lekeli Çelik"
+	quest.9907C82A9987E27E.title: "Kutsanmış Altın"
+	quest.62720B3503D46349.title: "Ruh Kavanozu"
+	quest.F2EDFF90CBE4E5EE.title: "Ruh Potası"
+	quest.3EBFB653FFA59359.title: "Rünik Tezgah"
+	quest.C98F7966DB886CC0.title: "Ruh Çeliği Tırpanı"
+	quest.6B1C854B82B68696.title: "Esoterica Ansiklopedisi"
+	quest.7D3F8123BE5C0A94.title: "Kötücül Kalay"
+	quest.D69677790147609D.title: "Kurtuluşun Kenarı"
+	quest.D69677790147609D.quest_desc: [
+		"Malum'un en güçlü silahlarından."
+	]
+	quest.45194084AD2E8DAC.title: "Kutsal Ruh"
+	quest.D947B38B8BC2977D.title: "Kötü Ruh"
+	quest.8C2BED16F097C93D.title: "Gizemli Ruh"
+	quest.89BD0D0405CFDA66.title: "Kadim Ruh"
+	quest.9D3457B027C225E6.title: "Hava Ruhu"
+	quest.C094D539BF4845E6.title: "Su Ruhu"
+	quest.C40CF52BB5B7E213.title: "Toprak Ruhu"
+	quest.F5E10ABAAD6B258A.title: "Cehennem Ruhu"
+	quest.64E01DBF2BCA8014.title: "Gölge Ruhu"
+	quest.9BD5DED69D234F91.title: "Ham Ruhtaşı"
+	quest.66F9E13ABC7A9AC5.title: "Alevli Kuvars"
+	quest.7056F0F060591CF3.title: "Gizemli Odun Kömürü"
+	quest.B7581AE83FBBE18E.title: "Büyü Külü"
+	quest.D2CFACD2CCB37C5A.title: "Canlı Et"
+	quest.C650F38EF9D3D24F.title: "Boşluk Tuzu"
+	quest.93AC9587713EFD6A.title: "Boş Arduvaz"
+	quest.97225C2BA59C8EE0.title: "Astral Örgü"
+	quest.97225C2BA59C8EE0.quest_desc: [
+		"Yıldızlarla dokunmuş kumaş."
+	]
+	quest.EE31CF6A01A2CF03.title: "Yıldız Mekanizması"
 	chapter.8772A1F000AC15F1.title: "&5Ars Nouveau"
 	quest.68C4BB7B7D1EA0E0.title: "Acemi Büyü Kitabı"
 	quest.68C4BB7B7D1EA0E0.quest_desc: [
@@ -1034,7 +1100,7 @@
 	quest.AFFEA1A4ACA78D22.quest_desc: [
 		"Occultism'e başlangıç."
 	]
-	quest.C46FD8758F1A5BC3.title: "Şeytanın Rüyası"
+	quest.C46FD8758F1A5BC3.title: "Şeytanın Rüyası Özü"
 	quest.A17016DF4D6140CC.title: "Gümüş"
 	quest.6B64F9FDFBC12440.title: "Beyaz Tebeşir"
 	quest.16DEAFC8952EEEF4.title: "Kurban Kasesi"
@@ -1150,7 +1216,7 @@
 	quest.B7D4E8AE3FC9EE87.title: "Kloggrum"
 	quest.D40EC6F9D34994EA.title: "Ayazçelik"
 	quest.3E7E6F65C57A7647.title: "Utheryum"
-	quest.6A1C2CA873086034.title: "Regalyum"
+	quest.6A1C2CA873086034.title: "Regalyum Kristali"
 	quest.5358AAB6AC6F4280.title: "Unutulmuş Külçe"
 	quest.42D4C72BA3D7F23D.title: "Ruh Kristali"
 	quest.42D4C72BA3D7F23D.quest_desc: [
@@ -1277,9 +1343,9 @@
 	quest.D11AE4DD778DFA6A.quest_desc: [
 		"Alaz yakıcın hiç sönmez."
 	]
-	quest.AE5D2877DA415F62.title: "Yaratıcı Mana Havuzu"
+	quest.AE5D2877DA415F62.title: "Yaratıcı Kan Damlası"
 	quest.AE5D2877DA415F62.quest_desc: [
-		"Sonsuz mana."
+		"Sonsuz kan."
 	]
 	quest.7A69F570E427A776.title: "Yaratıcı Kaynak Kavanozu"
 	quest.7A69F570E427A776.quest_desc: [

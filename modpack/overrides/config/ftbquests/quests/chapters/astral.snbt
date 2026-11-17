@@ -2362,5 +2362,483 @@
 			x: 7.5d
 			y: 18.9d
 		}
+		{
+			id: "9FE8E72386701287"
+			dependencies: [
+				"1D36A80AC9796A61"
+			]
+			rewards: [
+				{
+					id: "BABBE51D9E1A078D"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "0271F384CA1FB2FD"
+					item: {
+						count: 1
+						id: "appliedas:astral_fluix_crystal"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 0.0d
+			y: 21.0d
+		}
+		{
+			id: "31C6C961EA41F6A3"
+			dependencies: [
+				"9FE8E72386701287"
+			]
+			rewards: [
+				{
+					id: "9C3111311162708C"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "F9EF3DF0183AEA52"
+					item: {
+						count: 1
+						id: "appliedas:astral_processor_press"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 21.0d
+		}
+		{
+			id: "85D6B9144839142A"
+			dependencies: [
+				"31C6C961EA41F6A3"
+			]
+			rewards: [
+				{
+					id: "A5FB34DA0CBBAE8E"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "26659A8ECA54712D"
+					item: {
+						count: 1
+						id: "appliedas:printed_astral_processor"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 3.0d
+			y: 21.0d
+		}
+		{
+			id: "3110358AE60EBD9D"
+			dependencies: [
+				"85D6B9144839142A"
+			]
+			rewards: [
+				{
+					id: "A4DEE9081942CC3A"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "F91902FBE771574F"
+					item: {
+						count: 1
+						id: "appliedas:astral_processor"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 4.5d
+			y: 21.0d
+		}
+		{
+			id: "54DEC259FDF5A623"
+			dependencies: [
+				"3110358AE60EBD9D"
+			]
+			rewards: [
+				{
+					id: "BF1743EE40E5F87F"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "C15D99DDE14648F2"
+					item: {
+						count: 1
+						id: "appliedas:lumen_processor"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 6.0d
+			y: 21.0d
+		}
+		{
+			id: "523F57519A6C84AC"
+			dependencies: [
+				"54DEC259FDF5A623"
+			]
+			rewards: [
+				{
+					id: "F119FFB993E4EEAD"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "BF7D1B9C3AECD2C7"
+					item: {
+						count: 1
+						id: "appliedas:lumen_cell_housing"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 21.0d
+		}
+		{
+			id: "06C0D64F198CCFA7"
+			dependencies: [
+				"523F57519A6C84AC"
+			]
+			rewards: [
+				{
+					id: "720E73D74A20C6B9"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "5BC8D72C135EC7C5"
+					item: {
+						count: 1
+						id: "appliedas:lumen_storage_cell_1k"
+					}
+					type: "item"
+				}
+			]
+			x: 9.0d
+			y: 21.0d
+		}
+		{
+			id: "3BD494E025EA8F3C"
+			dependencies: [
+				"06C0D64F198CCFA7"
+			]
+			rewards: [
+				{
+					id: "D673A65290186F1C"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "8CC5C7EE7828B839"
+					item: {
+						count: 1
+						id: "appliedas:lumen_storage_cell_64k"
+					}
+					type: "item"
+				}
+			]
+			x: 10.5d
+			y: 21.0d
+		}
+		{
+			id: "0ACE305EAB178DE2"
+			dependencies: [
+				"3BD494E025EA8F3C"
+			]
+			rewards: [
+				{
+					id: "9BC1A52E61B6C16E"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "871622178882D5C6"
+					item: {
+						count: 1
+						id: "appliedas:me_lumen_crystallizer"
+					}
+					type: "item"
+				}
+			]
+			x: 12.0d
+			y: 21.0d
+		}
+		{
+			id: "0DB12022EA314612"
+			dependencies: [
+				"0ACE305EAB178DE2"
+			]
+			rewards: [
+				{
+					id: "A8037A8670E51DF3"
+					type: "xp"
+					xp: 120
+				}
+			]
+			tasks: [
+				{
+					id: "A93079F8DBF5D32D"
+					item: {
+						count: 1
+						id: "appliedas:me_starlight_infuser"
+					}
+					type: "item"
+				}
+			]
+			x: 13.5d
+			y: 21.0d
+		}
+		{
+			id: "BB3D759610054C72"
+			dependencies: [
+				"0DB12022EA314612"
+			]
+			rewards: [
+				{
+					id: "E2BE8CE1803700ED"
+					type: "xp"
+					xp: 120
+				}
+			]
+			tasks: [
+				{
+					id: "CD5F9997E0945098"
+					item: {
+						count: 1
+						id: "appliedas:iridescent_attunement_altar"
+					}
+					type: "item"
+				}
+			]
+			x: 15.0d
+			y: 21.0d
+		}
+		{
+			id: "77B67650A5CDCC8E"
+			dependencies: [
+				"BB3D759610054C72"
+			]
+			rewards: [
+				{
+					id: "495C79CDE9225E07"
+					type: "xp"
+					xp: 120
+				}
+				{
+					id: "686EA72708FFC364"
+					item: {
+						count: 1
+						id: "astralsorcery:stardust"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "79D593E048F7E071"
+					item: {
+						count: 1
+						id: "appliedas:me_celestial_gateway"
+					}
+					type: "item"
+				}
+			]
+			x: 16.5d
+			y: 21.0d
+		}
+		{
+			id: "C4C35B688117E6DA"
+			dependencies: [
+				"1D36A80AC9796A61"
+			]
+			rewards: [
+				{
+					id: "CE48A2B83AC31051"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "A2DBA9E2EAED9983"
+					item: {
+						count: 1
+						id: "create_astral:crushed_raw_starmetal"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 0.0d
+			y: 23.099999999999998d
+		}
+		{
+			id: "888000DFA41BF6C9"
+			dependencies: [
+				"C4C35B688117E6DA"
+			]
+			rewards: [
+				{
+					id: "293C79F3B5E6FC6F"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "4C0FCB08043FD637"
+					item: {
+						count: 1
+						id: "create_astral:starmetal_nugget"
+					}
+					type: "item"
+					count: 9L
+				}
+			]
+			x: 1.5d
+			y: 23.099999999999998d
+		}
+		{
+			id: "D1D1A06FF0AF5F32"
+			dependencies: [
+				"888000DFA41BF6C9"
+			]
+			rewards: [
+				{
+					id: "CFC113A9D66224BF"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "99B785EC44C6AA27"
+					item: {
+						count: 1
+						id: "create_astral:starmetal_casing"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 3.0d
+			y: 23.099999999999998d
+		}
+		{
+			id: "F10A74BF20B776F1"
+			dependencies: [
+				"D1D1A06FF0AF5F32"
+			]
+			rewards: [
+				{
+					id: "2E4DE033443E6A21"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "B97B1D654A31B2C7"
+					item: {
+						count: 1
+						id: "create_astral:starmetal_encased_shaft"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 4.5d
+			y: 23.099999999999998d
+		}
+		{
+			id: "D7FAA85A24C84151"
+			dependencies: [
+				"F10A74BF20B776F1"
+			]
+			rewards: [
+				{
+					id: "2312D7764FDBCE74"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "7AB6FCDCCDAE9C3D"
+					item: {
+						count: 1
+						id: "create_astral:starmetal_encased_cogwheel"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 6.0d
+			y: 23.099999999999998d
+		}
+		{
+			id: "9815DA19A5ED79C9"
+			dependencies: [
+				"D7FAA85A24C84151"
+			]
+			rewards: [
+				{
+					id: "2F578B28A8C63CA8"
+					type: "xp"
+					xp: 60
+				}
+				{
+					id: "BB5B1F26AB407157"
+					item: {
+						count: 1
+						id: "astralsorcery:stardust"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "0FA7F0C1FACF9333"
+					item: {
+						count: 1
+						id: "create_astral:starmetal_encased_large_cogwheel"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 7.5d
+			y: 23.099999999999998d
+		}
 	]
 }

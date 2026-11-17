@@ -378,7 +378,7 @@
 					id: "52EC212E1CC99486"
 					item: {
 						count: 1
-						id: "botania:creative_pool"
+						id: "evilcraft:creative_blood_drop"
 					}
 					type: "item"
 				}

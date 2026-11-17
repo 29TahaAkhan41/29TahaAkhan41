@@ -402,7 +402,7 @@
 					id: "708BFDC2AB5D4A30"
 					item: {
 						count: 1
-						id: "toms_storage:ts.inventory_connector"
+						id: "toms_storage:inventory_connector"
 					}
 					type: "item"
 				}
@@ -427,7 +427,7 @@
 					id: "4A18E94E7941AA77"
 					item: {
 						count: 1
-						id: "toms_storage:ts.storage_terminal"
+						id: "toms_storage:storage_terminal"
 					}
 					type: "item"
 				}
@@ -452,7 +452,7 @@
 					id: "FA0B01AE46457D7D"
 					item: {
 						count: 1
-						id: "toms_storage:ts.crafting_terminal"
+						id: "toms_storage:crafting_terminal"
 					}
 					type: "item"
 				}
@@ -486,7 +486,7 @@
 					id: "F6476C6779C3EFA2"
 					item: {
 						count: 1
-						id: "toms_storage:ts.inventory_cable"
+						id: "toms_storage:inventory_cable"
 					}
 					type: "item"
 					count: 16L

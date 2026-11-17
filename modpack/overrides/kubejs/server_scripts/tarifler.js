@@ -27,7 +27,7 @@ ServerEvents.recipes(event => {
     N: 'minecraft:nether_star',
     M: has('mekanism') ? 'mekanism:ultimate_control_circuit' : 'minecraft:netherite_ingot',
     A: has('ae2') ? 'ae2:singularity' : 'minecraft:diamond_block',
-    B: has('botania') ? 'botania:terrasteel_ingot' : 'minecraft:emerald_block',
+    B: has('malum') ? 'malum:soul_stained_steel_ingot' : 'minecraft:emerald_block',
     C: has('create') ? 'create:brass_casing' : 'minecraft:gold_block'
   }).id('kubejs:cosmic_core')
 
@@ -75,8 +75,8 @@ ServerEvents.recipes(event => {
     creative('create:creative_fluid_tank', 'create:fluid_tank', 'create_fluid_tank')
     creative('create:creative_blaze_cake', 'create:blaze_cake', 'blaze_cake')
   }
-  if (has('botania')) {
-    creative('botania:creative_pool', 'botania:fabulous_pool', 'mana_pool')
+  if (has('evilcraft')) {
+    creative('evilcraft:creative_blood_drop', 'evilcraft:dark_tank', 'blood_drop')
   }
   if (has('ars_nouveau')) {
     creative('ars_nouveau:creative_source_jar', 'ars_nouveau:source_jar', 'source_jar')
@@ -96,7 +96,7 @@ ServerEvents.recipes(event => {
     R: 'kubejs:flight_ring',
     E: has('mekanism') ? 'mekanism:creative_energy_cube' : 'minecraft:nether_star',
     M: has('create') ? 'create:creative_motor' : 'minecraft:nether_star',
-    P: has('botania') ? 'botania:creative_pool' : 'minecraft:nether_star',
+    P: has('evilcraft') ? 'evilcraft:creative_blood_drop' : 'minecraft:nether_star',
     J: has('ars_nouveau') ? 'ars_nouveau:creative_source_jar' : 'minecraft:nether_star',
     A: has('ae2') ? 'ae2:creative_energy_cell' : 'minecraft:nether_star',
     T: has('twilightforest') ? 'twilightforest:snow_queen_trophy' : 'minecraft:dragon_egg'
