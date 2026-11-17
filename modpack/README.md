@@ -1,24 +1,37 @@
 # ✦ Yıldız Yolu – Minecraft 1.21.1 Modpack
 
-**Minecraft 1.21.1 · NeoForge** için hazır modlardan oluşan, **Astral Sorcery** merkezli bir modpack.
+**Minecraft 1.21.1 · NeoForge** için hazır modlardan oluşan, **Astral Sorcery** merkezli büyük bir modpack.
 
-- 📖 **Görev kitabı** (FTB Quests): 7 bölüm, 68 görev, tamamen Türkçe
-- 🌟 **Astral Sorcery** ana ilerleme yolu
-- 🎨 **Yaratıcı eşyalar** hayatta kalma modunda üretilebilir
+- 🧩 **122 mod** (kütüphaneler hariç)
+- 📖 **Görev kitabı** (FTB Quests): 22 bölüm, **725 görev**, tamamen Türkçe
+- 🌟 **Astral Sorcery** en büyük bölüm (89 görev)
+- 🎨 **15 yaratıcı eşya** hayatta kalma modunda üretilebilir
 - 🏅 **Oyun sonu eşyası:** *Yıldızların Kalbi* yapılınca *Tamamlanma Nişanı* verilir, sunucuya duyurulur, havai fişek patlar
 
 ---
 
-## İlerleme
+## Görev kitabı
 
-```
-Başlangıç ─┬─ Astral Sorcery ─────────────┐
-           ├─ Teknoloji (Create, Mekanism, AE2)
-           ├─ Büyü (Botania, Ars Nouveau) ├─► Yaratıcı Eşyalar ─► FİNAL
-           └─ Macera (Nether, End, Twilight Forest)
-```
+| Bölüm | Görev | | Bölüm | Görev |
+|---|---|---|---|---|
+| Başlangıç | 35 | | Botania | 36 |
+| Madencilik | 30 | | Ars Nouveau | 29 |
+| Tarım ve Yemek | 49 | | Iron's Spells | 19 |
+| Nether | 29 | | Gizem (Occultism, F&A, Nature's Aura) | 19 |
+| End | 16 | | Twilight Forest | 29 |
+| Keşif | 29 | | Diğer Boyutlar | 28 |
+| **Astral Sorcery** | **89** | | Boss Avı | 12 |
+| Create | 62 | | Mystical Agriculture & Arılar | 21 |
+| Mekanism | 64 | | Yaratıcı Eşyalar | 18 |
+| Applied Energistics 2 | 46 | | **Final** | 1 |
+| Enerji ve Mühendislik | 41 | | | |
+| Depolama | 23 | | **Toplam** | **725** |
 
-| Özel eşya | Tarif |
+Her bölümün ana yolu ilk satırdadır. Ana yolun son görevi o bölümün **zirve görevidir**. Final görevi açılmak için tüm zirve görevlerinin ve tüm yaratıcı eşya görevlerinin bitmesini ister.
+
+## Özel eşyalar
+
+| Eşya | Tarif |
 |---|---|
 | **Yıldız Özü** | Yıldız tozu + yıldız metali + lümen kristali + rezonans mücevheri |
 | **Kozmik Çekirdek** | Yıldız Özü + Nether Yıldızı + Nihai Devre + Tekillik + Terraçelik + Pirinç Kasa |
@@ -27,53 +40,61 @@ Başlangıç ─┬─ Astral Sorcery ─────────────┐
 | **Yıldızların Kalbi** (final) | Katalizör + Artefakt + Uçuş Yüzüğü + 5 yaratıcı eşya + Kar Kraliçesi Ganimeti |
 | **Tamamlanma Nişanı** | Tarifi yok. Sadece final görevinin ödülü. |
 
-Üretilebilen yaratıcı eşyalar:
-- Mekanism: Yaratıcı Enerji Küpü, Yaratıcı Sıvı Tankı, Yaratıcı Kutu
-- AE2: Yaratıcı Enerji Hücresi
-- Create: Yaratıcı Motor, Yaratıcı Kasa
-- Botania: Yaratıcı Mana Havuzu
-- Ars Nouveau: Yaratıcı Kaynak Kavanozu
+**Üretilebilen yaratıcı eşyalar:**
+- **Mekanism:** Enerji Küpü, Sıvı Tankı, Kutu, Kimyasal Tank
+- **AE2:** Enerji Hücresi
+- **Create:** Motor, Kasa, Sıvı Tankı, Alaz Keki
+- **Botania:** Mana Havuzu
+- **Ars Nouveau:** Kaynak Kavanozu, Büyü Kitabı
+- **Powah:** Enerji Hücresi
+- **Immersive Engineering:** Kapasitör
 - Pakete özel **Göksel Uçuş Yüzüğü**: envanterdeyken yaratıcı moddaki gibi uçarsın
 
-Tüm tarifler oyunda JEI'de (`U` / `R` tuşu) görünür.
+Tüm tarifler oyunda JEI'de görünür.
 
 ---
 
-## Mod listesi (hepsi 1.21.1 NeoForge)
+## Mod listesi (122 mod)
 
-Bağımlılıkları (Curios, GeckoLib, Patchouli, Balm, Sophisticated Core, Architectury vb.) CurseForge uygulaması kendisi ekler.
+Bağımlılıkları (kütüphaneleri) CurseForge uygulaması kendisi ekler. **(?)** işaretli modların 1.21.1 NeoForge sürümünü doğrulayamadım. CurseForge'da 1.21.1 sürümü çıkmazsa o modu atla, paket yine çalışır.
 
-**Zorunlu (paket bunlarsız çalışmaz)**
-| Mod | Neden |
-|---|---|
-| [Astral Sorcery](https://www.curseforge.com/minecraft/mc-mods/astral-sorcery) (2.0.x) | Ana mod |
-| [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-forge) + [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge) + [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams-forge) | Görev kitabı |
-| [KubeJS](https://www.curseforge.com/minecraft/mc-mods/kubejs) + [Rhino](https://www.curseforge.com/minecraft/mc-mods/rhino) | Özel eşyalar ve tarifler |
-| [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) | Tarifleri görmek için |
+### Çekirdek (7)
+Astral Sorcery · FTB Quests · FTB Library · FTB Teams · KubeJS · Rhino · JEI
 
-**İçerik**
-| Mod | Bölüm |
-|---|---|
-| [Applied AstralSorcery](https://www.curseforge.com/minecraft/mc-mods/appliedas) | Astral Sorcery ile AE2 bağlantısı |
-| [Create](https://www.curseforge.com/minecraft/mc-mods/create) | Teknoloji |
-| [Mekanism](https://www.curseforge.com/minecraft/mc-mods/mekanism) + Generators + Tools | Teknoloji |
-| [Applied Energistics 2](https://www.curseforge.com/minecraft/mc-mods/applied-energistics-2) | Teknoloji |
-| [Botania](https://www.curseforge.com/minecraft/mc-mods/botania) | Büyü |
-| [Ars Nouveau](https://www.curseforge.com/minecraft/mc-mods/ars-nouveau) | Büyü |
-| [The Twilight Forest](https://www.curseforge.com/minecraft/mc-mods/the-twilight-forest) | Macera |
+### Astral Sorcery eklentisi (1)
+Applied AstralSorcery
 
-**Kolaylık**
-| Mod | |
-|---|---|
-| [Sophisticated Backpacks](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) | Sırt çantaları (Başlangıç görevlerinde var) |
-| [Waystones](https://www.curseforge.com/minecraft/mc-mods/waystones) | Işınlanma (Başlangıç görevlerinde var) |
-| [Jade](https://www.curseforge.com/minecraft/mc-mods/jade) | Baktığın bloğun bilgisi |
-| [AppleSkin](https://www.curseforge.com/minecraft/mc-mods/appleskin) | Açlık göstergesi |
-| [Mouse Tweaks](https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks) | Envanter kolaylığı |
-| [FTB Chunks](https://www.curseforge.com/minecraft/mc-mods/ftb-chunks-forge) | Harita ve bölge koruma |
-| [Farmer's Delight](https://www.curseforge.com/minecraft/mc-mods/farmers-delight) | Yemekler |
+### Teknoloji (20)
+Create · Create Crafts & Additions · Mekanism · Mekanism Generators · Mekanism Tools · Mekanism Additions · Applied Energistics 2 · ExtendedAE · Applied Mekanistics · Powah · Immersive Engineering · Industrial Foregoing · Ender IO · Pipez · Iron Furnaces · Modular Routers · Laser IO (?) · Just Dire Things · Building Gadgets 2 · Flux Networks (?)
 
-İçerik modlarından biri eksik kalırsa paket çökmez. O modun yaratıcı eşya tarifi atlanır, finaldeki yeri Nether Yıldızı ile doldurulur. Yalnız görev kitabında o modun görevleri tamamlanamaz.
+### Depolama (7)
+Sophisticated Backpacks · Sophisticated Storage · Functional Storage · Storage Drawers · Iron Chests · Tom's Simple Storage · Torchmaster
+
+### Büyü (11)
+Botania · Ars Nouveau · Ars Elemental · Iron's Spells 'n Spellbooks · Occultism · Forbidden & Arcanus · Nature's Aura · Apotheosis · Apothic Attributes · Apothic Enchanting · Apothic Spawners
+
+### Tarım ve yemek (7)
+Mystical Agriculture · Mystical Agradditions · Productive Bees · Botany Pots · Farmer's Delight · Croptopia (?) · Cooking for Blockheads (?)
+
+### Macera ve boyutlar (10)
+The Twilight Forest · The Aether · The Undergarden · Deeper and Darker · The Bumblezone · Eternal Starlight · L_Ender's Cataclysm · Mowzie's Mobs · Artifacts · Naturalist
+
+### Dünya üretimi ve yapılar (14)
+Biomes O' Plenty · Terralith · Tectonic · Towns and Towers (?) · YUNG's API · YUNG's Better Dungeons · YUNG's Better Mineshafts · YUNG's Better Strongholds · YUNG's Better Desert Temples · YUNG's Better Ocean Monuments · YUNG's Better Nether Fortresses · YUNG's Better Witch Huts · YUNG's Better End Island · YUNG's Bridges
+
+### İnşaat ve dekorasyon (13)
+Chipped · Rechiseled · Handcrafted · Framed Blocks · Supplementaries · Quark · Macaw's Furniture · Macaw's Doors · Macaw's Windows · Macaw's Roofs · Macaw's Bridges · Macaw's Lights and Lamps · Macaw's Fences and Walls
+
+### Kolaylık (26)
+Jade · AppleSkin · Mouse Tweaks · FTB Chunks · FTB Ultimine · Waystones · Xaero's Minimap · Xaero's World Map · Nature's Compass · Explorer's Compass · Controlling · Searchables · Crafting Tweaks · Fast Workbench · Fast Leaf Decay · Clumps · Polymorph · Gravestone Mod (?) · Comforts · Carry On · Enchantment Descriptions · Akashic Tome · Cosmetic Armor Reworked · Chunky · Simple Backups · Better Advancements
+
+### Performans (6)
+Sodium · Iris Shaders · FerriteCore · ModernFix · Entity Culling · ImmediatelyFast
+
+### Kütüphaneler (otomatik gelir, sayıya dahil değil)
+Curios · Patchouli · GeckoLib · Balm · Sophisticated Core · Architectury · Cloth Config · Placebo · Titanium · Moonlight Lib · Zeta · Puzzles Lib · Bookshelf · Cucumber Library · Kotlin for Forge · Resourceful Lib · YUNG's API ve diğerleri.
+
+> Bir mod eksik kalırsa paket çökmez. O modun yaratıcı eşya tarifi atlanır ve final tarifinde yerine Nether Yıldızı kullanılır. Yalnız görev kitabında o modun görevleri tamamlanamaz.
 
 ---
 
@@ -85,15 +106,16 @@ Bağımlılıkları (Curios, GeckoLib, Patchouli, Balm, Sophisticated Core, Arch
 4. Bu repodaki `modpack/overrides/` klasörünün **içindekileri** (`config` ve `kubejs`) açılan klasöre kopyala. Sorulursa üzerine yaz.
 5. Oyunu başlat. İlk girişte görev kitabı envanterine gelir.
 
-> Önerilen RAM: 6–8 GB (CurseForge → Settings → Minecraft → Allocated Memory).
+> 120+ mod için önerilen RAM **8–10 GB** (CurseForge → Settings → Minecraft → Allocated Memory). İlk açılış birkaç dakika sürebilir.
 
-Sunucu için `config` ve `kubejs` klasörlerini sunucu klasörüne de kopyalaman yeterli.
+Sunucu için `config` ve `kubejs` klasörlerini sunucu klasörüne kopyalaman yeterli. Sodium, Iris, Xaero's ve Controlling gibi istemci modlarını sunucuya koyma.
 
 ---
 
 ## Düzenleme
 
-- Görevler: `tools/quests.py` dosyasını düzenle, sonra `python3 modpack/tools/generate.py` çalıştır.
-- Tarifler: `overrides/kubejs/server_scripts/tarifler.js`. Oyunda `/reload` ile yenilenir.
-- Eşyalar: `overrides/kubejs/startup_scripts/ozel_esyalar.js`. Oyunu yeniden başlatmak gerekir.
-- Dokular: `python3 modpack/tools/textures.py`.
+- **Görevler:** `tools/quests.py` dosyasını düzenle, sonra `python3 modpack/tools/generate.py` çalıştır. Bir satıra görev eklemek için listeye `("mod:eşya", adet, "Başlık", "Açıklama")` satırı ekle.
+- **Tarifler:** `overrides/kubejs/server_scripts/tarifler.js`. Oyunda `/reload` ile yenilenir.
+- **Eşyalar:** `overrides/kubejs/startup_scripts/ozel_esyalar.js`. Oyunu yeniden başlatmak gerekir.
+- **Dokular:** `python3 modpack/tools/textures.py`.
+- **Görevde ünlem işareti veya boş eşya görünürse** o eşyanın ID'si o mod sürümünde farklıdır. Oyunda eşyayı eline al, `/kubejs hand` yaz, doğru ID'yi `quests.py` içinde düzelt.

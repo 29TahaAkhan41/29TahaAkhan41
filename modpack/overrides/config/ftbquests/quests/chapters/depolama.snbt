@@ -1,0 +1,636 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "depolama"
+	group: ""
+	icon: {
+		id: "functionalstorage:oak_1"
+	}
+	id: "67F75235796BD9A5"
+	order_index: 11
+	quest_links: [ ]
+	quests: [
+		{
+			id: "E6E8FC92D4C191F0"
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "3475874C4F89E248"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "39024736FDE59CD8"
+					item: {
+						count: 1
+						id: "functionalstorage:oak_1"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			id: "9D60308B4B0FBF51"
+			dependencies: [
+				"E6E8FC92D4C191F0"
+			]
+			rewards: [
+				{
+					id: "9A45D6797B4CE38A"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "4F633C39EEF524A9"
+					item: {
+						count: 1
+						id: "functionalstorage:oak_2"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 1.5d
+			y: 0.0d
+		}
+		{
+			id: "8FDF9817DECDE40A"
+			dependencies: [
+				"9D60308B4B0FBF51"
+			]
+			rewards: [
+				{
+					id: "1BDF9DDD0EA8A5F1"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "072724544990DE91"
+					item: {
+						count: 1
+						id: "functionalstorage:oak_4"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 3.0d
+			y: 0.0d
+		}
+		{
+			id: "3212D2CDFF934DD4"
+			dependencies: [
+				"8FDF9817DECDE40A"
+			]
+			rewards: [
+				{
+					id: "E3B95640B5F1046C"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "77868629DFFCC796"
+					item: {
+						count: 1
+						id: "functionalstorage:storage_controller"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 0.0d
+		}
+		{
+			id: "E60FBDA7F3355D6D"
+			dependencies: [
+				"3212D2CDFF934DD4"
+			]
+			rewards: [
+				{
+					id: "807F66361F335E35"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "02AF975B6C49A004"
+					item: {
+						count: 1
+						id: "functionalstorage:copper_upgrade"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			id: "6611A7CB1BF1F289"
+			dependencies: [
+				"E60FBDA7F3355D6D"
+			]
+			rewards: [
+				{
+					id: "9AFBEDF4CE3D77F7"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "162E4A9F528E7D04"
+					item: {
+						count: 1
+						id: "functionalstorage:gold_upgrade"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 7.5d
+			y: 0.0d
+		}
+		{
+			id: "3A36B26ECA6AEAC7"
+			dependencies: [
+				"6611A7CB1BF1F289"
+			]
+			rewards: [
+				{
+					id: "FB63A74F72D045AC"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "CFE25610E4A58C97"
+					item: {
+						count: 1
+						id: "functionalstorage:diamond_upgrade"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 9.0d
+			y: 0.0d
+		}
+		{
+			id: "DBD7B7564481A8C9"
+			dependencies: [
+				"3A36B26ECA6AEAC7"
+			]
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "E9D5602E04592DA8"
+					type: "xp"
+					xp: 60
+				}
+				{
+					id: "2322726902115E09"
+					item: {
+						count: 1
+						id: "minecraft:chest"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "57513908E8CC7544"
+					item: {
+						count: 1
+						id: "functionalstorage:netherite_upgrade"
+					}
+					type: "item"
+				}
+			]
+			x: 10.5d
+			y: 0.0d
+		}
+		{
+			id: "768FD4450E043CE0"
+			dependencies: [
+				"E6E8FC92D4C191F0"
+			]
+			rewards: [
+				{
+					id: "F8913986AEB841DB"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "37DE088D7B60629D"
+					item: {
+						count: 1
+						id: "sophisticatedstorage:chest"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "EDB14DF6678C2E37"
+			dependencies: [
+				"768FD4450E043CE0"
+			]
+			rewards: [
+				{
+					id: "942DBB024DAFFC6D"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "5C3C6C0214D4A577"
+					item: {
+						count: 1
+						id: "sophisticatedstorage:barrel"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "DAC522C302A256A6"
+			dependencies: [
+				"EDB14DF6678C2E37"
+			]
+			rewards: [
+				{
+					id: "4D5F9290AFDF18EC"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "30FE184AF48534CE"
+					item: {
+						count: 1
+						id: "sophisticatedstorage:iron_chest"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "1C483FFE696663EE"
+			dependencies: [
+				"DAC522C302A256A6"
+			]
+			rewards: [
+				{
+					id: "B35C8C0DF93BAD08"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "198FF7A9B7F798B7"
+					item: {
+						count: 1
+						id: "sophisticatedstorage:gold_chest"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "79AA27824373F740"
+			dependencies: [
+				"1C483FFE696663EE"
+			]
+			rewards: [
+				{
+					id: "127193E26C872C96"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "809FA49BE83827C8"
+					item: {
+						count: 1
+						id: "sophisticatedstorage:diamond_chest"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "47B5A2943CEEDFEB"
+			dependencies: [
+				"79AA27824373F740"
+			]
+			rewards: [
+				{
+					id: "A7A29DEDAC95BF01"
+					type: "xp"
+					xp: 40
+				}
+				{
+					id: "220E3A39D26F7021"
+					item: {
+						count: 1
+						id: "minecraft:chest"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "300A3385366BD208"
+					item: {
+						count: 1
+						id: "sophisticatedstorage:netherite_chest"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "1E7B136F08535C75"
+			dependencies: [
+				"E6E8FC92D4C191F0"
+			]
+			rewards: [
+				{
+					id: "040D0FF91F0C18D3"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "708BFDC2AB5D4A30"
+					item: {
+						count: 1
+						id: "toms_storage:ts.inventory_connector"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "514A0118C632ECC8"
+			dependencies: [
+				"1E7B136F08535C75"
+			]
+			rewards: [
+				{
+					id: "927E4DF8104E516F"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "4A18E94E7941AA77"
+					item: {
+						count: 1
+						id: "toms_storage:ts.storage_terminal"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "2D802304F62F5529"
+			dependencies: [
+				"514A0118C632ECC8"
+			]
+			rewards: [
+				{
+					id: "3079F5A652624ECC"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "FA0B01AE46457D7D"
+					item: {
+						count: 1
+						id: "toms_storage:ts.crafting_terminal"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "2A0879F1F121EAF1"
+			dependencies: [
+				"2D802304F62F5529"
+			]
+			rewards: [
+				{
+					id: "6BE927CE4CA49118"
+					type: "xp"
+					xp: 40
+				}
+				{
+					id: "6729DABC3AF40774"
+					item: {
+						count: 1
+						id: "minecraft:chest"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "F6476C6779C3EFA2"
+					item: {
+						count: 1
+						id: "toms_storage:ts.inventory_cable"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 4.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "20DAD49A19E70158"
+			dependencies: [
+				"E6E8FC92D4C191F0"
+			]
+			rewards: [
+				{
+					id: "42A2452B5B5DDBFB"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "D2B0B03DC0449528"
+					item: {
+						count: 1
+						id: "minecraft:barrel"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 0.0d
+			y: 6.3d
+		}
+		{
+			id: "2B90F0957FF5997F"
+			dependencies: [
+				"20DAD49A19E70158"
+			]
+			rewards: [
+				{
+					id: "785C4C15776DE815"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "6DDF73C32F191E21"
+					item: {
+						count: 1
+						id: "minecraft:bundle"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 6.3d
+		}
+		{
+			id: "747D8CFBF03F418D"
+			dependencies: [
+				"2B90F0957FF5997F"
+			]
+			rewards: [
+				{
+					id: "134610A87969F5EF"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "52E3EF7962BDC0AF"
+					item: {
+						count: 1
+						id: "minecraft:hopper_minecart"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 6.3d
+		}
+		{
+			id: "01E4136213D27651"
+			dependencies: [
+				"747D8CFBF03F418D"
+			]
+			rewards: [
+				{
+					id: "ACC3F8DDD412176F"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "D2CADD6454D42FBC"
+					item: {
+						count: 1
+						id: "minecraft:dropper"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 4.5d
+			y: 6.3d
+		}
+		{
+			id: "4D1E560B6A9B73CF"
+			dependencies: [
+				"01E4136213D27651"
+			]
+			rewards: [
+				{
+					id: "5FEE028D26AD7708"
+					type: "xp"
+					xp: 40
+				}
+				{
+					id: "B8A41FB99FC92DEC"
+					item: {
+						count: 1
+						id: "minecraft:chest"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "359162BC093C7E92"
+					item: {
+						count: 1
+						id: "minecraft:comparator"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 6.0d
+			y: 6.3d
+		}
+	]
+}

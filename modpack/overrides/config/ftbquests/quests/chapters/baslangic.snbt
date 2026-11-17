@@ -11,21 +11,19 @@
 	quest_links: [ ]
 	quests: [
 		{
-			id: "71F4A36685159B5D"
+			id: "F16B0A2DE90268D9"
+			shape: "hexagon"
+			size: 1.5d
 			rewards: [
 				{
-					id: "0DD716CF3125AC32"
-					item: {
-						count: 1
-						id: "minecraft:bread"
-					}
-					type: "item"
-					count: 16
+					id: "2C8B45117C75C464"
+					type: "xp"
+					xp: 10
 				}
 			]
 			tasks: [
 				{
-					id: "B5EDB92ECC760D66"
+					id: "0F3602FCE1B2EF28"
 					type: "checkmark"
 				}
 			]
@@ -33,20 +31,20 @@
 			y: 0.0d
 		}
 		{
-			id: "7A616072C1C8CED6"
+			id: "788A5A536C53BD66"
 			dependencies: [
-				"71F4A36685159B5D"
+				"F16B0A2DE90268D9"
 			]
 			rewards: [
 				{
-					id: "B9332A9B2D27A80B"
+					id: "02C9AB88F8F51A01"
 					type: "xp"
-					xp: 20
+					xp: 10
 				}
 			]
 			tasks: [
 				{
-					id: "363D3FE3A75A8058"
+					id: "C78E6966CD00E10A"
 					item: {
 						count: 1
 						id: "minecraft:oak_log"
@@ -59,24 +57,20 @@
 			y: 0.0d
 		}
 		{
-			id: "19FF32B0EC453FC6"
+			id: "1E83515968E830E3"
 			dependencies: [
-				"7A616072C1C8CED6"
+				"788A5A536C53BD66"
 			]
 			rewards: [
 				{
-					id: "926FABAF3D6A9E00"
-					item: {
-						count: 1
-						id: "minecraft:torch"
-					}
-					type: "item"
-					count: 16
+					id: "B89B004862473A39"
+					type: "xp"
+					xp: 10
 				}
 			]
 			tasks: [
 				{
-					id: "942819B89FB5E2A6"
+					id: "FF5AE26D9734CC57"
 					item: {
 						count: 1
 						id: "minecraft:crafting_table"
@@ -88,24 +82,121 @@
 			y: 0.0d
 		}
 		{
-			id: "DAF5EDA0076D7765"
+			id: "D216177F6822B3BE"
 			dependencies: [
-				"19FF32B0EC453FC6"
+				"1E83515968E830E3"
 			]
 			rewards: [
 				{
-					id: "F571C3A0B6BE7655"
-					item: {
-						count: 1
-						id: "minecraft:iron_ingot"
-					}
-					type: "item"
-					count: 8
+					id: "2CD06A42AEA85D17"
+					type: "xp"
+					xp: 20
 				}
 			]
 			tasks: [
 				{
-					id: "0379CAFBD47959BB"
+					id: "84EF26293BD8FDEC"
+					item: {
+						count: 1
+						id: "minecraft:wooden_pickaxe"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 0.0d
+		}
+		{
+			id: "2A2115F84A33C5DE"
+			dependencies: [
+				"D216177F6822B3BE"
+			]
+			rewards: [
+				{
+					id: "1E3962134070FE29"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "A5AF6946DF0D6F3A"
+					item: {
+						count: 1
+						id: "minecraft:cobblestone"
+					}
+					type: "item"
+					count: 32L
+				}
+			]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			id: "1C0B221786705207"
+			dependencies: [
+				"2A2115F84A33C5DE"
+			]
+			rewards: [
+				{
+					id: "130861A6D8952307"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "7D57C2BF9911CE80"
+					item: {
+						count: 1
+						id: "minecraft:stone_pickaxe"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 0.0d
+		}
+		{
+			id: "1BDF0CF97D227619"
+			dependencies: [
+				"1C0B221786705207"
+			]
+			rewards: [
+				{
+					id: "184FC50FDEE2A2EF"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "82DE71955A20ABA7"
+					item: {
+						count: 1
+						id: "minecraft:furnace"
+					}
+					type: "item"
+				}
+			]
+			x: 9.0d
+			y: 0.0d
+		}
+		{
+			id: "A876C5C36F6670B1"
+			dependencies: [
+				"1BDF0CF97D227619"
+			]
+			rewards: [
+				{
+					id: "396E252D2CD0B813"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "329E4DE5EEFBAF9D"
 					item: {
 						count: 1
 						id: "minecraft:iron_ingot"
@@ -114,110 +205,60 @@
 					count: 16L
 				}
 			]
-			x: 4.5d
+			x: 10.5d
 			y: 0.0d
 		}
 		{
-			id: "F6B935202B07B351"
+			id: "1660585CE5EE5ACC"
 			dependencies: [
-				"19FF32B0EC453FC6"
+				"A876C5C36F6670B1"
 			]
 			rewards: [
 				{
-					id: "100A2BB348C846E8"
+					id: "DB01E8FFC21629A6"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "924F507FC05BB2A8"
+					id: "6F57CC6707135C45"
 					item: {
 						count: 1
-						id: "minecraft:white_bed"
+						id: "minecraft:iron_pickaxe"
 					}
 					type: "item"
 				}
 			]
-			x: 3.0d
-			y: 1.5d
-		}
-		{
-			id: "D37F146B655D90AF"
-			dependencies: [
-				"DAF5EDA0076D7765"
-			]
-			rewards: [
-				{
-					id: "8BB9CCA3BC8A956D"
-					item: {
-						count: 1
-						id: "sophisticatedbackpacks:iron_backpack"
-					}
-					type: "item"
-				}
-			]
-			tasks: [
-				{
-					id: "78F169A7F9F247C6"
-					item: {
-						count: 1
-						id: "sophisticatedbackpacks:backpack"
-					}
-					type: "item"
-				}
-			]
-			x: 6.0d
+			x: 12.0d
 			y: 0.0d
 		}
 		{
-			id: "EC52651C6D3D9E92"
+			id: "5A6F6580F8A8C00C"
 			dependencies: [
-				"DAF5EDA0076D7765"
+				"1660585CE5EE5ACC"
 			]
+			shape: "hexagon"
+			size: 1.5d
 			rewards: [
 				{
-					id: "5DDC1D046666F594"
+					id: "82019E6C8DA603D8"
+					type: "xp"
+					xp: 40
+				}
+				{
+					id: "A71B617A0949869C"
 					item: {
 						count: 1
-						id: "minecraft:ender_pearl"
+						id: "minecraft:bread"
 					}
 					type: "item"
-					count: 4
+					count: 8
 				}
 			]
 			tasks: [
 				{
-					id: "85BE7AD36AE08FD0"
-					item: {
-						count: 1
-						id: "waystones:waystone"
-					}
-					type: "item"
-				}
-			]
-			x: 4.5d
-			y: 1.5d
-		}
-		{
-			id: "812ED82784B785AE"
-			dependencies: [
-				"DAF5EDA0076D7765"
-			]
-			rewards: [
-				{
-					id: "A61C9728F3FA0E55"
-					item: {
-						count: 1
-						id: "minecraft:diamond"
-					}
-					type: "item"
-					count: 2
-				}
-			]
-			tasks: [
-				{
-					id: "49A18D2A22251C17"
+					id: "69FDF38429F0D428"
 					item: {
 						count: 1
 						id: "minecraft:diamond"
@@ -226,8 +267,673 @@
 					count: 5L
 				}
 			]
+			x: 13.5d
+			y: 0.0d
+		}
+		{
+			id: "C7D790ED74A003AC"
+			dependencies: [
+				"F16B0A2DE90268D9"
+			]
+			rewards: [
+				{
+					id: "64BD0C0C440CE8FD"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "8D8A8C5F0ECF563C"
+					item: {
+						count: 1
+						id: "minecraft:coal"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 0.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "55FB3B50F317B6D3"
+			dependencies: [
+				"C7D790ED74A003AC"
+			]
+			rewards: [
+				{
+					id: "3EB4CFB5EF058C4B"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "0BE9BC68B6AC8A1B"
+					item: {
+						count: 1
+						id: "minecraft:torch"
+					}
+					type: "item"
+					count: 32L
+				}
+			]
+			x: 1.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "513C2D31389596C3"
+			dependencies: [
+				"55FB3B50F317B6D3"
+			]
+			rewards: [
+				{
+					id: "91C4748E647D1075"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "2D5975D14E693224"
+					item: {
+						count: 1
+						id: "minecraft:white_bed"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "656155F97B7CFF09"
+			dependencies: [
+				"513C2D31389596C3"
+			]
+			rewards: [
+				{
+					id: "7896415730D88656"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "CAFD1BE326829556"
+					item: {
+						count: 1
+						id: "minecraft:chest"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 4.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "F4B9DD3789093682"
+			dependencies: [
+				"656155F97B7CFF09"
+			]
+			rewards: [
+				{
+					id: "8906EB53CE77A422"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "B927E011E2D90C79"
+					item: {
+						count: 1
+						id: "minecraft:shield"
+					}
+					type: "item"
+				}
+			]
 			x: 6.0d
-			y: 1.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "7E69973894F7BD3C"
+			dependencies: [
+				"F4B9DD3789093682"
+			]
+			rewards: [
+				{
+					id: "84A4A1C7ACFD702B"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "EF64670756F20D4E"
+					item: {
+						count: 1
+						id: "minecraft:bow"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "41131A28F63E0712"
+			dependencies: [
+				"7E69973894F7BD3C"
+			]
+			rewards: [
+				{
+					id: "83C799DE07A920C7"
+					type: "xp"
+					xp: 30
+				}
+				{
+					id: "8CD4EB292B48D58F"
+					item: {
+						count: 1
+						id: "minecraft:bread"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "BA290504D136534B"
+					item: {
+						count: 1
+						id: "minecraft:arrow"
+					}
+					type: "item"
+					count: 32L
+				}
+			]
+			x: 9.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "BE8997D18FA74037"
+			dependencies: [
+				"F16B0A2DE90268D9"
+			]
+			rewards: [
+				{
+					id: "0E7B30D1FFE6284C"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "FF7B0DC0D5728562"
+					item: {
+						count: 1
+						id: "minecraft:iron_helmet"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "8D4F8D59DB56AD12"
+			dependencies: [
+				"BE8997D18FA74037"
+			]
+			rewards: [
+				{
+					id: "4078921F7E33EE86"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "362DB64A55D1D2D2"
+					item: {
+						count: 1
+						id: "minecraft:iron_chestplate"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "6A69A5ED677D95AD"
+			dependencies: [
+				"8D4F8D59DB56AD12"
+			]
+			rewards: [
+				{
+					id: "065C1822E3E2D8A4"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "18B40A1E160DA340"
+					item: {
+						count: 1
+						id: "minecraft:iron_leggings"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "8152113DCB0F954D"
+			dependencies: [
+				"6A69A5ED677D95AD"
+			]
+			rewards: [
+				{
+					id: "E22BA6AB23B1E699"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "927F0A0949BCC309"
+					item: {
+						count: 1
+						id: "minecraft:iron_boots"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "20350E9DECCD3B91"
+			dependencies: [
+				"8152113DCB0F954D"
+			]
+			rewards: [
+				{
+					id: "4BA8FD337CCBB953"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "54ACF0E8398AFB8F"
+					item: {
+						count: 1
+						id: "minecraft:diamond_sword"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "00022396E203E99C"
+			dependencies: [
+				"20350E9DECCD3B91"
+			]
+			rewards: [
+				{
+					id: "2D0C4F30B02BE206"
+					type: "xp"
+					xp: 20
+				}
+				{
+					id: "D1C924E759A2C65B"
+					item: {
+						count: 1
+						id: "minecraft:bread"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "99369B8563E461BC"
+					item: {
+						count: 1
+						id: "minecraft:diamond_pickaxe"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "33B3AB43C25F8C60"
+			dependencies: [
+				"F16B0A2DE90268D9"
+			]
+			rewards: [
+				{
+					id: "A740AF6879D394ED"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "F849F820BE5EAA2D"
+					item: {
+						count: 1
+						id: "sophisticatedbackpacks:backpack"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 6.3d
+		}
+		{
+			id: "BBC392D4A3894077"
+			dependencies: [
+				"33B3AB43C25F8C60"
+			]
+			rewards: [
+				{
+					id: "22D0F2CA52CD8C35"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "DD0642957A040880"
+					item: {
+						count: 1
+						id: "sophisticatedbackpacks:copper_backpack"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 6.3d
+		}
+		{
+			id: "7EBF33ABBA2DDC01"
+			dependencies: [
+				"BBC392D4A3894077"
+			]
+			rewards: [
+				{
+					id: "A5AD7554930F526B"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "80750C8DB1539774"
+					item: {
+						count: 1
+						id: "sophisticatedbackpacks:iron_backpack"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 6.3d
+		}
+		{
+			id: "897EEFE606B7379E"
+			dependencies: [
+				"7EBF33ABBA2DDC01"
+			]
+			rewards: [
+				{
+					id: "6642C75BFB99EABD"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "961F0F2EE3533E80"
+					item: {
+						count: 1
+						id: "sophisticatedbackpacks:gold_backpack"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 6.3d
+		}
+		{
+			id: "EE9707D615A5ED88"
+			dependencies: [
+				"897EEFE606B7379E"
+			]
+			rewards: [
+				{
+					id: "3F89E0D512FEEACD"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "B940E1F419F4232D"
+					item: {
+						count: 1
+						id: "sophisticatedbackpacks:diamond_backpack"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 6.3d
+		}
+		{
+			id: "20AB53B1CB76E7A2"
+			dependencies: [
+				"EE9707D615A5ED88"
+			]
+			rewards: [
+				{
+					id: "A72F45388FA49C7C"
+					type: "xp"
+					xp: 20
+				}
+				{
+					id: "518672D1DA708512"
+					item: {
+						count: 1
+						id: "minecraft:bread"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "49A260BEA1373F19"
+					item: {
+						count: 1
+						id: "sophisticatedbackpacks:netherite_backpack"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 6.3d
+		}
+		{
+			id: "B7225956D5684D9A"
+			dependencies: [
+				"F16B0A2DE90268D9"
+			]
+			rewards: [
+				{
+					id: "50FF1ED685D1228C"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "257F5749747DC953"
+					item: {
+						count: 1
+						id: "waystones:waystone"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "D0ADC99DD4897737"
+			dependencies: [
+				"B7225956D5684D9A"
+			]
+			rewards: [
+				{
+					id: "5F138C3457E9255D"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "E0B6396BB17A4526"
+					item: {
+						count: 1
+						id: "waystones:warp_stone"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "003C7623F224757C"
+			dependencies: [
+				"D0ADC99DD4897737"
+			]
+			rewards: [
+				{
+					id: "22D14050B328E91A"
+					type: "xp"
+					xp: 10
+				}
+			]
+			tasks: [
+				{
+					id: "8B847995E7D190E3"
+					item: {
+						count: 1
+						id: "ironchest:iron_chest"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "82918B66023B3E60"
+			dependencies: [
+				"003C7623F224757C"
+			]
+			rewards: [
+				{
+					id: "A99317FFC33541D9"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "68F5BD79C3114ED1"
+					item: {
+						count: 1
+						id: "ironchest:gold_chest"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "44190A91C3FF1696"
+			dependencies: [
+				"82918B66023B3E60"
+			]
+			rewards: [
+				{
+					id: "E7423747CDF7CC78"
+					type: "xp"
+					xp: 20
+				}
+			]
+			tasks: [
+				{
+					id: "49BE5C5E83B15013"
+					item: {
+						count: 1
+						id: "ironchest:diamond_chest"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "09E635CAEFBF2A78"
+			dependencies: [
+				"44190A91C3FF1696"
+			]
+			rewards: [
+				{
+					id: "EF545E5E4383CBAF"
+					type: "xp"
+					xp: 20
+				}
+				{
+					id: "D55E93806BA0FDDA"
+					item: {
+						count: 1
+						id: "minecraft:bread"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "4633514E776CF241"
+					item: {
+						count: 1
+						id: "torchmaster:megatorch"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 8.399999999999999d
 		}
 	]
 }

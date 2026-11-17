@@ -7,36 +7,54 @@
 		id: "kubejs:heart_of_the_stars"
 	}
 	id: "0918A69A6C47CB39"
-	order_index: 6
+	order_index: 21
 	quest_links: [ ]
 	quests: [
 		{
-			id: "FA3DBD8F5D782381"
+			id: "AFAF435E6D2B1F5A"
 			dependencies: [
-				"ED6711C8433C8C7B"
-				"8451B2522A02C50F"
-				"8952526A36C03531"
-				"8B54E51D86A5DA6B"
-				"B5B95C47D7193375"
-				"A5797C374477620D"
-				"E94EF99DE794FBA9"
-				"AFFFF8A6CC4ED0B1"
-				"CCB707C8A5A15218"
-				"A978505A6B193899"
-				"30B7F49D725485CA"
-				"62BE03E0B74A8716"
-				"21CF71E9B54535A4"
-				"452183A03C3B8DB4"
-				"E35DBFBC7D035660"
-				"12A5604C7E778088"
-				"054CB161CCCEA0DE"
-				"FE2BE209A56177B1"
+				"5A6F6580F8A8C00C"
+				"D76CBD399111579A"
+				"40BD40D68F1683D3"
+				"1FA8DA909C39127C"
+				"56B1FE6CBE991A5B"
+				"0ED84927144A5DAE"
+				"BC4D41C020AB11F9"
+				"E5BC4AE036F9EFB7"
+				"878E475B574DDF2D"
+				"16A29D977FF609DA"
+				"C44C307700D2F3A8"
+				"DBD7B7564481A8C9"
+				"1FA8AAD3386F17B0"
+				"C0A20A8B6DB7CFDC"
+				"48C3ED86CBB618CA"
+				"58D81077DE352E27"
+				"E528936A75CCEE22"
+				"01EC2268D86073E0"
+				"CC8E6F9E1945BF0E"
+				"9F27C97B5B4901F4"
+				"C7720FC84B3D88D8"
+				"E1F2E6A331769777"
+				"97F6DC6DDF56F125"
+				"CBBEC21E9B94D4E9"
+				"0D49DC176AA27FB8"
+				"464BBCD71730C008"
+				"B978C209D833EE0D"
+				"18F596B2A8154FF2"
+				"0F927246F1D70C5C"
+				"2A912791039C9B0D"
+				"D11AE4DD778DFA6A"
+				"AE5D2877DA415F62"
+				"7A69F570E427A776"
+				"37B6D1BE6792D925"
+				"EE8CAF1123A480C3"
+				"0689451492CFF6D2"
 			]
 			shape: "gear"
-			size: 2.0d
+			size: 3.0d
 			rewards: [
 				{
-					id: "A8FD15CEB7630A0F"
+					id: "476BDEB4EB39FEF0"
 					item: {
 						count: 1
 						id: "kubejs:completion_medal"
@@ -44,12 +62,12 @@
 					type: "item"
 				}
 				{
-					id: "ED2FC4B9A30C9D87"
+					id: "FBDCF4AD055466AC"
 					type: "xp"
 					xp: 5000
 				}
 				{
-					id: "808807D79976FD15"
+					id: "4F50F5AD0DB9CA99"
 					type: "command"
 					command: "/tellraw @a [{\"text\":\"\\u2726 \",\"color\":\"gold\"},{\"text\":\"{p}\",\"color\":\"light_purple\",\"bold\":true},{\"text\":\" Yıldız Yolu modpack'ini TAMAMLADI! \\u2726\",\"color\":\"gold\"}]"
 					elevate_perms: true
@@ -57,7 +75,7 @@
 					player_command: false
 				}
 				{
-					id: "415155689442B74F"
+					id: "A65FA2C91A265FEE"
 					type: "command"
 					command: "/title {p} title {\"text\":\"PAKET TAMAMLANDI!\",\"color\":\"gold\",\"bold\":true}"
 					elevate_perms: true
@@ -65,9 +83,9 @@
 					player_command: false
 				}
 				{
-					id: "9E641FBB8D585A60"
+					id: "D37F16F263D63B87"
 					type: "command"
-					command: "/summon firework_rocket ~ ~1 ~ {LifeTime:20,FireworksItem:{id:\"minecraft:firework_rocket\",count:1,components:{\"minecraft:fireworks\":{flight_duration:1,explosions:[{shape:\"star\",colors:[I;16766720,11141290],has_trail:true,has_twinkle:true}]}}}}"
+					command: "/execute at {p} run summon firework_rocket ~ ~1 ~ {LifeTime:20,FireworksItem:{id:\"minecraft:firework_rocket\",count:1,components:{\"minecraft:fireworks\":{flight_duration:1,explosions:[{shape:\"star\",colors:[I;16766720,11141290],has_trail:true,has_twinkle:true}]}}}}"
 					elevate_perms: true
 					silent: true
 					player_command: false
@@ -75,7 +93,7 @@
 			]
 			tasks: [
 				{
-					id: "4B499BC34A410F73"
+					id: "9F64963F1770D5A3"
 					item: {
 						count: 1
 						id: "kubejs:heart_of_the_stars"

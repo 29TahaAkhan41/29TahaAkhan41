@@ -1,0 +1,528 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "gizem"
+	group: ""
+	icon: {
+		id: "occultism:chalk_white"
+	}
+	id: "E9CB63B2C65D1EB8"
+	order_index: 15
+	quest_links: [ ]
+	quests: [
+		{
+			id: "AFFEA1A4ACA78D22"
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "5D8F2246CF793D5C"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "E9C3B2AB8E52C4C5"
+					item: {
+						count: 1
+						id: "occultism:datura_seeds"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			id: "C46FD8758F1A5BC3"
+			dependencies: [
+				"AFFEA1A4ACA78D22"
+			]
+			rewards: [
+				{
+					id: "CA4BF33621AFDAF5"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "CAC621D5D2203557"
+					item: {
+						count: 1
+						id: "occultism:demons_dream_fruit"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 1.5d
+			y: 0.0d
+		}
+		{
+			id: "A17016DF4D6140CC"
+			dependencies: [
+				"C46FD8758F1A5BC3"
+			]
+			rewards: [
+				{
+					id: "B8B4687ECCEFCBE2"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "F70A1D763BE67E60"
+					item: {
+						count: 1
+						id: "occultism:silver_ingot"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 3.0d
+			y: 0.0d
+		}
+		{
+			id: "6B64F9FDFBC12440"
+			dependencies: [
+				"A17016DF4D6140CC"
+			]
+			rewards: [
+				{
+					id: "E60E9E2B63EC74A5"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "404973C5D2BFE3E5"
+					item: {
+						count: 1
+						id: "occultism:chalk_white"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 0.0d
+		}
+		{
+			id: "16DEAFC8952EEEF4"
+			dependencies: [
+				"6B64F9FDFBC12440"
+			]
+			rewards: [
+				{
+					id: "10C23DF9E3C38C64"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "EB32D00A19A9908F"
+					item: {
+						count: 1
+						id: "occultism:sacrificial_bowl"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			id: "8651C23B39F2B826"
+			dependencies: [
+				"16DEAFC8952EEEF4"
+			]
+			rewards: [
+				{
+					id: "78FBD5488BF8C382"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "8D7128A022756CD1"
+					item: {
+						count: 1
+						id: "occultism:golden_sacrificial_bowl"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 0.0d
+		}
+		{
+			id: "D60D9BF533E9840E"
+			dependencies: [
+				"8651C23B39F2B826"
+			]
+			rewards: [
+				{
+					id: "3165983D106661DF"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "E2A24CB1E2161679"
+					item: {
+						count: 1
+						id: "occultism:spirit_attuned_gem"
+					}
+					type: "item"
+				}
+			]
+			x: 9.0d
+			y: 0.0d
+		}
+		{
+			id: "7F1D7B8E12E46768"
+			dependencies: [
+				"D60D9BF533E9840E"
+			]
+			rewards: [
+				{
+					id: "6D85485D277ECAED"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "C7C52DF3B7A89BD9"
+					item: {
+						count: 1
+						id: "occultism:iesnium_ingot"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 10.5d
+			y: 0.0d
+		}
+		{
+			id: "58D81077DE352E27"
+			dependencies: [
+				"7F1D7B8E12E46768"
+			]
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "C4A9A4026C0F71ED"
+					type: "xp"
+					xp: 90
+				}
+				{
+					id: "EAB6E4A556022666"
+					item: {
+						count: 1
+						id: "minecraft:experience_bottle"
+					}
+					type: "item"
+					count: 16
+				}
+			]
+			tasks: [
+				{
+					id: "38EAE28E50C0B3F5"
+					item: {
+						count: 1
+						id: "occultism:storage_controller"
+					}
+					type: "item"
+				}
+			]
+			x: 12.0d
+			y: 0.0d
+		}
+		{
+			id: "47A8B96C870011B0"
+			dependencies: [
+				"AFFEA1A4ACA78D22"
+			]
+			rewards: [
+				{
+					id: "40FB92279833420B"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "1F7FE31573FBF669"
+					item: {
+						count: 1
+						id: "forbidden_arcanus:arcane_crystal"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 0.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "1DAAE433D9BF22AC"
+			dependencies: [
+				"47A8B96C870011B0"
+			]
+			rewards: [
+				{
+					id: "ABE747001A9A5B1E"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "704B363D0393DD12"
+					item: {
+						count: 1
+						id: "forbidden_arcanus:rune"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 1.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "7F6F2E44C1510E0E"
+			dependencies: [
+				"1DAAE433D9BF22AC"
+			]
+			rewards: [
+				{
+					id: "337B5D67A61CF914"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "52AE74A70A2BEFC1"
+					item: {
+						count: 1
+						id: "forbidden_arcanus:deorum_ingot"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 3.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "B0A7312B40D9C66E"
+			dependencies: [
+				"7F6F2E44C1510E0E"
+			]
+			rewards: [
+				{
+					id: "96CB2F4879CA8BC3"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "8D089E47AA9A5A80"
+					item: {
+						count: 1
+						id: "forbidden_arcanus:hephaestus_forge_tier_1"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "27AC4599EEDC7C8F"
+			dependencies: [
+				"B0A7312B40D9C66E"
+			]
+			rewards: [
+				{
+					id: "B89304F081077908"
+					type: "xp"
+					xp: 60
+				}
+				{
+					id: "8DEDA6CFBF536F06"
+					item: {
+						count: 1
+						id: "minecraft:experience_bottle"
+					}
+					type: "item"
+					count: 16
+				}
+			]
+			tasks: [
+				{
+					id: "CB5B0C805C5BCF7C"
+					item: {
+						count: 1
+						id: "forbidden_arcanus:stellarite_piece"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "245463A5584BCD0B"
+			dependencies: [
+				"AFFEA1A4ACA78D22"
+			]
+			rewards: [
+				{
+					id: "D21B997A46D92F11"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "293AF4B496CA5E69"
+					item: {
+						count: 1
+						id: "naturesaura:gold_leaf"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 0.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "DEB647F9B6B08837"
+			dependencies: [
+				"245463A5584BCD0B"
+			]
+			rewards: [
+				{
+					id: "BF2CDC90FCD7B6E0"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "86300F872DCF14F1"
+					item: {
+						count: 1
+						id: "naturesaura:infused_iron"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 1.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "94D4F04C003E6BCB"
+			dependencies: [
+				"DEB647F9B6B08837"
+			]
+			rewards: [
+				{
+					id: "838F679021908C0A"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "DC1EFEEB95E48473"
+					item: {
+						count: 1
+						id: "naturesaura:nature_altar"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "5173E126BFB9E05A"
+			dependencies: [
+				"94D4F04C003E6BCB"
+			]
+			rewards: [
+				{
+					id: "B94A5CED38EE4FEE"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "6854AD804D28E6FD"
+					item: {
+						count: 1
+						id: "naturesaura:aura_detector"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "9C90A2DD5A327B7F"
+			dependencies: [
+				"5173E126BFB9E05A"
+			]
+			rewards: [
+				{
+					id: "D040E8E159E41A48"
+					type: "xp"
+					xp: 60
+				}
+				{
+					id: "454B57F065614FFF"
+					item: {
+						count: 1
+						id: "minecraft:experience_bottle"
+					}
+					type: "item"
+					count: 16
+				}
+			]
+			tasks: [
+				{
+					id: "04CB2097081F3FB6"
+					item: {
+						count: 1
+						id: "naturesaura:sky_ingot"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 6.0d
+			y: 4.199999999999999d
+		}
+	]
+}

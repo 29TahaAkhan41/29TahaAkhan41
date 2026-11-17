@@ -5,19 +5,26 @@ Kullanım:  python3 modpack/tools/generate.py
 """
 import hashlib
 import os
+import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from quests import CHAPTERS  # noqa: E402
+from quests import CHAPTERS, FINAL  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "overrides", "config", "ftbquests", "quests")
 FILE_ID = "0000000000000001"
+SPACING = 1.5
 
 
 def qid(*parts):
     """Yeniden üretimde değişmeyen 16 haneli hex kimlik."""
     return hashlib.sha1("/".join(parts).encode()).hexdigest()[:16].upper()
+
+
+class Raw:
+    def __init__(self, text):
+        self.text = text
 
 
 def s(v):
@@ -26,6 +33,8 @@ def s(v):
 
 def snbt(v, ind=0):
     pad = "\t" * ind
+    if isinstance(v, Raw):
+        return v.text
     if isinstance(v, dict):
         if not v:
             return "{ }"
@@ -34,8 +43,6 @@ def snbt(v, ind=0):
     if isinstance(v, list):
         if not v:
             return "[ ]"
-        if all(isinstance(x, str) for x in v):
-            return "[\n" + "\n".join(f"{pad}\t{s(x)}" for x in v) + f"\n{pad}]"
         return "[\n" + "\n".join(f"{pad}\t{snbt(x, ind + 1)}" for x in v) + f"\n{pad}]"
     if isinstance(v, bool):
         return "true" if v else "false"
@@ -43,80 +50,139 @@ def snbt(v, ind=0):
         return f"{v}d"
     if isinstance(v, int):
         return str(v)
-    if isinstance(v, Raw):
-        return v.text
     return s(v)
 
 
-class Raw:
-    def __init__(self, text):
-        self.text = text
+def item_reward(rid, item, count):
+    out = {"id": rid, "item": {"count": 1, "id": item}, "type": "item"}
+    if count > 1:
+        out["count"] = count
+    return out
 
 
-def reward(qkey, i, r):
-    rid = qid("reward", qkey, str(i))
-    if r[0] == "xp":
-        return {"id": rid, "type": "xp", "xp": r[1]}
-    if r[0] == "item":
-        out = {"id": rid, "item": {"count": 1, "id": r[1]}, "type": "item"}
-        if r[2] > 1:
-            out["count"] = r[2]
-        return out
-    if r[0] == "cmd":
-        return {"id": rid, "type": "command", "command": r[1], "elevate_perms": True, "silent": True, "player_command": False}
-    raise ValueError(r)
+def make_task(key, item, count):
+    t_id = qid("task", key)
+    if item == "checkmark":
+        return {"id": t_id, "type": "checkmark"}
+    task = {"id": t_id, "item": {"count": 1, "id": item}, "type": "item"}
+    if count > 1:
+        task["count"] = Raw(f"{count}L")
+    return task
+
+
+def chapter_file(cid, key, icon, order, quests):
+    return {
+        "default_hide_dependency_lines": False,
+        "default_quest_shape": "",
+        "filename": key,
+        "group": "",
+        "icon": {"id": icon},
+        "id": cid,
+        "order_index": order,
+        "quest_links": [],
+        "quests": quests,
+    }
+
+
+def write(path, obj):
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(snbt(obj) + "\n")
 
 
 def main():
-    os.makedirs(os.path.join(OUT, "chapters"), exist_ok=True)
+    chapters_dir = os.path.join(OUT, "chapters")
+    shutil.rmtree(chapters_dir, ignore_errors=True)
+    os.makedirs(chapters_dir)
     os.makedirs(os.path.join(OUT, "lang"), exist_ok=True)
-    keys = {q[0] for ch in CHAPTERS for q in ch["quests"]}
+
     lang = {f"file.{FILE_ID}.title": "Yıldız Yolu"}
+    capstones, creative_ids = [], []
+    seen_items = {}
+    total = 0
 
     for order, ch in enumerate(CHAPTERS):
         cid = qid("chapter", ch["key"])
         lang[f"chapter.{cid}.title"] = ch["title"]
+        tier = ch["tier"]
         quests = []
-        for (key, title, desc, item, count, deps, rewards, x, y) in ch["quests"]:
-            for d in deps:
-                assert d in keys, f"bilinmeyen bağımlılık: {d}"
-            q_id = qid("quest", key)
-            t_id = qid("task", key)
-            if item == "checkmark":
-                task = {"id": t_id, "type": "checkmark"}
-            else:
-                task = {"id": t_id, "item": {"count": 1, "id": item}, "type": "item"}
-                if count > 1:
-                    task["count"] = Raw(f"{count}L")
-            quest = {"id": q_id}
-            if deps:
-                quest["dependencies"] = [qid("quest", d) for d in deps]
-            if key == "fn_kalp":
-                quest["shape"] = "gear"
-                quest["size"] = 2.0
-            quest["rewards"] = [reward(key, i, r) for i, r in enumerate(rewards)]
-            quest["tasks"] = [task]
-            quest["x"] = float(x)
-            quest["y"] = float(y)
-            quests.append(quest)
-            lang[f"quest.{q_id}.title"] = title
-            lang[f"quest.{q_id}.quest_desc"] = [desc]
+        root_id = None
+        for r, row in enumerate(ch["rows"]):
+            prev = None
+            for i, (item, count, title, desc) in enumerate(row):
+                key = f"{ch['key']}/{r}/{i}"
+                if item != "checkmark":
+                    dup = seen_items.get((item, count))
+                    assert dup is None, f"aynı görev iki kez: {item} ({dup} ve {key})"
+                    seen_items[(item, count)] = key
+                q_id = qid("quest", key)
+                deps = []
+                if prev:
+                    deps.append(prev)
+                elif r > 0:
+                    deps.append(root_id)
+                rewards = [{"id": qid("reward", key, "xp"), "type": "xp", "xp": 10 * tier * (1 + i // 3)}]
+                last_in_row = i == len(row) - 1
+                if last_in_row:
+                    rewards.append(item_reward(qid("reward", key, "item"), *ch["reward"]))
+                quest = {"id": q_id}
+                if deps:
+                    quest["dependencies"] = deps
+                if r == 0 and (i == 0 or last_in_row):
+                    quest["shape"] = "hexagon"
+                    quest["size"] = 1.5
+                quest["rewards"] = rewards
+                quest["tasks"] = [make_task(key, item, count)]
+                quest["x"] = float(i * SPACING)
+                quest["y"] = float(r * SPACING * (1.4 if r else 1))
+                quests.append(quest)
 
-        chapter = {
-            "default_hide_dependency_lines": False,
-            "default_quest_shape": "",
-            "filename": ch["key"],
-            "group": "",
-            "icon": {"id": ch["icon"]},
-            "id": cid,
-            "order_index": order,
-            "quest_links": [],
-            "quests": quests,
-        }
-        with open(os.path.join(OUT, "chapters", ch["key"] + ".snbt"), "w", encoding="utf-8") as f:
-            f.write(snbt(chapter) + "\n")
+                lang[f"quest.{q_id}.title"] = title
+                if desc:
+                    lang[f"quest.{q_id}.quest_desc"] = [desc]
+                if r == 0 and i == 0:
+                    root_id = q_id
+                if r == 0 and last_in_row:
+                    capstones.append(q_id)
+                if ch["key"] == "yaratici" and r > 0:
+                    creative_ids.append(q_id)
+                prev = q_id
+                total += 1
+        write(os.path.join(chapters_dir, ch["key"] + ".snbt"),
+              chapter_file(cid, ch["key"], ch["icon"], order, quests))
 
-    data = {
+    # Final bölümü
+    cid = qid("chapter", FINAL["key"])
+    lang[f"chapter.{cid}.title"] = FINAL["title"]
+    key = "final/0/0"
+    q_id = qid("quest", key)
+    tellraw = ('/tellraw @a [{"text":"\\u2726 ","color":"gold"},{"text":"{p}","color":"light_purple","bold":true},'
+               '{"text":" Yıldız Yolu modpack\'ini TAMAMLADI! \\u2726","color":"gold"}]')
+    title_cmd = '/title {p} title {"text":"PAKET TAMAMLANDI!","color":"gold","bold":true}'
+    firework = ('/execute at {p} run summon firework_rocket ~ ~1 ~ {LifeTime:20,FireworksItem:{id:"minecraft:firework_rocket",count:1,'
+                'components:{"minecraft:fireworks":{flight_duration:1,explosions:[{shape:"star",colors:[I;16766720,11141290],'
+                'has_trail:true,has_twinkle:true}]}}}}')
+    rewards = [item_reward(qid("reward", key, "medal"), "kubejs:completion_medal", 1),
+               {"id": qid("reward", key, "xp"), "type": "xp", "xp": 5000}]
+    for n, cmd in enumerate([tellraw, title_cmd, firework]):
+        rewards.append({"id": qid("reward", key, f"cmd{n}"), "type": "command", "command": cmd,
+                        "elevate_perms": True, "silent": True, "player_command": False})
+    final_q = {
+        "id": q_id,
+        "dependencies": capstones + creative_ids,
+        "shape": "gear",
+        "size": 3.0,
+        "rewards": rewards,
+        "tasks": [make_task(key, FINAL["item"], 1)],
+        "x": 0.0,
+        "y": 0.0,
+    }
+    lang[f"quest.{q_id}.title"] = FINAL["quest_title"]
+    lang[f"quest.{q_id}.quest_desc"] = [FINAL["desc"]]
+    total += 1
+    write(os.path.join(chapters_dir, "final.snbt"),
+          chapter_file(cid, FINAL["key"], FINAL["icon"], len(CHAPTERS), [final_q]))
+
+    write(os.path.join(OUT, "data.snbt"), {
         "default_autoclaim_rewards": "disabled",
         "default_consume_items": False,
         "default_quest_disable_jei": False,
@@ -131,17 +197,15 @@ def main():
         "pause_game": False,
         "progression_mode": "linear",
         "version": 13,
-    }
-    with open(os.path.join(OUT, "data.snbt"), "w", encoding="utf-8") as f:
-        f.write(snbt(data) + "\n")
+    })
 
     # Türkçe metinler hem tr_tr hem en_us'a yazılır (oyun dili ne olursa olsun görünsün).
     for code in ("tr_tr", "en_us"):
-        with open(os.path.join(OUT, "lang", code + ".snbt"), "w", encoding="utf-8") as f:
-            f.write(snbt(lang) + "\n")
+        write(os.path.join(OUT, "lang", code + ".snbt"), lang)
 
-    n = sum(len(c["quests"]) for c in CHAPTERS)
-    print(f"{len(CHAPTERS)} bölüm, {n} görev yazıldı -> {OUT}")
+    print(f"{len(CHAPTERS) + 1} bölüm, {total} görev yazıldı -> {OUT}")
+    for ch in CHAPTERS:
+        print(f"  {ch['key']:<12} {sum(len(r) for r in ch['rows'])}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,1112 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "enerji"
+	group: ""
+	icon: {
+		id: "powah:energizing_orb"
+	}
+	id: "F8E972A61CEB3CE6"
+	order_index: 10
+	quest_links: [ ]
+	quests: [
+		{
+			id: "E71C6075162C525A"
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "D7FA6DFCBB532B3A"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "6BD86BDFDA0636D6"
+					item: {
+						count: 1
+						id: "powah:uraninite"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			id: "8F7667EC754C6D60"
+			dependencies: [
+				"E71C6075162C525A"
+			]
+			rewards: [
+				{
+					id: "26A3F01392F0AF7D"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "5A0EAD27A8D8078C"
+					item: {
+						count: 1
+						id: "powah:dielectric_paste"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 1.5d
+			y: 0.0d
+		}
+		{
+			id: "9C4D48087B83A0ED"
+			dependencies: [
+				"8F7667EC754C6D60"
+			]
+			rewards: [
+				{
+					id: "65763ED85B56CCAA"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "B21FCB357B7E4AF8"
+					item: {
+						count: 1
+						id: "powah:energizing_orb"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 0.0d
+		}
+		{
+			id: "4878DA4E6DAAB106"
+			dependencies: [
+				"9C4D48087B83A0ED"
+			]
+			rewards: [
+				{
+					id: "E923FEAC47383195"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "E1911DCDEF912A3C"
+					item: {
+						count: 1
+						id: "powah:energizing_rod_starter"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 4.5d
+			y: 0.0d
+		}
+		{
+			id: "F59B4DD006E201BF"
+			dependencies: [
+				"4878DA4E6DAAB106"
+			]
+			rewards: [
+				{
+					id: "1E3296C4D4BE297A"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "95E492F9646E028E"
+					item: {
+						count: 1
+						id: "powah:steel_energized"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			id: "00471F4A9367DB30"
+			dependencies: [
+				"F59B4DD006E201BF"
+			]
+			rewards: [
+				{
+					id: "1C88D8445201046A"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "0F0DC4540A2CF255"
+					item: {
+						count: 1
+						id: "powah:crystal_blazing"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 7.5d
+			y: 0.0d
+		}
+		{
+			id: "A601E0D83ED4D4E2"
+			dependencies: [
+				"00471F4A9367DB30"
+			]
+			rewards: [
+				{
+					id: "0ECD13FE8F124D20"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "5A9E8CB07068DD7B"
+					item: {
+						count: 1
+						id: "powah:crystal_niotic"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 9.0d
+			y: 0.0d
+		}
+		{
+			id: "EFC6DD638C6F7901"
+			dependencies: [
+				"A601E0D83ED4D4E2"
+			]
+			rewards: [
+				{
+					id: "F0FA30E6C530A910"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "03B7500B0796A332"
+					item: {
+						count: 1
+						id: "powah:crystal_spirited"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 10.5d
+			y: 0.0d
+		}
+		{
+			id: "9C3E8FCABF8B056E"
+			dependencies: [
+				"EFC6DD638C6F7901"
+			]
+			rewards: [
+				{
+					id: "6E1527070C16B179"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "A762B31F999F6D1E"
+					item: {
+						count: 1
+						id: "powah:crystal_nitro"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 12.0d
+			y: 0.0d
+		}
+		{
+			id: "C44C307700D2F3A8"
+			dependencies: [
+				"9C3E8FCABF8B056E"
+			]
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "4D46F5AE64B4C6E7"
+					type: "xp"
+					xp: 120
+				}
+				{
+					id: "797EFB4ABD93EFB5"
+					item: {
+						count: 1
+						id: "minecraft:redstone_block"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "098BF6F252BAAF0C"
+					item: {
+						count: 1
+						id: "powah:energy_cell_nitro"
+					}
+					type: "item"
+				}
+			]
+			x: 13.5d
+			y: 0.0d
+		}
+		{
+			id: "0201AFB7FAF6E3FA"
+			dependencies: [
+				"E71C6075162C525A"
+			]
+			rewards: [
+				{
+					id: "928522FE7BD83ACC"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "2EBBEC319D03A35C"
+					item: {
+						count: 1
+						id: "powah:solar_panel_starter"
+					}
+					type: "item"
+					count: 2L
+				}
+			]
+			x: 0.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "04A5471DC1A126B7"
+			dependencies: [
+				"0201AFB7FAF6E3FA"
+			]
+			rewards: [
+				{
+					id: "DC7CDC58EC6CD37B"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "17253CDDABBCA546"
+					item: {
+						count: 1
+						id: "powah:thermo_generator_basic"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "A2094DE1BD5575CB"
+			dependencies: [
+				"04A5471DC1A126B7"
+			]
+			rewards: [
+				{
+					id: "B3A45624F728F948"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "B5A552C9BDA649D3"
+					item: {
+						count: 1
+						id: "powah:reactor_starter"
+					}
+					type: "item"
+					count: 36L
+				}
+			]
+			x: 3.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "311D95AA0B93D377"
+			dependencies: [
+				"A2094DE1BD5575CB"
+			]
+			rewards: [
+				{
+					id: "17C57E2334E39E2B"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "BA5BD3F3B09CE531"
+					item: {
+						count: 1
+						id: "powah:energy_cell_starter"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "77CD77F62C2AE8F7"
+			dependencies: [
+				"311D95AA0B93D377"
+			]
+			rewards: [
+				{
+					id: "BB97867A2CAB55E4"
+					type: "xp"
+					xp: 60
+				}
+				{
+					id: "9878975C37EFDBAF"
+					item: {
+						count: 1
+						id: "minecraft:redstone_block"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "461278BF2C7177B1"
+					item: {
+						count: 1
+						id: "powah:player_transmitter_starter"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "F4D096B0509DA7E4"
+			dependencies: [
+				"E71C6075162C525A"
+			]
+			rewards: [
+				{
+					id: "077A14A88BE1E8A1"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "1828B5AA71C4D3AC"
+					item: {
+						count: 1
+						id: "immersiveengineering:hammer"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "578B8F6F77D3CF5C"
+			dependencies: [
+				"F4D096B0509DA7E4"
+			]
+			rewards: [
+				{
+					id: "BEA89096691EB913"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "3575D5EE45A8D959"
+					item: {
+						count: 1
+						id: "immersiveengineering:coke"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 1.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "648FB8673E47F181"
+			dependencies: [
+				"578B8F6F77D3CF5C"
+			]
+			rewards: [
+				{
+					id: "8B09DAF402318A0D"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "8730FF0A253795E9"
+					item: {
+						count: 1
+						id: "immersiveengineering:cokebrick"
+					}
+					type: "item"
+					count: 27L
+				}
+			]
+			x: 3.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "DB6654224A6FA7D6"
+			dependencies: [
+				"648FB8673E47F181"
+			]
+			rewards: [
+				{
+					id: "64FB4123301EF6B9"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "463FAB7F182A3408"
+					item: {
+						count: 1
+						id: "immersiveengineering:blastbrick"
+					}
+					type: "item"
+					count: 27L
+				}
+			]
+			x: 4.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "C5D1CEE159610A16"
+			dependencies: [
+				"DB6654224A6FA7D6"
+			]
+			rewards: [
+				{
+					id: "D0ED6B266E1FD53A"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "E70A5DC1EE11AD88"
+					item: {
+						count: 1
+						id: "immersiveengineering:ingot_steel"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 6.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "6CDFA731EE5F25D8"
+			dependencies: [
+				"C5D1CEE159610A16"
+			]
+			rewards: [
+				{
+					id: "EC38E2BB0D56B875"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "F5DC4EC180AB3B87"
+					item: {
+						count: 1
+						id: "immersiveengineering:ingot_aluminum"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 7.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "A0E2CD0966F7C50C"
+			dependencies: [
+				"6CDFA731EE5F25D8"
+			]
+			rewards: [
+				{
+					id: "C872103278F5DC63"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "2F38A0F7A2C2A07C"
+					item: {
+						count: 1
+						id: "immersiveengineering:treated_wood_horizontal"
+					}
+					type: "item"
+					count: 32L
+				}
+			]
+			x: 9.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "81B048984BEEDC35"
+			dependencies: [
+				"A0E2CD0966F7C50C"
+			]
+			rewards: [
+				{
+					id: "3A16F35EEBF281DF"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "926E635C11FDE9F8"
+					item: {
+						count: 1
+						id: "immersiveengineering:component_iron"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 10.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "6C678BB5C9EC4402"
+			dependencies: [
+				"81B048984BEEDC35"
+			]
+			rewards: [
+				{
+					id: "3A50B42373A966E2"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "B9DA05AF2AF12549"
+					item: {
+						count: 1
+						id: "immersiveengineering:component_steel"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 12.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "E805A004AA8B642A"
+			dependencies: [
+				"6C678BB5C9EC4402"
+			]
+			rewards: [
+				{
+					id: "BACFBF60791B2E65"
+					type: "xp"
+					xp: 120
+				}
+			]
+			tasks: [
+				{
+					id: "8596D717733D6E39"
+					item: {
+						count: 1
+						id: "immersiveengineering:light_engineering"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 13.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "638C67163E4227C7"
+			dependencies: [
+				"E805A004AA8B642A"
+			]
+			rewards: [
+				{
+					id: "B872FA1E7110FBB0"
+					type: "xp"
+					xp: 120
+				}
+				{
+					id: "86E28AFD8BCE5A3D"
+					item: {
+						count: 1
+						id: "minecraft:redstone_block"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "87102FD97453D202"
+					item: {
+						count: 1
+						id: "immersiveengineering:heavy_engineering"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 15.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "3E5A19EC0A1834DA"
+			dependencies: [
+				"E71C6075162C525A"
+			]
+			rewards: [
+				{
+					id: "A76085B62B9B6947"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "B785DF4D3A5F9994"
+					item: {
+						count: 1
+						id: "immersiveengineering:wirecoil_copper"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 0.0d
+			y: 6.3d
+		}
+		{
+			id: "EF0CF1377B873F2E"
+			dependencies: [
+				"3E5A19EC0A1834DA"
+			]
+			rewards: [
+				{
+					id: "5A579ABB7E0689DC"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "6A385FB0C7F9574B"
+					item: {
+						count: 1
+						id: "immersiveengineering:windmill"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 6.3d
+		}
+		{
+			id: "CC5AF463FBB92D7E"
+			dependencies: [
+				"EF0CF1377B873F2E"
+			]
+			rewards: [
+				{
+					id: "E7308B33D3F5CD9C"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "D7B39FD614A35327"
+					item: {
+						count: 1
+						id: "immersiveengineering:capacitor_lv"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 6.3d
+		}
+		{
+			id: "CCB4FD5C9B8F4DAA"
+			dependencies: [
+				"CC5AF463FBB92D7E"
+			]
+			rewards: [
+				{
+					id: "CB194E65A0DB310B"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "70BA2536BAE30350"
+					item: {
+						count: 1
+						id: "immersiveengineering:capacitor_mv"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 6.3d
+		}
+		{
+			id: "44B3CEB333BEA862"
+			dependencies: [
+				"CCB4FD5C9B8F4DAA"
+			]
+			rewards: [
+				{
+					id: "7A4935F60C924232"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "CB99E0EFF8402357"
+					item: {
+						count: 1
+						id: "immersiveengineering:capacitor_hv"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 6.3d
+		}
+		{
+			id: "3FBEBC6054DB7EEE"
+			dependencies: [
+				"44B3CEB333BEA862"
+			]
+			rewards: [
+				{
+					id: "2BC7FB80CF0EDD46"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "362C236282EAEDAD"
+					item: {
+						count: 1
+						id: "immersiveengineering:generator"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 7.5d
+			y: 6.3d
+		}
+		{
+			id: "9A8553176439C946"
+			dependencies: [
+				"3FBEBC6054DB7EEE"
+			]
+			rewards: [
+				{
+					id: "D754E540ADC5C45F"
+					type: "xp"
+					xp: 90
+				}
+				{
+					id: "A80B947B0844D3D0"
+					item: {
+						count: 1
+						id: "minecraft:redstone_block"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "912AA69310EE71CD"
+					item: {
+						count: 1
+						id: "immersiveengineering:rs_engineering"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 9.0d
+			y: 6.3d
+		}
+		{
+			id: "A4D1075C74B3944B"
+			dependencies: [
+				"E71C6075162C525A"
+			]
+			rewards: [
+				{
+					id: "189FBE88284BD251"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "9C8E2D2FE20DFF77"
+					item: {
+						count: 1
+						id: "pipez:item_pipe"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 0.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "FA6E6F1F551E81A1"
+			dependencies: [
+				"A4D1075C74B3944B"
+			]
+			rewards: [
+				{
+					id: "2EA634A2BA2E1864"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "C26832FAAD8ADC74"
+					item: {
+						count: 1
+						id: "pipez:fluid_pipe"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 1.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "B7D06EE3A89A7893"
+			dependencies: [
+				"FA6E6F1F551E81A1"
+			]
+			rewards: [
+				{
+					id: "EEAF3216A5BBFDCF"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "C92608D61E278DE2"
+					item: {
+						count: 1
+						id: "pipez:energy_pipe"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 3.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "60DD66E632A1128C"
+			dependencies: [
+				"B7D06EE3A89A7893"
+			]
+			rewards: [
+				{
+					id: "82A333D0231D0178"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "B08DE2A2D933A9D7"
+					item: {
+						count: 1
+						id: "pipez:universal_pipe"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 4.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "1927212D3B8B7EF9"
+			dependencies: [
+				"60DD66E632A1128C"
+			]
+			rewards: [
+				{
+					id: "F0E8D5A4B77EFF45"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "6F1B195232C6B637"
+					item: {
+						count: 1
+						id: "ironfurnaces:iron_furnace"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "1E92D0BD6CF5DA8A"
+			dependencies: [
+				"1927212D3B8B7EF9"
+			]
+			rewards: [
+				{
+					id: "EF5AF6A516E0B5F8"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "55E198F3942DB655"
+					item: {
+						count: 1
+						id: "ironfurnaces:gold_furnace"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "6F0D39721CF9AFD3"
+			dependencies: [
+				"1E92D0BD6CF5DA8A"
+			]
+			rewards: [
+				{
+					id: "4B6A8D2980016338"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "08683E9FA7B47CB7"
+					item: {
+						count: 1
+						id: "ironfurnaces:diamond_furnace"
+					}
+					type: "item"
+				}
+			]
+			x: 9.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "EF1B73FEFE79FDBA"
+			dependencies: [
+				"6F0D39721CF9AFD3"
+			]
+			rewards: [
+				{
+					id: "9733437E4B2A5D05"
+					type: "xp"
+					xp: 90
+				}
+				{
+					id: "980D0020D9583309"
+					item: {
+						count: 1
+						id: "minecraft:redstone_block"
+					}
+					type: "item"
+					count: 4
+				}
+			]
+			tasks: [
+				{
+					id: "23327CABE8B95E01"
+					item: {
+						count: 1
+						id: "ironfurnaces:netherite_furnace"
+					}
+					type: "item"
+				}
+			]
+			x: 10.5d
+			y: 8.399999999999999d
+		}
+	]
+}

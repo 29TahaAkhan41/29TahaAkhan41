@@ -1,0 +1,580 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "mystical"
+	group: ""
+	icon: {
+		id: "mysticalagriculture:inferium_essence"
+	}
+	id: "205652DC83C29231"
+	order_index: 19
+	quest_links: [ ]
+	quests: [
+		{
+			id: "6568571F3199E6C8"
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "1421ED14E1D6939A"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "B9127DAD4BD06DFB"
+					item: {
+						count: 1
+						id: "mysticalagriculture:inferium_essence"
+					}
+					type: "item"
+					count: 32L
+				}
+			]
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			id: "87A24D78381A812D"
+			dependencies: [
+				"6568571F3199E6C8"
+			]
+			rewards: [
+				{
+					id: "C56C613BD2851C1A"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "C43B5AC2EB133394"
+					item: {
+						count: 1
+						id: "mysticalagriculture:prosperity_shard"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 1.5d
+			y: 0.0d
+		}
+		{
+			id: "49ED3BBE921C5F7D"
+			dependencies: [
+				"87A24D78381A812D"
+			]
+			rewards: [
+				{
+					id: "33CA150636B2AA71"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "EA81824699C0B926"
+					item: {
+						count: 1
+						id: "mysticalagriculture:inferium_seeds"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 0.0d
+		}
+		{
+			id: "44AE981DE977A119"
+			dependencies: [
+				"49ED3BBE921C5F7D"
+			]
+			rewards: [
+				{
+					id: "6C4EC4616606082A"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "8EC8AC92E5EB7F76"
+					item: {
+						count: 1
+						id: "mysticalagriculture:prudentium_essence"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 4.5d
+			y: 0.0d
+		}
+		{
+			id: "CB38B529B450B6A6"
+			dependencies: [
+				"44AE981DE977A119"
+			]
+			rewards: [
+				{
+					id: "DDF33F8CF3B5BB17"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "E63C74AE3780143A"
+					item: {
+						count: 1
+						id: "mysticalagriculture:tertium_essence"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			id: "595406196E409F25"
+			dependencies: [
+				"CB38B529B450B6A6"
+			]
+			rewards: [
+				{
+					id: "AC8C0DDD6ABECFAA"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "B405F836709619C8"
+					item: {
+						count: 1
+						id: "mysticalagriculture:imperium_essence"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 7.5d
+			y: 0.0d
+		}
+		{
+			id: "23B0F62F0626B175"
+			dependencies: [
+				"595406196E409F25"
+			]
+			rewards: [
+				{
+					id: "00D2B9D5EFB85773"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "7E850714C105EBB4"
+					item: {
+						count: 1
+						id: "mysticalagriculture:supremium_essence"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 9.0d
+			y: 0.0d
+		}
+		{
+			id: "9F27C97B5B4901F4"
+			dependencies: [
+				"23B0F62F0626B175"
+			]
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "43F8C292859760C1"
+					type: "xp"
+					xp: 90
+				}
+				{
+					id: "6A1E8DB857017948"
+					item: {
+						count: 1
+						id: "mysticalagriculture:inferium_essence"
+					}
+					type: "item"
+					count: 16
+				}
+			]
+			tasks: [
+				{
+					id: "699B4E92E4C5C178"
+					item: {
+						count: 1
+						id: "mysticalagradditions:insanium_essence"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 10.5d
+			y: 0.0d
+		}
+		{
+			id: "DDA8955EDA347C5B"
+			dependencies: [
+				"6568571F3199E6C8"
+			]
+			rewards: [
+				{
+					id: "F88BE10352990111"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "790F2D349CCBE47D"
+					item: {
+						count: 1
+						id: "mysticalagriculture:infusion_altar"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "26A6E5466B3510D4"
+			dependencies: [
+				"DDA8955EDA347C5B"
+			]
+			rewards: [
+				{
+					id: "2C768FC876D06A70"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "19C89E5718EC8BE8"
+					item: {
+						count: 1
+						id: "mysticalagriculture:infusion_pedestal"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 1.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "0FD2C0EBE99664C4"
+			dependencies: [
+				"26A6E5466B3510D4"
+			]
+			rewards: [
+				{
+					id: "A0F5FE1C4D655B98"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "09BA00C77DBCD89F"
+					item: {
+						count: 1
+						id: "mysticalagriculture:iron_seeds"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "AB7DDA7C9D07FB6A"
+			dependencies: [
+				"0FD2C0EBE99664C4"
+			]
+			rewards: [
+				{
+					id: "A66C0B8B84441688"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "0BFCCFA886ADF4AA"
+					item: {
+						count: 1
+						id: "mysticalagriculture:diamond_seeds"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "AC450F2FAA30712E"
+			dependencies: [
+				"AB7DDA7C9D07FB6A"
+			]
+			rewards: [
+				{
+					id: "C533B8CF7D2A96A8"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "410E937F2867D296"
+					item: {
+						count: 1
+						id: "mysticalagriculture:soul_jar"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "5DEC5D70DB958579"
+			dependencies: [
+				"AC450F2FAA30712E"
+			]
+			rewards: [
+				{
+					id: "042CF0315C6E3759"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "BB3F8B81000C59E6"
+					item: {
+						count: 1
+						id: "mysticalagriculture:soulium_ingot"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 7.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "5BD1ACA9F3E25F08"
+			dependencies: [
+				"5DEC5D70DB958579"
+			]
+			rewards: [
+				{
+					id: "9A5591926C2BECAC"
+					type: "xp"
+					xp: 90
+				}
+			]
+			tasks: [
+				{
+					id: "6CDE8B64AA02D150"
+					item: {
+						count: 1
+						id: "mysticalagriculture:awakening_altar"
+					}
+					type: "item"
+				}
+			]
+			x: 9.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "3CC6433EA47012EF"
+			dependencies: [
+				"5BD1ACA9F3E25F08"
+			]
+			rewards: [
+				{
+					id: "7B9D592D483B6BFD"
+					type: "xp"
+					xp: 90
+				}
+				{
+					id: "E0516B3912F2ABE0"
+					item: {
+						count: 1
+						id: "mysticalagriculture:inferium_essence"
+					}
+					type: "item"
+					count: 16
+				}
+			]
+			tasks: [
+				{
+					id: "29121A15F7548C18"
+					item: {
+						count: 1
+						id: "mysticalagriculture:awakened_supremium_essence"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 10.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "C2259B25CB1411EC"
+			dependencies: [
+				"6568571F3199E6C8"
+			]
+			rewards: [
+				{
+					id: "C37010479F95272C"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "2CA3DB4B2D2D9F2A"
+					item: {
+						count: 1
+						id: "productivebees:advanced_oak_beehive"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "6BEF2F416AF70F0F"
+			dependencies: [
+				"C2259B25CB1411EC"
+			]
+			rewards: [
+				{
+					id: "B1512B5197FBDEEB"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "7EB255CF5984AB4F"
+					item: {
+						count: 1
+						id: "productivebees:centrifuge"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "591AA61E76F451DD"
+			dependencies: [
+				"6BEF2F416AF70F0F"
+			]
+			rewards: [
+				{
+					id: "F674FBC22F45D1C2"
+					type: "xp"
+					xp: 30
+				}
+			]
+			tasks: [
+				{
+					id: "845AC1FE88CF4269"
+					item: {
+						count: 1
+						id: "productivebees:honey_treat"
+					}
+					type: "item"
+					count: 8L
+				}
+			]
+			x: 3.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "D17ADDFB9B77C212"
+			dependencies: [
+				"591AA61E76F451DD"
+			]
+			rewards: [
+				{
+					id: "7A811640FBB57647"
+					type: "xp"
+					xp: 60
+				}
+			]
+			tasks: [
+				{
+					id: "263FB7688043D754"
+					item: {
+						count: 1
+						id: "productivebees:bee_cage"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 4.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "B12B184A40EA70C8"
+			dependencies: [
+				"D17ADDFB9B77C212"
+			]
+			rewards: [
+				{
+					id: "4A06E962188EC0A1"
+					type: "xp"
+					xp: 60
+				}
+				{
+					id: "367978BFA4489A28"
+					item: {
+						count: 1
+						id: "mysticalagriculture:inferium_essence"
+					}
+					type: "item"
+					count: 16
+				}
+			]
+			tasks: [
+				{
+					id: "A80E5FFFD6765D0D"
+					item: {
+						count: 1
+						id: "botanypots:terracotta_botany_pot"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 6.0d
+			y: 4.199999999999999d
+		}
+	]
+}

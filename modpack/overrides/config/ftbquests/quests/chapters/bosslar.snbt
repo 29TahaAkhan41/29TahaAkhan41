@@ -1,0 +1,334 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "bosslar"
+	group: ""
+	icon: {
+		id: "minecraft:wither_skeleton_skull"
+	}
+	id: "006DC7432C7FE379"
+	order_index: 18
+	quest_links: [ ]
+	quests: [
+		{
+			id: "C6B91A2F35A1EC72"
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "110CF6CE96C43345"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "5C729D2BD3BAA38B"
+					item: {
+						count: 1
+						id: "minecraft:iron_sword"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 0.0d
+		}
+		{
+			id: "A169D8265D7E805C"
+			dependencies: [
+				"C6B91A2F35A1EC72"
+			]
+			rewards: [
+				{
+					id: "C2EBA589A20E2E0E"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "9E424A71B09BCDE8"
+					item: {
+						count: 1
+						id: "mowziesmobs:ice_crystal"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 0.0d
+		}
+		{
+			id: "E8570C7F02658944"
+			dependencies: [
+				"A169D8265D7E805C"
+			]
+			rewards: [
+				{
+					id: "CD036E3C8CE5CD29"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "B8A6C5B0BB3CD06F"
+					item: {
+						count: 1
+						id: "mowziesmobs:earthrend_gauntlet"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 0.0d
+		}
+		{
+			id: "8D9D1EF75BDCF470"
+			dependencies: [
+				"E8570C7F02658944"
+			]
+			rewards: [
+				{
+					id: "8FDD5446A6A7D072"
+					type: "xp"
+					xp: 80
+				}
+			]
+			tasks: [
+				{
+					id: "8E89FFBA7516B2A0"
+					item: {
+						count: 1
+						id: "mowziesmobs:sol_visage"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 0.0d
+		}
+		{
+			id: "6316E51FC0E992B6"
+			dependencies: [
+				"8D9D1EF75BDCF470"
+			]
+			rewards: [
+				{
+					id: "F616D8D29210473F"
+					type: "xp"
+					xp: 80
+				}
+			]
+			tasks: [
+				{
+					id: "3C803A79DF945A46"
+					item: {
+						count: 1
+						id: "cataclysm:ignitium_ingot"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			id: "4FDEA067F3F891CA"
+			dependencies: [
+				"6316E51FC0E992B6"
+			]
+			rewards: [
+				{
+					id: "FAA581BD67E9E37D"
+					type: "xp"
+					xp: 80
+				}
+			]
+			tasks: [
+				{
+					id: "080D397755480396"
+					item: {
+						count: 1
+						id: "cataclysm:witherite_ingot"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 7.5d
+			y: 0.0d
+		}
+		{
+			id: "CC8E6F9E1945BF0E"
+			dependencies: [
+				"4FDEA067F3F891CA"
+			]
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "F5501CD9F646788D"
+					type: "xp"
+					xp: 120
+				}
+				{
+					id: "1A1E52582509A3A4"
+					item: {
+						count: 1
+						id: "minecraft:enchanted_golden_apple"
+					}
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					id: "6DEDDF39543D1891"
+					item: {
+						count: 1
+						id: "cataclysm:ancient_metal_ingot"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 9.0d
+			y: 0.0d
+		}
+		{
+			id: "CCD7168286F83158"
+			dependencies: [
+				"C6B91A2F35A1EC72"
+			]
+			rewards: [
+				{
+					id: "794FE1BFCBF45D30"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "672D6D6AF6ECC1B1"
+					item: {
+						count: 1
+						id: "artifacts:flame_pendant"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "0C6D90623D41A190"
+			dependencies: [
+				"CCD7168286F83158"
+			]
+			rewards: [
+				{
+					id: "20AED725D034C87D"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "3EBAC597D839D018"
+					item: {
+						count: 1
+						id: "artifacts:cloud_in_a_bottle"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "A07F7ADF02A682B1"
+			dependencies: [
+				"0C6D90623D41A190"
+			]
+			rewards: [
+				{
+					id: "3D211B1DDCF90644"
+					type: "xp"
+					xp: 40
+				}
+			]
+			tasks: [
+				{
+					id: "51393D9666AB1C89"
+					item: {
+						count: 1
+						id: "artifacts:running_shoes"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "08786E52AE18E5AF"
+			dependencies: [
+				"A07F7ADF02A682B1"
+			]
+			rewards: [
+				{
+					id: "552E998CCA7E4EF5"
+					type: "xp"
+					xp: 80
+				}
+			]
+			tasks: [
+				{
+					id: "61AF4F94CBFF8E8F"
+					item: {
+						count: 1
+						id: "artifacts:power_glove"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "B51282843614921E"
+			dependencies: [
+				"08786E52AE18E5AF"
+			]
+			rewards: [
+				{
+					id: "1B3F3EB7BD488E7C"
+					type: "xp"
+					xp: 80
+				}
+				{
+					id: "66C9A88507B36891"
+					item: {
+						count: 1
+						id: "minecraft:enchanted_golden_apple"
+					}
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					id: "339BF720A4BF8E28"
+					item: {
+						count: 1
+						id: "artifacts:crystal_heart"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 2.0999999999999996d
+		}
+	]
+}

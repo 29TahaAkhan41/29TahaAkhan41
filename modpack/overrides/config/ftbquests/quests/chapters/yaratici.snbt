@@ -7,21 +7,23 @@
 		id: "kubejs:creative_catalyst"
 	}
 	id: "7663AE4ADCEE8725"
-	order_index: 5
+	order_index: 20
 	quest_links: [ ]
 	quests: [
 		{
-			id: "8A647D410FEDFD1F"
+			id: "D8AD526D7F5E4A93"
+			shape: "hexagon"
+			size: 1.5d
 			rewards: [
 				{
-					id: "8B20AA96E04C9F4E"
+					id: "E5CE5DAFEFE0D0DE"
 					type: "xp"
-					xp: 200
+					xp: 50
 				}
 			]
 			tasks: [
 				{
-					id: "865A3963BBDDC7AE"
+					id: "DF64D8662D1378E7"
 					item: {
 						count: 1
 						id: "kubejs:stellar_essence"
@@ -34,20 +36,20 @@
 			y: 0.0d
 		}
 		{
-			id: "D476B1F6FA4397F8"
+			id: "28F8286073ED7FFC"
 			dependencies: [
-				"8A647D410FEDFD1F"
+				"D8AD526D7F5E4A93"
 			]
 			rewards: [
 				{
-					id: "CD0E4EE420E68082"
+					id: "710F09DD49778AC8"
 					type: "xp"
-					xp: 400
+					xp: 50
 				}
 			]
 			tasks: [
 				{
-					id: "AA7F5BCF2CD10AB9"
+					id: "76E9CD59CF7EA2EE"
 					item: {
 						count: 1
 						id: "kubejs:cosmic_core"
@@ -59,20 +61,30 @@
 			y: 0.0d
 		}
 		{
-			id: "BFB611BA69F0E28C"
+			id: "C7720FC84B3D88D8"
 			dependencies: [
-				"D476B1F6FA4397F8"
+				"28F8286073ED7FFC"
 			]
+			shape: "hexagon"
+			size: 1.5d
 			rewards: [
 				{
-					id: "3E0D6C45A0B46FF7"
+					id: "57E55ED14E615C3B"
 					type: "xp"
-					xp: 800
+					xp: 50
+				}
+				{
+					id: "69F0766D241EC6BC"
+					item: {
+						count: 1
+						id: "kubejs:stellar_essence"
+					}
+					type: "item"
 				}
 			]
 			tasks: [
 				{
-					id: "FECFA8F47589BA99"
+					id: "58409A26F55AE0FD"
 					item: {
 						count: 1
 						id: "kubejs:creative_catalyst"
@@ -84,20 +96,20 @@
 			y: 0.0d
 		}
 		{
-			id: "A978505A6B193899"
+			id: "E1F2E6A331769777"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"D8AD526D7F5E4A93"
 			]
 			rewards: [
 				{
-					id: "92AC8F08A98CF9A2"
+					id: "F7EA314A27B03299"
 					type: "xp"
-					xp: 300
+					xp: 50
 				}
 			]
 			tasks: [
 				{
-					id: "7D5268AF3556901C"
+					id: "B881116C62E5A7A9"
 					item: {
 						count: 1
 						id: "kubejs:flight_ring"
@@ -105,24 +117,24 @@
 					type: "item"
 				}
 			]
-			x: 4.5d
-			y: -2.0d
+			x: 0.0d
+			y: 2.0999999999999996d
 		}
 		{
-			id: "30B7F49D725485CA"
+			id: "97F6DC6DDF56F125"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"E1F2E6A331769777"
 			]
 			rewards: [
 				{
-					id: "65725B919E7E6F3C"
+					id: "48149842B5189D8C"
 					type: "xp"
-					xp: 300
+					xp: 50
 				}
 			]
 			tasks: [
 				{
-					id: "69B3C4B2F113A3B1"
+					id: "69C35EDF12242551"
 					item: {
 						count: 1
 						id: "mekanism:creative_energy_cube"
@@ -130,24 +142,24 @@
 					type: "item"
 				}
 			]
-			x: 4.5d
-			y: -1.0d
+			x: 1.5d
+			y: 2.0999999999999996d
 		}
 		{
-			id: "62BE03E0B74A8716"
+			id: "CBBEC21E9B94D4E9"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"97F6DC6DDF56F125"
 			]
 			rewards: [
 				{
-					id: "461E61A133954FB6"
+					id: "2A69C21D8E8B24F6"
 					type: "xp"
-					xp: 300
+					xp: 50
 				}
 			]
 			tasks: [
 				{
-					id: "2E04BFE23A38D326"
+					id: "C3EF2C6AA70F94F6"
 					item: {
 						count: 1
 						id: "mekanism:creative_fluid_tank"
@@ -155,24 +167,24 @@
 					type: "item"
 				}
 			]
-			x: 4.5d
-			y: 0.0d
+			x: 3.0d
+			y: 2.0999999999999996d
 		}
 		{
-			id: "21CF71E9B54535A4"
+			id: "0D49DC176AA27FB8"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"CBBEC21E9B94D4E9"
 			]
 			rewards: [
 				{
-					id: "9C4B081B0B9534E0"
+					id: "C06DCE28D40BA103"
 					type: "xp"
-					xp: 300
+					xp: 100
 				}
 			]
 			tasks: [
 				{
-					id: "76A6F032F6E11B12"
+					id: "05DE027F19B1A3CF"
 					item: {
 						count: 1
 						id: "mekanism:creative_bin"
@@ -181,23 +193,56 @@
 				}
 			]
 			x: 4.5d
-			y: 1.0d
+			y: 2.0999999999999996d
 		}
 		{
-			id: "452183A03C3B8DB4"
+			id: "464BBCD71730C008"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"0D49DC176AA27FB8"
 			]
 			rewards: [
 				{
-					id: "626C30185C4C101E"
+					id: "4593A2A513DFE48C"
 					type: "xp"
-					xp: 300
+					xp: 100
+				}
+				{
+					id: "F406F28AD9CA3F11"
+					item: {
+						count: 1
+						id: "kubejs:stellar_essence"
+					}
+					type: "item"
 				}
 			]
 			tasks: [
 				{
-					id: "F1E9C59360B39DB7"
+					id: "8F4D5340FFB026C5"
+					item: {
+						count: 1
+						id: "mekanism:creative_chemical_tank"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "B978C209D833EE0D"
+			dependencies: [
+				"D8AD526D7F5E4A93"
+			]
+			rewards: [
+				{
+					id: "5692A21A643A832D"
+					type: "xp"
+					xp: 50
+				}
+			]
+			tasks: [
+				{
+					id: "4B38255EFD62F9E4"
 					item: {
 						count: 1
 						id: "ae2:creative_energy_cell"
@@ -205,24 +250,24 @@
 					type: "item"
 				}
 			]
-			x: 4.5d
-			y: 2.0d
+			x: 0.0d
+			y: 4.199999999999999d
 		}
 		{
-			id: "E35DBFBC7D035660"
+			id: "18F596B2A8154FF2"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"B978C209D833EE0D"
 			]
 			rewards: [
 				{
-					id: "0E0920492E346383"
+					id: "F8F6F675B1166595"
 					type: "xp"
-					xp: 300
+					xp: 50
 				}
 			]
 			tasks: [
 				{
-					id: "CFE067D894DBE195"
+					id: "02CB0C2B7D71793F"
 					item: {
 						count: 1
 						id: "create:creative_motor"
@@ -230,24 +275,24 @@
 					type: "item"
 				}
 			]
-			x: 6.0d
-			y: -1.0d
+			x: 1.5d
+			y: 4.199999999999999d
 		}
 		{
-			id: "12A5604C7E778088"
+			id: "0F927246F1D70C5C"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"18F596B2A8154FF2"
 			]
 			rewards: [
 				{
-					id: "5D14813DBAB1225D"
+					id: "9AA37C1779D069A8"
 					type: "xp"
-					xp: 300
+					xp: 50
 				}
 			]
 			tasks: [
 				{
-					id: "6EDE0D045BDDBC37"
+					id: "7176AFDEE91AE4F5"
 					item: {
 						count: 1
 						id: "create:creative_crate"
@@ -255,24 +300,82 @@
 					type: "item"
 				}
 			]
-			x: 6.0d
-			y: 0.0d
+			x: 3.0d
+			y: 4.199999999999999d
 		}
 		{
-			id: "054CB161CCCEA0DE"
+			id: "2A912791039C9B0D"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"0F927246F1D70C5C"
 			]
 			rewards: [
 				{
-					id: "8669FBD59A617D06"
+					id: "0F4BEBD282BCAF16"
 					type: "xp"
-					xp: 300
+					xp: 100
 				}
 			]
 			tasks: [
 				{
-					id: "623BE6BF19FE88FD"
+					id: "743A6017F5DBDC24"
+					item: {
+						count: 1
+						id: "create:creative_fluid_tank"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 4.199999999999999d
+		}
+		{
+			id: "D11AE4DD778DFA6A"
+			dependencies: [
+				"2A912791039C9B0D"
+			]
+			rewards: [
+				{
+					id: "9FC228DDC329003B"
+					type: "xp"
+					xp: 100
+				}
+				{
+					id: "1005B780B5905E3E"
+					item: {
+						count: 1
+						id: "kubejs:stellar_essence"
+					}
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					id: "600019C95B6DCEAC"
+					item: {
+						count: 1
+						id: "create:creative_blaze_cake"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "AE5D2877DA415F62"
+			dependencies: [
+				"D8AD526D7F5E4A93"
+			]
+			rewards: [
+				{
+					id: "BF07C6CD7FF18DF2"
+					type: "xp"
+					xp: 50
+				}
+			]
+			tasks: [
+				{
+					id: "52EC212E1CC99486"
 					item: {
 						count: 1
 						id: "botania:creative_pool"
@@ -280,24 +383,24 @@
 					type: "item"
 				}
 			]
-			x: 6.0d
-			y: 1.0d
+			x: 0.0d
+			y: 6.3d
 		}
 		{
-			id: "FE2BE209A56177B1"
+			id: "7A69F570E427A776"
 			dependencies: [
-				"BFB611BA69F0E28C"
+				"AE5D2877DA415F62"
 			]
 			rewards: [
 				{
-					id: "9EAA539870593010"
+					id: "E01974B989DBC8F7"
 					type: "xp"
-					xp: 300
+					xp: 50
 				}
 			]
 			tasks: [
 				{
-					id: "46FC94F7F8897F63"
+					id: "C68443B324539F13"
 					item: {
 						count: 1
 						id: "ars_nouveau:creative_source_jar"
@@ -305,8 +408,91 @@
 					type: "item"
 				}
 			]
+			x: 1.5d
+			y: 6.3d
+		}
+		{
+			id: "37B6D1BE6792D925"
+			dependencies: [
+				"7A69F570E427A776"
+			]
+			rewards: [
+				{
+					id: "C2B2953B5E61BDD0"
+					type: "xp"
+					xp: 50
+				}
+			]
+			tasks: [
+				{
+					id: "F57E6F0B2C464F74"
+					item: {
+						count: 1
+						id: "ars_nouveau:creative_spell_book"
+					}
+					type: "item"
+				}
+			]
+			x: 3.0d
+			y: 6.3d
+		}
+		{
+			id: "EE8CAF1123A480C3"
+			dependencies: [
+				"37B6D1BE6792D925"
+			]
+			rewards: [
+				{
+					id: "A14D8B593C684AE1"
+					type: "xp"
+					xp: 100
+				}
+			]
+			tasks: [
+				{
+					id: "2F336C15AD5346E0"
+					item: {
+						count: 1
+						id: "powah:energy_cell_creative"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 6.3d
+		}
+		{
+			id: "0689451492CFF6D2"
+			dependencies: [
+				"EE8CAF1123A480C3"
+			]
+			rewards: [
+				{
+					id: "9AF475477EEB8EB6"
+					type: "xp"
+					xp: 100
+				}
+				{
+					id: "EBEE3A83876534A9"
+					item: {
+						count: 1
+						id: "kubejs:stellar_essence"
+					}
+					type: "item"
+				}
+			]
+			tasks: [
+				{
+					id: "454D5AFA5918CA76"
+					item: {
+						count: 1
+						id: "immersiveengineering:capacitor_creative"
+					}
+					type: "item"
+				}
+			]
 			x: 6.0d
-			y: 2.0d
+			y: 6.3d
 		}
 	]
 }

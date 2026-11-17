@@ -64,6 +64,7 @@ ServerEvents.recipes(event => {
     creative('mekanism:creative_energy_cube', 'mekanism:ultimate_energy_cube', 'energy_cube')
     creative('mekanism:creative_fluid_tank', 'mekanism:ultimate_fluid_tank', 'fluid_tank')
     creative('mekanism:creative_bin', 'mekanism:ultimate_bin', 'bin')
+    creative('mekanism:creative_chemical_tank', 'mekanism:ultimate_chemical_tank', 'chemical_tank')
   }
   if (has('ae2')) {
     creative('ae2:creative_energy_cell', 'ae2:dense_energy_cell', 'energy_cell')
@@ -71,12 +72,21 @@ ServerEvents.recipes(event => {
   if (has('create')) {
     creative('create:creative_motor', 'create:rotation_speed_controller', 'motor')
     creative('create:creative_crate', 'create:item_vault', 'crate')
+    creative('create:creative_fluid_tank', 'create:fluid_tank', 'create_fluid_tank')
+    creative('create:creative_blaze_cake', 'create:blaze_cake', 'blaze_cake')
   }
   if (has('botania')) {
     creative('botania:creative_pool', 'botania:fabulous_pool', 'mana_pool')
   }
   if (has('ars_nouveau')) {
     creative('ars_nouveau:creative_source_jar', 'ars_nouveau:source_jar', 'source_jar')
+    creative('ars_nouveau:creative_spell_book', 'ars_nouveau:archmage_spell_book', 'spell_book')
+  }
+  if (has('powah')) {
+    creative('powah:energy_cell_creative', 'powah:energy_cell_nitro', 'powah_cell')
+  }
+  if (has('immersiveengineering')) {
+    creative('immersiveengineering:capacitor_creative', 'immersiveengineering:capacitor_hv', 'capacitor')
   }
 
   // --- Final: Yıldızların Kalbi ---------------------------------------------
