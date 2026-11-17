@@ -1,0 +1,25 @@
+# Nehir Oyun Atölyesi'nde kurulup Ctrl+E ile dışa aktarılmış küçük bir oyun. Atölye'nin kurallar
+# modülünü (motor/atolye.nehir) kullanır: kod yazmadan kurulan bir sahne, motorla oynanır.
+#
+#   python3 nehir.py ornekler/atolye_oyunu.nehir --çalıştır
+
+kullan "../motor/atolye.nehir"
+
+[
+    Şablon("Oyuncu", "☺", 0xFFD700, "oyuncu", 14.0),
+    Şablon("Duvar", "█", 0x6272A4, "duvar", 0.0),
+    Şablon("Altın", "◆", 0xFFB86C, "toplanır", 0.0),
+    Şablon("Hayalet", "☠", 0xFF5555, "devriye", 8.0),
+    Şablon("Çıkış", "⚑", 0x50FA7B, "çıkış", 0.0)
+] -> şablonlar
+[] -> nesneler
+aralık(10, 40) -> her (x) {
+    nesneler -> ekle(Nesne(1, x, 5))
+    nesneler -> ekle(Nesne(1, x, 11))
+}
+nesneler -> ekle(Nesne(0, 12, 8))
+[16, 22, 28] -> her (x) { nesneler -> ekle(Nesne(2, x, 8)) }
+nesneler -> ekle(Nesne(3, 25, 7))
+nesneler -> ekle(Nesne(4, 36, 8))
+atölye_oyna(şablonlar, nesneler, "Koridor") -> sonuç
+sonuç + "  puan: " + metne(atölye_puanı()) -> yazdır

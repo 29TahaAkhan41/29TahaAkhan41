@@ -1,0 +1,3 @@
+# Nehir Oyun Atölyesi'ni deneme kipinde çalıştırır: tuşlar atolye_deneme.girdi dosyasından gelir,
+# sonunda sahnenin özeti yazılır. Uygulamanın kendisi: atolye/atolye.nehir
+kullan "../atolye/atolye.nehir"

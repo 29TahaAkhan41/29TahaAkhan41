@@ -688,6 +688,34 @@ python3 nehir.py studyo/studyo.nehir --çalıştır
 Düzenleyici `{` sonrasında girintiyi artırır, boş satırda `}` yazınca azaltır. Windows'ta `nehir.bat`
 (gcc gerekir), Linux'ta `python3 nehir.py` ile derler.
 
+## Nehir Oyun Atölyesi
+
+`atolye/atolye.nehir`, oyun motoru için kod yazmadan oyun kurulan görsel bir düzenleyicidir; o da
+Nehir ile yazılmıştır. Solda şablonlar (oyuncu, duvar, altın, düşmanlar, çıkış, süs), ortada 56×18'lik
+sahne vardır. Şablonu seçip imleçle sahneye yerleştirirsiniz, F5 ile derlemeden hemen oynarsınız.
+Windows paketinde `NehirAtolye.exe` olarak gelir.
+
+```bash
+python3 nehir.py atolye/atolye.nehir --çalıştır
+```
+
+| Tuş | İş |
+| --- | --- |
+| oklar, Enter / Boşluk, Delete / Geri | imleci gezdir, seçili şablonu koy, imleçtekini kaldır |
+| 1-9, Tab | şablon seç, şablon panelini düzenle |
+| şablon panelinde `r` `d` `+` `-` `g` `a` `y` | renk, davranış, hız, görünüş, ad, yeni şablon |
+| F5 / Ctrl+R | oyna (Esc ile düzenleyiciye dönülür) |
+| Ctrl+S (ya da F3) | `sahne.oyun` dosyasına kaydet; açılışta varsa yüklenir |
+| Ctrl+E | sahneyi bağımsız bir oyun olarak `oyunum.nehir` dosyasına aktar |
+| Ctrl+N, Ctrl+Q, F1 | sahneyi temizle, çık, yardım |
+
+Davranışlar: `oyuncu` (oklar / wasd ile yürür), `duvar` (geçilmez), `toplanır` (10 puan; hepsi
+toplanınca, çıkış yoksa oyun kazanılır), `devriye` (yatayda gidip gelir), `takipçi` (oyuncuyu kovalar),
+`çıkış` (altınlar bitince kazandırır) ve `süs`. Düşmana değen oyuncu bir can kaybeder.
+
+Oyun kuralları `motor/atolye.nehir` modülündedir; dışa aktarılan oyunlar da onu kullanır
+(`atölye_oyna(şablonlar, nesneler, başlık)`). Örnek: `ornekler/atolye_oyunu.nehir`.
+
 ## Sınamalar
 
 ```bash

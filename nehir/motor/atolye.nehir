@@ -1,0 +1,217 @@
+# ≈≈≈ NEHİR OYUN ATÖLYESİ: OYUN KURALLARI ≈≈≈
+#
+# Oyun Atölyesi'nde (atolye/atolye.nehir) kurulan sahneleri oynatan modül. Atölye'nin dışa aktardığı
+# oyunlar da bunu kullanır:
+#
+#   kullan "motor/atolye.nehir"
+#   [Şablon("Oyuncu", "☺", 0xFFD700, "oyuncu", 14.0), ...] -> şablonlar
+#   [Nesne(0, 5, 7), ...] -> nesneler
+#   atölye_oyna(şablonlar, nesneler, "Oyunum")
+#
+# Davranışlar:
+#   oyuncu    oklar / WASD ile yürür, duvarlardan geçemez; altınları toplar, düşmana değince can yitirir
+#   duvar     katı engel
+#   toplanır  oyuncu değince toplanır (10 puan); hepsi toplanınca, çıkış yoksa oyun kazanılır
+#   devriye   yatay gidip gelir; duvara ya da kenara gelince döner
+#   takipçi   oyuncuya doğru yürür, duvarlardan geçemez
+#   çıkış     oyuncu değince oyun kazanılır (önce bütün altınların toplanması gerekir)
+#   süs       yalnızca görünür
+
+kullan "motor.nehir"
+
+kayıt Şablon { ad: metin, görünüş: metin, renk: sayı, davranış: metin, hız: ondalık }
+kayıt Nesne { şablon: sayı, x: sayı, y: sayı }
+
+["oyuncu", "duvar", "toplanır", "devriye", "takipçi", "çıkış", "süs"] -> ATÖLYE_DAVRANIŞLARI
+56 -> ATÖLYE_GEN                # oyun alanı (0. satır puan göstergesi)
+18 -> ATÖLYE_BOY
+
+0b00001 -> _OYUNCU
+0b00010 -> _DUVAR
+0b00100 -> _DÜŞMAN
+0b01000 -> _TOPLANIR
+0b10000 -> _ÇIKIŞ
+
+0 -> ortak _puan
+3 -> ortak _can
+0 -> ortak _kalan_altın
+"" -> ortak _sonuç
+0.0 -> ortak _bitiş
+0.0 -> ortak _dokunulmaz
+0.0 -> ortak _baş_x
+0.0 -> ortak _baş_y
+"" -> ortak _başlık
+[Şablon("", "", 0, "", 0.0)] -> ortak _şablonlar
+[Nesne(0, 0, 0)] -> ortak _nesneler
+
+# ── yardımcılar ──
+
+işlev _duvarda_mı(m, v, x, y) {
+    x < 0.0 veya y < 1.0 veya x + v.genişlik > ondalığa(ATÖLYE_GEN) veya y + v.yükseklik > ondalığa(ATÖLYE_BOY) -> eğer {
+        1 -> döndür
+    }
+    m.bul("duvar") -> her (d) {
+        x < d.x + d.genişlik ve d.x < x + v.genişlik ve y < d.y + d.yükseklik ve d.y < y + v.yükseklik -> eğer {
+            1 -> döndür
+        }
+    }
+    0 -> döndür
+}
+
+# Hızı, duvara girmeyecek biçimde eksen eksen uygular (motor konumu sonra hızla ilerletir).
+işlev _engelli_yürü(m, v, vx, vy, dt) {
+    _duvarda_mı(m, v, v.x + vx * dt, v.y) -> eğer { 0.0 -> vx }
+    _duvarda_mı(m, v, v.x + vx * dt, v.y + vy * dt) -> eğer { 0.0 -> vy }
+    vx -> v.hx
+    vy -> v.hy
+}
+
+işlev _bitir(m, sonuç) {
+    _sonuç == "" -> eğer {
+        sonuç -> _sonuç
+        2.0 -> _bitiş
+    }
+}
+
+# ── davranışlar ──
+
+işlev _oyuncu_davranışı(m, v, dt) {
+    _engelli_yürü(m, v, ondalığa(m.yatay()) * v.sayaç, ondalığa(m.dikey()) * v.sayaç * 0.6, dt)
+    _dokunulmaz - dt -> _dokunulmaz
+    _dokunulmaz > 0 -> eğer { taban(_dokunulmaz * 10.0) % 2 -> v.görünür } değilse { 1 -> v.görünür }
+}
+
+işlev _oyuncu_çarpınca(m, v, öteki) {
+    _sonuç != "" -> eğer { 0 -> döndür }
+    öteki.tür == "toplanır" -> eğer {
+        0 -> öteki.canlı
+        _puan + 10 -> _puan
+        _kalan_altın - 1 -> _kalan_altın
+        _kalan_altın == 0 ve uzunluk(m.bul("çıkış")) == 0 -> eğer { _bitir(m, "KAZANDIN!") }
+    }
+    öteki.tür == "çıkış" -> eğer {
+        _kalan_altın <= 0 -> eğer { _bitir(m, "KAZANDIN!") }
+    }
+    öteki.tür == "düşman" ve _dokunulmaz <= 0 -> eğer {
+        _can - 1 -> _can
+        2.0 -> _dokunulmaz
+        _baş_x -> v.x
+        _baş_y -> v.y
+        _can <= 0 -> eğer {
+            0 -> v.canlı
+            _bitir(m, "OYUN BİTTİ")
+        }
+    }
+    0 -> döndür
+}
+
+işlev _devriye_davranışı(m, v, dt) {
+    ondalığa(v.değer) * v.sayaç -> vx
+    _duvarda_mı(m, v, v.x + vx * dt, v.y) -> eğer {
+        0 - v.değer -> v.değer
+        0.0 -> vx
+    }
+    vx -> v.hx
+}
+
+işlev _takipçi_davranışı(m, v, dt) {
+    m.bul("oyuncu") -> oyuncular
+    uzunluk(oyuncular) == 0 -> eğer {
+        0.0 -> v.hx
+        0.0 -> v.hy
+        0 -> döndür
+    }
+    oyuncular[0] -> o
+    o.x - v.x -> dx
+    o.y - v.y -> dy
+    karekök(dx * dx + dy * dy) -> uzaklık
+    uzaklık < 0.5 -> eğer { 0.5 -> uzaklık }
+    _engelli_yürü(m, v, dx / uzaklık * v.sayaç, dy / uzaklık * v.sayaç * 0.6, dt)
+}
+
+# ── sahne ──
+
+işlev _atölye_giriş(m) {
+    0 -> _puan
+    3 -> _can
+    0 -> _kalan_altın
+    "" -> _sonuç
+    0.0 -> _dokunulmaz
+    _nesneler -> her (n) {
+        n.şablon >= 0 ve n.şablon < uzunluk(_şablonlar) -> eğer {
+            _şablonlar[n.şablon] -> ş
+            ş.davranış -> dav
+            dav -> tür
+            dav == "devriye" veya dav == "takipçi" -> eğer { "düşman" -> tür }
+            motor_varlık(tür, n.x, n.y, [ş.görünüş], ş.renk) -> v
+            ş.hız -> v.sayaç
+            2 -> v.katman
+            dav == "oyuncu" -> eğer {
+                _OYUNCU -> v.maske
+                bit_veya(bit_veya(_DÜŞMAN, _TOPLANIR), _ÇIKIŞ) -> v.çarpışır
+                5 -> v.katman
+                _oyuncu_davranışı -> v.davranış
+                _oyuncu_çarpınca -> v.çarpınca
+                v.x -> _baş_x
+                v.y -> _baş_y
+            }
+            dav == "duvar" -> eğer {
+                _DUVAR -> v.maske
+                1 -> v.katman
+                0 -> v.saydam
+            }
+            dav == "toplanır" -> eğer {
+                _TOPLANIR -> v.maske
+                _kalan_altın + 1 -> _kalan_altın
+            }
+            dav == "devriye" -> eğer {
+                _DÜŞMAN -> v.maske
+                1 -> v.değer
+                _devriye_davranışı -> v.davranış
+                4 -> v.katman
+            }
+            dav == "takipçi" -> eğer {
+                _DÜŞMAN -> v.maske
+                _takipçi_davranışı -> v.davranış
+                4 -> v.katman
+            }
+            dav == "çıkış" -> eğer { _ÇIKIŞ -> v.maske }
+            dav == "süs" -> eğer { 0 -> v.katman }
+            m.ekle(v)
+        }
+    }
+}
+
+işlev _atölye_güncelle(m, dt) {
+    m.basıldı("esc") veya m.basıldı("q") -> eğer {
+        "" -> _sonuç
+        m.bitir()
+    }
+    _sonuç != "" -> eğer {
+        _bitiş - dt -> _bitiş
+        _bitiş <= 0 veya m.deneme -> eğer { m.bitir() }
+    }
+}
+
+işlev _atölye_çiz(m) {
+    m.yaz(1, 0, _başlık, 0xFFFFFF)
+    m.yaz(ATÖLYE_GEN - 30, 0, "puan " + metne(_puan) + "   can " + metne(_can) + "   Esc: çık", 0xBBBBBB)
+    _sonuç != "" -> eğer {
+        m.çerçeve(ATÖLYE_GEN / 2 - 12, ATÖLYE_BOY / 2 - 2, 24, 5, 0xFFD700)
+        m.ortala(ATÖLYE_BOY / 2, _sonuç, 0xFFD700)
+    }
+}
+
+# Sahneyi oynatır; bittiğinde sonucu ("KAZANDIN!", "OYUN BİTTİ" ya da Esc ile çıkıldıysa "") verir.
+işlev atölye_oyna(şablonlar, nesneler, başlık) {
+    şablonlar -> _şablonlar
+    nesneler -> _nesneler
+    başlık -> _başlık
+    motor_yeni(ATÖLYE_GEN, ATÖLYE_BOY) -> m
+    0x101418 -> m.zemin
+    m.sahne_ekle("atölye", _atölye_giriş, _atölye_güncelle, _atölye_çiz)
+    m.çalıştır("atölye")
+    _sonuç -> döndür
+}
+
+işlev atölye_puanı() { _puan -> döndür }

@@ -1,0 +1,401 @@
+# ≈≈≈ NEHİR OYUN ATÖLYESİ ≈≈≈
+#
+# Nehir oyun motoru için kod yazmadan oyun kurma aracı; kendisi de Nehir ile yazılmıştır.
+# Solda şablonlar (oyuncu, duvar, altın, düşmanlar...), ortada sahne. Şablonu seçip imleçle
+# sahneye yerleştirin, F5 ile hemen oynayın.
+#
+#   oklar          imleci gezdir          Enter / Boşluk   seçili şablonu koy
+#   Delete / Geri  imleçtekini kaldır     1-9              şablon seç
+#   Tab            şablon panelini düzenle (r renk, d davranış, + / - hız, g görünüş, a ad, y yeni)
+#   F5             oyna                   Ctrl+S / F3      kaydet (sahne.oyun)
+#   Ctrl+E         .nehir oyunu olarak dışa aktar (oyunum.nehir)
+#   Ctrl+N         sahneyi temizle        Ctrl+Q           çık       F1  yardım
+#
+# Uçbirim yoksa (girdi bir dosyadan geliyorsa) deneme kipinde çalışır: tuşları girdiden okur ve
+# sonunda sahneyi yazar.
+
+kullan "../motor/atolye.nehir"
+
+kayıt Atölye {
+    şablonlar: [Şablon],
+    nesneler: [Nesne],
+    seçili: sayı,
+    cx: sayı, cy: sayı,
+    odak: metin,
+    dosya: metin,
+    değişti: sayı,
+    mesaj: metin, mesaj_rengi: sayı,
+    soru: metin, cevap: metin, soru_işi: metin,
+    gen: sayı, boy: sayı,
+    bitti: sayı
+}
+
+uçbirim_mi(0) ve uçbirim_mi(1) -> EKRANDA
+
+0x1E1F29 -> ZEMİN
+0x282A36 -> PANEL
+0x44475A -> SEÇİM
+0xF8F8F2 -> YAZI
+0x6272A4 -> SOLUK
+0x50FA7B -> İYİ
+0xFF5555 -> KÖTÜ
+0x8BE9FD -> VURGU
+0x101418 -> SAHNE_ZEMİNİ
+24 -> PANEL_GEN
+
+[0xFFD700, 0xFF5555, 0x50FA7B, 0x8BE9FD, 0xBD93F9, 0xFF79C6, 0xF8F8F2, 0x888888, 0xFFB86C, 0x6272A4] -> PALET
+
+işlev varsayılan_şablonlar() {
+    [Şablon("Oyuncu", "☺", 0xFFD700, "oyuncu", 14.0),
+     Şablon("Duvar", "█", 0x6272A4, "duvar", 0.0),
+     Şablon("Altın", "◆", 0xFFB86C, "toplanır", 0.0),
+     Şablon("Hayalet", "☠", 0xFF5555, "devriye", 8.0),
+     Şablon("Avcı", "◉", 0xFF79C6, "takipçi", 4.0),
+     Şablon("Çıkış", "⚑", 0x50FA7B, "çıkış", 0.0),
+     Şablon("Ağaç", "♣", 0x2E8B57, "süs", 0.0)] -> döndür
+}
+
+# Hazır bir örnek bölüm: duvarlarla çevrili bir oda, altınlar, iki düşman ve bir çıkış
+işlev örnek_sahne() {
+    [] -> l
+    aralık(0, ATÖLYE_GEN) -> her (x) {
+        l -> ekle(Nesne(1, x, 1))
+        l -> ekle(Nesne(1, x, ATÖLYE_BOY - 1))
+    }
+    aralık(2, ATÖLYE_BOY - 1) -> her (y) {
+        l -> ekle(Nesne(1, 0, y))
+        l -> ekle(Nesne(1, ATÖLYE_GEN - 1, y))
+    }
+    aralık(4, 14) -> her (y) { l -> ekle(Nesne(1, 20, y)) }
+    aralık(6, ATÖLYE_BOY - 1) -> her (y) { l -> ekle(Nesne(1, 38, y)) }
+    l -> ekle(Nesne(0, 4, 9))
+    [[10, 4], [14, 14], [28, 3], [30, 12], [45, 6], [50, 15], [26, 8]] -> her (k) { l -> ekle(Nesne(2, k[0], k[1])) }
+    l -> ekle(Nesne(3, 24, 15))
+    l -> ekle(Nesne(4, 46, 12))
+    l -> ekle(Nesne(5, 52, 3))
+    [[3, 3], [8, 15], [33, 4], [42, 16]] -> her (k) { l -> ekle(Nesne(6, k[0], k[1])) }
+    l -> döndür
+}
+
+işlev mesaj_ver(a, m, renk) {
+    m -> a.mesaj
+    renk -> a.mesaj_rengi
+}
+
+# ── sahne dosyası ──
+# Her satır:  şablon|ad|görünüş|renk|davranış|hız   ya da   nesne|şablon|x|y
+
+işlev kaydet(a) {
+    ["# Nehir Oyun Atölyesi sahnesi"] -> satırlar
+    a.şablonlar -> her (ş) {
+        satırlar -> ekle("şablon|" + ş.ad + "|" + ş.görünüş + "|" + metne(ş.renk) + "|" + ş.davranış + "|" + metne(ş.hız))
+    }
+    a.nesneler -> her (n) { satırlar -> ekle("nesne|" + metne(n.şablon) + "|" + metne(n.x) + "|" + metne(n.y)) }
+    dosya_yaz(birleş(satırlar, "\n") + "\n", a.dosya)
+    0 -> a.değişti
+    mesaj_ver(a, a.dosya + " kaydedildi", İYİ)
+}
+
+işlev yükle(a) {
+    [] -> şablonlar
+    [] -> nesneler
+    böl(dosya_oku(a.dosya), "\n") -> her (satır) {
+        satır -> s
+        uzunluk(s) > 0 ve s[uzunluk(s) - 1] == "\r" -> eğer { dilim(s, 0, uzunluk(s) - 1) -> s }
+        böl(s, "|") -> p
+        p[0] == "şablon" ve uzunluk(p) == 6 -> eğer {
+            şablonlar -> ekle(Şablon(p[1], p[2], sayıya(p[3]), p[4], ondalığa(p[5])))
+        }
+        p[0] == "nesne" ve uzunluk(p) == 4 -> eğer {
+            nesneler -> ekle(Nesne(sayıya(p[1]), sayıya(p[2]), sayıya(p[3])))
+        }
+    }
+    uzunluk(şablonlar) > 0 -> eğer {
+        şablonlar -> a.şablonlar
+        nesneler -> a.nesneler
+        mesaj_ver(a, a.dosya + " yüklendi", SOLUK)
+    }
+}
+
+# Sahneyi, motoru kullanan bağımsız bir .nehir oyununa çevirir (Stüdyo'da açılıp derlenebilir).
+işlev dışa_aktar(a, yol) {
+    ["# Nehir Oyun Atölyesi'nde kuruldu. Derleyip çalıştırmak için: nehir.bat " + yol,
+     "kullan \"motor/atolye.nehir\"", "", "["] -> satırlar
+    0 -> i
+    a.şablonlar -> her (ş) {
+        "," -> ayraç
+        i == uzunluk(a.şablonlar) - 1 -> eğer { "" -> ayraç }
+        satırlar -> ekle("    Şablon(\"" + ş.ad + "\", \"" + ş.görünüş + "\", " + metne(ş.renk) + ", \"" + ş.davranış
+                          + "\", " + metne(ş.hız) + ")" + ayraç)
+        i + 1 -> i
+    }
+    satırlar -> ekle("] -> şablonlar")
+    satırlar -> ekle("[] -> nesneler")
+    a.nesneler -> her (n) {
+        satırlar -> ekle("nesneler -> ekle(Nesne(" + metne(n.şablon) + ", " + metne(n.x) + ", " + metne(n.y) + "))")
+    }
+    satırlar -> ekle("atölye_oyna(şablonlar, nesneler, \"" + dilim(yol, 0, uzunluk(yol) - 6) + "\") -> sonuç")
+    satırlar -> ekle("sonuç != \"\" -> eğer { sonuç + \"  puan: \" + metne(atölye_puanı()) -> yazdır }")
+    dosya_yaz(birleş(satırlar, "\n") + "\n", yol)
+    mesaj_ver(a, yol + " oluşturuldu: Stüdyo'da açıp F5 ile derleyebilirsiniz", İYİ)
+}
+
+# ── düzenleme ──
+
+işlev genişlik_of(ş) { en_büyük(metin_genişliği(ş.görünüş), 1) -> döndür }
+
+# İmlecin üstündeki nesnenin sırası ya da -1
+işlev imleçteki(a) {
+    uzunluk(a.nesneler) - 1 -> i
+    i >= 0 -> iken {
+        a.nesneler[i] -> n
+        n.y == a.cy ve a.cx >= n.x ve a.cx < n.x + genişlik_of(a.şablonlar[n.şablon]) -> eğer { i -> döndür }
+        i - 1 -> i
+    }
+    -1 -> döndür
+}
+
+işlev kaldır(a) {
+    imleçteki(a) -> i
+    i >= 0 -> eğer {
+        sil(a.nesneler, i)
+        1 -> a.değişti
+    }
+}
+
+işlev koy(a) {
+    imleçteki(a) -> i
+    i >= 0 -> iken {
+        sil(a.nesneler, i)
+        imleçteki(a) -> i
+    }
+    a.şablonlar[a.seçili].davranış == "oyuncu" -> eğer {      # tek oyuncu olur
+        [] -> kalan
+        a.nesneler -> her (n) { a.şablonlar[n.şablon].davranış != "oyuncu" -> eğer { kalan -> ekle(n) } }
+        kalan -> a.nesneler
+    }
+    a.nesneler -> ekle(Nesne(a.seçili, a.cx, a.cy))
+    1 -> a.değişti
+}
+
+işlev soru_sor(a, soru, iş, varsayılan) {
+    soru -> a.soru
+    varsayılan -> a.cevap
+    iş -> a.soru_işi
+    "soru" -> a.odak
+    mesaj_ver(a, soru, YAZI)
+}
+
+işlev soruyu_bitir(a) {
+    "şablonlar" -> a.odak
+    a.soru_işi == "çık" veya a.soru_işi == "temizle" -> eğer { "sahne" -> a.odak }
+    a.cevap -> c
+    a.soru_işi == "görünüş" ve c != "" -> eğer {
+        birleş(böl(c, "|"), "/") -> a.şablonlar[a.seçili].görünüş
+        1 -> a.değişti
+    }
+    a.soru_işi == "ad" ve c != "" -> eğer {
+        birleş(böl(c, "|"), "/") -> a.şablonlar[a.seçili].ad
+        1 -> a.değişti
+    }
+    a.soru_işi == "çık" ve (c == "e" veya c == "E") -> eğer { 1 -> a.bitti }
+    a.soru_işi == "temizle" ve (c == "e" veya c == "E") -> eğer {
+        [] -> a.nesneler
+        1 -> a.değişti
+        mesaj_ver(a, "sahne temizlendi", SOLUK)
+    }
+    a.soru_işi != "çık" ve a.soru_işi != "temizle" -> eğer { mesaj_ver(a, "", SOLUK) }
+}
+
+işlev sonrakini_seç(liste, şimdiki) {
+    0 -> i
+    i < uzunluk(liste) -> iken {
+        liste[i] == şimdiki -> eğer { liste[(i + 1) % uzunluk(liste)] -> döndür }
+        i + 1 -> i
+    }
+    liste[0] -> döndür
+}
+
+işlev oyna(a) {
+    değil EKRANDA -> eğer { 0 -> döndür }
+    tuş_kipi(0)
+    atölye_oyna(a.şablonlar, a.nesneler, "Oyun Atölyesi") -> sonuç
+    ekran_aç(a.gen, a.boy)
+    tuş_kipi(1)
+    sonuç == "" -> eğer { mesaj_ver(a, "oyundan çıkıldı", SOLUK) } değilse {
+        İYİ -> renk_
+        sonuç == "OYUN BİTTİ" -> eğer { KÖTÜ -> renk_ }
+        mesaj_ver(a, sonuç + "  (puan " + metne(atölye_puanı()) + ")", renk_)
+    }
+}
+
+işlev yardım(a) {
+    mesaj_ver(a, "oklar gez  Enter koy  Del sil  Tab şablonlar  F5 oyna  Ctrl+S kaydet  Ctrl+E dışa aktar", VURGU)
+}
+
+işlev tuşu_işle(a, t) {
+    a.odak == "soru" -> eğer {
+        t == "enter" -> eğer { soruyu_bitir(a)   0 -> döndür }
+        t == "esc" -> eğer {
+            "sahne" -> a.odak
+            mesaj_ver(a, "vazgeçildi", SOLUK)
+            0 -> döndür
+        }
+        t == "geri" -> eğer {
+            uzunluk(a.cevap) > 0 -> eğer { dilim(a.cevap, 0, uzunluk(a.cevap) - 1) -> a.cevap }
+            0 -> döndür
+        }
+        uzunluk(t) == 1 -> eğer { a.cevap + t -> a.cevap }
+        0 -> döndür
+    }
+    t == "ctrl+q" -> eğer {
+        a.değişti -> eğer { soru_sor(a, "kaydedilmemiş değişiklikler var; çıkılsın mı? (e/h)", "çık", "") }
+        değilse { 1 -> a.bitti }
+        0 -> döndür
+    }
+    t == "ctrl+s" veya t == "f3" -> eğer { kaydet(a)   0 -> döndür }
+    t == "ctrl+e" -> eğer { dışa_aktar(a, "oyunum.nehir")   0 -> döndür }
+    t == "f5" veya t == "ctrl+r" -> eğer { oyna(a)   0 -> döndür }
+    t == "f1" -> eğer { yardım(a)   0 -> döndür }
+    t == "ctrl+n" -> eğer { soru_sor(a, "sahnedeki her şey silinsin mi? (e/h)", "temizle", "")   0 -> döndür }
+    uzunluk(t) == 1 ve t >= "1" ve t <= "9" -> eğer {
+        sayıya(t) - 1 -> no
+        no < uzunluk(a.şablonlar) -> eğer { no -> a.seçili }
+        0 -> döndür
+    }
+    a.odak == "şablonlar" -> eğer {
+        a.şablonlar[a.seçili] -> ş
+        t == "tab" veya t == "esc" -> eğer { "sahne" -> a.odak }
+        t == "yukarı" -> eğer { en_büyük(a.seçili - 1, 0) -> a.seçili }
+        t == "aşağı" -> eğer { en_küçük(a.seçili + 1, uzunluk(a.şablonlar) - 1) -> a.seçili }
+        t == "r" -> eğer { sonrakini_seç(PALET, ş.renk) -> ş.renk   1 -> a.değişti }
+        t == "d" -> eğer { sonrakini_seç(ATÖLYE_DAVRANIŞLARI, ş.davranış) -> ş.davranış   1 -> a.değişti }
+        t == "+" -> eğer { en_küçük(ş.hız + 2.0, 40.0) -> ş.hız   1 -> a.değişti }
+        t == "-" -> eğer { en_büyük(ş.hız - 2.0, 0.0) -> ş.hız   1 -> a.değişti }
+        t == "g" -> eğer { soru_sor(a, "görünüş (bir ya da birkaç karakter):", "görünüş", ş.görünüş) }
+        t == "a" -> eğer { soru_sor(a, "şablonun adı:", "ad", ş.ad) }
+        t == "y" -> eğer {
+            a.şablonlar -> ekle(Şablon(ş.ad + " 2", ş.görünüş, ş.renk, ş.davranış, ş.hız))
+            uzunluk(a.şablonlar) - 1 -> a.seçili
+            1 -> a.değişti
+        }
+        0 -> döndür
+    }
+    t == "tab" -> eğer {
+        "şablonlar" -> a.odak
+        mesaj_ver(a, "r renk  d davranış  +/- hız  g görünüş  a ad  y yeni  Tab: dön", VURGU)
+    }
+    t == "sol" -> eğer { en_büyük(a.cx - 1, 0) -> a.cx }
+    t == "sağ" -> eğer { en_küçük(a.cx + 1, ATÖLYE_GEN - 1) -> a.cx }
+    t == "yukarı" -> eğer { en_büyük(a.cy - 1, 1) -> a.cy }
+    t == "aşağı" -> eğer { en_küçük(a.cy + 1, ATÖLYE_BOY - 1) -> a.cy }
+    t == "enter" veya t == " " -> eğer { koy(a) }
+    t == "sil" veya t == "geri" -> eğer { kaldır(a) }
+}
+
+# ── çizim ──
+
+işlev kırp(m, n) {
+    metin_genişliği(m) <= n -> eğer { m -> döndür }
+    dilim(m, 0, en_büyük(n - 1, 0)) + "…" -> döndür
+}
+
+işlev çiz(a) {
+    değil EKRANDA -> eğer { 0 -> döndür }
+    a.gen -> G
+    a.boy -> B
+    ekran_temizle(ZEMİN)
+    ekran_doldur(0, 0, G, 1, " ", YAZI, PANEL)
+    "" -> işaret_
+    a.değişti -> eğer { " ●" -> işaret_ }
+    ekran_yaz(1, 0, "≈ Nehir Oyun Atölyesi   " + a.dosya + işaret_, VURGU, -1)
+    ekran_yaz(G - 24, 0, "F5 oyna  F1 yardım", SOLUK, -1)
+    # şablonlar
+    ekran_doldur(0, 1, PANEL_GEN, B - 2, " ", YAZI, PANEL)
+    ekran_yaz(1, 1, "ŞABLONLAR", SOLUK, -1)
+    0 -> i
+    a.şablonlar -> her (ş) {
+        2 + i * 2 -> y
+        y < B - 8 -> eğer {
+            i == a.seçili -> eğer {
+                SEÇİM -> arka_
+                a.odak == "şablonlar" -> eğer { 0x3B5BDB -> arka_ }
+                ekran_doldur(0, y, PANEL_GEN, 2, " ", YAZI, arka_)
+            }
+            ekran_yaz(1, y, metne(i + 1), SOLUK, -1)
+            ekran_yaz(3, y, ş.görünüş, ş.renk, -1)
+            ekran_yaz(6, y, kırp(ş.ad, PANEL_GEN - 7), YAZI, -1)
+            ekran_yaz(6, y + 1, kırp(ş.davranış + "  hız " + metne(yuvarla(ş.hız)), PANEL_GEN - 7), SOLUK, -1)
+        }
+        i + 1 -> i
+    }
+    ekran_yaz(1, B - 7, "Tab: şablonu düzenle", SOLUK, -1)
+    ekran_yaz(1, B - 6, "1-9: şablon seç", SOLUK, -1)
+    ekran_yaz(1, B - 5, "Enter: koy  Del: sil", SOLUK, -1)
+    ekran_yaz(1, B - 4, "Ctrl+S kaydet", SOLUK, -1)
+    ekran_yaz(1, B - 3, "Ctrl+E dışa aktar", SOLUK, -1)
+    # sahne
+    PANEL_GEN + 1 -> ox
+    1 -> oy
+    ekran_doldur(ox, oy + 1, ATÖLYE_GEN, ATÖLYE_BOY - 1, " ", YAZI, SAHNE_ZEMİNİ)
+    ekran_doldur(ox, oy, ATÖLYE_GEN, 1, "·", SOLUK, -1)
+    ekran_yaz(ox + 1, oy, " puan göstergesi ", SOLUK, -1)
+    a.nesneler -> her (n) {
+        a.şablonlar[n.şablon] -> ş
+        ekran_yaz(ox + n.x, oy + n.y, ş.görünüş, ş.renk, -1)
+    }
+    a.odak != "şablonlar" -> eğer {
+        " " -> altta
+        imleçteki(a) -> k
+        k >= 0 -> eğer { a.şablonlar[a.nesneler[k].şablon].görünüş -> altta }
+        ekran_yaz(ox + a.cx, oy + a.cy, dilim(altta, 0, 1), ZEMİN, 0xFFFFFF)
+    }
+    # durum
+    ekran_doldur(0, B - 1, G, 1, " ", YAZI, PANEL)
+    a.odak == "soru" -> eğer {
+        ekran_yaz(1, B - 1, kırp(a.mesaj + " " + a.cevap + "▏", G - 2), YAZI, -1)
+    } değilse {
+        ekran_yaz(1, B - 1, kırp(a.mesaj, G - 22), a.mesaj_rengi, -1)
+        "x " + metne(a.cx) + "  y " + metne(a.cy) -> konum_
+        ekran_yaz(G - 1 - uzunluk(konum_), B - 1, konum_, SOLUK, -1)
+    }
+    ekran_çiz()
+}
+
+# ── ana döngü ──
+
+işlev atölye() {
+    Atölye(varsayılan_şablonlar(), örnek_sahne(), 0, 10, 9, "sahne", "sahne.oyun", 0,
+           "F5: oyna   Tab: şablonlar   F1: yardım", SOLUK, "", "", "", 0, 0, 0) -> a
+    EKRANDA -> eğer {
+        dosya_var(a.dosya) -> eğer { yükle(a) }
+        uçbirim_boyutu() -> b
+        en_büyük(b[0], PANEL_GEN + ATÖLYE_GEN + 2) -> a.gen
+        en_büyük(b[1], ATÖLYE_BOY + 3) -> a.boy
+        ekran_aç(a.gen, a.boy)
+        tuş_kipi(1)
+        çiz(a)
+    }
+    doğru -> iken {
+        0 -> değişim
+        tuş() -> t
+        t != "" -> iken {
+            tuşu_işle(a, t)
+            1 -> değişim
+            a.bitti -> eğer { dur }
+            tuş() -> t
+        }
+        a.bitti veya değil EKRANDA -> eğer { dur }
+        değişim -> eğer { çiz(a) } değilse { bekle(15) }
+    }
+    EKRANDA -> eğer {
+        ekran_kapat()
+        tuş_kipi(0)
+    } değilse {
+        "şablon " + metne(uzunluk(a.şablonlar)) + ", nesne " + metne(uzunluk(a.nesneler))
+            + ", imleç " + metne(a.cx) + "," + metne(a.cy) -> yazdır
+        a.şablonlar -> her (ş) { ş.ad + " " + ş.görünüş + " " + ş.davranış + " " + metne(ş.hız) -> yazdır }
+    }
+}
+
+atölye()
