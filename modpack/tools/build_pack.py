@@ -17,6 +17,7 @@ import zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mods import MODS  # noqa: E402
 
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
 API = "https://api.curseforge.com/v1"
@@ -48,19 +49,14 @@ def get(path, **params):
         time.sleep(2 ** attempt)
 
 
-def find_mod(name, slug):
-    res = get("/mods/search", gameId=GAME, classId=6, slug=slug)
-    if res and res["data"]:
-        return res["data"][0], "slug"
-    res = get("/mods/search", gameId=GAME, classId=6, searchFilter=name,
-              gameVersion=MC, modLoaderType=NEOFORGE, sortField=6, sortOrder="desc", pageSize=5)
-    if res and res["data"]:
-        norm = lambda t: re.sub(r"[^a-z0-9]", "", t.lower())
-        for m in res["data"]:
-            if norm(m["name"]) == norm(name):
-                return m, "isim"
-        return res["data"][0], "arama (kontrol et)"
-    return None, None
+def post(path, body):
+    req = urllib.request.Request(API + path, data=json.dumps(body).encode(), headers={
+        "x-api-key": os.environ.get("CF_API_KEY", "proxy-injected"),
+        "Accept": "application/json", "Content-Type": "application/json",
+        "User-Agent": "modpack-builder",
+    })
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.load(r)
 
 
 def best_file(mod_id):
@@ -86,30 +82,32 @@ def latest_neoforge():
 def main():
     os.makedirs(DIST, exist_ok=True)
     resolved, missing = {}, []
-    queue = [(n, s, "liste") for n, s in MODS]
+    wanted = [(n, i, "liste") for n, i in MODS if i]
+    missing += [(n, "proje numarası yok") for n, i in MODS if not i]
+    info = {m["id"]: m for m in post("/mods", {"modIds": [i for _, i, _ in wanted]})["data"]}
+    queue = list(wanted)
     while queue:
-        name, slug, why = queue.pop(0)
-        if slug and any(r["slug"] == slug for r in resolved.values()):
+        name, pid, why = queue.pop(0)
+        if pid in resolved:
             continue
-        mod, how = find_mod(name, slug) if slug else (get(f"/mods/{name}")["data"], "bağımlılık")
+        mod = info.get(pid) or (get(f"/mods/{pid}") or {}).get("data")
         if not mod:
             missing.append((name, "CurseForge'da bulunamadı"))
             continue
-        if mod["id"] in resolved:
-            continue
-        f = best_file(mod["id"])
+        f = best_file(pid)
         if not f:
             missing.append((mod["name"], "1.21.1 NeoForge dosyası yok"))
             continue
-        resolved[mod["id"]] = {
-            "name": mod["name"], "slug": mod["slug"], "projectID": mod["id"], "fileID": f["id"],
-            "fileName": f["fileName"], "releaseType": f["releaseType"], "found_by": how, "reason": why,
+        resolved[pid] = {
+            "name": mod["name"], "slug": mod["slug"], "projectID": pid, "fileID": f["id"],
+            "fileName": f["fileName"], "releaseType": f["releaseType"], "reason": why,
             "downloadUrl": f.get("downloadUrl"),
         }
-        print(f"  ✓ {mod['name']:<40} {f['fileName']}  [{how}]", flush=True)
+        tag = {1: "", 2: " (beta)", 3: " (alfa)"}[f["releaseType"]]
+        print(f"  ✓ {mod['name'][:45]:<45} {f['fileName']}{tag}" + ("" if why == "liste" else f"   ← {why}"), flush=True)
         for dep in f.get("dependencies", []):
             if dep["relationType"] == REQUIRED_DEP and dep["modId"] not in resolved:
-                queue.append((dep["modId"], None, f"{mod['name']} bağımlılığı"))
+                queue.append((str(dep["modId"]), dep["modId"], f"{mod['name']} bağımlılığı"))
 
     neo = latest_neoforge()
     manifest = {
@@ -139,7 +137,6 @@ def main():
                 full = os.path.join(base, fn)
                 z.write(full, os.path.join("overrides", os.path.relpath(full, src)))
 
-    listed = len(MODS) - len([m for m in missing])
     print(f"\nNeoForge {neo}")
     print(f"Toplam {len(resolved)} mod (listeden ve bağımlılıklardan), eksik {len(missing)}")
     for n, why in missing:
