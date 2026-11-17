@@ -1,0 +1,282 @@
+{
+	file.0000000000000001.title: "Yıldız Yolu"
+	chapter.FF2ED409C73C020E.title: "&eBaşlangıç"
+	quest.71F4A36685159B5D.title: "Gökyüzüne Hoş Geldin"
+	quest.71F4A36685159B5D.quest_desc: [
+		"Bu paket seni sıradan bir hayattan yıldızların sırlarına götürecek. Her bölümü bitir, sonunda &dYıldızların Kalbi&r'ni yap ve paketi tamamla!"
+	]
+	quest.7A616072C1C8CED6.title: "İlk Odun"
+	quest.7A616072C1C8CED6.quest_desc: [
+		"Bir ağaç kes. Her macera böyle başlar."
+	]
+	quest.19FF32B0EC453FC6.title: "Çalışma Masası"
+	quest.19FF32B0EC453FC6.quest_desc: [
+		"Bir çalışma masası yap."
+	]
+	quest.DAF5EDA0076D7765.title: "Demir Çağı"
+	quest.DAF5EDA0076D7765.quest_desc: [
+		"Biraz demir eritmen gerekecek."
+	]
+	quest.F6B935202B07B351.title: "Güvenli Uyku"
+	quest.F6B935202B07B351.quest_desc: [
+		"Geceleri yıldızları izleyeceğiz ama önce bir yatak yap."
+	]
+	quest.D37F146B655D90AF.title: "Sırt Çantası"
+	quest.D37F146B655D90AF.quest_desc: [
+		"Sophisticated Backpacks ile envanterini büyüt."
+	]
+	quest.EC52651C6D3D9E92.title: "Işınlanma Taşı"
+	quest.EC52651C6D3D9E92.quest_desc: [
+		"Bir Waystone ile üssüne istediğin zaman dönebilirsin."
+	]
+	quest.812ED82784B785AE.title: "Parıltı"
+	quest.812ED82784B785AE.quest_desc: [
+		"Elmas bul. Daha ilerisi için çok lazım olacak."
+	]
+	chapter.B9221EA068E7BFB6.title: "&bAstral Sorcery"
+	quest.615977FA7FEDA20D.title: "Kaya Kristali"
+	quest.615977FA7FEDA20D.quest_desc: [
+		"Mermer yakınlarında, derinlerde &bKaya Kristali&r cevheri ara."
+	]
+	quest.85BF86142892C521.title: "Mermer"
+	quest.85BF86142892C521.quest_desc: [
+		"Astral yapıların temeli mermerdir."
+	]
+	quest.47E77703718F437D.title: "Bilgi Defteri"
+	quest.47E77703718F437D.quest_desc: [
+		"Astral Tome ile tüm araştırmalarını takip et."
+	]
+	quest.FF2CC55A497E0061.title: "Rezonans Asası"
+	quest.FF2CC55A497E0061.quest_desc: [
+		"Asanla gece gökyüzündeki ışığı hisset."
+	]
+	quest.362C025D7312F032.title: "Işıltı Sunağı"
+	quest.362C025D7312F032.quest_desc: [
+		"İlk sunağın: &eLuminance Altar&r."
+	]
+	quest.51AB417F49E5F99F.title: "Yıldız Tozu"
+	quest.51AB417F49E5F99F.quest_desc: [
+		"Yıldız ışığından elde edilen sihirli toz."
+	]
+	quest.81AA38FD9914A7BA.title: "Yıldız Metali"
+	quest.81AA38FD9914A7BA.quest_desc: [
+		"Ham yıldız metalini erit."
+	]
+	quest.F122DF28B691AF09.title: "Takımyıldız Kağıdı"
+	quest.F122DF28B691AF09.quest_desc: [
+		"Gökyüzünü tanı; ilk takımyıldızlarını keşfet."
+	]
+	quest.FAA7C2B1EBA5D8A9.title: "Aydınlanma Sunağı"
+	quest.FAA7C2B1EBA5D8A9.quest_desc: [
+		"İkinci aşama sunak."
+	]
+	quest.D0CA6100C09BDDC9.title: "Yıldız Işığı Aşılayıcı"
+	quest.D0CA6100C09BDDC9.quest_desc: [
+		"Sıvı yıldız ışığıyla eşyaları dönüştür."
+	]
+	quest.830ACCBB33BF0BC6.title: "Mercek ve Prizma"
+	quest.830ACCBB33BF0BC6.quest_desc: [
+		"Yıldız ışığını yönlendirmeyi öğren."
+	]
+	quest.A9EE084DB835B49B.title: "Gök Kristali"
+	quest.A9EE084DB835B49B.quest_desc: [
+		"Kaya kristalinden çok daha güçlü bir kristal."
+	]
+	quest.10EC5F24D1568150.title: "Uyumlama Sunağı"
+	quest.10EC5F24D1568150.quest_desc: [
+		"Kristalleri ve kendini bir takımyıldızına uyumla."
+	]
+	quest.5ADCB56FDCB87CFA.title: "Rezonans Sunağı"
+	quest.5ADCB56FDCB87CFA.quest_desc: [
+		"Üçüncü aşama sunak."
+	]
+	quest.B2A67428A5A66690.title: "Lümen Kristali"
+	quest.B2A67428A5A66690.quest_desc: [
+		"Lümen enerjisinin kalbi."
+	]
+	quest.340B89DE80AEB0DE.title: "Parlaklık Sunağı"
+	quest.340B89DE80AEB0DE.quest_desc: [
+		"Son ve en güçlü sunak: &dRadiance Altar&r."
+	]
+	quest.42EA861C649F527B.title: "Rezonans Mücevheri"
+	quest.42EA861C649F527B.quest_desc: [
+		"Gök ile yer arasında titreşen mücevher."
+	]
+	quest.E505D8B0C0A28D76.title: "Göksel Geçit"
+	quest.E505D8B0C0A28D76.quest_desc: [
+		"Kendi göksel geçidini kur."
+	]
+	quest.743DA24409C3BC23.title: "Akaşik Tekillik"
+	quest.743DA24409C3BC23.quest_desc: [
+		"Evrenin hafızası avucunda."
+	]
+	quest.ED6711C8433C8C7B.title: "Artefakt"
+	quest.ED6711C8433C8C7B.quest_desc: [
+		"Astral Sorcery'nin en derin sırrı."
+	]
+	chapter.5CC5A03BD1253EE0.title: "&7Teknoloji"
+	quest.BF2AF9B478F5F103.title: "Andezit Alaşımı"
+	quest.BF2AF9B478F5F103.quest_desc: [
+		"Create ile mekaniğin temeli."
+	]
+	quest.5A7C5E860B57393C.title: "Mekanik Pres"
+	quest.5A7C5E860B57393C.quest_desc: [
+		"Levhalar için ilk makinen."
+	]
+	quest.8B54E51D86A5DA6B.title: "Pirinç"
+	quest.8B54E51D86A5DA6B.quest_desc: [
+		"Create'in ikinci aşaması."
+	]
+	quest.68931BE164608D59.title: "Osmiyum"
+	quest.68931BE164608D59.quest_desc: [
+		"Mekanism'in temel metali."
+	]
+	quest.4435A077E669944F.title: "Metalurjik Aşılayıcı"
+	quest.4435A077E669944F.quest_desc: [
+		"Mekanism'e giriş kapısı."
+	]
+	quest.FCFEE0099C97A89E.title: "Nihai Devre"
+	quest.FCFEE0099C97A89E.quest_desc: [
+		"Mekanism'in en iyi kontrol devresi."
+	]
+	quest.8451B2522A02C50F.title: "Dijital Madenci"
+	quest.8451B2522A02C50F.quest_desc: [
+		"Artık kazmaya gerek yok."
+	]
+	quest.BACD67DF7E079FE2.title: "Sertifikalı Kuvars"
+	quest.BACD67DF7E079FE2.quest_desc: [
+		"Applied Energistics 2'ye başlangıç."
+	]
+	quest.DA99B01813DCADF3.title: "Yazıcı"
+	quest.DA99B01813DCADF3.quest_desc: [
+		"İşlemcileri basmak için."
+	]
+	quest.9813FD452DEF7D30.title: "ME Kontrolcüsü"
+	quest.9813FD452DEF7D30.quest_desc: [
+		"Dijital deponun kalbi."
+	]
+	quest.8952526A36C03531.title: "ME Sürücüsü"
+	quest.8952526A36C03531.quest_desc: [
+		"Eşyalarını dijitalleştir."
+	]
+	chapter.74B20A8AD98362BB.title: "&dBüyü"
+	quest.BAEDDEEC68D062C1.title: "Lexica Botania"
+	quest.BAEDDEEC68D062C1.quest_desc: [
+		"Botania'nın rehber kitabı."
+	]
+	quest.17FF70EB6D308DBE.title: "Mana Havuzu"
+	quest.17FF70EB6D308DBE.quest_desc: [
+		"Manayı depolamaya başla."
+	]
+	quest.F06AD799451C35D8.title: "Terraçelik"
+	quest.F06AD799451C35D8.quest_desc: [
+		"Toprağın gücü bir külçede."
+	]
+	quest.B5B95C47D7193375.title: "Gaia'nın Ruhu"
+	quest.B5B95C47D7193375.quest_desc: [
+		"Gaia Muhafızını yen."
+	]
+	quest.8FEE465FEDCE4BB1.title: "Acemi Büyü Kitabı"
+	quest.8FEE465FEDCE4BB1.quest_desc: [
+		"Ars Nouveau ile kendi büyülerini yaz."
+	]
+	quest.FEC389AE183FAD21.title: "Kaynak Kavanozu"
+	quest.FEC389AE183FAD21.quest_desc: [
+		"Kaynak enerjisini depola."
+	]
+	quest.A5797C374477620D.title: "Başbüyücü Kitabı"
+	quest.A5797C374477620D.quest_desc: [
+		"En güçlü büyü kitabı."
+	]
+	chapter.CE32B33EA1DCB71B.title: "&cMacera"
+	quest.84C4AD57798EBC43.title: "Nether'e Giriş"
+	quest.84C4AD57798EBC43.quest_desc: [
+		"Obsidiyen topla ve bir geçit aç."
+	]
+	quest.0BDF03A01A5C556B.title: "Alaz Çubuğu"
+	quest.0BDF03A01A5C556B.quest_desc: [
+		"Nether kalesini bul."
+	]
+	quest.E94EF99DE794FBA9.title: "Wither'ı Yen"
+	quest.E94EF99DE794FBA9.quest_desc: [
+		"Nether Yıldızı kazan."
+	]
+	quest.5E851B1E10FCCDFE.title: "Ender Ejderi"
+	quest.5E851B1E10FCCDFE.quest_desc: [
+		"Ejderin yumurtasını al."
+	]
+	quest.AFFFF8A6CC4ED0B1.title: "Elitra"
+	quest.AFFFF8A6CC4ED0B1.quest_desc: [
+		"End şehirlerinde kanatlarını bul."
+	]
+	quest.EF904877FC5038F7.title: "Naga Pulu"
+	quest.EF904877FC5038F7.quest_desc: [
+		"Twilight Forest'ın ilk patronu."
+	]
+	quest.BBE24679B35C201F.title: "Lich Kulesi"
+	quest.BBE24679B35C201F.quest_desc: [
+		"Lich'i yen ve tacını al."
+	]
+	quest.6E300794804550D4.title: "Hydra"
+	quest.6E300794804550D4.quest_desc: [
+		"Ateş bataklığının canavarı."
+	]
+	quest.CCB707C8A5A15218.title: "Kar Kraliçesi"
+	quest.CCB707C8A5A15218.quest_desc: [
+		"Twilight Forest'ın son patronu."
+	]
+	chapter.7663AE4ADCEE8725.title: "&6Yaratıcı Eşyalar"
+	quest.8A647D410FEDFD1F.title: "Yıldız Özü"
+	quest.8A647D410FEDFD1F.quest_desc: [
+		"Astral Sorcery malzemelerinden ilk özel eşyanı yap."
+	]
+	quest.D476B1F6FA4397F8.title: "Kozmik Çekirdek"
+	quest.D476B1F6FA4397F8.quest_desc: [
+		"Teknoloji, büyü ve yıldızların birleşimi."
+	]
+	quest.BFB611BA69F0E28C.title: "Yaratıcı Katalizör"
+	quest.BFB611BA69F0E28C.quest_desc: [
+		"Bu katalizör ile &6yaratıcı mod eşyaları&r üretebilirsin!"
+	]
+	quest.A978505A6B193899.title: "Göksel Uçuş Yüzüğü"
+	quest.A978505A6B193899.quest_desc: [
+		"Envanterindeyken yaratıcı moddaki gibi uçarsın."
+	]
+	quest.30B7F49D725485CA.title: "Yaratıcı Enerji Küpü"
+	quest.30B7F49D725485CA.quest_desc: [
+		"Sonsuz enerji!"
+	]
+	quest.62BE03E0B74A8716.title: "Yaratıcı Sıvı Tankı"
+	quest.62BE03E0B74A8716.quest_desc: [
+		"Sonsuz sıvı."
+	]
+	quest.21CF71E9B54535A4.title: "Yaratıcı Kutu"
+	quest.21CF71E9B54535A4.quest_desc: [
+		"Sonsuz eşya kutusu."
+	]
+	quest.452183A03C3B8DB4.title: "Yaratıcı Enerji Hücresi"
+	quest.452183A03C3B8DB4.quest_desc: [
+		"ME ağın için sonsuz enerji."
+	]
+	quest.E35DBFBC7D035660.title: "Yaratıcı Motor"
+	quest.E35DBFBC7D035660.quest_desc: [
+		"Ayarlanabilir sonsuz dönme gücü."
+	]
+	quest.12A5604C7E778088.title: "Yaratıcı Kasa"
+	quest.12A5604C7E778088.quest_desc: [
+		"Sonsuz eşya veren kasa."
+	]
+	quest.054CB161CCCEA0DE.title: "Yaratıcı Mana Havuzu"
+	quest.054CB161CCCEA0DE.quest_desc: [
+		"Sonsuz mana."
+	]
+	quest.FE2BE209A56177B1.title: "Yaratıcı Kaynak Kavanozu"
+	quest.FE2BE209A56177B1.quest_desc: [
+		"Sonsuz kaynak enerjisi."
+	]
+	chapter.0918A69A6C47CB39.title: "&5&lFinal"
+	quest.FA3DBD8F5D782381.title: "Yıldızların Kalbi"
+	quest.FA3DBD8F5D782381.quest_desc: [
+		"Tüm yolculuğunun özeti. Yaratıcı eşyaları, Astral Sorcery'nin artefaktını ve tüm bölümlerin en güçlü malzemelerini birleştir."
+	]
+}

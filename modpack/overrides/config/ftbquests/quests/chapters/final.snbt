@@ -1,0 +1,90 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "final"
+	group: ""
+	icon: {
+		id: "kubejs:heart_of_the_stars"
+	}
+	id: "0918A69A6C47CB39"
+	order_index: 6
+	quest_links: [ ]
+	quests: [
+		{
+			id: "FA3DBD8F5D782381"
+			dependencies: [
+				"ED6711C8433C8C7B"
+				"8451B2522A02C50F"
+				"8952526A36C03531"
+				"8B54E51D86A5DA6B"
+				"B5B95C47D7193375"
+				"A5797C374477620D"
+				"E94EF99DE794FBA9"
+				"AFFFF8A6CC4ED0B1"
+				"CCB707C8A5A15218"
+				"A978505A6B193899"
+				"30B7F49D725485CA"
+				"62BE03E0B74A8716"
+				"21CF71E9B54535A4"
+				"452183A03C3B8DB4"
+				"E35DBFBC7D035660"
+				"12A5604C7E778088"
+				"054CB161CCCEA0DE"
+				"FE2BE209A56177B1"
+			]
+			shape: "gear"
+			size: 2.0d
+			rewards: [
+				{
+					id: "A8FD15CEB7630A0F"
+					item: {
+						count: 1
+						id: "kubejs:completion_medal"
+					}
+					type: "item"
+				}
+				{
+					id: "ED2FC4B9A30C9D87"
+					type: "xp"
+					xp: 5000
+				}
+				{
+					id: "808807D79976FD15"
+					type: "command"
+					command: "/tellraw @a [{\"text\":\"\\u2726 \",\"color\":\"gold\"},{\"text\":\"{p}\",\"color\":\"light_purple\",\"bold\":true},{\"text\":\" Yıldız Yolu modpack'ini TAMAMLADI! \\u2726\",\"color\":\"gold\"}]"
+					elevate_perms: true
+					silent: true
+					player_command: false
+				}
+				{
+					id: "415155689442B74F"
+					type: "command"
+					command: "/title {p} title {\"text\":\"PAKET TAMAMLANDI!\",\"color\":\"gold\",\"bold\":true}"
+					elevate_perms: true
+					silent: true
+					player_command: false
+				}
+				{
+					id: "9E641FBB8D585A60"
+					type: "command"
+					command: "/summon firework_rocket ~ ~1 ~ {LifeTime:20,FireworksItem:{id:\"minecraft:firework_rocket\",count:1,components:{\"minecraft:fireworks\":{flight_duration:1,explosions:[{shape:\"star\",colors:[I;16766720,11141290],has_trail:true,has_twinkle:true}]}}}}"
+					elevate_perms: true
+					silent: true
+					player_command: false
+				}
+			]
+			tasks: [
+				{
+					id: "4B499BC34A410F73"
+					item: {
+						count: 1
+						id: "kubejs:heart_of_the_stars"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 0.0d
+		}
+	]
+}

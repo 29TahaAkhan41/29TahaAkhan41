@@ -1,0 +1,16 @@
+{
+  "item.kubejs.stellar_essence": "Stellar Essence",
+  "item.kubejs.cosmic_core": "Cosmic Core",
+  "item.kubejs.creative_catalyst": "Creative Catalyst",
+  "item.kubejs.flight_ring": "Celestial Flight Ring",
+  "item.kubejs.heart_of_the_stars": "Heart of the Stars",
+  "item.kubejs.completion_medal": "Star Path Completion Medal",
+  "tooltip.kubejs.stellar_essence": "Condensed starlight.",
+  "tooltip.kubejs.cosmic_core": "Technology, magic and the stars in a single core.",
+  "tooltip.kubejs.creative_catalyst": "The key to crafting creative items.",
+  "tooltip.kubejs.flight_ring": "Grants flight while in your inventory.",
+  "tooltip.kubejs.heart_of_the_stars": "Your whole journey beats in a single heart.",
+  "tooltip.kubejs.completion_medal.1": "✦ You completed the Star Path modpack! ✦",
+  "tooltip.kubejs.completion_medal.2": "All the secrets of the sky are yours now.",
+  "message.kubejs.welcome": "Welcome to Star Path! Your quest book is in your inventory."
+}
