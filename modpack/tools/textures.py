@@ -95,6 +95,10 @@ ITEMS = {
     "creative_catalyst": star("creative_catalyst", (220, 60, 220), (255, 255, 255)),
     "flight_ring": ring("flight_ring", (230, 190, 60), (110, 230, 255)),
     "heart_of_the_stars": heart("heart_of_the_stars", (200, 40, 120), (255, 230, 120)),
+    "tech_core": orb("tech_core", (150, 150, 165), (255, 200, 80)),
+    "magic_core": orb("magic_core", (170, 40, 90), (255, 160, 220)),
+    "nature_core": orb("nature_core", (50, 150, 70), (210, 255, 170)),
+    "world_core": orb("world_core", (180, 120, 60), (255, 230, 170)),
     "completion_medal": medal("completion_medal", (240, 190, 40), (90, 60, 200)),
 }
 

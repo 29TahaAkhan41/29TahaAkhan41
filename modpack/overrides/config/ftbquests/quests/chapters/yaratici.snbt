@@ -52,7 +52,7 @@
 					id: "76E9CD59CF7EA2EE"
 					item: {
 						count: 1
-						id: "kubejs:cosmic_core"
+						id: "kubejs:tech_core"
 					}
 					type: "item"
 				}
@@ -65,21 +65,11 @@
 			dependencies: [
 				"28F8286073ED7FFC"
 			]
-			shape: "hexagon"
-			size: 1.5d
 			rewards: [
 				{
 					id: "57E55ED14E615C3B"
 					type: "xp"
 					xp: 50
-				}
-				{
-					id: "69F0766D241EC6BC"
-					item: {
-						count: 1
-						id: "kubejs:stellar_essence"
-					}
-					type: "item"
 				}
 			]
 			tasks: [
@@ -87,12 +77,124 @@
 					id: "58409A26F55AE0FD"
 					item: {
 						count: 1
-						id: "kubejs:creative_catalyst"
+						id: "kubejs:world_core"
 					}
 					type: "item"
 				}
 			]
 			x: 3.0d
+			y: 0.0d
+		}
+		{
+			id: "CC40F226F3F8E4FF"
+			dependencies: [
+				"C7720FC84B3D88D8"
+			]
+			rewards: [
+				{
+					id: "932EBCD71A9FF998"
+					type: "xp"
+					xp: 100
+				}
+			]
+			tasks: [
+				{
+					id: "1B932619E6863536"
+					item: {
+						count: 1
+						id: "kubejs:magic_core"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 0.0d
+		}
+		{
+			id: "85C8974C7CA30C38"
+			dependencies: [
+				"CC40F226F3F8E4FF"
+			]
+			rewards: [
+				{
+					id: "8DCDFDE174906DA8"
+					type: "xp"
+					xp: 100
+				}
+			]
+			tasks: [
+				{
+					id: "667A864B76DA7863"
+					item: {
+						count: 1
+						id: "kubejs:nature_core"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 0.0d
+		}
+		{
+			id: "0806AF1DC111E0AE"
+			dependencies: [
+				"85C8974C7CA30C38"
+			]
+			rewards: [
+				{
+					id: "E6CE8580E29B7B7F"
+					type: "xp"
+					xp: 100
+				}
+			]
+			tasks: [
+				{
+					id: "1BFEEAE81805FFA7"
+					item: {
+						count: 1
+						id: "kubejs:cosmic_core"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 0.0d
+		}
+		{
+			id: "A782EFC4B7F64508"
+			dependencies: [
+				"0806AF1DC111E0AE"
+			]
+			shape: "hexagon"
+			size: 1.5d
+			rewards: [
+				{
+					id: "1B54568D7DDE6CED"
+					type: "xp"
+					xp: 150
+				}
+				{
+					id: "853537FC703C31D4"
+					item: {
+						count: 1
+						id: "extendedcrafting:black_iron_ingot"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "F8FE3A4F4AB6C8C7"
+					item: {
+						count: 1
+						id: "kubejs:creative_catalyst"
+					}
+					type: "item"
+					count: 4L
+				}
+			]
+			x: 9.0d
 			y: 0.0d
 		}
 		{
@@ -112,9 +214,10 @@
 					id: "B881116C62E5A7A9"
 					item: {
 						count: 1
-						id: "kubejs:flight_ring"
+						id: "extendedcrafting:black_iron_ingot"
 					}
 					type: "item"
+					count: 16L
 				}
 			]
 			x: 0.0d
@@ -137,7 +240,7 @@
 					id: "69C35EDF12242551"
 					item: {
 						count: 1
-						id: "mekanism:creative_energy_cube"
+						id: "extendedcrafting:basic_table"
 					}
 					type: "item"
 				}
@@ -162,7 +265,7 @@
 					id: "C3EF2C6AA70F94F6"
 					item: {
 						count: 1
-						id: "mekanism:creative_fluid_tank"
+						id: "extendedcrafting:advanced_table"
 					}
 					type: "item"
 				}
@@ -187,7 +290,7 @@
 					id: "05DE027F19B1A3CF"
 					item: {
 						count: 1
-						id: "mekanism:creative_bin"
+						id: "extendedcrafting:elite_table"
 					}
 					type: "item"
 				}
@@ -206,26 +309,105 @@
 					type: "xp"
 					xp: 100
 				}
-				{
-					id: "F406F28AD9CA3F11"
-					item: {
-						count: 1
-						id: "kubejs:stellar_essence"
-					}
-					type: "item"
-				}
 			]
 			tasks: [
 				{
 					id: "8F4D5340FFB026C5"
 					item: {
 						count: 1
-						id: "mekanism:creative_chemical_tank"
+						id: "extendedcrafting:ultimate_table"
 					}
 					type: "item"
 				}
 			]
 			x: 6.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "C17B60A14CB7D3CA"
+			dependencies: [
+				"464BBCD71730C008"
+			]
+			rewards: [
+				{
+					id: "84DD2865079ECACD"
+					type: "xp"
+					xp: 100
+				}
+			]
+			tasks: [
+				{
+					id: "56A85289B3A54820"
+					item: {
+						count: 1
+						id: "extendedcrafting:crystaltine_ingot"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 7.5d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "602B2C58B4700681"
+			dependencies: [
+				"C17B60A14CB7D3CA"
+			]
+			rewards: [
+				{
+					id: "EE551068ACFDEF6D"
+					type: "xp"
+					xp: 150
+				}
+			]
+			tasks: [
+				{
+					id: "FADD1967503ACECC"
+					item: {
+						count: 1
+						id: "extendedcrafting:elite_component"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 9.0d
+			y: 2.0999999999999996d
+		}
+		{
+			id: "5E2694D49431F542"
+			dependencies: [
+				"602B2C58B4700681"
+			]
+			rewards: [
+				{
+					id: "7A6D5E33872B9208"
+					type: "xp"
+					xp: 150
+				}
+				{
+					id: "3A81ED9212BC5C1A"
+					item: {
+						count: 1
+						id: "extendedcrafting:black_iron_ingot"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "C646DE9DF5C42C6E"
+					item: {
+						count: 1
+						id: "extendedcrafting:ultimate_component"
+					}
+					type: "item"
+					count: 16L
+				}
+			]
+			x: 10.5d
 			y: 2.0999999999999996d
 		}
 		{
@@ -245,7 +427,7 @@
 					id: "4B38255EFD62F9E4"
 					item: {
 						count: 1
-						id: "ae2:creative_energy_cell"
+						id: "kubejs:flight_ring"
 					}
 					type: "item"
 				}
@@ -270,7 +452,7 @@
 					id: "02CB0C2B7D71793F"
 					item: {
 						count: 1
-						id: "create:creative_motor"
+						id: "mekanism:creative_energy_cube"
 					}
 					type: "item"
 				}
@@ -295,7 +477,7 @@
 					id: "7176AFDEE91AE4F5"
 					item: {
 						count: 1
-						id: "create:creative_crate"
+						id: "mekanism:creative_fluid_tank"
 					}
 					type: "item"
 				}
@@ -320,7 +502,7 @@
 					id: "743A6017F5DBDC24"
 					item: {
 						count: 1
-						id: "create:creative_fluid_tank"
+						id: "mekanism:creative_bin"
 					}
 					type: "item"
 				}
@@ -339,26 +521,52 @@
 					type: "xp"
 					xp: 100
 				}
-				{
-					id: "1005B780B5905E3E"
-					item: {
-						count: 1
-						id: "kubejs:stellar_essence"
-					}
-					type: "item"
-				}
 			]
 			tasks: [
 				{
 					id: "600019C95B6DCEAC"
 					item: {
 						count: 1
-						id: "create:creative_blaze_cake"
+						id: "mekanism:creative_chemical_tank"
 					}
 					type: "item"
 				}
 			]
 			x: 6.0d
+			y: 4.199999999999999d
+		}
+		{
+			id: "389E6FF542D88D75"
+			dependencies: [
+				"D11AE4DD778DFA6A"
+			]
+			rewards: [
+				{
+					id: "1CD6FDE582C96CEF"
+					type: "xp"
+					xp: 100
+				}
+				{
+					id: "0D45049409105F30"
+					item: {
+						count: 1
+						id: "extendedcrafting:black_iron_ingot"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "319B968EA1515686"
+					item: {
+						count: 1
+						id: "ae2:creative_energy_cell"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
 			y: 4.199999999999999d
 		}
 		{
@@ -378,7 +586,7 @@
 					id: "52EC212E1CC99486"
 					item: {
 						count: 1
-						id: "evilcraft:creative_blood_drop"
+						id: "create:creative_motor"
 					}
 					type: "item"
 				}
@@ -403,7 +611,7 @@
 					id: "C68443B324539F13"
 					item: {
 						count: 1
-						id: "ars_nouveau:creative_source_jar"
+						id: "create:creative_crate"
 					}
 					type: "item"
 				}
@@ -428,7 +636,7 @@
 					id: "F57E6F0B2C464F74"
 					item: {
 						count: 1
-						id: "ars_nouveau:creative_spell_book"
+						id: "create:creative_fluid_tank"
 					}
 					type: "item"
 				}
@@ -453,7 +661,7 @@
 					id: "2F336C15AD5346E0"
 					item: {
 						count: 1
-						id: "powah:energy_cell_creative"
+						id: "create:creative_blaze_cake"
 					}
 					type: "item"
 				}
@@ -472,18 +680,119 @@
 					type: "xp"
 					xp: 100
 				}
-				{
-					id: "EBEE3A83876534A9"
-					item: {
-						count: 1
-						id: "kubejs:stellar_essence"
-					}
-					type: "item"
-				}
 			]
 			tasks: [
 				{
 					id: "454D5AFA5918CA76"
+					item: {
+						count: 1
+						id: "evilcraft:creative_blood_drop"
+					}
+					type: "item"
+				}
+			]
+			x: 6.0d
+			y: 6.3d
+		}
+		{
+			id: "360EF5170DAB4FC4"
+			dependencies: [
+				"0689451492CFF6D2"
+			]
+			rewards: [
+				{
+					id: "851D1CCA51936BDE"
+					type: "xp"
+					xp: 100
+				}
+				{
+					id: "B933548A7ABD28C0"
+					item: {
+						count: 1
+						id: "extendedcrafting:black_iron_ingot"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "F13237F410E2B44D"
+					item: {
+						count: 1
+						id: "ars_nouveau:creative_source_jar"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 6.3d
+		}
+		{
+			id: "96C3D503127BF245"
+			dependencies: [
+				"D8AD526D7F5E4A93"
+			]
+			rewards: [
+				{
+					id: "3705FEA632858490"
+					type: "xp"
+					xp: 50
+				}
+			]
+			tasks: [
+				{
+					id: "A48E4EBEB44176D4"
+					item: {
+						count: 1
+						id: "ars_nouveau:creative_spell_book"
+					}
+					type: "item"
+				}
+			]
+			x: 0.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "4C44615F300780BD"
+			dependencies: [
+				"96C3D503127BF245"
+			]
+			rewards: [
+				{
+					id: "5F13A1576A9337E4"
+					type: "xp"
+					xp: 50
+				}
+			]
+			tasks: [
+				{
+					id: "41F35EA7C2D670A6"
+					item: {
+						count: 1
+						id: "powah:energy_cell_creative"
+					}
+					type: "item"
+				}
+			]
+			x: 1.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "A8107A43DEBC7DE6"
+			dependencies: [
+				"4C44615F300780BD"
+			]
+			rewards: [
+				{
+					id: "97110DD777E3F56C"
+					type: "xp"
+					xp: 50
+				}
+			]
+			tasks: [
+				{
+					id: "C3A3D9BAE1935FBB"
 					item: {
 						count: 1
 						id: "immersiveengineering:capacitor_creative"
@@ -491,8 +800,92 @@
 					type: "item"
 				}
 			]
+			x: 3.0d
+			y: 8.399999999999999d
+		}
+		{
+			id: "05943E7CB058CF25"
+			dependencies: [
+				"A8107A43DEBC7DE6"
+			]
+			rewards: [
+				{
+					id: "B6192A4102D174C5"
+					type: "xp"
+					xp: 100
+				}
+			]
+			tasks: [
+				{
+					id: "CD07598E4942A5E0"
+					item: {
+						count: 1
+						id: "storagedrawers:creative_storage_upgrade"
+					}
+					type: "item"
+				}
+			]
+			x: 4.5d
+			y: 8.399999999999999d
+		}
+		{
+			id: "FE5B08DDB48BE414"
+			dependencies: [
+				"05943E7CB058CF25"
+			]
+			rewards: [
+				{
+					id: "3FF7912EAEA6A7D2"
+					type: "xp"
+					xp: 100
+				}
+			]
+			tasks: [
+				{
+					id: "5B2923606101E6C1"
+					item: {
+						count: 1
+						id: "functionalstorage:creative_vending_upgrade"
+					}
+					type: "item"
+				}
+			]
 			x: 6.0d
-			y: 6.3d
+			y: 8.399999999999999d
+		}
+		{
+			id: "FEABAD90ED5E8474"
+			dependencies: [
+				"FE5B08DDB48BE414"
+			]
+			rewards: [
+				{
+					id: "E7BDBA007D1D9CA2"
+					type: "xp"
+					xp: 100
+				}
+				{
+					id: "39EBAC33786A6B91"
+					item: {
+						count: 1
+						id: "extendedcrafting:black_iron_ingot"
+					}
+					type: "item"
+					count: 8
+				}
+			]
+			tasks: [
+				{
+					id: "92E3615A5BAA35F2"
+					item: {
+						count: 1
+						id: "mysticalagradditions:creative_essence"
+					}
+					type: "item"
+				}
+			]
+			x: 7.5d
+			y: 8.399999999999999d
 		}
 	]
 }

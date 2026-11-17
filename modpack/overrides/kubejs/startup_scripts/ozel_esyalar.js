@@ -7,6 +7,14 @@ StartupEvents.registry('item', event => {
     .rarity('uncommon')
     .tooltip(Text.translatable('tooltip.kubejs.stellar_essence').gray())
 
+  // Mod çekirdekleri (Extended Crafting masalarında yapılır)
+  ;['tech_core', 'magic_core', 'nature_core', 'world_core'].forEach(id => {
+    event.create(id)
+      .rarity('rare')
+      .glow(true)
+      .tooltip(Text.translatable('tooltip.kubejs.' + id).gray())
+  })
+
   event.create('cosmic_core')
     .rarity('rare')
     .glow(true)

@@ -1296,70 +1296,109 @@
 	quest.B12B184A40EA70C8.quest_desc: [
 		"Botany Pots ile saksıda tarım."
 	]
-	chapter.7663AE4ADCEE8725.title: "&6Yaratıcı Eşyalar"
+	chapter.7663AE4ADCEE8725.title: "&6Oyun Sonu: Çekirdekler ve Yaratıcı Eşyalar"
 	quest.D8AD526D7F5E4A93.title: "Yıldız Özü"
 	quest.D8AD526D7F5E4A93.quest_desc: [
-		"Astral Sorcery malzemelerinden ilk özel eşyan."
+		"Astral Sorcery malzemelerinden yapılır. Büyü Çekirdeği'nin kalbi."
 	]
-	quest.28F8286073ED7FFC.title: "Kozmik Çekirdek"
+	quest.28F8286073ED7FFC.title: "Teknoloji Çekirdeği"
 	quest.28F8286073ED7FFC.quest_desc: [
-		"Teknoloji, büyü ve yıldızların birleşimi."
+		"&eAdvanced Table (5x5)&r. 20 teknoloji modundan birer parça ister: Create, Mekanism, AE2, Powah, IE, Ender IO..."
 	]
-	quest.C7720FC84B3D88D8.title: "Yaratıcı Katalizör"
+	quest.C7720FC84B3D88D8.title: "Dünya Çekirdeği"
 	quest.C7720FC84B3D88D8.quest_desc: [
-		"Bu katalizörle &6yaratıcı mod eşyaları&r üretebilirsin!"
+		"&eAdvanced Table (5x5)&r. Depolama, inşaat ve kolaylık modlarından parçalar: Sophisticated, Macaw's, Chipped, Waystones..."
 	]
-	quest.E1F2E6A331769777.title: "Göksel Uçuş Yüzüğü"
+	quest.CC40F226F3F8E4FF.title: "Büyü Çekirdeği"
+	quest.CC40F226F3F8E4FF.quest_desc: [
+		"&eElite Table (7x7)&r. EvilCraft, Malum, Ars Nouveau, Iron's Spells, Occultism ve daha fazlası."
+	]
+	quest.85C8974C7CA30C38.title: "Doğa ve Macera Çekirdeği"
+	quest.85C8974C7CA30C38.quest_desc: [
+		"&eElite Table (7x7)&r. Boyutlar, boss'lar, tarım ve mutfak modları."
+	]
+	quest.0806AF1DC111E0AE.title: "Kozmik Çekirdek"
+	quest.0806AF1DC111E0AE.quest_desc: [
+		"&eElite Table (7x7)&r. Dört çekirdeği yıldızlarla birleştir."
+	]
+	quest.A782EFC4B7F64508.title: "Yaratıcı Katalizör"
+	quest.A782EFC4B7F64508.quest_desc: [
+		"&dUltimate Table (9x9)&r. Bir tarif 4 katalizör verir. Her yaratıcı eşya 1 katalizör ister."
+	]
+	quest.E1F2E6A331769777.title: "Kara Demir"
 	quest.E1F2E6A331769777.quest_desc: [
+		"Extended Crafting'e başlangıç."
+	]
+	quest.97F6DC6DDF56F125.title: "Temel Masa (3x3)"
+	quest.CBBEC21E9B94D4E9.title: "Gelişmiş Masa (5x5)"
+	quest.0D49DC176AA27FB8.title: "Seçkin Masa (7x7)"
+	quest.464BBCD71730C008.title: "Nihai Masa (9x9)"
+	quest.464BBCD71730C008.quest_desc: [
+		"Paketin en büyük tarifleri burada yapılır."
+	]
+	quest.C17B60A14CB7D3CA.title: "Kristalin"
+	quest.602B2C58B4700681.title: "Seçkin Bileşen"
+	quest.5E2694D49431F542.title: "Nihai Bileşen"
+	quest.B978C209D833EE0D.title: "Göksel Uçuş Yüzüğü"
+	quest.B978C209D833EE0D.quest_desc: [
 		"Envanterindeyken yaratıcı moddaki gibi uçarsın."
 	]
-	quest.97F6DC6DDF56F125.title: "Yaratıcı Enerji Küpü"
-	quest.97F6DC6DDF56F125.quest_desc: [
+	quest.18F596B2A8154FF2.title: "Yaratıcı Enerji Küpü"
+	quest.18F596B2A8154FF2.quest_desc: [
 		"Sonsuz enerji!"
 	]
-	quest.CBBEC21E9B94D4E9.title: "Yaratıcı Sıvı Tankı"
-	quest.CBBEC21E9B94D4E9.quest_desc: [
+	quest.0F927246F1D70C5C.title: "Yaratıcı Sıvı Tankı"
+	quest.0F927246F1D70C5C.quest_desc: [
 		"Sonsuz sıvı."
 	]
-	quest.0D49DC176AA27FB8.title: "Yaratıcı Kutu"
-	quest.0D49DC176AA27FB8.quest_desc: [
+	quest.2A912791039C9B0D.title: "Yaratıcı Kutu"
+	quest.2A912791039C9B0D.quest_desc: [
 		"Sonsuz eşya kutusu."
 	]
-	quest.464BBCD71730C008.title: "Yaratıcı Kimyasal Tank"
-	quest.B978C209D833EE0D.title: "Yaratıcı Enerji Hücresi"
-	quest.B978C209D833EE0D.quest_desc: [
+	quest.D11AE4DD778DFA6A.title: "Yaratıcı Kimyasal Tank"
+	quest.389E6FF542D88D75.title: "Yaratıcı Enerji Hücresi"
+	quest.389E6FF542D88D75.quest_desc: [
 		"ME ağın için sonsuz enerji."
 	]
-	quest.18F596B2A8154FF2.title: "Yaratıcı Motor"
-	quest.18F596B2A8154FF2.quest_desc: [
+	quest.AE5D2877DA415F62.title: "Yaratıcı Motor"
+	quest.AE5D2877DA415F62.quest_desc: [
 		"Ayarlanabilir sonsuz dönme gücü."
 	]
-	quest.0F927246F1D70C5C.title: "Yaratıcı Kasa"
-	quest.0F927246F1D70C5C.quest_desc: [
+	quest.7A69F570E427A776.title: "Yaratıcı Kasa"
+	quest.7A69F570E427A776.quest_desc: [
 		"Sonsuz eşya veren kasa."
 	]
-	quest.2A912791039C9B0D.title: "Yaratıcı Create Tankı"
-	quest.D11AE4DD778DFA6A.title: "Yaratıcı Alaz Keki"
-	quest.D11AE4DD778DFA6A.quest_desc: [
+	quest.37B6D1BE6792D925.title: "Yaratıcı Create Tankı"
+	quest.EE8CAF1123A480C3.title: "Yaratıcı Alaz Keki"
+	quest.EE8CAF1123A480C3.quest_desc: [
 		"Alaz yakıcın hiç sönmez."
 	]
-	quest.AE5D2877DA415F62.title: "Yaratıcı Kan Damlası"
-	quest.AE5D2877DA415F62.quest_desc: [
+	quest.0689451492CFF6D2.title: "Yaratıcı Kan Damlası"
+	quest.0689451492CFF6D2.quest_desc: [
 		"Sonsuz kan."
 	]
-	quest.7A69F570E427A776.title: "Yaratıcı Kaynak Kavanozu"
-	quest.7A69F570E427A776.quest_desc: [
+	quest.360EF5170DAB4FC4.title: "Yaratıcı Kaynak Kavanozu"
+	quest.360EF5170DAB4FC4.quest_desc: [
 		"Sonsuz kaynak."
 	]
-	quest.37B6D1BE6792D925.title: "Yaratıcı Büyü Kitabı"
-	quest.37B6D1BE6792D925.quest_desc: [
+	quest.96C3D503127BF245.title: "Yaratıcı Büyü Kitabı"
+	quest.96C3D503127BF245.quest_desc: [
 		"Kaynaksız büyü."
 	]
-	quest.EE8CAF1123A480C3.title: "Yaratıcı Powah Hücresi"
-	quest.0689451492CFF6D2.title: "Yaratıcı Kapasitör"
+	quest.4C44615F300780BD.title: "Yaratıcı Powah Hücresi"
+	quest.A8107A43DEBC7DE6.title: "Yaratıcı Kapasitör"
+	quest.05943E7CB058CF25.title: "Yaratıcı Çekmece Yükseltmesi"
+	quest.05943E7CB058CF25.quest_desc: [
+		"Sınırsız çekmece."
+	]
+	quest.FE5B08DDB48BE414.title: "Yaratıcı Satış Yükseltmesi"
+	quest.FE5B08DDB48BE414.quest_desc: [
+		"Sonsuz eşya veren çekmece."
+	]
+	quest.FEABAD90ED5E8474.title: "Yaratıcı Öz"
 	chapter.0918A69A6C47CB39.title: "&5&lFinal"
 	quest.AFAF435E6D2B1F5A.title: "Yıldızların Kalbi"
 	quest.AFAF435E6D2B1F5A.quest_desc: [
-		"Tüm yolculuğunun özeti. Yaratıcı eşyaları, Astral Sorcery'nin artefaktını ve tüm bölümlerin en güçlü malzemelerini birleştir."
+		"&dUltimate Table (9x9)&r. 18 yaratıcı eşyayı, beş çekirdeği ve tüm bölümlerin en güçlü ganimetlerini tek bir kalpte birleştir."
 	]
 }

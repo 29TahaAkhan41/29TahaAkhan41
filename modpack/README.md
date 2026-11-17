@@ -2,11 +2,12 @@
 
 **Minecraft 1.21.1 · NeoForge** için hazır modlardan oluşan, **Astral Sorcery** merkezli büyük bir modpack.
 
-- 🧩 **126 mod** + kütüphaneler (toplam **164 jar**, hepsi 1.21.1 NeoForge)
-- 📖 **Görev kitabı** (FTB Quests): 22 bölüm, **767 görev**, tamamen Türkçe, **tüm eşya ID'leri gerçek mod dosyalarından doğrulandı**
+- 🧩 **127 mod** + kütüphaneler (toplam **165 jar**, hepsi 1.21.1 NeoForge)
+- 📖 **Görev kitabı** (FTB Quests): 22 bölüm, **782 görev**, tamamen Türkçe, **tüm eşya ID'leri gerçek mod dosyalarından doğrulandı**
 - 🌟 **Astral Sorcery** en büyük bölüm (107 görev, Applied AstralSorcery ve Create: Astral Sorcery dahil)
-- 🎨 **15 yaratıcı eşya** hayatta kalma modunda üretilebilir
-- 🏅 **Oyun sonu eşyası:** *Yıldızların Kalbi* yapılınca *Tamamlanma Nişanı* verilir, sunucuya duyurulur, havai fişek patlar
+- 🎨 **18 yaratıcı eşya** hayatta kalma modunda üretilebilir
+- 🛠️ **Oyun sonu tarifleri Extended Crafting masalarında** (5x5, 7x7, 9x9) ve **paketteki bütün içerik modlarından** malzeme ister
+- 🏅 **Oyun sonu eşyası:** *Yıldızların Kalbi* (9x9) yapılınca *Tamamlanma Nişanı* verilir, sunucuya duyurulur, havai fişek patlar
 
 ---
 
@@ -22,44 +23,42 @@
 | Keşif | 29 | | Diğer Boyutlar | 28 |
 | **Astral Sorcery** | **107** | | Boss Avı | 12 |
 | Create | 62 | | Mystical Agriculture & Arılar | 21 |
-| Mekanism | 64 | | Yaratıcı Eşyalar | 18 |
+| Mekanism | 64 | | Oyun Sonu (çekirdekler, yaratıcı eşyalar) | 33 |
 | Applied Energistics 2 | 46 | | **Final** | 1 |
 | Enerji ve Mühendislik | 41 | | | |
-| Depolama | 23 | | **Toplam** | **767** |
+| Depolama | 23 | | **Toplam** | **782** |
 
 Her bölümün ana yolu ilk satırdadır. Ana yolun son görevi o bölümün **zirve görevidir**. Final görevi açılmak için tüm zirve görevlerinin ve tüm yaratıcı eşya görevlerinin bitmesini ister.
 
-## Özel eşyalar
+## Oyun sonu (Extended Crafting)
 
-| Eşya | Tarif |
-|---|---|
-| **Yıldız Özü** | Yıldız tozu + yıldız metali + lümen kristali + rezonans mücevheri |
-| **Kozmik Çekirdek** | Yıldız Özü + Nether Yıldızı + Nihai Devre + Tekillik + Ruh Lekeli Çelik + Pirinç Kasa |
-| **Yaratıcı Katalizör** | Kozmik Çekirdek + Artefakt + Akaşik Tekillik + Uyumlanmış Gök Kristali + Ejder Yumurtası |
-| **Yaratıcı eşyalar** | Katalizör + 2 Yıldız Özü + 4 Nether Yıldızı + modun en üst seviye eşyasından 2 tane |
-| **Yıldızların Kalbi** (final) | Katalizör + Artefakt + Uçuş Yüzüğü + 5 yaratıcı eşya + Kar Kraliçesi Ganimeti |
-| **Tamamlanma Nişanı** | Tarifi yok. Sadece final görevinin ödülü. |
+| Eşya | Masa | Neler ister |
+|---|---|---|
+| **Yıldız Özü** | Çalışma masası 3x3 | Astral Sorcery: yıldız tozu, yıldız metali, lümen kristali, rezonans mücevheri |
+| **Teknoloji Çekirdeği** | Advanced 5x5 | Create, Crafts & Additions, Mekanism, Mekanism Generators, AE2, ExtendedAE, Applied Mekanistics, Powah, Immersive Engineering, Industrial Foregoing, Ender IO, Pipez, Iron Furnaces, Modular Routers, LaserIO, Just Dire Things, Building Gadgets, Flux Networks, Create: Astral Sorcery, Applied AstralSorcery |
+| **Dünya Çekirdeği** | Advanced 5x5 | Sophisticated Backpacks & Storage, Functional Storage, Storage Drawers, Iron Chests, Tom's Storage, Torchmaster, Waystones, Comforts, Chipped, Rechiseled, Handcrafted, FramedBlocks, Supplementaries, Quark, 7 Macaw's modu, Biomes O' Plenty |
+| **Büyü Çekirdeği** | Elite 7x7 | EvilCraft, Malum, Ars Nouveau, Ars Elemental, Iron's Spells, Occultism, Forbidden & Arcanus, Nature's Aura, Apotheosis + Yıldız Özü |
+| **Doğa ve Macera Çekirdeği** | Elite 7x7 | Twilight Forest, Aether, Undergarden, Deeper and Darker, Bumblezone, Eternal Starlight, Cataclysm, Mowzie's Mobs, Mystical Agriculture, Naturalist, Productive Bees, Botany Pots, Farmer's Delight, Croptopia, Cooking for Blockheads |
+| **Kozmik Çekirdek** | Elite 7x7 | 4 çekirdek + Astral Sorcery kristalleri + Mystical Agradditions + Extended Crafting |
+| **Yaratıcı Katalizör** ×4 | Ultimate 9x9 | Kozmik Çekirdek, antimadde, Akaşik Tekillik, uyumlanmış gök kristali, nihai bileşenler |
+| **18 yaratıcı eşya** | Elite 7x7 | Katalizör + o modun en üst seviye eşyasından 4 tane |
+| **Yıldızların Kalbi** | Ultimate 9x9 | 18 yaratıcı eşya + 5 çekirdek + Artefakt + Kar Kraliçesi ganimeti + Ejder Yumurtası + Mekanism Tools, Mekanism Additions, Apothic Enchanting, iki pusula, Akashic Tome ve Gravestone eşyaları |
+| **Tamamlanma Nişanı** | – | Tarifi yok. Sadece final görevinin ödülü. |
 
-**Üretilebilen yaratıcı eşyalar:**
-- **Mekanism:** Enerji Küpü, Sıvı Tankı, Kutu, Kimyasal Tank
-- **AE2:** Enerji Hücresi
-- **Create:** Motor, Kasa, Sıvı Tankı, Alaz Keki
-- **EvilCraft:** Kan Damlası
-- **Ars Nouveau:** Kaynak Kavanozu, Büyü Kitabı
-- **Powah:** Enerji Hücresi
-- **Immersive Engineering:** Kapasitör
-- Pakete özel **Göksel Uçuş Yüzüğü**: envanterdeyken yaratıcı moddaki gibi uçarsın
+**Yaratıcı eşyalar:** Mekanism (Enerji Küpü, Sıvı Tankı, Kutu, Kimyasal Tank) · AE2 (Enerji Hücresi) · Create (Motor, Kasa, Sıvı Tankı, Alaz Keki) · EvilCraft (Kan Damlası) · Ars Nouveau (Kaynak Kavanozu, Büyü Kitabı) · Powah (Enerji Hücresi) · Immersive Engineering (Kapasitör) · Storage Drawers (Yaratıcı Yükseltme) · Functional Storage (Satış Yükseltmesi) · Mystical Agradditions (Yaratıcı Öz) · pakete özel **Göksel Uçuş Yüzüğü**
+
+1.21.1'de 13x13 masası olan bir mod yok; en büyük masa Extended Crafting'in 9x9 Ultimate Table'ı.
 
 Tüm tarifler oyunda JEI'de görünür.
 
 ---
 
-## Mod listesi (126 mod)
+## Mod listesi (127 mod)
 
 Hepsinin 1.21.1 NeoForge dosyası CurseForge API'sinden bulundu. Zip'teki `manifest.json` bu dosyaları ve tüm zorunlu kütüphaneleri içerir.
 
-### Çekirdek (7)
-Astral Sorcery · FTB Quests · FTB Library · FTB Teams · KubeJS · Rhino · JEI
+### Çekirdek (8)
+Astral Sorcery · Extended Crafting · FTB Quests · FTB Library · FTB Teams · KubeJS · Rhino · JEI
 
 ### Astral Sorcery eklentileri (3)
 Applied AstralSorcery · Create: Astral Sorcery · Astral Sorcery JEI Fix

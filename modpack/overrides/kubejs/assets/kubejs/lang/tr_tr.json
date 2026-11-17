@@ -6,11 +6,19 @@
   "item.kubejs.heart_of_the_stars": "Yıldızların Kalbi",
   "item.kubejs.completion_medal": "Yıldız Yolu Tamamlanma Nişanı",
   "tooltip.kubejs.stellar_essence": "Yıldız ışığının yoğunlaştırılmış hali.",
-  "tooltip.kubejs.cosmic_core": "Teknoloji, büyü ve yıldızlar tek bir çekirdekte.",
+  "tooltip.kubejs.cosmic_core": "Dört çekirdek tek bir kalpte.",
   "tooltip.kubejs.creative_catalyst": "Yaratıcı mod eşyalarını üretmenin anahtarı.",
   "tooltip.kubejs.flight_ring": "Envanterindeyken uçabilirsin.",
   "tooltip.kubejs.heart_of_the_stars": "Tüm yolculuğun tek bir kalpte atıyor.",
   "tooltip.kubejs.completion_medal.1": "✦ Yıldız Yolu modpack'ini tamamladın! ✦",
   "tooltip.kubejs.completion_medal.2": "Gökyüzünün tüm sırları artık senin.",
-  "message.kubejs.welcome": "Yıldız Yolu'na hoş geldin! Görev kitabın envanterinde."
+  "message.kubejs.welcome": "Yıldız Yolu'na hoş geldin! Görev kitabın envanterinde.",
+  "item.kubejs.tech_core": "Teknoloji Çekirdeği",
+  "item.kubejs.magic_core": "Büyü Çekirdeği",
+  "item.kubejs.nature_core": "Doğa ve Macera Çekirdeği",
+  "item.kubejs.world_core": "Dünya Çekirdeği",
+  "tooltip.kubejs.tech_core": "Paketteki 20 teknoloji modunun özü.",
+  "tooltip.kubejs.magic_core": "Tüm büyü modları ve yıldızlar bir arada.",
+  "tooltip.kubejs.nature_core": "Boyutlar, boss'lar, tarım ve mutfak.",
+  "tooltip.kubejs.world_core": "Depolama, inşaat ve kolaylık modlarının özü."
 }

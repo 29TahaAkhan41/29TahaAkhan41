@@ -10,6 +10,7 @@ MODS = [
     ('FTB Library', 404465),
     ('FTB Teams', 404468),
     ('KubeJS', 238086),
+    ('Extended Crafting', 268387),
     ('Rhino', 416294),
     ('JEI', 238222),
     ('Applied AstralSorcery', 1714316),

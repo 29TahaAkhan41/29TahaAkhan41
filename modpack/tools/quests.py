@@ -1074,13 +1074,27 @@ CHAPTERS = [
 },
 # ---------------------------------------------------------------- YARATICI
 {
-    "key": "yaratici", "title": "&6Yaratıcı Eşyalar", "icon": "kubejs:creative_catalyst", "tier": 5,
-    "reward": ("kubejs:stellar_essence", 1),
+    "key": "yaratici", "title": "&6Oyun Sonu: Çekirdekler ve Yaratıcı Eşyalar", "icon": "kubejs:creative_catalyst", "tier": 5,
+    "reward": ("extendedcrafting:black_iron_ingot", 8),
     "rows": [
         [
-            ("kubejs:stellar_essence", 4, "Yıldız Özü", "Astral Sorcery malzemelerinden ilk özel eşyan."),
-            ("kubejs:cosmic_core", 1, "Kozmik Çekirdek", "Teknoloji, büyü ve yıldızların birleşimi."),
-            ("kubejs:creative_catalyst", 1, "Yaratıcı Katalizör", "Bu katalizörle &6yaratıcı mod eşyaları&r üretebilirsin!"),
+            ("kubejs:stellar_essence", 4, "Yıldız Özü", "Astral Sorcery malzemelerinden yapılır. Büyü Çekirdeği'nin kalbi."),
+            ("kubejs:tech_core", 1, "Teknoloji Çekirdeği", "&eAdvanced Table (5x5)&r. 20 teknoloji modundan birer parça ister: Create, Mekanism, AE2, Powah, IE, Ender IO..."),
+            ("kubejs:world_core", 1, "Dünya Çekirdeği", "&eAdvanced Table (5x5)&r. Depolama, inşaat ve kolaylık modlarından parçalar: Sophisticated, Macaw's, Chipped, Waystones..."),
+            ("kubejs:magic_core", 1, "Büyü Çekirdeği", "&eElite Table (7x7)&r. EvilCraft, Malum, Ars Nouveau, Iron's Spells, Occultism ve daha fazlası."),
+            ("kubejs:nature_core", 1, "Doğa ve Macera Çekirdeği", "&eElite Table (7x7)&r. Boyutlar, boss'lar, tarım ve mutfak modları."),
+            ("kubejs:cosmic_core", 1, "Kozmik Çekirdek", "&eElite Table (7x7)&r. Dört çekirdeği yıldızlarla birleştir."),
+            ("kubejs:creative_catalyst", 4, "Yaratıcı Katalizör", "&dUltimate Table (9x9)&r. Bir tarif 4 katalizör verir. Her yaratıcı eşya 1 katalizör ister."),
+        ],
+        [
+            ("extendedcrafting:black_iron_ingot", 16, "Kara Demir", "Extended Crafting'e başlangıç."),
+            ("extendedcrafting:basic_table", 1, "Temel Masa (3x3)", ""),
+            ("extendedcrafting:advanced_table", 1, "Gelişmiş Masa (5x5)", ""),
+            ("extendedcrafting:elite_table", 1, "Seçkin Masa (7x7)", ""),
+            ("extendedcrafting:ultimate_table", 1, "Nihai Masa (9x9)", "Paketin en büyük tarifleri burada yapılır."),
+            ("extendedcrafting:crystaltine_ingot", 16, "Kristalin", ""),
+            ("extendedcrafting:elite_component", 16, "Seçkin Bileşen", ""),
+            ("extendedcrafting:ultimate_component", 16, "Nihai Bileşen", ""),
         ],
         [
             ("kubejs:flight_ring", 1, "Göksel Uçuş Yüzüğü", "Envanterindeyken yaratıcı moddaki gibi uçarsın."),
@@ -1088,20 +1102,23 @@ CHAPTERS = [
             ("mekanism:creative_fluid_tank", 1, "Yaratıcı Sıvı Tankı", "Sonsuz sıvı."),
             ("mekanism:creative_bin", 1, "Yaratıcı Kutu", "Sonsuz eşya kutusu."),
             ("mekanism:creative_chemical_tank", 1, "Yaratıcı Kimyasal Tank", ""),
+            ("ae2:creative_energy_cell", 1, "Yaratıcı Enerji Hücresi", "ME ağın için sonsuz enerji."),
         ],
         [
-            ("ae2:creative_energy_cell", 1, "Yaratıcı Enerji Hücresi", "ME ağın için sonsuz enerji."),
             ("create:creative_motor", 1, "Yaratıcı Motor", "Ayarlanabilir sonsuz dönme gücü."),
             ("create:creative_crate", 1, "Yaratıcı Kasa", "Sonsuz eşya veren kasa."),
             ("create:creative_fluid_tank", 1, "Yaratıcı Create Tankı", ""),
             ("create:creative_blaze_cake", 1, "Yaratıcı Alaz Keki", "Alaz yakıcın hiç sönmez."),
-        ],
-        [
             ("evilcraft:creative_blood_drop", 1, "Yaratıcı Kan Damlası", "Sonsuz kan."),
             ("ars_nouveau:creative_source_jar", 1, "Yaratıcı Kaynak Kavanozu", "Sonsuz kaynak."),
+        ],
+        [
             ("ars_nouveau:creative_spell_book", 1, "Yaratıcı Büyü Kitabı", "Kaynaksız büyü."),
             ("powah:energy_cell_creative", 1, "Yaratıcı Powah Hücresi", ""),
             ("immersiveengineering:capacitor_creative", 1, "Yaratıcı Kapasitör", ""),
+            ("storagedrawers:creative_storage_upgrade", 1, "Yaratıcı Çekmece Yükseltmesi", "Sınırsız çekmece."),
+            ("functionalstorage:creative_vending_upgrade", 1, "Yaratıcı Satış Yükseltmesi", "Sonsuz eşya veren çekmece."),
+            ("mysticalagradditions:creative_essence", 1, "Yaratıcı Öz", ""),
         ],
     ],
 },
@@ -1112,5 +1129,5 @@ FINAL = {
     "key": "final", "title": "&5&lFinal", "icon": "kubejs:heart_of_the_stars",
     "item": "kubejs:heart_of_the_stars",
     "quest_title": "Yıldızların Kalbi",
-    "desc": "Tüm yolculuğunun özeti. Yaratıcı eşyaları, Astral Sorcery'nin artefaktını ve tüm bölümlerin en güçlü malzemelerini birleştir.",
+    "desc": "&dUltimate Table (9x9)&r. 18 yaratıcı eşyayı, beş çekirdeği ve tüm bölümlerin en güçlü ganimetlerini tek bir kalpte birleştir.",
 }
