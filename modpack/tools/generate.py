@@ -10,10 +10,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from quests import CHAPTERS, FINAL  # noqa: E402
+import quests_en as EN  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "overrides", "config", "ftbquests", "quests")
 FILE_ID = "0000000000000001"
+NAMES_EN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "item_names_en.json")
 SPACING = 1.5
 
 
@@ -95,7 +97,25 @@ def main():
     os.makedirs(chapters_dir)
     os.makedirs(os.path.join(OUT, "lang"), exist_ok=True)
 
+    import json
+    names = json.load(open(NAMES_EN, encoding="utf-8")) if os.path.exists(NAMES_EN) else {}
+    missing_en = set()
     lang = {f"file.{FILE_ID}.title": "Yıldız Yolu"}
+    en = {f"file.{FILE_ID}.title": EN.FILE_TITLE}
+
+    def en_title(item, tr):
+        if tr in EN.TITLES:
+            return EN.TITLES[tr]
+        if item in names:
+            return names[item]
+        missing_en.add(("başlık", tr))
+        return tr
+
+    def en_desc(tr):
+        if tr not in EN.DESCS:
+            missing_en.add(("açıklama", tr))
+        return EN.DESCS.get(tr, tr)
+
     capstones, creative_ids = [], []
     seen_items = {}
     total = 0
@@ -103,6 +123,7 @@ def main():
     for order, ch in enumerate(CHAPTERS):
         cid = qid("chapter", ch["key"])
         lang[f"chapter.{cid}.title"] = ch["title"]
+        en[f"chapter.{cid}.title"] = EN.CHAPTERS.get(ch["title"], ch["title"])
         tier = ch["tier"]
         quests = []
         root_id = None
@@ -137,8 +158,10 @@ def main():
                 quests.append(quest)
 
                 lang[f"quest.{q_id}.title"] = title
+                en[f"quest.{q_id}.title"] = en_title(item, title)
                 if desc:
                     lang[f"quest.{q_id}.quest_desc"] = [desc]
+                    en[f"quest.{q_id}.quest_desc"] = [en_desc(desc)]
                 if r == 0 and i == 0:
                     root_id = q_id
                 if r == 0 and last_in_row:
@@ -153,11 +176,13 @@ def main():
     # Final bölümü
     cid = qid("chapter", FINAL["key"])
     lang[f"chapter.{cid}.title"] = FINAL["title"]
+    en[f"chapter.{cid}.title"] = EN.CHAPTERS[FINAL["title"]]
     key = "final/0/0"
     q_id = qid("quest", key)
-    tellraw = ('/tellraw @a [{"text":"\\u2726 ","color":"gold"},{"text":"{p}","color":"light_purple","bold":true},'
-               '{"text":" Yıldız Yolu modpack\'ini TAMAMLADI! \\u2726","color":"gold"}]')
-    title_cmd = '/title {p} title {"text":"PAKET TAMAMLANDI!","color":"gold","bold":true}'
+    tellraw = ('/tellraw @a [{"text":"\\u2726 ","color":"gold"},'
+               '{"translate":"message.kubejs.pack_complete","color":"gold",'
+               '"with":[{"text":"{p}","color":"light_purple","bold":true}]},{"text":" \\u2726","color":"gold"}]')
+    title_cmd = '/title {p} title {"translate":"title.kubejs.pack_complete","color":"gold","bold":true}'
     firework = ('/execute at {p} run summon firework_rocket ~ ~1 ~ {LifeTime:20,FireworksItem:{id:"minecraft:firework_rocket",count:1,'
                 'components:{"minecraft:fireworks":{flight_duration:1,explosions:[{shape:"star",colors:[I;16766720,11141290],'
                 'has_trail:true,has_twinkle:true}]}}}}')
@@ -178,6 +203,8 @@ def main():
     }
     lang[f"quest.{q_id}.title"] = FINAL["quest_title"]
     lang[f"quest.{q_id}.quest_desc"] = [FINAL["desc"]]
+    en[f"quest.{q_id}.title"] = en_title(FINAL["item"], FINAL["quest_title"])
+    en[f"quest.{q_id}.quest_desc"] = [en_desc(FINAL["desc"])]
     total += 1
     write(os.path.join(chapters_dir, "final.snbt"),
           chapter_file(cid, FINAL["key"], FINAL["icon"], len(CHAPTERS), [final_q]))
@@ -199,9 +226,11 @@ def main():
         "version": 13,
     })
 
-    # Türkçe metinler hem tr_tr hem en_us'a yazılır (oyun dili ne olursa olsun görünsün).
-    for code in ("tr_tr", "en_us"):
-        write(os.path.join(OUT, "lang", code + ".snbt"), lang)
+    # tr_tr: Türkçe, en_us: İngilizce (diğer diller en_us'a düşer).
+    write(os.path.join(OUT, "lang", "tr_tr.snbt"), lang)
+    write(os.path.join(OUT, "lang", "en_us.snbt"), en)
+    for kind, text in sorted(missing_en):
+        print(f"  ! İngilizcesi yok ({kind}): {text}")
 
     print(f"{len(CHAPTERS) + 1} bölüm, {total} görev yazıldı -> {OUT}")
     for ch in CHAPTERS:

@@ -20,5 +20,7 @@
   "tooltip.kubejs.tech_core": "Paketteki 20 teknoloji modunun özü.",
   "tooltip.kubejs.magic_core": "Tüm büyü modları ve yıldızlar bir arada.",
   "tooltip.kubejs.nature_core": "Boyutlar, boss'lar, tarım ve mutfak.",
-  "tooltip.kubejs.world_core": "Depolama, inşaat ve kolaylık modlarının özü."
+  "tooltip.kubejs.world_core": "Depolama, inşaat ve kolaylık modlarının özü.",
+  "message.kubejs.pack_complete": "%s Yıldız Yolu modpack'ini TAMAMLADI!",
+  "title.kubejs.pack_complete": "PAKET TAMAMLANDI!"
 }

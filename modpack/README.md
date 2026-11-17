@@ -3,7 +3,7 @@
 **Minecraft 1.21.1 · NeoForge** için hazır modlardan oluşan, **Astral Sorcery** merkezli büyük bir modpack.
 
 - 🧩 **127 mod** + kütüphaneler (toplam **165 jar**, hepsi 1.21.1 NeoForge)
-- 📖 **Görev kitabı** (FTB Quests): 22 bölüm, **782 görev**, tamamen Türkçe, **tüm eşya ID'leri gerçek mod dosyalarından doğrulandı**
+- 📖 **Görev kitabı** (FTB Quests): 22 bölüm, **782 görev**, **Türkçe ve İngilizce** (oyun diline göre), **tüm eşya ID'leri gerçek mod dosyalarından doğrulandı**
 - 🌟 **Astral Sorcery** en büyük bölüm (107 görev, Applied AstralSorcery ve Create: Astral Sorcery dahil)
 - 🎨 **18 yaratıcı eşya** hayatta kalma modunda üretilebilir
 - 🛠️ **Oyun sonu tarifleri Extended Crafting masalarında** (5x5, 7x7, 9x9) ve **paketteki bütün içerik modlarından** malzeme ister
@@ -118,7 +118,7 @@ python3 modpack/tools/build_pack.py    # CurseForge API anahtarı gerekir → mo
 
 ## Düzenleme
 
-- **Görevler:** `tools/quests.py` dosyasını düzenle, sonra `python3 modpack/tools/generate.py` çalıştır. Bir satıra görev eklemek için listeye `("mod:eşya", adet, "Başlık", "Açıklama")` satırı ekle.
+- **Görevler:** `tools/quests.py` dosyasını düzenle (İngilizce metinler `tools/quests_en.py` içinde; eşya başlıkları otomatik olarak eşyanın İngilizce adından gelir), sonra `python3 modpack/tools/generate.py` çalıştır. Bir satıra görev eklemek için listeye `("mod:eşya", adet, "Başlık", "Açıklama")` satırı ekle.
 - **Tarifler:** `overrides/kubejs/server_scripts/tarifler.js`. Oyunda `/reload` ile yenilenir.
 - **Eşyalar:** `overrides/kubejs/startup_scripts/ozel_esyalar.js`. Oyunu yeniden başlatmak gerekir.
 - **Dokular:** `python3 modpack/tools/textures.py`.

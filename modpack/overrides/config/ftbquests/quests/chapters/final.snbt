@@ -80,7 +80,7 @@
 				{
 					id: "4F50F5AD0DB9CA99"
 					type: "command"
-					command: "/tellraw @a [{\"text\":\"\\u2726 \",\"color\":\"gold\"},{\"text\":\"{p}\",\"color\":\"light_purple\",\"bold\":true},{\"text\":\" Yıldız Yolu modpack'ini TAMAMLADI! \\u2726\",\"color\":\"gold\"}]"
+					command: "/tellraw @a [{\"text\":\"\\u2726 \",\"color\":\"gold\"},{\"translate\":\"message.kubejs.pack_complete\",\"color\":\"gold\",\"with\":[{\"text\":\"{p}\",\"color\":\"light_purple\",\"bold\":true}]},{\"text\":\" \\u2726\",\"color\":\"gold\"}]"
 					elevate_perms: true
 					silent: true
 					player_command: false
@@ -88,7 +88,7 @@
 				{
 					id: "A65FA2C91A265FEE"
 					type: "command"
-					command: "/title {p} title {\"text\":\"PAKET TAMAMLANDI!\",\"color\":\"gold\",\"bold\":true}"
+					command: "/title {p} title {\"translate\":\"title.kubejs.pack_complete\",\"color\":\"gold\",\"bold\":true}"
 					elevate_perms: true
 					silent: true
 					player_command: false
