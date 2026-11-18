@@ -61,6 +61,19 @@ pip install -r requirements-extra.txt
 
 Kısayollar arayüzden değiştirilebilir (ör. `ctrl+shift+t`).
 
+**Yazı tanıma (OCR) motoru**
+- **Windows OCR** (varsayılan): Windows 10/11'in kendi motoru. En hızlısı ve oyun
+  yazılarını en iyi okuyanı. Oyunun dilinin Windows'ta yüklü olması gerekir
+  (Ayarlar → Saat ve dil → Dil ve bölge). Yüklü değilse uygulama otomatik olarak Tesseract'a geçer.
+- **Tesseract**: Her dilde çalışır, .exe ile birlikte gelir. Biraz daha yavaştır.
+
+**Görünüm:** "Çeviriyi oyunun görünümüne uydur" açıkken orijinal yazı ekrandan silinir,
+arka plan (geçişli renkler, dokular) korunur ve Türkçe yazı oyunun kendi yazı renginde,
+kontur ve büyüklüğünde çizilir. Kapatırsanız çeviri koyu kutular içinde gösterilir.
+
+Durum satırında yazı tanıma ve çeviri süreleri ayrı ayrı görünür. Hangisi yavaşsa onu
+değiştirin (ör. çeviri yavaşsa daha küçük bir yapay zekâ modeli veya Google Çeviri).
+
 **İpuçları**
 - **Alan seç…** ile yalnızca diyalog kutusu veya altyazı bölgesini seçerseniz çeviri daha hızlı ve daha doğru olur.
 - Çeviri kutuları tıklamayı engellemez; tıklamalar oyuna geçer (Windows).
