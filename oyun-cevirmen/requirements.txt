@@ -1,0 +1,11 @@
+# Zorunlu
+pillow>=10.0
+mss>=9.0
+deep-translator>=1.11
+pynput>=1.7
+pytesseract>=0.3.10
+numpy>=1.24
+
+# İsteğe bağlı (requirements-extra.txt içinde):
+#   easyocr        -> oyun ekranlarında daha iyi yazı tanıma
+#   argostranslate -> internetsiz çeviri

@@ -1,0 +1,2 @@
+easyocr>=1.7
+argostranslate>=1.9
