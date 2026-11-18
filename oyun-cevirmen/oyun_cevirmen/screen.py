@@ -1,6 +1,7 @@
 """Ekran görüntüsü alma ve OCR (görüntüdeki yazıyı okuma)."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 from PIL import Image, ImageOps
@@ -102,7 +103,7 @@ EASY_LANGS = {
 CJK = {"ja", "zh-CN", "ko"}
 
 OCR_ENGINES = {
-    "tesseract": "Tesseract (hızlı, kurulum gerekir)",
+    "tesseract": "Tesseract (hızlı)",
     "easyocr": "EasyOCR (oyun ekranlarında daha iyi, yavaş/GPU)",
 }
 
@@ -126,6 +127,10 @@ class TesseractOcr(OcrEngine):
 
         if tesseract_path:
             pytesseract.pytesseract.tesseract_cmd = tesseract_path
+            # Dil dosyaları exe'nin yanındaki tessdata klasöründeyse onu kullan
+            tessdata = os.path.join(os.path.dirname(tesseract_path), "tessdata")
+            if os.path.isdir(tessdata):
+                os.environ["TESSDATA_PREFIX"] = tessdata
         self.pt = pytesseract
         self.lang = TESS_LANGS.get(source_lang, "eng")
         self.cjk = source_lang in CJK

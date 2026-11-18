@@ -64,7 +64,15 @@ class Settings:
                                  encoding="utf-8")
 
 
+FROZEN = getattr(sys, "frozen", False)  # .exe olarak mı çalışıyoruz?
+
+
 def find_tesseract() -> str:
+    # .exe paketinin içindeki Tesseract (OyunCevirmeni.exe'nin yanındaki "tesseract" klasörü)
+    if FROZEN:
+        bundled = Path(sys.executable).parent / "tesseract" / "tesseract.exe"
+        if bundled.is_file():
+            return str(bundled)
     found = shutil.which("tesseract")
     if found:
         return found
@@ -109,7 +117,7 @@ class App:
         self.root.geometry("780x820")
         self.root.minsize(700, 700)
         self.s = Settings.load()
-        if not self.s.tesseract_path:
+        if not self.s.tesseract_path or not os.path.isfile(self.s.tesseract_path):
             self.s.tesseract_path = find_tesseract()
 
         self.events: queue.Queue = queue.Queue()
@@ -619,6 +627,9 @@ def _friendly_error(e: Exception) -> str:
     if "Failed loading language" in text or "Error opening data file" in text:
         return "Bu oyun dili için Tesseract dil paketi kurulu değil (kurulumda dil paketini seçin)."
     if isinstance(e, ModuleNotFoundError):
+        if FROZEN:
+            return (f"Bu özellik ({e.name}) .exe sürümünde yok. Lütfen başka bir OCR/çeviri "
+                    "motoru seçin veya uygulamayı Python ile çalıştırın (README).")
         return f"Eksik paket: {e.name}. Komut: pip install -r requirements.txt"
     if "TooManyRequests" in name:
         return ("Google Çeviri çok fazla istek nedeniyle geçici olarak yanıt vermiyor. "
@@ -632,6 +643,12 @@ def _friendly_error(e: Exception) -> str:
 
 
 def main() -> None:
+    if sys.stderr is None or sys.stdout is None:
+        # Konsolsuz .exe: hataları bir dosyaya yaz (yoksa yazdırma çökmeye yol açar)
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        log = open(CONFIG_DIR / "hata.log", "a", encoding="utf-8", buffering=1)
+        sys.stdout = sys.stdout or log
+        sys.stderr = sys.stderr or log
     if sys.platform == "win32":
         try:
             sys.stdout.reconfigure(encoding="utf-8")

@@ -69,7 +69,7 @@ def test_json_file(tmp_path):
     src = tmp_path / "en_us.json"
     src.write_text(json.dumps({"menu.start": "Start Game", "menu.opt": "Options",
                                "nested": {"q": ["Quit", 5]}, "tex": "textures/a.png",
-                               "id": "minecraft:stone"}, indent=4), encoding="utf-8")
+                               "id": "minecraft:stone"}, indent=4), encoding="utf-8", newline="")
     dst = ft.default_output_path(src)
     assert dst.name == "tr_tr.json"
     ft.translate_file(src, dst, tr())
@@ -82,7 +82,7 @@ def test_json_file(tmp_path):
 
 def test_lang_and_ini(tmp_path):
     src = tmp_path / "en_US.lang"
-    src.write_text("# comment\nitem.a=Hello\r\n[Section]\nb = World\nnum=12\n", encoding="utf-8")
+    src.write_text("# comment\nitem.a=Hello\r\n[Section]\nb = World\nnum=12\n", encoding="utf-8", newline="")
     ft.translate_file(src, tmp_path / "out.lang", tr())
     out = (tmp_path / "out.lang").read_bytes().decode("utf-8")
     assert out == "# comment\nitem.a=Merhaba\r\n[Section]\nb = Dünya\nnum=12\n"
@@ -91,7 +91,7 @@ def test_lang_and_ini(tmp_path):
 def test_po(tmp_path):
     src = tmp_path / "game.po"
     src.write_text('msgid ""\nmsgstr ""\n"Language: en\\n"\n\nmsgid "Quit"\nmsgstr ""\n\n'
-                   'msgid "Options"\nmsgstr "Ayarlar"\n', encoding="utf-8")
+                   'msgid "Options"\nmsgstr "Ayarlar"\n', encoding="utf-8", newline="")
     ft.translate_file(src, tmp_path / "o.po", tr())
     out = (tmp_path / "o.po").read_text(encoding="utf-8")
     assert 'msgid "Quit"\nmsgstr "Çıkış"' in out
@@ -101,7 +101,7 @@ def test_po(tmp_path):
 
 def test_csv(tmp_path):
     src = tmp_path / "loc.csv"
-    src.write_text("key,text\nui_start,Start Game\nui_hp,\"Health, max\"\n", encoding="utf-8")
+    src.write_text("key,text\nui_start,Start Game\nui_hp,\"Health, max\"\n", encoding="utf-8", newline="")
     ft.translate_file(src, tmp_path / "o.csv", tr())
     assert (tmp_path / "o.csv").read_text(encoding="utf-8") == \
         "key,text\nui_start,Oyunu Başlat\nui_hp,\"Can, max\"\n"
@@ -109,7 +109,7 @@ def test_csv(tmp_path):
 
 def test_yaml(tmp_path):
     src = tmp_path / "l_english.yml"
-    src.write_text('l_english:\n  start:0 "Start Game"  # c\n  quit: Quit\n', encoding="utf-8")
+    src.write_text('l_english:\n  start:0 "Start Game"  # c\n  quit: Quit\n', encoding="utf-8", newline="")
     dst = ft.default_output_path(src)
     assert dst.name == "l_turkish.yml"
     ft.translate_file(src, dst, tr())
@@ -120,7 +120,7 @@ def test_yaml(tmp_path):
 def test_xml(tmp_path):
     src = tmp_path / "s.xml"
     src.write_text('<?xml version="1.0"?>\n<r><s id="a" text="Hello">Options</s>'
-                   '<s id="b">Quit &amp; Hello</s></r>', encoding="utf-8")
+                   '<s id="b">Quit &amp; Hello</s></r>', encoding="utf-8", newline="")
     ft.translate_file(src, tmp_path / "o.xml", tr())
     out = (tmp_path / "o.xml").read_text(encoding="utf-8")
     assert 'text="Merhaba"' in out and ">Seçenekler<" in out and ">Çıkış &amp; Merhaba<" in out
@@ -129,8 +129,8 @@ def test_xml(tmp_path):
 
 def test_folder(tmp_path):
     (tmp_path / "in" / "sub").mkdir(parents=True)
-    (tmp_path / "in" / "sub" / "a.txt").write_text("Hello\nWorld\n", encoding="utf-8")
-    (tmp_path / "in" / "bad.json").write_text("{bozuk", encoding="utf-8")
+    (tmp_path / "in" / "sub" / "a.txt").write_text("Hello\nWorld\n", encoding="utf-8", newline="")
+    (tmp_path / "in" / "bad.json").write_text("{bozuk", encoding="utf-8", newline="")
     rep = dict(ft.translate_folder(tmp_path / "in", tmp_path / "out", tr()))
     assert (tmp_path / "out" / "sub" / "a.txt").read_text(encoding="utf-8") == "Merhaba\nDünya\n"
     assert any(isinstance(v, str) and v.startswith("HATA") for v in rep.values())

@@ -1,0 +1,88 @@
+name: Oyun Cevirmeni - Windows .exe
+
+on:
+  push:
+    paths:
+      - "oyun-cevirmen/**"
+      - ".github/workflows/oyun-cevirmen-exe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: oyun-cevirmen
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Paketleri kur
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller pytest
+
+      - name: Testler
+        run: python -m pytest -q tests
+
+      - name: Tesseract OCR'i indir
+        run: choco install tesseract -y --no-progress
+
+      - name: .exe derle
+        run: >
+          pyinstaller --noconfirm --windowed --name OyunCevirmeni
+          --collect-submodules pynput --hidden-import requests
+          OyunCevirmeni.py
+
+      - name: Tesseract'i ve dil paketlerini ekle
+        run: |
+          $dst = "dist/OyunCevirmeni/tesseract"
+          Copy-Item "C:\Program Files\Tesseract-OCR" $dst -Recurse
+          # Oyunlarda sik kullanilan diller (hizli/kucuk modeller)
+          $langs = "jpn","chi_sim","kor","rus","deu","fra","spa","ita","por","pol"
+          foreach ($l in $langs) {
+            if (-not (Test-Path "$dst/tessdata/$l.traineddata")) {
+              Invoke-WebRequest "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/$l.traineddata" -OutFile "$dst/tessdata/$l.traineddata"
+            }
+          }
+          & "$dst/tesseract.exe" --version
+          & "$dst/tesseract.exe" --list-langs
+          Copy-Item README.md "dist/OyunCevirmeni/BENIOKU.md"
+
+      - name: .exe aciliyor mu? (duman testi)
+        run: |
+          $env:OYUN_CEVIRMEN_DIR = "$env:RUNNER_TEMP/oc"
+          $p = Start-Process "dist/OyunCevirmeni/OyunCevirmeni.exe" -PassThru
+          Start-Sleep -Seconds 15
+          if ($p.HasExited) {
+            Get-Content "$env:RUNNER_TEMP/oc/hata.log" -ErrorAction SilentlyContinue
+            throw "Uygulama acilir acilmaz kapandi (cikis kodu $($p.ExitCode))"
+          }
+          Stop-Process -Id $p.Id -Force
+          Write-Host "Uygulama 15 saniye boyunca sorunsuz acik kaldi."
+
+      - name: Zip'le
+        run: Compress-Archive -Path dist/OyunCevirmeni -DestinationPath OyunCevirmeni-Windows.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OyunCevirmeni-Windows
+          path: oyun-cevirmen/OyunCevirmeni-Windows.zip
+
+      - name: Indirme sayfasina (Releases) yukle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete oyun-cevirmen --yes --cleanup-tag 2>$null
+          $global:LASTEXITCODE = 0
+          gh release create oyun-cevirmen OyunCevirmeni-Windows.zip `
+            --target $env:GITHUB_SHA --prerelease `
+            --title "Oyun Cevirmeni (Windows)" `
+            --notes "Zip'i acin ve OyunCevirmeni.exe'ye cift tiklayin. Kurulum gerekmez; Tesseract OCR ve 11 oyun dili pakete dahildir. Dal: $env:GITHUB_REF_NAME, commit: $env:GITHUB_SHA"
