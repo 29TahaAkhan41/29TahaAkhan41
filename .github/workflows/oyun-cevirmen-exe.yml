@@ -81,7 +81,10 @@ jobs:
           name: OyunCevirmeni-Windows
           path: oyun-cevirmen/OyunCevirmeni-Windows.zip
 
+      # Depo ayarlari izin vermezse (Settings > Actions > Workflow permissions) zip yine de
+      # yukaridaki "artifact" olarak indirilebilir; bu yuzden bu adim derlemeyi bozmaz.
       - name: Indirme sayfasina (Releases) yukle
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
