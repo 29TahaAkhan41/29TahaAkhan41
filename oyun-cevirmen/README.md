@@ -104,19 +104,19 @@ biçimde çevirir ve karakter/yer adlarını olduğu gibi bırakır.
 
 **Ollama (internetsiz)**
 1. <https://ollama.com/download> adresinden Ollama'yı kurun ve açın.
-2. Komut istemine (cmd) şunu yazıp modeli indirin (yaklaşık 4,7 GB):
+2. Komut istemine (cmd) şunu yazıp modeli indirin (yaklaşık 6,6 GB):
    ```bash
-   ollama pull qwen2.5:7b
+   ollama pull qwen3.5:9b
    ```
 3. Motoru *Yapay zekâ: Ollama* yapın. Anahtar gerekmez.
-   Bilgisayarınız zayıfsa daha küçük bir model indirip **Model** kutusuna adını yazın (ör. `qwen2.5:3b`).
+   Bilgisayarınız zayıfsa daha küçük bir model indirip **Model** kutusuna adını yazın (ör. `qwen3.5:4b`).
    Güçlü bir ekran kartınız varsa daha büyük bir model daha iyi çevirir. Örneğin
    `ollama pull qwen3.8:27b` ile indirip **Model** kutusuna `qwen3.8:27b` yazabilirsiniz
    (yaklaşık 18 GB; rahat çalışması için 24 GB ekran kartı belleği önerilir).
    Düşünen (thinking) modellerde düşünme çeviri sırasında otomatik kapatılır, böylece daha hızlı cevap verirler.
 
 **Model** kutusu boş bırakılırsa varsayılan model kullanılır (Gemini: `gemini-2.5-flash`,
-Groq: `llama-3.3-70b-versatile`, Ollama: `qwen2.5:7b`). Servisler modellerini zamanla
+Groq: `llama-3.3-70b-versatile`, Ollama: `qwen3.5:9b`). Servisler modellerini zamanla
 değiştirebilir. "Model bulunamadı" hatası alırsanız servisin sitesindeki güncel model adını
 bu kutuya yazın.
 

@@ -46,9 +46,9 @@ AI_SERVICES: dict[str, AiService] = {
     "ollama": AiService(
         "Ollama (yerel yapay zekâ, internetsiz)",
         "http://localhost:11434/v1/chat/completions",
-        "qwen2.5:7b",
+        "qwen3.5:9b",
         False,
-        "Kurulum: https://ollama.com  ardından:  ollama pull qwen2.5:7b",
+        "Kurulum: https://ollama.com  ardından:  ollama pull qwen3.5:9b",
     ),
 }
 
