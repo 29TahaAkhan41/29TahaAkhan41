@@ -1,6 +1,6 @@
 # ✦ Star Path
 
-**Minecraft 1.21.1 · NeoForge** · A tech, magic and adventure pack built around Astral Sorcery.
+**Minecraft 1.21.1 · NeoForge** · A tech, magic and adventure pack where every mod comes together in the endgame.
 
 Start in a plain survival world and work your way up to the secrets of the stars. The quest book guides you step by step. At the end you combine the power of every mod in the pack into the **Heart of the Stars** to finish the pack.
 
