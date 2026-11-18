@@ -46,7 +46,7 @@ jobs:
         run: |
           $env:PATH = "C:\Program Files\Tesseract-OCR;$env:PATH"
           $env:OYUN_CEVIRMEN_DIR = "$env:RUNNER_TEMP/oc-e2e"
-          python tools/windows_e2e.py e2e windows tesseract
+          python tools/windows_e2e.py e2e windows windows@2 tesseract
 
       - uses: actions/upload-artifact@v4
         if: always()

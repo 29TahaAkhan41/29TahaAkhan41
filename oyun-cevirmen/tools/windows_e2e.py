@@ -16,6 +16,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageTk  # noqa: E402
 from oyun_cevirmen import gui, overlay, screen  # noqa: E402
 from oyun_cevirmen.translator import Backend  # noqa: E402
 
+sys.stdout.reconfigure(encoding="utf-8")
 OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "e2e")
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -77,7 +78,10 @@ _probe_root.destroy()
 overlay.exclude_from_capture = lambda win: False
 
 results = {"ekran_goruntusunden_gizleme_calisiyor": CAPTURE_EXCLUSION_WORKS}
-for engine in sys.argv[2:] or ["windows", "tesseract"]:
+for spec in sys.argv[2:] or ["windows", "tesseract"]:
+    # "windows@2" = Windows OCR, görüntü 2 kat büyütülerek
+    engine, _, sc = spec.partition("@")
+    screen.WindowsOcr.scale = float(sc) if sc else None
     app = gui.App()
     app.s.region = None
     app.s.ocr_engine = engine
@@ -88,9 +92,9 @@ for engine in sys.argv[2:] or ["windows", "tesseract"]:
     photo = ImageTk.PhotoImage(game_image())
     tk.Label(game, image=photo, bd=0).pack()
 
-    def finish(engine=engine, app=app):
-        grab(OUT / f"sonuc-{engine}.png", (0, 0, 1000, 600))
-        results[engine] = {
+    def finish(spec=spec, app=app):
+        grab(OUT / f"sonuc-{spec.replace('@', '-x')}.png", (0, 0, 1000, 600))
+        results[spec] = {
             "durum": app.lbl_status.cget("text"),
             "katman": len(app.overlay.windows),
             "metinler": app.log.get("1.0", "end").strip().splitlines(),

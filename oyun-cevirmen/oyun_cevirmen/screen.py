@@ -202,6 +202,8 @@ LANG_NAMES_TR = {
 class WindowsOcr(OcrEngine):
     """Windows 10/11'in yerleşik yazı tanıma motoru: çok hızlı, ekran yazısında başarılı."""
 
+    scale: float | None = None  # None: görüntü boyutuna göre otomatik
+
     def __init__(self, source_lang: str = "en"):
         from winrt.windows.media.ocr import OcrEngine as WinOcrEngine
 
@@ -231,7 +233,7 @@ class WindowsOcr(OcrEngine):
         from winrt.windows.storage.streams import DataWriter
 
         # Küçük bölgelerde küçük yazılar için büyüt; motorun boyut sınırını aşma
-        scale = 2.0 if img.height <= 400 else 1.0
+        scale = self.scale or (2.0 if img.height <= 400 else 1.0)
         if max(img.width, img.height) * scale > self.max_dim:
             scale = self.max_dim / max(img.width, img.height)
         work = img.convert("RGB")
