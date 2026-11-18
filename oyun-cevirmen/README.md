@@ -11,7 +11,21 @@ Oyunlardaki **her şeyi**, yani menüleri, butonları, diyalogları, görev yaz�
 
 ---
 
-## Kurulum (Windows)
+## Kurulum (Windows, en kolay yol: hazır .exe)
+
+1. <https://github.com/29TahaAkhan41/29TahaAkhan41/releases/tag/oyun-cevirmen> sayfasından
+   **OyunCevirmeni-Windows.zip** dosyasını indirin.
+2. Zip'e sağ tıklayıp **Tümünü ayıkla** deyin (zip'in içinden doğrudan çalıştırmayın).
+3. Klasördeki **OyunCevirmeni.exe**'ye çift tıklayın. Kurulum gerekmez: Tesseract OCR ve
+   11 dilin paketi (İngilizce, Japonca, Çince, Korece, Rusça, Almanca, Fransızca, İspanyolca,
+   İtalyanca, Portekizce, Lehçe) içinde gelir.
+
+> Windows "Windows kişisel bilgisayarınızı korudu" uyarısı gösterirse **Ek bilgi → Yine de çalıştır**
+> deyin. Uygulama imzalı olmadığı için bu uyarı normaldir.
+> .exe sürümünde isteğe bağlı EasyOCR ve Argos yoktur; diğer her şey (yapay zekâ motorları dahil) vardır.
+> Hata olursa ayrıntılar `%USERPROFILE%\.oyun_cevirmen\hata.log` dosyasına yazılır.
+
+## Kurulum (Windows, Python ile)
 
 1. **Python 3.10 veya üstünü** kurun: <https://www.python.org/downloads/>
    Kurulumda **"Add Python to PATH"** kutusunu işaretleyin.

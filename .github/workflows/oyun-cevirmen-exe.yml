@@ -10,6 +10,11 @@ on:
 permissions:
   contents: write
 
+# Aynı dalda yeni bir gönderim olursa eski derlemeyi iptal et
+concurrency:
+  group: oyun-cevirmen-exe-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest
