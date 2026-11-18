@@ -294,6 +294,9 @@ Listelerde `+` iki listeyi yeni bir listede birleştirir; `==` ve `!=` içerikle
 | `sırala(l)` | `sort` | sayı, metin ya da ondalık listesinin sıralanmış kopyası (metinler bayt sırasıyla) |
 | `sırala(l, önce)` | `sort` | `önce(a, b)` işlevine göre (a, b'den önce gelecekse 1) kararlı sıralanmış kopya |
 | `ters_çevir(l)` | `reverse` | elemanları ters sırada yeni liste |
+| `kaçış_noktası()` | `escape_point` | bir dönüş noktası kaydeder ve 0 verir; noktaya `kaçış()` ile dönülünce 1 verir |
+| `kaçış()` | `escape` | son kaydedilen noktayı siler ve oraya (aradaki işlevleri bırakarak) döner; nokta yoksa 0 verir |
+| `kaçış_bırak()` | `escape_drop` | son kaydedilen noktayı siler; noktayı kuran işlev dönmeden önce çağrılmalıdır |
 
 Yazma işlevlerinde içerik ilk argümandır, yani akışla gelir: `"merhaba\n" -> dosya_yaz("selam.txt")`.
 Açılamayan, okunamayan ya da yazılamayan dosya programı hatayla durdurur:
@@ -715,6 +718,23 @@ toplanınca, çıkış yoksa oyun kazanılır), `devriye` (yatayda gidip gelir),
 
 Oyun kuralları `motor/atolye.nehir` modülündedir; dışa aktarılan oyunlar da onu kullanır
 (`atölye_oyna(şablonlar, nesneler, başlık)`). Örnek: `ornekler/atolye_oyunu.nehir`.
+
+## Piton: Nehir ile yazılmış Python derleyicisi
+
+`piton/piton.nehir`, Python programlarını bağımsız çalıştırılabilir dosyalara derleyen, kendisi de
+Nehir ile yazılmış bir derleyicidir. Python kaynağını ayrıştırıp Nehir koduna çevirir ve aynı süreçte
+Nehir ile yazılmış Nehir derleyicisinin aşamalarından geçirir. Python'un değerleri ve davranışları
+(dinamik türler, listeler, sözlükler, sınıflar, f-dizgeleri, `try`/`except`) `piton/pitonca.nehir`
+kitaplığındadır.
+
+```bash
+python3 nehir.py piton/piton.nehir -o piton
+./piton program.py --çalıştır
+```
+
+`piton/sinamalar/` altındaki programlar (Sudoku çözücü, sınıflar ve kalıtım, kapanışlar, 250'den çok
+biçim belirteci, istisnalar, ...) CPython'la bayt bayt aynı çıktıyı verir. Desteklenenler ve
+desteklenmeyenler: `piton/BENIOKU.md`.
 
 ## Sınamalar
 

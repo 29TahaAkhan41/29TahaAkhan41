@@ -1,0 +1,3 @@
+piton/sinamalar/hatalar/fazla_arguman.py:4:9: hata: TypeError: f() en çok 2 konumlu argüman alır
+    4 | f(1, 2, 3)
+      |         ^

@@ -1,0 +1,2994 @@
+# ≈≈≈ PİTON: Nehir ile yazılmış Python derleyicisi ≈≈≈
+#
+# Python programlarını (geniş bir alt kümesini) bağımsız çalıştırılabilir dosyalara derler:
+#
+#   piton [--hedef linux|windows] [-o çıktı] [--nehir] [--asm] [--çalıştır] program.py [-- argümanlar]
+#
+# Aşamalar: Python kaynağı sözcüklere, sözcükler sözdizimi ağacına ayrılır; ağaç, her Python satırı
+# aynı numaralı satıra düşecek biçimde Nehir koduna çevrilir. Bu kod aynı süreç içinde, Nehir ile
+# yazılmış Nehir derleyicisinin (kendi/) aşamalarından geçirilip x86-64 assembly'sine dönüştürülür;
+# sonra birleştirici ve bağlayıcı çağrılır. Python değerlerinin davranışı (dinamik türler, int ve
+# float aritmetiği, listeler, sözlükler, sınıflar, f-dizgeleri, hata mesajları) piton/pitonca.nehir
+# kitaplığındadır.
+#
+#   --nehir      yalnızca üretilen Nehir kodunu yaz (program.nehir)
+#   --asm        assembly dosyasını (.s) da bırak
+#   --çalıştır   derledikten sonra çalıştır; "--" sonrası programa argüman olarak verilir
+
+kullan "../kendi/kod_uretici.nehir"
+
+kayıt PySöz { tür: metin, d: metin, satır: sayı, sütun: sayı, son: sayı, ön: metin }
+kayıt PyD { tür: metin, d: metin, ç: [PyD], satır: sayı, sütun: sayı, son: sayı }
+kayıt PyKapsam {
+    tür: metin,                  # "modül", "işlev", "kaldırılmış" (kavrama, koşullu ifade), "kapanış" (lambda, iç işlev)
+    yereller: {metin: sayı},
+    küresel: {metin: sayı},      # 'global' ile bildirilenler
+    yakalanan: [metin],          # dış işlevden alınan yereller (kaldırılmış ve kapanış kapsamlarında)
+    üst: PyKapsam,
+    sınıf: metin,
+    ilk_param: metin,
+    işlev_adı: metin,
+    döngü: sayı,
+    kaçış_döngü: [sayı],         # etkin try'lar: açıldıkları döngü derinliği,
+    kaçış_sayı: [sayı],          # o anda kayıtlı kaçış noktası sayısı,
+    kaçış_son: [PyD],            # finally bloğu (yoksa "boş")
+    istisna: metin               # except içinde: yakalanan istisnanın geçici adı
+}
+
+"" -> ortak py_yol
+"" -> ortak py_kaynak
+
+# ── hata bildirimi ──
+
+işlev py_hata(mesaj, satır, sütun, ipucu) {
+    bildir("hata", mesaj, 0, satır, sütun, 1, ipucu)
+    çık(1)
+}
+işlev py_hata_d(mesaj, d) { py_hata(mesaj, d.satır, d.sütun, "") }
+işlev py_desteklenmiyor(ne, d) {
+    py_hata("Piton bunu henüz desteklemiyor: " + ne, d.satır, d.sütun,
+            "desteklenenlerin listesi için: piton/BENIOKU.md")
+}
+
+# ══════════════════════ SÖZCÜKLEYİCİ ══════════════════════
+
+["False", "None", "True", "and", "as", "assert", "async", "await", "break", "class", "continue", "def", "del",
+ "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal",
+ "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"] -> PY_ANAHTARLAR
+
+["**=", "//=", ">>=", "<<=", "...", "->", ":=", "**", "//", ">>", "<<", "<=", ">=", "==", "!=", "+=", "-=", "*=",
+ "/=", "%=", "&=", "|=", "^=", "@=", "+", "-", "*", "/", "%", "@", "&", "|", "^", "~", "<", ">", "(", ")", "[",
+ "]", "{", "}", ",", ":", ".", ";", "=", "!"] -> PY_İŞLEÇLER
+
+işlev py_sil(s, a) { var(s, a) -> eğer { sil(s, a) } }
+
+işlev py_anahtar_mı(ad) { bul(PY_ANAHTARLAR, ad) >= 0 -> döndür }
+
+işlev py_onaltılık_değeri(k) { bul("0123456789abcdef", k) -> döndür }
+
+# Kaçış dizilerini çözer: "\n", "\x41", "ç", ...
+işlev py_kaçış_çöz(m, satır, sütun) {
+    bul(m, "\\") < 0 -> eğer { m -> döndür }
+    [] -> parçalar
+    uzunluk(m) -> n
+    0 -> i
+    i < n -> iken {
+        m[i] -> k
+        k != "\\" veya i + 1 >= n -> eğer { parçalar -> ekle(k); i + 1 -> i; devam }
+        m[i + 1] -> e
+        i + 2 -> i
+        e == "n" -> eğer { parçalar -> ekle("\n"); devam }
+        e == "t" -> eğer { parçalar -> ekle("\t"); devam }
+        e == "r" -> eğer { parçalar -> ekle("\r"); devam }
+        e == "\\" -> eğer { parçalar -> ekle("\\"); devam }
+        e == "'" veya e == "\"" -> eğer { parçalar -> ekle(e); devam }
+        e == "\n" -> eğer { devam }
+        e == "a" -> eğer { parçalar -> ekle(karakter(7)); devam }
+        e == "b" -> eğer { parçalar -> ekle(karakter(8)); devam }
+        e == "f" -> eğer { parçalar -> ekle(karakter(12)); devam }
+        e == "v" -> eğer { parçalar -> ekle(karakter(11)); devam }
+        e >= "0" ve e <= "7" -> eğer {
+            bul("01234567", e) -> kod
+            0 -> j
+            j < 2 ve i < n ve m[i] >= "0" ve m[i] <= "7" -> iken { kod * 8 + bul("01234567", m[i]) -> kod; i + 1 -> i; j + 1 -> j }
+            parçalar -> ekle(karakter(kod))
+            devam
+        }
+        e == "x" veya e == "u" veya e == "U" -> eğer {
+            2 -> basamak
+            e == "u" -> eğer { 4 -> basamak }
+            e == "U" -> eğer { 8 -> basamak }
+            0 -> kod
+            0 -> j
+            j < basamak -> iken {
+                i >= n -> eğer { py_hata("sözdizimi hatası: \\" + e + " kaçışı eksik", satır, sütun, "") }
+                py_onaltılık_değeri(küçült(m[i])) -> r
+                r < 0 -> eğer { py_hata("sözdizimi hatası: \\" + e + " kaçışında geçersiz rakam", satır, sütun, "") }
+                kod * 16 + r -> kod
+                i + 1 -> i
+                j + 1 -> j
+            }
+            kod > 1114111 -> eğer { py_hata("sözdizimi hatası: geçersiz Unicode kaçışı", satır, sütun, "") }
+            parçalar -> ekle(karakter(kod))
+            devam
+        }
+        e == "N" -> eğer { py_hata("Piton \\N{...} kaçışını desteklemiyor", satır, sütun, "") }
+        parçalar -> ekle("\\" + e)
+    }
+    birleş(parçalar, "") -> döndür
+}
+
+işlev küçült(k) {
+    k >= "A" ve k <= "Z" -> eğer { "abcdefghijklmnopqrstuvwxyz"[bul("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k)] -> döndür }
+    k -> döndür
+}
+
+# Ondalık rakam dizisi 64 bitlik tam sayıya sığıyor mu? (en çok 2^63; 2^63 yalnızca eksiyle)
+işlev py_tam_sığar(rakamlar) {
+    uzunluk(rakamlar) < 19 -> eğer { 1 -> döndür }
+    uzunluk(rakamlar) > 19 -> eğer { 0 -> döndür }
+    rakamlar <= "9223372036854775808" -> döndür
+}
+
+# Taban öneki olan bir tam sayıyı ondalık rakamlara çevirir
+işlev py_tabanlı_sayı(rakamlar, taban_, satır, sütun) {
+    0 -> n
+    rakamlar -> her (k) {
+        py_onaltılık_değeri(küçült(k)) -> r
+        r < 0 veya r >= taban_ -> eğer { py_hata("sözdizimi hatası: geçersiz sayı yazımı", satır, sütun, "") }
+        n > (9223372036854775807 - r) / taban_ -> eğer {
+            py_hata("Piton'da tam sayılar 64 bitliktir; bu sayı sığmıyor", satır, sütun, "")
+        }
+        n * taban_ + r -> n
+    }
+    metne(n) -> döndür
+}
+
+işlev py_sözcükle(kaynak, ilk_satır) {
+    böl(kaynak, "") -> kr
+    uzunluk(kr) -> n
+    [PySöz("", "", 0, 0, 0, "")] -> sözler
+    dilim(sözler, 0, 0) -> sözler
+    [0] -> girintiler
+    0 -> derinlik
+    ilk_satır -> satır
+    0 -> satır_başı
+    1 -> satır_başında
+    0 -> i
+    i < n -> iken {
+        satır_başında ve derinlik == 0 -> eğer {
+            0 -> sütun_
+            i -> j
+            j < n ve (kr[j] == " " veya kr[j] == "\t" veya kr[j] == karakter(12)) -> iken {
+                kr[j] == "\t" -> eğer { (sütun_ / 8 + 1) * 8 -> sütun_ } değilse { sütun_ + 1 -> sütun_ }
+                j + 1 -> j
+            }
+            j >= n -> eğer { j -> i; dur }
+            kr[j] == "\n" -> eğer { j + 1 -> i; satır + 1 -> satır; i -> satır_başı; devam }
+            kr[j] == "#" -> eğer {
+                j < n ve kr[j] != "\n" -> iken { j + 1 -> j }
+                j -> i
+                devam
+            }
+            j -> i
+            0 -> satır_başında
+            girintiler[uzunluk(girintiler) - 1] -> şimdiki
+            sütun_ > şimdiki -> eğer {
+                girintiler -> ekle(sütun_)
+                sözler -> ekle(PySöz("girinti", "", satır, i - satır_başı + 1, satır, ""))
+            } değilse {
+                sütun_ < şimdiki -> iken {
+                    sil(girintiler, uzunluk(girintiler) - 1)
+                    sözler -> ekle(PySöz("çıkıntı", "", satır, i - satır_başı + 1, satır, ""))
+                    girintiler[uzunluk(girintiler) - 1] -> şimdiki
+                }
+                sütun_ != şimdiki -> eğer {
+                    py_hata("girinti hatası: girinti, dıştaki hiçbir bloğun girintisine uymuyor", satır, 1, "")
+                }
+            }
+        }
+        kr[i] -> k
+        i - satır_başı + 1 -> sütun
+        k == " " veya k == "\t" veya k == karakter(12) -> eğer { i + 1 -> i; devam }
+        k == "\n" -> eğer {
+            derinlik == 0 ve uzunluk(sözler) > 0 ve sözler[uzunluk(sözler) - 1].tür != "yeni" ve sözler[uzunluk(sözler) - 1].tür != "girinti" ve sözler[uzunluk(sözler) - 1].tür != "çıkıntı" -> eğer {
+                sözler -> ekle(PySöz("yeni", "", satır, sütun, satır, ""))
+            }
+            satır + 1 -> satır
+            i + 1 -> i
+            i -> satır_başı
+            1 -> satır_başında
+            devam
+        }
+        k == "#" -> eğer {
+            i < n ve kr[i] != "\n" -> iken { i + 1 -> i }
+            devam
+        }
+        k == "\\" -> eğer {
+            i + 1 < n ve kr[i + 1] == "\n" -> eğer {
+                satır + 1 -> satır
+                i + 2 -> i
+                i -> satır_başı
+                devam
+            }
+            py_hata("sözdizimi hatası: satır devamı karakterinden sonra beklenmeyen karakter", satır, sütun, "")
+        }
+        # adlar ve dizge önekleri
+        harf_mi(k) veya k == "_" -> eğer {
+            i -> b
+            i < n ve (harf_rakam_mı(kr[i]) veya kr[i] == "_") -> iken { i + 1 -> i }
+            birleş(dilim(kr, b, i), "") -> ad
+            küçült_hepsi(ad) -> önek_küçük
+            i < n ve (kr[i] == "\"" veya kr[i] == "'") ve uzunluk(ad) <= 2 ve bul(["r", "u", "f", "b", "rb", "br", "fr", "rf"], önek_küçük) >= 0 -> eğer {
+                # dizge: aşağıda okunur
+            } değilse {
+                sözler -> ekle(PySöz("ad", ad, satır, sütun, satır, ""))
+                devam
+            }
+        }
+        k == "\"" veya k == "'" veya harf_mi(k) -> eğer {
+            i -> j
+            j > 0 ve j - 1 >= satır_başı ve harf_mi(kr[j - 1]) -> iken { j - 1 -> j }
+            küçült_hepsi(birleş(dilim(kr, j, i), "")) -> önek
+            sütun - (i - j) -> sütun
+            kr[i] -> tırnak
+            1 -> üçlü
+            i + 2 < n ve kr[i + 1] == tırnak ve kr[i + 2] == tırnak -> eğer { 3 -> üçlü }
+            i + üçlü -> i
+            bul(önek, "r") >= 0 -> ham
+            satır -> baş_satır
+            i -> b
+            0 -> bitti
+            i < n -> iken {
+                kr[i] == "\\" ve değil ham -> eğer {
+                    i + 1 < n ve kr[i + 1] == "\n" -> eğer { satır + 1 -> satır; i + 2 -> i; i -> satır_başı; devam }
+                    i + 2 -> i
+                    devam
+                }
+                kr[i] == "\\" ve ham -> eğer { i + 2 -> i; devam }
+                kr[i] == "\n" -> eğer {
+                    üçlü == 1 -> eğer { py_hata("sözdizimi hatası: dizge kapatılmadan satır bitti", baş_satır, sütun, "") }
+                    satır + 1 -> satır
+                    i + 1 -> i
+                    i -> satır_başı
+                    devam
+                }
+                kr[i] == tırnak ve (üçlü == 1 veya (i + 2 < n ve kr[i + 1] == tırnak ve kr[i + 2] == tırnak)) -> eğer {
+                    1 -> bitti
+                    dur
+                }
+                i + 1 -> i
+            }
+            değil bitti -> eğer { py_hata("sözdizimi hatası: dizge kapatılmamış", baş_satır, sütun, "") }
+            birleş(dilim(kr, b, i), "") -> ham_metin
+            i + üçlü -> i
+            bul(önek, "b") >= 0 -> eğer { py_hata("Piton bytes (b\"...\") türünü desteklemiyor", baş_satır, sütun, "") }
+            bul(önek, "f") >= 0 -> eğer {
+                sözler -> ekle(PySöz("fmetin", ham_metin, baş_satır, sütun, satır, önek))
+            } değilse {
+                ham_metin -> değer_
+                değil ham -> eğer { py_kaçış_çöz(ham_metin, baş_satır, sütun) -> değer_ }
+                sözler -> ekle(PySöz("metin", değer_, baş_satır, sütun, satır, önek))
+            }
+            devam
+        }
+        # sayılar
+        rakam_mı(k) veya (k == "." ve i + 1 < n ve rakam_mı(kr[i + 1])) -> eğer {
+            i -> b
+            k == "0" ve i + 1 < n ve bul("xXoObB", kr[i + 1]) >= 0 -> eğer {
+                küçült(kr[i + 1]) -> harf
+                16 -> taban_
+                harf == "o" -> eğer { 8 -> taban_ }
+                harf == "b" -> eğer { 2 -> taban_ }
+                i + 2 -> i
+                [] -> rakamlar
+                i < n ve (harf_rakam_mı(kr[i]) veya kr[i] == "_") -> iken {
+                    kr[i] != "_" -> eğer { rakamlar -> ekle(kr[i]) }
+                    i + 1 -> i
+                }
+                uzunluk(rakamlar) == 0 -> eğer { py_hata("sözdizimi hatası: geçersiz sayı yazımı", satır, sütun, "") }
+                sözler -> ekle(PySöz("sayı", py_tabanlı_sayı(birleş(rakamlar, ""), taban_, satır, sütun), satır, sütun, satır, ""))
+                devam
+            }
+            [] -> rakamlar
+            0 -> ondalık_mı
+            i < n ve (rakam_mı(kr[i]) veya kr[i] == "_") -> iken {
+                kr[i] != "_" -> eğer { rakamlar -> ekle(kr[i]) }
+                i + 1 -> i
+            }
+            i < n ve kr[i] == "." -> eğer {
+                1 -> ondalık_mı
+                rakamlar -> ekle(".")
+                i + 1 -> i
+                i < n ve (rakam_mı(kr[i]) veya kr[i] == "_") -> iken {
+                    kr[i] != "_" -> eğer { rakamlar -> ekle(kr[i]) }
+                    i + 1 -> i
+                }
+            }
+            i < n ve (kr[i] == "e" veya kr[i] == "E") ve i + 1 < n ve (rakam_mı(kr[i + 1]) veya ((kr[i + 1] == "+" veya kr[i + 1] == "-") ve i + 2 < n ve rakam_mı(kr[i + 2]))) -> eğer {
+                1 -> ondalık_mı
+                rakamlar -> ekle("e")
+                i + 1 -> i
+                kr[i] == "+" veya kr[i] == "-" -> eğer { rakamlar -> ekle(kr[i]); i + 1 -> i }
+                i < n ve (rakam_mı(kr[i]) veya kr[i] == "_") -> iken {
+                    kr[i] != "_" -> eğer { rakamlar -> ekle(kr[i]) }
+                    i + 1 -> i
+                }
+            }
+            i < n ve (kr[i] == "j" veya kr[i] == "J") -> eğer { py_hata("Piton karmaşık sayıları desteklemiyor", satır, sütun, "") }
+            i < n ve (harf_mi(kr[i]) veya kr[i] == "_") -> eğer { py_hata("sözdizimi hatası: geçersiz sayı yazımı", satır, sütun, "") }
+            birleş(rakamlar, "") -> yazım
+            ondalık_mı -> eğer {
+                yazım[0] == "." -> eğer { "0" + yazım -> yazım }
+                bul(yazım, ".e") >= 0 -> eğer { birleş(böl(yazım, ".e"), ".0e") -> yazım }
+                yazım[uzunluk(yazım) - 1] == "." -> eğer { yazım + "0" -> yazım }
+                sözler -> ekle(PySöz("ondalık", yazım, satır, sütun, satır, ""))
+            } değilse {
+                uzunluk(yazım) > 1 ve yazım[0] == "0" -> eğer {
+                    0 -> sıfır_değil
+                    yazım -> her (r) { r != "0" -> eğer { 1 -> sıfır_değil } }
+                    sıfır_değil -> eğer { py_hata("sözdizimi hatası: sıfırla başlayan ondalık tam sayılar yazılamaz; sekizlik için 0o kullanın", satır, sütun, "") }
+                    "0" -> yazım
+                }
+                değil py_tam_sığar(yazım) -> eğer { py_hata("Piton'da tam sayılar 64 bitliktir; bu sayı sığmıyor", satır, sütun, "") }
+                sözler -> ekle(PySöz("sayı", yazım, satır, sütun, satır, ""))
+            }
+            devam
+        }
+        # işleçler
+        "" -> bulunan_
+        PY_İŞLEÇLER -> her (op) {
+            bulunan_ == "" ve i + uzunluk(op) <= n ve birleş(dilim(kr, i, i + uzunluk(op)), "") == op -> eğer { op -> bulunan_ }
+        }
+        bulunan_ == "" -> eğer { py_hata("sözdizimi hatası: beklenmeyen karakter " + temsil(k), satır, sütun, "") }
+        bulunan_ == "(" veya bulunan_ == "[" veya bulunan_ == "{" -> eğer { derinlik + 1 -> derinlik }
+        bulunan_ == ")" veya bulunan_ == "]" veya bulunan_ == "}" -> eğer { en_büyük(derinlik - 1, 0) -> derinlik }
+        sözler -> ekle(PySöz("işleç", bulunan_, satır, sütun, satır, ""))
+        i + uzunluk(bulunan_) -> i
+    }
+    uzunluk(sözler) > 0 ve sözler[uzunluk(sözler) - 1].tür != "yeni" ve sözler[uzunluk(sözler) - 1].tür != "çıkıntı" -> eğer {
+        sözler -> ekle(PySöz("yeni", "", satır, 1, satır, ""))
+    }
+    uzunluk(girintiler) > 1 -> iken {
+        sil(girintiler, uzunluk(girintiler) - 1)
+        sözler -> ekle(PySöz("çıkıntı", "", satır, 1, satır, ""))
+    }
+    sözler -> ekle(PySöz("son", "", satır, 1, satır, ""))
+    sözler -> döndür
+}
+
+işlev küçült_hepsi(m) {
+    "" -> r
+    m -> her (k) { r + küçült(k) -> r }
+    r -> döndür
+}
+
+# ══════════════════════ AYRIŞTIRICI ══════════════════════
+
+[PySöz("son", "", 0, 0, 0, "")] -> ortak py_s
+0 -> ortak py_i
+0 -> ortak py_son_satır
+
+işlev py_şimdiki() { py_s[py_i] -> döndür }
+işlev py_ileri() {
+    py_s[py_i] -> s
+    s.tür != "son" -> eğer { py_i + 1 -> py_i }
+    s.son -> py_son_satır
+    s -> döndür
+}
+işlev py_mi(tür, d) {
+    py_s[py_i] -> s
+    s.tür == tür ve (d == "" veya s.d == d) -> döndür
+}
+işlev py_op_mu(d) { py_mi("işleç", d) -> döndür }
+işlev py_kelime_mi(d) { py_mi("ad", d) -> döndür }
+işlev py_ad_mı() { py_mi("ad", "") ve değil py_anahtar_mı(py_şimdiki().d) -> döndür }
+
+işlev py_söz_adı(s) {
+    s.tür == "yeni" -> eğer { "satır sonu" -> döndür }
+    s.tür == "son" -> eğer { "dosya sonu" -> döndür }
+    s.tür == "girinti" -> eğer { "girinti" -> döndür }
+    s.tür == "çıkıntı" -> eğer { "girintinin bitişi" -> döndür }
+    s.tür == "metin" veya s.tür == "fmetin" -> eğer { "dizge" -> döndür }
+    "'" + s.d + "'" -> döndür
+}
+
+0 -> ortak py_f_sütun     # f-dizgesindeki bir ifade ayrıştırılırken dizgenin sütunu
+
+işlev py_beklenmedik(ne) {
+    py_şimdiki() -> s
+    py_f_sütun > 0 -> eğer { py_hata("sözdizimi hatası: f-dizgesindeki ifadede " + ne + " bekleniyordu, " + py_söz_adı(s) + " bulundu", s.satır, py_f_sütun, "") }
+    py_hata("sözdizimi hatası: " + ne + " bekleniyordu, " + py_söz_adı(s) + " bulundu", s.satır, s.sütun, "")
+}
+işlev py_op_bekle(d) {
+    py_op_mu(d) -> eğer { py_ileri() -> döndür }
+    py_beklenmedik("'" + d + "'")
+}
+işlev py_kelime_bekle(d) {
+    py_kelime_mi(d) -> eğer { py_ileri() -> döndür }
+    py_beklenmedik("'" + d + "'")
+}
+işlev py_ad_bekle() {
+    py_ad_mı() -> eğer { py_ileri() -> döndür }
+    py_beklenmedik("bir ad")
+}
+
+işlev py_d(tür, d, s) { PyD(tür, d, [], s.satır, s.sütun, s.son) -> döndür }
+işlev py_dd(tür, d, a) { PyD(tür, d, [], a.satır, a.sütun, a.son) -> döndür }
+işlev py_boş(s) { py_d("boş", "", s) -> döndür }
+
+# Bir ifadenin başlayabileceği sözcük mü?
+işlev py_ifade_başı_mı() {
+    py_şimdiki() -> s
+    s.tür == "ad" -> eğer {
+        değil py_anahtar_mı(s.d) -> eğer { 1 -> döndür }
+        bul(["None", "True", "False", "not", "lambda", "await"], s.d) >= 0 -> döndür
+    }
+    s.tür == "sayı" veya s.tür == "ondalık" veya s.tür == "metin" veya s.tür == "fmetin" -> eğer { 1 -> döndür }
+    s.tür == "işleç" -> eğer { bul(["(", "[", "{", "-", "+", "~", "*", "..."], s.d) >= 0 -> döndür }
+    0 -> döndür
+}
+
+işlev py_dosya_ayrıştır() {
+    py_d("modül", "", py_şimdiki()) -> kök
+    değil py_mi("son", "") -> iken {
+        py_mi("yeni", "") -> eğer { py_ileri(); devam }
+        py_deyim_ayrıştır(kök)
+    }
+    kök -> döndür
+}
+
+işlev py_blok_ayrıştır() {
+    py_d("blok", "", py_şimdiki()) -> b
+    py_mi("yeni", "") -> eğer {
+        py_ileri()
+        değil py_mi("girinti", "") -> eğer { py_beklenmedik("girintili bir blok") }
+        py_ileri()
+        değil py_mi("çıkıntı", "") ve değil py_mi("son", "") -> iken {
+            py_mi("yeni", "") -> eğer { py_ileri(); devam }
+            py_deyim_ayrıştır(b)
+        }
+        py_mi("çıkıntı", "") -> eğer { py_ileri() }
+    } değilse {
+        py_basitleri_ayrıştır(b)
+    }
+    uzunluk(b.ç) > 0 -> eğer {
+        b.ç[0].satır -> b.satır
+        b.ç[uzunluk(b.ç) - 1].son -> b.son
+    }
+    b -> döndür
+}
+
+işlev py_basitleri_ayrıştır(üst_) {
+    doğru -> iken {
+        py_basit_ayrıştır() -> d
+        py_son_satır -> d.son
+        üst_.ç -> ekle(d)
+        py_op_mu(";") -> eğer {
+            py_ileri()
+            py_mi("yeni", "") veya py_mi("son", "") -> eğer { dur }
+            devam
+        }
+        dur
+    }
+    py_mi("son", "") -> eğer { 0 -> döndür }
+    değil py_mi("yeni", "") -> eğer { py_beklenmedik("satır sonu") }
+    py_ileri()
+}
+
+işlev py_deyim_ayrıştır(üst_) {
+    py_şimdiki() -> s
+    s.tür == "girinti" -> eğer { py_hata("girinti hatası: beklenmeyen girinti", s.satır, s.sütun, "") }
+    s.tür == "ad" -> eğer {
+        s.d == "if" -> eğer { üst_.ç -> ekle(py_eğer_ayrıştır()); 0 -> döndür }
+        s.d == "while" -> eğer {
+            py_ileri()
+            py_d("iken", "", s) -> d
+            d.ç -> ekle(py_ad_ifadesi_ayrıştır())
+            py_op_bekle(":")
+            py_blok_ayrıştır() -> gövde
+            d.ç -> ekle(gövde)
+            gövde.son -> d.son
+            py_kelime_mi("else") -> eğer { py_desteklenmiyor("while ... else", py_şimdiki()) }
+            üst_.ç -> ekle(d)
+            0 -> döndür
+        }
+        s.d == "for" -> eğer {
+            py_ileri()
+            py_d("için", "", s) -> d
+            d.ç -> ekle(py_hedef_listesi_ayrıştır())
+            py_kelime_bekle("in")
+            d.ç -> ekle(py_ifadeler_ayrıştır())
+            py_op_bekle(":")
+            py_blok_ayrıştır() -> gövde
+            d.ç -> ekle(gövde)
+            gövde.son -> d.son
+            py_kelime_mi("else") -> eğer { py_desteklenmiyor("for ... else", py_şimdiki()) }
+            üst_.ç -> ekle(d)
+            0 -> döndür
+        }
+        s.d == "def" -> eğer { üst_.ç -> ekle(py_işlev_ayrıştır(py_d("süsler", "", s))); 0 -> döndür }
+        s.d == "class" -> eğer { üst_.ç -> ekle(py_sınıf_ayrıştır()); 0 -> döndür }
+        s.d == "with" -> eğer {
+            py_ileri()
+            py_d("ile", "", s) -> d
+            d.ç -> ekle(py_test_ayrıştır())
+            py_kelime_mi("as") -> eğer { py_ileri(); d.ç -> ekle(py_hedef_listesi_ayrıştır()) } değilse { d.ç -> ekle(py_boş(s)) }
+            py_op_mu(",") -> eğer { py_desteklenmiyor("birden çok öğeli with", py_şimdiki()) }
+            py_op_bekle(":")
+            py_blok_ayrıştır() -> gövde
+            d.ç -> ekle(gövde)
+            gövde.son -> d.son
+            üst_.ç -> ekle(d)
+            0 -> döndür
+        }
+        s.d == "try" -> eğer { üst_.ç -> ekle(py_dene_ayrıştır()); 0 -> döndür }
+        s.d == "async" -> eğer { py_desteklenmiyor("async", s) }
+    }
+    s.tür == "işleç" ve s.d == "@" -> eğer {
+        py_d("süsler", "", s) -> süsler
+        py_op_mu("@") -> iken {
+            py_ileri()
+            süsler.ç -> ekle(py_test_ayrıştır())
+            değil py_mi("yeni", "") -> eğer { py_beklenmedik("satır sonu") }
+            py_ileri()
+        }
+        py_kelime_mi("def") -> eğer { üst_.ç -> ekle(py_işlev_ayrıştır(süsler)); 0 -> döndür }
+        py_kelime_mi("class") -> eğer { py_desteklenmiyor("sınıf süsleyicileri", s) }
+        py_beklenmedik("'def'")
+    }
+    py_basitleri_ayrıştır(üst_)
+}
+
+işlev py_dene_ayrıştır() {
+    py_ileri() -> s
+    py_op_bekle(":")
+    py_d("dene", "", s) -> d
+    py_blok_ayrıştır() -> gövde
+    d.ç -> ekle(gövde)
+    gövde.son -> d.son
+    py_d("işleyiciler", "", s) -> işleyiciler
+    py_kelime_mi("except") -> iken {
+        py_ileri() -> es
+        py_op_mu("*") -> eğer { py_desteklenmiyor("except*", es) }
+        py_d("işleyici", "", es) -> h
+        py_op_mu(":") -> eğer { h.ç -> ekle(py_boş(es)) } değilse {
+            h.ç -> ekle(py_test_ayrıştır())
+            py_kelime_mi("as") -> eğer { py_ileri(); py_ad_bekle().d -> h.d }
+        }
+        py_op_bekle(":")
+        py_blok_ayrıştır() -> hb
+        h.ç -> ekle(hb)
+        hb.son -> h.son
+        es.satır -> h.satır
+        işleyiciler.ç -> ekle(h)
+        hb.son -> d.son
+    }
+    d.ç -> ekle(işleyiciler)
+    py_boş(s) -> değilse_
+    py_kelime_mi("else") -> eğer {
+        uzunluk(işleyiciler.ç) == 0 -> eğer { py_beklenmedik("'except'") }
+        py_ileri() -> es
+        py_op_bekle(":")
+        py_blok_ayrıştır() -> değilse_
+        es.satır -> değilse_.satır
+        değilse_.son -> d.son
+    }
+    d.ç -> ekle(değilse_)
+    py_boş(s) -> sonunda
+    py_kelime_mi("finally") -> eğer {
+        py_ileri() -> es
+        py_op_bekle(":")
+        py_blok_ayrıştır() -> sonunda
+        es.satır -> sonunda.satır
+        sonunda.son -> d.son
+    }
+    d.ç -> ekle(sonunda)
+    uzunluk(işleyiciler.ç) == 0 ve sonunda.tür == "boş" -> eğer { py_beklenmedik("'except' ya da 'finally'") }
+    d -> döndür
+}
+
+işlev py_eğer_ayrıştır() {
+    py_ileri() -> s
+    py_d("eğer", "", s) -> d
+    d.ç -> ekle(py_ad_ifadesi_ayrıştır())
+    py_op_bekle(":")
+    py_blok_ayrıştır() -> gövde
+    d.ç -> ekle(gövde)
+    gövde.son -> d.son
+    py_kelime_mi("elif") -> eğer {
+        py_boş(s) -> e
+        py_eğer_ayrıştır() -> e
+        "elif" -> e.d
+        d.ç -> ekle(e)
+        e.son -> d.son
+    } değilse { py_kelime_mi("else") -> eğer {
+        py_ileri() -> es
+        py_op_bekle(":")
+        py_blok_ayrıştır() -> değilse_
+        es.satır -> değilse_.satır
+        "else" -> değilse_.d
+        d.ç -> ekle(değilse_)
+        değilse_.son -> d.son
+    } }
+    d -> döndür
+}
+
+işlev py_parametreler_ayrıştır(kapanış) {
+    py_d("parametreler", "", py_şimdiki()) -> p
+    0 -> yıldız_görüldü
+    değil py_op_mu(kapanış) -> iken {
+        py_şimdiki() -> s
+        py_op_mu("/") -> eğer { py_ileri() }
+        değilse { py_op_mu("**") -> eğer {
+            py_ileri()
+            py_d("çift", py_ad_bekle().d, s) -> pd
+            p.ç -> ekle(pd)
+        } değilse { py_op_mu("*") -> eğer {
+            py_ileri()
+            py_ad_mı() -> eğer { p.ç -> ekle(py_d("yıldız", py_ileri().d, s)) } değilse { p.ç -> ekle(py_d("yıldız", "", s)) }
+            1 -> yıldız_görüldü
+        } değilse {
+            py_ad_bekle() -> ad_
+            py_d("param", ad_.d, ad_) -> pd
+            yıldız_görüldü -> eğer { "kw" -> pd.tür }
+            py_op_mu(":") ve kapanış == ")" -> eğer { py_ileri(); py_test_ayrıştır() }
+            py_op_mu("=") -> eğer { py_ileri(); pd.ç -> ekle(py_test_ayrıştır()) }
+            p.ç -> ekle(pd)
+        } } }
+        py_op_mu(",") -> eğer { py_ileri() } değilse { dur }
+    }
+    p -> döndür
+}
+
+işlev py_işlev_ayrıştır(süsler) {
+    py_kelime_bekle("def") -> s
+    py_ad_bekle() -> ad_
+    py_d("işlev", ad_.d, s) -> d
+    py_op_bekle("(")
+    d.ç -> ekle(py_parametreler_ayrıştır(")"))
+    py_op_bekle(")")
+    py_op_mu("->") -> eğer { py_ileri(); py_test_ayrıştır() }
+    py_op_bekle(":")
+    py_blok_ayrıştır() -> gövde
+    d.ç -> ekle(gövde)
+    d.ç -> ekle(süsler)
+    gövde.son -> d.son
+    s.satır -> d.satır
+    d -> döndür
+}
+
+işlev py_sınıf_ayrıştır() {
+    py_kelime_bekle("class") -> s
+    py_ad_bekle() -> ad_
+    py_d("sınıf", ad_.d, s) -> d
+    py_d("tabanlar", "", s) -> tabanlar
+    py_op_mu("(") -> eğer {
+        py_ileri()
+        değil py_op_mu(")") -> iken {
+            tabanlar.ç -> ekle(py_test_ayrıştır())
+            py_op_mu(",") -> eğer { py_ileri() } değilse { dur }
+        }
+        py_op_bekle(")")
+    }
+    py_op_bekle(":")
+    d.ç -> ekle(tabanlar)
+    py_blok_ayrıştır() -> gövde
+    d.ç -> ekle(gövde)
+    gövde.son -> d.son
+    d -> döndür
+}
+
+işlev py_basit_ayrıştır() {
+    py_şimdiki() -> s
+    s.tür == "ad" -> eğer {
+        s.d == "pass" -> eğer { py_ileri(); py_d("geç", "", s) -> döndür }
+        s.d == "break" -> eğer { py_ileri(); py_d("dur", "", s) -> döndür }
+        s.d == "continue" -> eğer { py_ileri(); py_d("devam", "", s) -> döndür }
+        s.d == "return" -> eğer {
+            py_ileri()
+            py_d("döndür", "", s) -> d
+            py_ifade_başı_mı() -> eğer { d.ç -> ekle(py_ifadeler_ayrıştır()) }
+            d -> döndür
+        }
+        s.d == "global" -> eğer {
+            py_ileri()
+            py_d("küresel", "", s) -> d
+            doğru -> iken {
+                py_ad_bekle() -> a_
+                d.ç -> ekle(py_d("ad", a_.d, a_))
+                py_op_mu(",") -> eğer { py_ileri() } değilse { dur }
+            }
+            d -> döndür
+        }
+        s.d == "nonlocal" -> eğer { py_desteklenmiyor("nonlocal", s) }
+        s.d == "del" -> eğer {
+            py_ileri()
+            py_d("sil", "", s) -> d
+            doğru -> iken {
+                d.ç -> ekle(py_bitveya_ayrıştır())
+                py_op_mu(",") -> eğer { py_ileri() } değilse { dur }
+            }
+            d -> döndür
+        }
+        s.d == "assert" -> eğer {
+            py_ileri()
+            py_d("doğrula", "", s) -> d
+            d.ç -> ekle(py_test_ayrıştır())
+            py_op_mu(",") -> eğer { py_ileri(); d.ç -> ekle(py_test_ayrıştır()) }
+            d -> döndür
+        }
+        s.d == "raise" -> eğer {
+            py_ileri()
+            py_d("fırlat", "", s) -> d
+            py_ifade_başı_mı() -> eğer { d.ç -> ekle(py_test_ayrıştır()) }
+            py_kelime_mi("from") -> eğer { py_ileri(); py_test_ayrıştır() }
+            d -> döndür
+        }
+        s.d == "import" -> eğer {
+            py_ileri()
+            py_d("içe_aktar", "", s) -> d
+            doğru -> iken {
+                py_ad_bekle() -> m_
+                m_.d -> modül_adı
+                py_op_mu(".") -> iken { py_ileri(); modül_adı + "." + py_ad_bekle().d -> modül_adı }
+                modül_adı -> takma
+                py_kelime_mi("as") -> eğer { py_ileri(); py_ad_bekle().d -> takma }
+                py_d("modül", modül_adı, m_) -> md
+                md.ç -> ekle(py_d("ad", takma, m_))
+                d.ç -> ekle(md)
+                py_op_mu(",") -> eğer { py_ileri() } değilse { dur }
+            }
+            d -> döndür
+        }
+        s.d == "from" -> eğer {
+            py_ileri()
+            py_ad_bekle() -> m_
+            m_.d -> modül_adı
+            py_op_mu(".") -> iken { py_ileri(); modül_adı + "." + py_ad_bekle().d -> modül_adı }
+            py_kelime_bekle("import")
+            py_d("içinden", modül_adı, s) -> d
+            0 -> parantez
+            py_op_mu("(") -> eğer { py_ileri(); 1 -> parantez }
+            py_op_mu("*") -> eğer { py_ileri(); d.ç -> ekle(py_d("hepsi", "*", s)); d -> döndür }
+            doğru -> iken {
+                py_ad_bekle() -> a_
+                a_.d -> takma
+                py_kelime_mi("as") -> eğer { py_ileri(); py_ad_bekle().d -> takma }
+                py_d("ad", a_.d, a_) -> öğe
+                öğe.ç -> ekle(py_d("ad", takma, a_))
+                d.ç -> ekle(öğe)
+                py_op_mu(",") -> eğer { py_ileri(); parantez ve py_op_mu(")") -> eğer { dur } } değilse { dur }
+            }
+            parantez -> eğer { py_op_bekle(")") }
+            d -> döndür
+        }
+        s.d == "yield" -> eğer { py_desteklenmiyor("üreteçler (yield)", s) }
+    }
+    py_ifadeler_ayrıştır() -> e
+    py_op_mu("=") -> eğer {
+        py_d("ata", "", s) -> d
+        d.ç -> ekle(e)
+        py_op_mu("=") -> iken {
+            py_ileri()
+            py_kelime_mi("yield") -> eğer { py_desteklenmiyor("üreteçler (yield)", py_şimdiki()) }
+            d.ç -> ekle(py_ifadeler_ayrıştır())
+        }
+        d -> döndür
+    }
+    py_mi("işleç", "") ve uzunluk(py_şimdiki().d) >= 2 ve dilim(py_şimdiki().d, uzunluk(py_şimdiki().d) - 1, uzunluk(py_şimdiki().d)) == "=" ve bul(["==", "!=", "<=", ">=", ":="], py_şimdiki().d) < 0 -> eğer {
+        py_ileri() -> op
+        py_d("artır", dilim(op.d, 0, uzunluk(op.d) - 1), s) -> d
+        d.ç -> ekle(e)
+        d.ç -> ekle(py_ifadeler_ayrıştır())
+        d -> döndür
+    }
+    py_op_mu(":") -> eğer {
+        py_ileri()
+        py_test_ayrıştır()
+        py_op_mu("=") -> eğer {
+            py_ileri()
+            py_d("ata", "", s) -> d
+            d.ç -> ekle(e)
+            d.ç -> ekle(py_ifadeler_ayrıştır())
+            d -> döndür
+        }
+        py_d("geç", "", s) -> döndür
+    }
+    py_d("ifade", "", s) -> d
+    d.ç -> ekle(e)
+    d -> döndür
+}
+
+# ── ifadeler ──
+
+# test (',' test)* — virgül varsa demet
+işlev py_ifadeler_ayrıştır() {
+    py_şimdiki() -> s
+    py_test_ya_da_yıldız() -> ilk_
+    değil py_op_mu(",") -> eğer { ilk_ -> döndür }
+    py_d("demet", "", s) -> d
+    d.ç -> ekle(ilk_)
+    py_op_mu(",") -> iken {
+        py_ileri()
+        değil py_ifade_başı_mı() -> eğer { dur }
+        d.ç -> ekle(py_test_ya_da_yıldız())
+    }
+    d -> döndür
+}
+
+# if / while koşulu: := desteklenmez
+işlev py_ad_ifadesi_ayrıştır() {
+    py_test_ayrıştır() -> e
+    py_op_mu(":=") -> eğer { py_desteklenmiyor("atama ifadesi (:=)", py_şimdiki()) }
+    e -> döndür
+}
+
+işlev py_test_ya_da_yıldız() {
+    py_op_mu("*") -> eğer {
+        py_ileri() -> s
+        py_d("yıldız", "", s) -> d
+        d.ç -> ekle(py_bitveya_ayrıştır())
+        d -> döndür
+    }
+    py_test_ayrıştır() -> döndür
+}
+
+işlev py_hedef_listesi_ayrıştır() {
+    py_şimdiki() -> s
+    py_hedef_öğesi() -> ilk_
+    değil py_op_mu(",") -> eğer { ilk_ -> döndür }
+    py_d("demet", "", s) -> d
+    d.ç -> ekle(ilk_)
+    py_op_mu(",") -> iken {
+        py_ileri()
+        py_kelime_mi("in") veya py_op_mu("=") veya py_op_mu(":") veya py_mi("yeni", "") -> eğer { dur }
+        d.ç -> ekle(py_hedef_öğesi())
+    }
+    d -> döndür
+}
+işlev py_hedef_öğesi() {
+    py_op_mu("*") -> eğer {
+        py_ileri() -> s
+        py_d("yıldız", "", s) -> d
+        d.ç -> ekle(py_bitveya_ayrıştır())
+        d -> döndür
+    }
+    py_bitveya_ayrıştır() -> döndür
+}
+
+işlev py_test_ayrıştır() {
+    py_kelime_mi("lambda") -> eğer { py_lambda_ayrıştır() -> döndür }
+    py_veya_ayrıştır() -> x
+    py_kelime_mi("if") -> eğer {
+        py_ileri()
+        py_veya_ayrıştır() -> koşul
+        py_kelime_bekle("else")
+        py_test_ayrıştır() -> alt
+        py_dd("koşullu", "", x) -> d
+        d.ç -> ekle(koşul)
+        d.ç -> ekle(x)
+        d.ç -> ekle(alt)
+        d -> döndür
+    }
+    x -> döndür
+}
+
+işlev py_lambda_ayrıştır() {
+    py_ileri() -> s
+    py_d("lambda", "", s) -> d
+    d.ç -> ekle(py_parametreler_ayrıştır(":"))
+    py_op_bekle(":")
+    d.ç -> ekle(py_test_ayrıştır())
+    d -> döndür
+}
+
+işlev py_veya_ayrıştır() {
+    py_ve_ayrıştır() -> a
+    py_kelime_mi("or") -> iken {
+        py_ileri()
+        py_dd("veya", "", a) -> d
+        d.ç -> ekle(a)
+        d.ç -> ekle(py_ve_ayrıştır())
+        d -> a
+    }
+    a -> döndür
+}
+işlev py_ve_ayrıştır() {
+    py_değil_ayrıştır() -> a
+    py_kelime_mi("and") -> iken {
+        py_ileri()
+        py_dd("ve", "", a) -> d
+        d.ç -> ekle(a)
+        d.ç -> ekle(py_değil_ayrıştır())
+        d -> a
+    }
+    a -> döndür
+}
+işlev py_değil_ayrıştır() {
+    py_kelime_mi("not") -> eğer {
+        py_ileri() -> s
+        py_d("değil", "", s) -> d
+        d.ç -> ekle(py_değil_ayrıştır())
+        d -> döndür
+    }
+    py_karşılaştırma_ayrıştır() -> döndür
+}
+
+işlev py_karş_işleci() {
+    py_şimdiki() -> s
+    s.tür == "işleç" ve bul(["<", ">", "==", ">=", "<=", "!="], s.d) >= 0 -> eğer { py_ileri(); s.d -> döndür }
+    py_kelime_mi("in") -> eğer { py_ileri(); "in" -> döndür }
+    py_kelime_mi("not") ve py_s[py_i + 1].tür == "ad" ve py_s[py_i + 1].d == "in" -> eğer { py_ileri(); py_ileri(); "not in" -> döndür }
+    py_kelime_mi("is") -> eğer {
+        py_ileri()
+        py_kelime_mi("not") -> eğer { py_ileri(); "is not" -> döndür }
+        "is" -> döndür
+    }
+    "" -> döndür
+}
+
+işlev py_karşılaştırma_ayrıştır() {
+    py_bitveya_ayrıştır() -> a
+    py_karş_işleci() -> op
+    op == "" -> eğer { a -> döndür }
+    py_dd("karşılaştır", "", a) -> d
+    d.ç -> ekle(a)
+    [] -> işleçler
+    op != "" -> iken {
+        işleçler -> ekle(op)
+        d.ç -> ekle(py_bitveya_ayrıştır())
+        py_karş_işleci() -> op
+    }
+    birleş(işleçler, "\t") -> d.d
+    d -> döndür
+}
+
+# İkili işleç düzeyleri (sola bağlı)
+işlev py_ikili_düzey(düzey) {
+    düzey >= 6 -> eğer { py_tekli_ayrıştır() -> döndür }
+    [["|"], ["^"], ["&"], ["<<", ">>"], ["+", "-"], ["*", "/", "//", "%", "@"]] -> düzeyler
+    py_ikili_düzey(düzey + 1) -> a
+    doğru -> iken {
+        py_şimdiki() -> s
+        s.tür == "işleç" ve bul(düzeyler[düzey], s.d) >= 0 -> eğer {
+            py_ileri()
+            py_dd("ikili", s.d, a) -> d
+            d.ç -> ekle(a)
+            d.ç -> ekle(py_ikili_düzey(düzey + 1))
+            d -> a
+        } değilse { dur }
+    }
+    a -> döndür
+}
+işlev py_bitveya_ayrıştır() { py_ikili_düzey(0) -> döndür }
+
+işlev py_tekli_ayrıştır() {
+    py_şimdiki() -> s
+    s.tür == "işleç" ve (s.d == "-" veya s.d == "+" veya s.d == "~") -> eğer {
+        py_ileri()
+        py_d("tekli", s.d, s) -> d
+        d.ç -> ekle(py_tekli_ayrıştır())
+        d -> döndür
+    }
+    py_üs_ayrıştır() -> döndür
+}
+işlev py_üs_ayrıştır() {
+    py_kelime_mi("await") -> eğer { py_desteklenmiyor("await", py_şimdiki()) }
+    py_birincil_ayrıştır() -> a
+    py_op_mu("**") -> eğer {
+        py_ileri()
+        py_dd("ikili", "**", a) -> d
+        d.ç -> ekle(a)
+        d.ç -> ekle(py_tekli_ayrıştır())
+        d -> döndür
+    }
+    a -> döndür
+}
+
+işlev py_birincil_ayrıştır() {
+    py_atom_ayrıştır() -> a
+    doğru -> iken {
+        py_op_mu("(") -> eğer {
+            py_ileri()
+            py_dd("çağrı", "", a) -> d
+            d.ç -> ekle(a)
+            py_argümanlar_ayrıştır(d)
+            py_op_bekle(")")
+            d -> a
+            devam
+        }
+        py_op_mu("[") -> eğer {
+            py_ileri()
+            py_dd("indis", "", a) -> d
+            d.ç -> ekle(a)
+            d.ç -> ekle(py_alt_simge_ayrıştır())
+            py_op_bekle("]")
+            d -> a
+            devam
+        }
+        py_op_mu(".") -> eğer {
+            py_ileri()
+            py_şimdiki() -> s
+            değil py_mi("ad", "") -> eğer { py_beklenmedik("bir öznitelik adı") }
+            py_ileri()
+            py_dd("alan", s.d, a) -> d
+            s.satır -> d.satır
+            s.sütun -> d.sütun
+            d.ç -> ekle(a)
+            d -> a
+            devam
+        }
+        dur
+    }
+    a -> döndür
+}
+
+işlev py_argümanlar_ayrıştır(d) {
+    değil py_op_mu(")") -> iken {
+        py_şimdiki() -> s
+        py_op_mu("*") -> eğer {
+            py_ileri()
+            py_d("yıldız", "", s) -> y
+            y.ç -> ekle(py_test_ayrıştır())
+            d.ç -> ekle(y)
+        } değilse { py_op_mu("**") -> eğer {
+            py_ileri()
+            py_d("çift_yıldız", "", s) -> y
+            y.ç -> ekle(py_test_ayrıştır())
+            d.ç -> ekle(y)
+        } değilse { py_ad_mı() ve py_s[py_i + 1].tür == "işleç" ve py_s[py_i + 1].d == "=" -> eğer {
+            py_ileri()
+            py_ileri()
+            py_d("kw", s.d, s) -> k
+            k.ç -> ekle(py_test_ayrıştır())
+            d.ç -> ekle(k)
+        } değilse {
+            py_test_ayrıştır() -> e
+            py_kelime_mi("for") -> eğer { py_kavrama_ayrıştır("üreteç", e, s) -> e }
+            d.ç -> ekle(e)
+        } } }
+        py_op_mu(",") -> eğer { py_ileri() } değilse { dur }
+    }
+}
+
+işlev py_dilim_parçası() {
+    py_op_mu(":") veya py_op_mu("]") veya py_op_mu(",") -> eğer { py_boş(py_şimdiki()) -> döndür }
+    py_test_ayrıştır() -> döndür
+}
+işlev py_alt_simge_öğesi() {
+    py_şimdiki() -> s
+    py_dilim_parçası() -> a
+    değil py_op_mu(":") -> eğer {
+        a.tür == "boş" -> eğer { py_beklenmedik("bir ifade") }
+        a -> döndür
+    }
+    py_ileri()
+    py_d("dilim", "", s) -> d
+    d.ç -> ekle(a)
+    d.ç -> ekle(py_dilim_parçası())
+    py_op_mu(":") -> eğer { py_ileri(); d.ç -> ekle(py_dilim_parçası()) } değilse { d.ç -> ekle(py_boş(s)) }
+    d -> döndür
+}
+işlev py_alt_simge_ayrıştır() {
+    py_şimdiki() -> s
+    py_alt_simge_öğesi() -> a
+    değil py_op_mu(",") -> eğer { a -> döndür }
+    py_d("demet", "", s) -> d
+    d.ç -> ekle(a)
+    py_op_mu(",") -> iken {
+        py_ileri()
+        py_op_mu("]") -> eğer { dur }
+        d.ç -> ekle(py_alt_simge_öğesi())
+    }
+    d -> döndür
+}
+
+# [öğe for hedef in yinelenen if koşul ...]
+işlev py_kavrama_ayrıştır(tür, öğe, s) {
+    py_d("kavrama", tür, s) -> d
+    d.ç -> ekle(öğe)
+    py_kelime_mi("for") -> iken {
+        py_ileri() -> fs
+        py_d("için_k", "", fs) -> k
+        k.ç -> ekle(py_hedef_listesi_ayrıştır())
+        py_kelime_bekle("in")
+        k.ç -> ekle(py_veya_ayrıştır())
+        py_kelime_mi("if") -> iken {
+            py_ileri()
+            k.ç -> ekle(py_veya_ayrıştır())
+        }
+        d.ç -> ekle(k)
+    }
+    d -> döndür
+}
+
+işlev py_atom_ayrıştır() {
+    py_şimdiki() -> s
+    s.tür == "ad" -> eğer {
+        s.d == "None" veya s.d == "True" veya s.d == "False" -> eğer { py_ileri(); py_d("sabit", s.d, s) -> döndür }
+        py_anahtar_mı(s.d) -> eğer { py_beklenmedik("bir ifade") }
+        py_ileri()
+        py_d("ad", s.d, s) -> döndür
+    }
+    s.tür == "sayı" -> eğer { py_ileri(); py_d("sayı", s.d, s) -> döndür }
+    s.tür == "ondalık" -> eğer { py_ileri(); py_d("ondalık", s.d, s) -> döndür }
+    s.tür == "metin" veya s.tür == "fmetin" -> eğer {
+        py_d("metin", "", s) -> d
+        [] -> parçalar_
+        dilim([d], 0, 0) -> fparçalar
+        0 -> f_var
+        py_mi("metin", "") veya py_mi("fmetin", "") -> iken {
+            py_ileri() -> m
+            m.tür == "metin" -> eğer {
+                parçalar_ -> ekle(m.d)
+                fparçalar -> ekle(py_d("metin", m.d, m))
+            } değilse {
+                1 -> f_var
+                py_fmetin_parçala(m.d, bul(m.ön, "r") >= 0, m) -> her (p) { fparçalar -> ekle(p) }
+            }
+        }
+        py_son_satır -> d.son
+        değil f_var -> eğer { birleş(parçalar_, "") -> d.d; d -> döndür }
+        "fmetin" -> d.tür
+        fparçalar -> d.ç
+        d -> döndür
+    }
+    s.tür == "işleç" -> eğer {
+        s.d == "(" -> eğer {
+            py_ileri()
+            py_op_mu(")") -> eğer { py_ileri(); py_d("demet", "", s) -> döndür }
+            py_kelime_mi("yield") -> eğer { py_desteklenmiyor("üreteçler (yield)", py_şimdiki()) }
+            py_test_ya_da_yıldız() -> ilk_
+            py_kelime_mi("for") -> eğer {
+                py_kavrama_ayrıştır("üreteç", ilk_, s) -> k
+                py_op_bekle(")")
+                k -> döndür
+            }
+            py_op_mu(":=") -> eğer { py_desteklenmiyor("atama ifadesi (:=)", py_şimdiki()) }
+            değil py_op_mu(",") -> eğer { py_op_bekle(")"); ilk_ -> döndür }
+            py_d("demet", "", s) -> d
+            d.ç -> ekle(ilk_)
+            py_op_mu(",") -> iken {
+                py_ileri()
+                py_op_mu(")") -> eğer { dur }
+                d.ç -> ekle(py_test_ya_da_yıldız())
+            }
+            py_op_bekle(")")
+            d -> döndür
+        }
+        s.d == "[" -> eğer {
+            py_ileri()
+            py_d("liste", "", s) -> d
+            py_op_mu("]") -> eğer { py_ileri(); d -> döndür }
+            py_test_ya_da_yıldız() -> ilk_
+            py_kelime_mi("for") -> eğer {
+                py_kavrama_ayrıştır("liste", ilk_, s) -> k
+                py_op_bekle("]")
+                k -> döndür
+            }
+            d.ç -> ekle(ilk_)
+            py_op_mu(",") -> iken {
+                py_ileri()
+                py_op_mu("]") -> eğer { dur }
+                d.ç -> ekle(py_test_ya_da_yıldız())
+            }
+            py_op_bekle("]")
+            d -> döndür
+        }
+        s.d == "{" -> eğer {
+            py_ileri()
+            py_op_mu("}") -> eğer { py_ileri(); py_d("sözlük", "", s) -> döndür }
+            py_op_mu("**") -> eğer { py_desteklenmiyor("sözlük içinde **", s) }
+            py_test_ya_da_yıldız() -> ilk_
+            py_op_mu(":") -> eğer {
+                py_ileri()
+                py_test_ayrıştır() -> değer_
+                py_kelime_mi("for") -> eğer {
+                    py_dd("çift", "", ilk_) -> ç_
+                    ç_.ç -> ekle(ilk_)
+                    ç_.ç -> ekle(değer_)
+                    py_kavrama_ayrıştır("sözlük", ç_, s) -> k
+                    py_op_bekle("}")
+                    k -> döndür
+                }
+                py_d("sözlük", "", s) -> d
+                d.ç -> ekle(ilk_)
+                d.ç -> ekle(değer_)
+                py_op_mu(",") -> iken {
+                    py_ileri()
+                    py_op_mu("}") -> eğer { dur }
+                    py_op_mu("**") -> eğer { py_desteklenmiyor("sözlük içinde **", py_şimdiki()) }
+                    d.ç -> ekle(py_test_ayrıştır())
+                    py_op_bekle(":")
+                    d.ç -> ekle(py_test_ayrıştır())
+                }
+                py_op_bekle("}")
+                d -> döndür
+            }
+            py_kelime_mi("for") -> eğer {
+                py_kavrama_ayrıştır("küme", ilk_, s) -> k
+                py_op_bekle("}")
+                k -> döndür
+            }
+            py_d("küme", "", s) -> d
+            d.ç -> ekle(ilk_)
+            py_op_mu(",") -> iken {
+                py_ileri()
+                py_op_mu("}") -> eğer { dur }
+                d.ç -> ekle(py_test_ya_da_yıldız())
+            }
+            py_op_bekle("}")
+            d -> döndür
+        }
+        s.d == "..." -> eğer { py_ileri(); py_d("sabit", "Ellipsis", s) -> döndür }
+    }
+    py_beklenmedik("bir ifade")
+}
+
+# f"..." içeriğini düz metin ve {ifade!dönüşüm:biçim} parçalarına ayırır
+işlev py_fmetin_parçala(ham, ham_mı, s) {
+    dilim([py_d("metin", "", s)], 0, 0) -> parçalar
+    [] -> düz
+    uzunluk(ham) -> n
+    0 -> i
+    i < n -> iken {
+        ham[i] -> k
+        k == "{" ve i + 1 < n ve ham[i + 1] == "{" -> eğer { düz -> ekle("{"); i + 2 -> i; devam }
+        k == "}" ve i + 1 < n ve ham[i + 1] == "}" -> eğer { düz -> ekle("}"); i + 2 -> i; devam }
+        k == "}" -> eğer { py_hata("sözdizimi hatası: f-dizgesinde tek '}' olamaz", s.satır, s.sütun, "'}}' yazın") }
+        k != "{" -> eğer { düz -> ekle(k); i + 1 -> i; devam }
+        # bir {ifade} parçası
+        uzunluk(düz) > 0 -> eğer {
+            birleş(düz, "") -> m
+            değil ham_mı -> eğer { py_kaçış_çöz(m, s.satır, s.sütun) -> m }
+            parçalar -> ekle(py_d("metin", m, s))
+            [] -> düz
+        }
+        i + 1 -> i
+        i -> b
+        0 -> derinlik
+        "" -> tırnak
+        i < n -> iken {
+            ham[i] -> c
+            tırnak != "" -> eğer {
+                c == tırnak -> eğer { "" -> tırnak }
+                i + 1 -> i
+                devam
+            }
+            c == "'" veya c == "\"" -> eğer { c -> tırnak; i + 1 -> i; devam }
+            c == "(" veya c == "[" veya c == "{" -> eğer { derinlik + 1 -> derinlik; i + 1 -> i; devam }
+            (c == ")" veya c == "]" veya c == "}") ve derinlik > 0 -> eğer { derinlik - 1 -> derinlik; i + 1 -> i; devam }
+            derinlik == 0 ve (c == "}" veya c == ":" veya (c == "!" ve i + 1 < n ve ham[i + 1] != "=")) -> eğer { dur }
+            i + 1 -> i
+        }
+        i >= n -> eğer { py_hata("sözdizimi hatası: f-dizgesinde '{' kapatılmamış", s.satır, s.sütun, "") }
+        dilim(ham, b, i) -> ifade_metni
+        "" -> dönüşüm
+        "" -> hata_ayıklama
+        ifade_metni -> kırpık
+        uzunluk(kırpık) > 0 ve (kırpık[uzunluk(kırpık) - 1] == " " veya kırpık[uzunluk(kırpık) - 1] == "\t") -> iken { dilim(kırpık, 0, uzunluk(kırpık) - 1) -> kırpık }
+        uzunluk(kırpık) > 1 ve kırpık[uzunluk(kırpık) - 1] == "=" ve bul("=!<>", kırpık[uzunluk(kırpık) - 2]) < 0 -> eğer {
+            ifade_metni -> hata_ayıklama
+            dilim(kırpık, 0, uzunluk(kırpık) - 1) -> ifade_metni
+            "r" -> dönüşüm
+        }
+        ham[i] == "!" -> eğer {
+            i + 1 < n -> eğer { ham[i + 1] -> dönüşüm }
+            i + 2 -> i
+        }
+        dilim([py_d("metin", "", s)], 0, 0) -> belirteç_parçaları
+        0 -> belirteç_var
+        i < n ve ham[i] == ":" -> eğer {
+            1 -> belirteç_var
+            i + 1 -> i
+            i -> bb
+            0 -> d2
+            i < n -> iken {
+                ham[i] == "{" -> eğer { d2 + 1 -> d2 }
+                ham[i] == "}" -> eğer {
+                    d2 == 0 -> eğer { dur }
+                    d2 - 1 -> d2
+                }
+                i + 1 -> i
+            }
+            py_fmetin_parçala(dilim(ham, bb, i), 1, s) -> belirteç_parçaları
+            hata_ayıklama != "" ve dönüşüm == "r" -> eğer { "" -> dönüşüm }
+        }
+        i >= n veya ham[i] != "}" -> eğer { py_hata("sözdizimi hatası: f-dizgesinde '}' bekleniyordu", s.satır, s.sütun, "") }
+        i + 1 -> i
+        hata_ayıklama != "" -> eğer { parçalar -> ekle(py_d("metin", hata_ayıklama, s)) }
+        # ifadeyi ayrı sözcükleyip ayrıştır
+        py_s -> saklı_s
+        py_i -> saklı_i
+        py_sözcükle("(" + ifade_metni + ")", s.satır) -> py_s
+        0 -> py_i
+        py_f_sütun -> saklı_f
+        s.sütun -> py_f_sütun
+        py_test_ayrıştır() -> e
+        saklı_f -> py_f_sütun
+        değil py_mi("yeni", "") -> eğer { py_hata("sözdizimi hatası: f-dizgesindeki ifade geçersiz", s.satır, s.sütun, "") }
+        saklı_s -> py_s
+        saklı_i -> py_i
+        py_d("biçim", dönüşüm, s) -> bç
+        bç.ç -> ekle(e)
+        belirteç_var -> eğer {
+            py_d("fmetin", "", s) -> bel
+            belirteç_parçaları -> bel.ç
+            bç.ç -> ekle(bel)
+        }
+        parçalar -> ekle(bç)
+    }
+    uzunluk(düz) > 0 -> eğer {
+        birleş(düz, "") -> m
+        değil ham_mı -> eğer { py_kaçış_çöz(m, s.satır, s.sütun) -> m }
+        parçalar -> ekle(py_d("metin", m, s))
+    }
+    parçalar -> döndür
+}
+
+# ══════════════════════ ÇÖZÜMLEME ══════════════════════
+
+{"": 0} -> py_küreseller          # modül düzeyinde atanan (ya da global bildirilen) adlar
+{"": PyD("", "", [], 0, 0, 0)} -> py_işlevler       # üst düzey def'ler
+{"": PyD("", "", [], 0, 0, 0)} -> py_sınıflar
+{"": ""} -> py_sınıf_üstü
+{"": PyD("", "", [], 0, 0, 0)} -> py_yöntemler      # "Sınıf.ad" -> def
+{"": ""} -> py_yöntem_türü                          # "Sınıf.ad" -> "", "static", "class", "property"
+{"": 0} -> py_yöntem_adları
+{"": ""} -> py_modüller             # takma ad -> modül
+{"": ""} -> py_alınanlar            # ad -> "modül.öğe"
+[""] -> py_sınıf_sırası
+dilim(py_sınıf_sırası, 0, 0) -> py_sınıf_sırası
+# türü belirlemek için konan "" anahtarları silinir
+[py_işlevler, py_sınıflar, py_yöntemler] -> her (s1_) { sil(s1_, "") }
+[py_sınıf_üstü, py_yöntem_türü, py_modüller, py_alınanlar] -> her (s2_) { sil(s2_, "") }
+[py_küreseller, py_yöntem_adları] -> her (s3_) { sil(s3_, "") }
+
+["print", "input", "len", "range", "str", "int", "float", "bool", "list", "tuple", "dict", "set", "abs", "min",
+ "max", "sum", "sorted", "reversed", "enumerate", "zip", "ord", "chr", "round", "any", "all", "map", "filter",
+ "isinstance", "type", "hex", "bin", "oct", "divmod", "pow", "repr", "exit", "quit", "open", "callable", "super",
+ "object", "iter", "next", "id", "hash", "issubclass", "format", "vars", "dir", "globals", "locals", "eval", "exec"] -> PY_YERLEŞİKLER
+
+["BaseException", "Exception", "ArithmeticError", "LookupError", "ValueError", "TypeError", "KeyError",
+ "IndexError", "ZeroDivisionError", "RuntimeError", "NotImplementedError", "AssertionError", "NameError",
+ "AttributeError", "StopIteration", "OverflowError", "KeyboardInterrupt", "EOFError", "OSError",
+ "FileNotFoundError", "RecursionError", "SystemExit", "UnicodeError", "PermissionError"] -> PY_İSTİSNALAR
+
+{"math": ["sqrt", "isqrt", "floor", "ceil", "trunc", "fabs", "sin", "cos", "tan", "asin", "acos", "atan", "exp",
+          "log", "log10", "log2", "degrees", "radians", "atan2", "hypot", "pow", "gcd", "factorial", "isclose",
+          "pi", "e", "tau", "inf", "nan"],
+ "random": ["random", "randint", "randrange", "uniform", "choice", "shuffle", "sample", "seed"],
+ "time": ["time", "perf_counter", "monotonic", "sleep"],
+ "sys": ["argv", "exit", "maxsize"]} -> PY_MODÜLLER
+
+# Hedefteki adları toplar: x, (a, b), [a, *b]
+işlev py_hedef_adları(h, küme) {
+    h.tür == "ad" -> eğer { 1 -> küme[h.d]; 0 -> döndür }
+    h.tür == "demet" veya h.tür == "liste" veya h.tür == "yıldız" -> eğer { h.ç -> her (c) { py_hedef_adları(c, küme) } }
+}
+
+# Bir deyim listesinde atanan adlar (iç işlev ve sınıf gövdelerine girmeden)
+işlev py_atananlar(deyimler, küme, küresel_bildirim) {
+    deyimler -> her (d) {
+        d.tür == "ata" -> eğer {
+            0 -> j
+            j < uzunluk(d.ç) - 1 -> iken { py_hedef_adları(d.ç[j], küme); j + 1 -> j }
+        }
+        d.tür == "artır" -> eğer { py_hedef_adları(d.ç[0], küme) }
+        d.tür == "için" -> eğer { py_hedef_adları(d.ç[0], küme); py_atananlar(d.ç[2].ç, küme, küresel_bildirim) }
+        d.tür == "iken" -> eğer { py_atananlar(d.ç[1].ç, küme, küresel_bildirim) }
+        d.tür == "ile" -> eğer { py_hedef_adları(d.ç[1], küme); py_atananlar(d.ç[2].ç, küme, küresel_bildirim) }
+        d.tür == "eğer" -> eğer {
+            d -> e
+            doğru -> iken {
+                py_atananlar(e.ç[1].ç, küme, küresel_bildirim)
+                uzunluk(e.ç) < 3 -> eğer { dur }
+                e.ç[2].tür == "eğer" -> eğer { e.ç[2] -> e } değilse { py_atananlar(e.ç[2].ç, küme, küresel_bildirim); dur }
+            }
+        }
+        d.tür == "dene" -> eğer {
+            py_atananlar(d.ç[0].ç, küme, küresel_bildirim)
+            d.ç[1].ç -> her (h) {
+                h.d != "" -> eğer { 1 -> küme[h.d] }
+                py_atananlar(h.ç[1].ç, küme, küresel_bildirim)
+            }
+            d.ç[2].tür == "blok" -> eğer { py_atananlar(d.ç[2].ç, küme, küresel_bildirim) }
+            d.ç[3].tür == "blok" -> eğer { py_atananlar(d.ç[3].ç, küme, küresel_bildirim) }
+        }
+        d.tür == "işlev" veya d.tür == "sınıf" -> eğer { 1 -> küme[d.d] }
+        d.tür == "küresel" -> eğer { d.ç -> her (a) { 1 -> küresel_bildirim[a.d] } }
+        d.tür == "sil" -> eğer { d.ç -> her (h) { h.tür == "ad" -> eğer { 1 -> küme[h.d] } } }
+    }
+}
+
+# Bir işlevin gövdesindeki 'global' bildirimlerini (iç işlevler dahil) modülün adlarına ekler
+işlev py_küreselleri_topla(deyimler) {
+    deyimler -> her (d) {
+        d.tür == "küresel" -> eğer { d.ç -> her (a) { 1 -> py_küreseller[a.d] } }
+        d.tür == "işlev" -> eğer { py_küreselleri_topla(d.ç[1].ç) }
+        d.tür == "sınıf" -> eğer { py_küreselleri_topla(d.ç[1].ç) }
+        d.tür == "için" -> eğer { py_küreselleri_topla(d.ç[2].ç) }
+        d.tür == "iken" -> eğer { py_küreselleri_topla(d.ç[1].ç) }
+        d.tür == "ile" -> eğer { py_küreselleri_topla(d.ç[2].ç) }
+        d.tür == "dene" -> eğer {
+            py_küreselleri_topla(d.ç[0].ç)
+            d.ç[1].ç -> her (h) { py_küreselleri_topla(h.ç[1].ç) }
+        }
+        d.tür == "eğer" -> eğer {
+            py_küreselleri_topla(d.ç[1].ç)
+            uzunluk(d.ç) > 2 -> eğer {
+                d.ç[2].tür == "eğer" -> eğer { py_küreselleri_topla([d.ç[2]]) } değilse { py_küreselleri_topla(d.ç[2].ç) }
+            }
+        }
+    }
+}
+
+işlev py_içe_aktar_kaydet(d) {
+    d.tür == "içe_aktar" -> eğer {
+        d.ç -> her (m) {
+            değil var(PY_MODÜLLER, m.d) -> eğer { py_desteklenmiyor("'" + m.d + "' modülü (desteklenenler: math, random, time, sys)", m) }
+            m.d -> py_modüller[m.ç[0].d]
+        }
+    }
+    d.tür == "içinden" -> eğer {
+        değil var(PY_MODÜLLER, d.d) -> eğer { py_desteklenmiyor("'" + d.d + "' modülü (desteklenenler: math, random, time, sys)", d) }
+        d.ç -> her (a) {
+            a.tür == "hepsi" -> eğer {
+                PY_MODÜLLER[d.d] -> her (öğe) { d.d + "." + öğe -> py_alınanlar[öğe] }
+            } değilse {
+                bul(PY_MODÜLLER[d.d], a.d) < 0 -> eğer { py_hata_d("'" + d.d + "' modülünde '" + a.d + "' yok (ya da Piton'da desteklenmiyor)", a) }
+                d.d + "." + a.d -> py_alınanlar[a.ç[0].d]
+            }
+        }
+    }
+}
+
+işlev py_modülü_çözümle(kök) {
+    {"": 0} -> küresel_bildirim
+    py_atananlar(kök.ç, py_küreseller, küresel_bildirim)
+    kök.ç -> her (d) {
+        d.tür == "işlev" -> eğer {
+            py_sil(py_küreseller, d.d)
+            d -> py_işlevler[d.d]
+        }
+        d.tür == "sınıf" -> eğer {
+            py_sil(py_küreseller, d.d)
+            py_sınıfı_kaydet(d)
+        }
+    }
+    # Hem def hem başka yolla atanan adlar değişken olarak kalır
+    kök.ç -> her (d) {
+        d.tür == "ata" veya d.tür == "artır" veya d.tür == "için" -> eğer {
+            {"": 0} -> adlar
+            py_atananlar([d], adlar, küresel_bildirim)
+            anahtarlar(adlar) -> her (a) {
+                var(py_işlevler, a) ve a != "" -> eğer { py_sil(py_işlevler, a); 1 -> py_küreseller[a] }
+            }
+        }
+    }
+    py_küreselleri_topla(kök.ç)
+    py_içe_aktarları_bul(kök.ç)
+    py_sil(py_küreseller, "")
+}
+
+işlev py_içe_aktarları_bul(deyimler) {
+    deyimler -> her (d) {
+        d.tür == "içe_aktar" veya d.tür == "içinden" -> eğer {
+            py_içe_aktar_kaydet(d)
+            d.tür == "içe_aktar" -> eğer { d.ç -> her (m) { py_sil(py_küreseller, m.ç[0].d) } }
+            d.tür == "içinden" -> eğer { d.ç -> her (a) { a.tür != "hepsi" -> eğer { py_sil(py_küreseller, a.ç[0].d) } } }
+        }
+        d.tür == "işlev" -> eğer { py_içe_aktarları_bul(d.ç[1].ç) }
+        d.tür == "sınıf" -> eğer { py_içe_aktarları_bul(d.ç[1].ç) }
+        d.tür == "eğer" -> eğer { py_içe_aktarları_bul(d.ç[1].ç) }
+    }
+}
+
+işlev py_sınıfı_kaydet(d) {
+    var(py_sınıflar, d.d) -> eğer { py_desteklenmiyor("aynı adla iki sınıf", d) }
+    d -> py_sınıflar[d.d]
+    py_sınıf_sırası -> ekle(d.d)
+    "" -> py_sınıf_üstü[d.d]
+    d.ç[0].ç -> tabanlar
+    uzunluk(tabanlar) > 1 -> eğer { py_desteklenmiyor("çoklu kalıtım", d) }
+    uzunluk(tabanlar) == 1 -> eğer {
+        tabanlar[0] -> t
+        t.tür != "ad" -> eğer { py_desteklenmiyor("bu tür bir taban sınıf", t) }
+        t.d == "object" -> eğer { "" -> py_sınıf_üstü[d.d] }
+        değilse { var(py_sınıflar, t.d) veya bul(PY_İSTİSNALAR, t.d) >= 0 -> eğer { t.d -> py_sınıf_üstü[d.d] }
+        değilse { py_hata_d("'" + t.d + "' adında bir sınıf yok (taban sınıf, bu sınıftan önce tanımlanmalı)", t) } }
+    }
+    d.ç[1].ç -> her (öğe) {
+        öğe.tür == "işlev" -> eğer {
+            d.d + "." + öğe.d -> anahtar_
+            öğe -> py_yöntemler[anahtar_]
+            1 -> py_yöntem_adları[öğe.d]
+            "" -> py_yöntem_türü[anahtar_]
+            öğe.ç[2].ç -> her (süs) {
+                süs.tür == "ad" ve süs.d == "staticmethod" -> eğer { "static" -> py_yöntem_türü[anahtar_] }
+                değilse { süs.tür == "ad" ve süs.d == "classmethod" -> eğer { "class" -> py_yöntem_türü[anahtar_] }
+                değilse { süs.tür == "ad" ve süs.d == "property" -> eğer { "property" -> py_yöntem_türü[anahtar_] }
+                değilse { py_desteklenmiyor("bu süsleyici (yalnızca @staticmethod, @classmethod, @property)", süs) } } }
+            }
+        }
+    }
+}
+
+# Sınıfta (ve atalarında) yöntemi tanımlayan sınıf; yoksa ""
+işlev py_yöntem_bul(sınıf, ad) {
+    sınıf -> c
+    var(py_sınıflar, c) -> iken {
+        var(py_yöntemler, c + "." + ad) -> eğer { c -> döndür }
+        py_sınıf_üstü[c] -> c
+    }
+    "" -> döndür
+}
+# Sınıfın atalarından biri yerleşik bir istisna mı?
+işlev py_istisna_sınıfı_mı(sınıf) {
+    sınıf -> c
+    var(py_sınıflar, c) -> iken { py_sınıf_üstü[c] -> c }
+    bul(PY_İSTİSNALAR, c) >= 0 -> döndür
+}
+
+# ══════════════════════ KOD ÜRETİMİ ══════════════════════
+
+[""] -> ortak py_çıktı          # Python satırı -> o satırın Nehir kodu
+[""] -> ortak py_ek             # dosyanın sonuna eklenen işlevler
+"" -> ortak py_ek_tampon
+0 -> ortak py_ek_kipi
+{"": ""} -> py_sabitler
+[""] -> py_sabit_kurulumu
+dilim(py_sabit_kurulumu, 0, 0) -> py_sabit_kurulumu
+0 -> ortak py_sayaç
+{"": 0} -> py_sarmalanacak       # değer olarak kullanılan def'ler
+sil(py_sarmalanacak, "")
+sil(py_sabitler, "")
+
+PyKapsam("modül", {"": 0}, {"": 0}, [""], yok, "", "", "", 0, [0], [0], [PyD("", "", [], 0, 0, 0)], "") -> ortak py_modül_kapsamı
+dilim(py_modül_kapsamı.kaçış_döngü, 0, 0) -> py_modül_kapsamı.kaçış_döngü
+dilim(py_modül_kapsamı.kaçış_sayı, 0, 0) -> py_modül_kapsamı.kaçış_sayı
+dilim(py_modül_kapsamı.kaçış_son, 0, 0) -> py_modül_kapsamı.kaçış_son
+py_modül_kapsamı -> ortak py_kapsam
+
+işlev py_yeni_ad(önek) {
+    py_sayaç + 1 -> py_sayaç
+    önek + metne(py_sayaç) -> döndür
+}
+
+işlev py_yaz(satır, m) {
+    py_ek_kipi > 0 -> eğer { py_ek_tampon + m + " " -> py_ek_tampon; 0 -> döndür }
+    py_çıktı[satır] + m + " " -> py_çıktı[satır]
+}
+
+# Nehir dizge yazımı
+işlev py_nehir_metni(m) {
+    [] -> parçalar
+    [] -> şimdiki
+    m -> her (k) {
+        k == "\\" -> eğer { şimdiki -> ekle("\\\\"); devam }
+        k == "\"" -> eğer { şimdiki -> ekle("\\\""); devam }
+        k == "\n" -> eğer { şimdiki -> ekle("\\n"); devam }
+        k == "\t" -> eğer { şimdiki -> ekle("\\t"); devam }
+        k == "\r" -> eğer { şimdiki -> ekle("\\r"); devam }
+        baytlar(k) -> b
+        uzunluk(b) == 1 ve (b[0] < 32 veya b[0] == 127) -> eğer {
+            parçalar -> ekle("\"" + birleş(şimdiki, "") + "\"")
+            [] -> şimdiki
+            parçalar -> ekle("karakter(" + metne(b[0]) + ")")
+            devam
+        }
+        şimdiki -> ekle(k)
+    }
+    parçalar -> ekle("\"" + birleş(şimdiki, "") + "\"")
+    birleş(parçalar, " + ") -> döndür
+}
+
+işlev py_sabit(kurulum) {
+    var(py_sabitler, kurulum) -> eğer { py_sabitler[kurulum] -> döndür }
+    py_yeni_ad("k_") -> ad
+    ad -> py_sabitler[kurulum]
+    py_sabit_kurulumu -> ekle(kurulum + " -> " + ad + ";")
+    ad -> döndür
+}
+işlev py_metin_sabiti(m) { py_sabit("pl_str(" + py_nehir_metni(m) + ")") -> döndür }
+işlev py_tam_sabiti(n) { py_sabit("pl_int(" + n + ")") -> döndür }
+
+# ── adlar ──
+
+işlev py_yeni_kapsam(tür, üst_) {
+    PyKapsam(tür, {"": 0}, {"": 0}, dilim([""], 0, 0), üst_, üst_.sınıf, üst_.ilk_param, üst_.işlev_adı, 0,
+             dilim(üst_.kaçış_döngü, 0, 0), dilim(üst_.kaçış_sayı, 0, 0), dilim(üst_.kaçış_son, 0, 0), "") -> döndür
+}
+
+# Adın Nehir değişkeni ("y_x" yerel, "p_x" modül); değişken değilse ""
+işlev py_ad_çöz(ad) {
+    py_kapsam -> k
+    dilim([py_kapsam], 0, 0) -> geçilen
+    k.tür != "modül" -> iken {
+        var(k.küresel, ad) -> eğer { "p_" + ad -> döndür }
+        var(k.yereller, ad) -> eğer {
+            geçilen -> her (g) { bul(g.yakalanan, ad) < 0 -> eğer { g.yakalanan -> ekle(ad) } }
+            "y_" + ad -> döndür
+        }
+        k.tür == "işlev" -> eğer { dur }
+        geçilen -> ekle(k)
+        k.üst -> k
+    }
+    var(py_küreseller, ad) -> eğer { "p_" + ad -> döndür }
+    "" -> döndür
+}
+
+işlev py_modül_öğesi(tam_ad, d) {
+    tam_ad == "math.pi" -> eğer { py_sabit("pl_float(pi())") -> döndür }
+    tam_ad == "math.tau" -> eğer { py_sabit("pl_float(2.0 * pi())") -> döndür }
+    tam_ad == "math.e" -> eğer { py_sabit("pl_float(üstel(1.0))") -> döndür }
+    tam_ad == "math.inf" -> eğer { py_sabit("pl_b_float(pl_str(\"inf\"))") -> döndür }
+    tam_ad == "math.nan" -> eğer { py_sabit("pl_b_float(pl_str(\"nan\"))") -> döndür }
+    tam_ad == "sys.argv" -> eğer { py_sabit("pl_sys_argv()") -> döndür }
+    tam_ad == "sys.maxsize" -> eğer { py_tam_sabiti("9223372036854775807") -> döndür }
+    py_hata_d("'" + tam_ad + "' Piton'da değer olarak kullanılamaz; çağırın", d)
+}
+
+işlev py_ad_değeri(d) {
+    d.d -> ad
+    py_ad_çöz(ad) -> r
+    r != "" -> eğer { r -> döndür }
+    var(py_işlevler, ad) -> eğer {
+        1 -> py_sarmalanacak[ad]
+        "pl_işlev(pw_" + ad + ", pl_ARG0, \"" + ad + "\")" -> döndür
+    }
+    var(py_sınıflar, ad) -> eğer { "pl_sınıf(\"" + ad + "\")" -> döndür }
+    var(py_alınanlar, ad) -> eğer { py_modül_öğesi(py_alınanlar[ad], d) -> döndür }
+    var(py_modüller, ad) -> eğer { py_hata_d("'" + ad + "' modülü değer olarak kullanılamaz", d) }
+    ad == "__name__" -> eğer { py_metin_sabiti("__main__") -> döndür }
+    bul(PY_İSTİSNALAR, ad) >= 0 -> eğer { "pl_sınıf(\"" + ad + "\")" -> döndür }
+    bul(PY_YERLEŞİKLER, ad) >= 0 -> eğer { "pl_yerleşik(\"" + ad + "\")" -> döndür }
+    py_hata_d("'" + ad + "' adı tanımlı değil (NameError)", d)
+}
+
+# ── ifadeler ──
+
+["+", "-", "*", "/", "//", "%", "**", "&", "|", "^", "<<", ">>"] -> PY_İKİLİLER
+["pl_topla", "pl_çıkar", "pl_çarp", "pl_böl", "pl_tböl", "pl_kalan", "pl_üs", "pl_ve", "pl_veya", "pl_yada", "pl_sola", "pl_sağa"] -> PY_İKİLİ_İŞLEVLER
+
+işlev py_basit_mi(d) {
+    bul(["ad", "sayı", "ondalık", "metin", "sabit"], d.tür) >= 0 -> döndür
+}
+
+işlev py_ifadeler(l) {
+    [] -> r
+    l -> her (e) { r -> ekle(py_ifade(e)) }
+    birleş(r, ", ") -> döndür
+}
+
+işlev py_ifade(d) {
+    d.tür == "ad" -> eğer { py_ad_değeri(d) -> döndür }
+    d.tür == "sayı" -> eğer {
+        d.d == "9223372036854775808" -> eğer { py_hata_d("Piton'da tam sayılar 64 bitliktir; bu sayı sığmıyor", d) }
+        py_tam_sabiti(d.d) -> döndür
+    }
+    d.tür == "ondalık" -> eğer { py_sabit("pl_float(ondalığa(\"" + d.d + "\"))") -> döndür }
+    d.tür == "metin" -> eğer { py_metin_sabiti(d.d) -> döndür }
+    d.tür == "sabit" -> eğer {
+        d.d == "None" -> eğer { "pl_YOK" -> döndür }
+        d.d == "True" -> eğer { "pl_DOĞRU" -> döndür }
+        d.d == "False" -> eğer { "pl_YANLIŞ" -> döndür }
+        py_desteklenmiyor("Ellipsis (...)", d)
+    }
+    d.tür == "liste" -> eğer {
+        uzunluk(d.ç) == 0 -> eğer { "pl_liste_boş()" -> döndür }
+        py_yıldızlı_mı(d.ç) -> eğer { "pl_liste(" + py_yıldızlı_liste(d.ç) + ")" -> döndür }
+        "pl_liste([" + py_ifadeler(d.ç) + "])" -> döndür
+    }
+    d.tür == "demet" -> eğer {
+        uzunluk(d.ç) == 0 -> eğer { "pl_demet_boş()" -> döndür }
+        py_yıldızlı_mı(d.ç) -> eğer { "pl_demet(" + py_yıldızlı_liste(d.ç) + ")" -> döndür }
+        "pl_demet([" + py_ifadeler(d.ç) + "])" -> döndür
+    }
+    d.tür == "küme" -> eğer { "pl_küme_kur([" + py_ifadeler(d.ç) + "])" -> döndür }
+    d.tür == "sözlük" -> eğer {
+        uzunluk(d.ç) == 0 -> eğer { "pl_sözlük_boş()" -> döndür }
+        "pl_sözlük_kur([" + py_ifadeler(d.ç) + "])" -> döndür
+    }
+    d.tür == "ikili" -> eğer {
+        d.d == "@" -> eğer { py_desteklenmiyor("@ işleci", d) }
+        PY_İKİLİ_İŞLEVLER[bul(PY_İKİLİLER, d.d)] + "(" + py_ifade(d.ç[0]) + ", " + py_ifade(d.ç[1]) + ")" -> döndür
+    }
+    d.tür == "tekli" -> eğer {
+        d.d == "-" ve d.ç[0].tür == "sayı" -> eğer {
+            d.ç[0].d == "9223372036854775808" -> eğer { py_sabit("pl_int(-9223372036854775807 - 1)") -> döndür }
+            py_tam_sabiti("-" + d.ç[0].d) -> döndür
+        }
+        d.d == "-" ve d.ç[0].tür == "ondalık" -> eğer { py_sabit("pl_float(ondalığa(\"-" + d.ç[0].d + "\"))") -> döndür }
+        d.d == "-" -> eğer { "pl_eksi(" + py_ifade(d.ç[0]) + ")" -> döndür }
+        d.d == "+" -> eğer { "pl_artı(" + py_ifade(d.ç[0]) + ")" -> döndür }
+        "pl_tümle(" + py_ifade(d.ç[0]) + ")" -> döndür
+    }
+    d.tür == "değil" -> eğer { "pl_bool(değil " + py_koşul(d.ç[0]) + ")" -> döndür }
+    d.tür == "karşılaştır" -> eğer { "pl_bool(" + py_koşul(d) + ")" -> döndür }
+    d.tür == "ve" veya d.tür == "veya" -> eğer {
+        "pl_mantık_" + d.tür -> işlev_
+        py_basit_mi(d.ç[1]) -> eğer { işlev_ + "(" + py_ifade(d.ç[0]) + ", " + py_ifade(d.ç[1]) + ")" -> döndür }
+        py_kaldır(d) -> döndür
+    }
+    d.tür == "koşullu" -> eğer {
+        py_basit_mi(d.ç[1]) ve py_basit_mi(d.ç[2]) -> eğer {
+            "pl_seç(" + py_koşul(d.ç[0]) + ", " + py_ifade(d.ç[1]) + ", " + py_ifade(d.ç[2]) + ")" -> döndür
+        }
+        py_kaldır(d) -> döndür
+    }
+    d.tür == "çağrı" -> eğer { py_çağrı(d) -> döndür }
+    d.tür == "alan" -> eğer {
+        d.ç[0] -> o
+        o.tür == "ad" ve var(py_modüller, o.d) ve py_ad_çöz(o.d) == "" -> eğer {
+            py_modüller[o.d] + "." + d.d -> tam_ad
+            bul(PY_MODÜLLER[py_modüller[o.d]], d.d) < 0 -> eğer { py_hata_d("'" + py_modüller[o.d] + "' modülünde '" + d.d + "' yok (ya da Piton'da desteklenmiyor)", d) }
+            py_modül_öğesi(tam_ad, d) -> döndür
+        }
+        "pl_alan(" + py_ifade(o) + ", \"" + d.d + "\")" -> döndür
+    }
+    d.tür == "indis" -> eğer {
+        d.ç[1] -> i
+        i.tür == "dilim" -> eğer {
+            "pl_dilim(" + py_ifade(d.ç[0]) + ", " + py_isteğe_bağlı(i.ç[0]) + ", " + py_isteğe_bağlı(i.ç[1]) + ", " + py_isteğe_bağlı(i.ç[2]) + ")" -> döndür
+        }
+        "pl_al(" + py_ifade(d.ç[0]) + ", " + py_ifade(i) + ")" -> döndür
+    }
+    d.tür == "fmetin" -> eğer { "pl_str(" + py_fmetin(d) + ")" -> döndür }
+    d.tür == "lambda" -> eğer { py_lambda(d) -> döndür }
+    d.tür == "kavrama" -> eğer { py_kaldır(d) -> döndür }
+    d.tür == "yıldız" -> eğer { py_hata_d("sözdizimi hatası: '*' burada kullanılamaz", d) }
+    d.tür == "dilim" -> eğer { py_hata_d("sözdizimi hatası: dilim yalnızca [ ] içinde yazılabilir", d) }
+    py_desteklenmiyor("bu ifade (" + d.tür + ")", d)
+}
+
+işlev py_isteğe_bağlı(d) {
+    d.tür == "boş" -> eğer { "pl_YOK" -> döndür }
+    py_ifade(d) -> döndür
+}
+
+işlev py_yıldızlı_mı(l) {
+    l -> her (e) { e.tür == "yıldız" -> eğer { 1 -> döndür } }
+    0 -> döndür
+}
+# [a, *b, c] gibi bir argüman ya da öğe listesinden Nehir'de [Değer] üreten ifade
+işlev py_yıldızlı_liste(l) {
+    ["pl_ARG0"] -> parçalar
+    [] -> düz
+    l -> her (e) {
+        e.tür == "yıldız" -> eğer {
+            uzunluk(düz) > 0 -> eğer { parçalar -> ekle("[" + birleş(düz, ", ") + "]"); [] -> düz }
+            parçalar -> ekle("pl_yineleme(" + py_ifade(e.ç[0]) + ")")
+        } değilse { düz -> ekle(py_ifade(e)) }
+    }
+    uzunluk(düz) > 0 -> eğer { parçalar -> ekle("[" + birleş(düz, ", ") + "]") }
+    "(" + birleş(parçalar, " + ") + ")" -> döndür
+}
+
+işlev py_fmetin(d) {
+    [] -> parçalar
+    d.ç -> her (p) {
+        p.tür == "metin" -> eğer { p.d != "" -> eğer { parçalar -> ekle(py_nehir_metni(p.d)) } }
+        değilse {
+            py_ifade(p.ç[0]) -> v
+            p.d == "a" -> eğer { "r" -> p.d }
+            p.d == "s" -> eğer { "pl_b_str(" + v + ")" -> v }
+            uzunluk(p.ç) == 1 -> eğer {
+                p.d == "r" -> eğer { parçalar -> ekle("pl_temsil(" + v + ")") } değilse { parçalar -> ekle("pl_biç(" + v + ", \"\")") }
+            } değilse {
+                py_fmetin(p.ç[1]) -> bel
+                bel == "" -> eğer { "\"\"" -> bel }
+                p.d == "r" -> eğer { parçalar -> ekle("pl_biç_r(" + v + ", " + bel + ")") } değilse { parçalar -> ekle("pl_biç(" + v + ", " + bel + ")") }
+            }
+        }
+    }
+    uzunluk(parçalar) == 0 -> eğer { "\"\"" -> döndür }
+    d.tür == "fmetin" ve uzunluk(parçalar) > 0 -> eğer { birleş(parçalar, " + ") -> döndür }
+    birleş(parçalar, " + ") -> döndür
+}
+
+# Koşul olarak: Nehir'de sayı (0 / 1) veren ifade
+işlev py_koşul(d) {
+    d.tür == "karşılaştır" -> eğer {
+        böl(d.d, "\t") -> işleçler
+        [] -> parçalar
+        0 -> i
+        i < uzunluk(işleçler) -> iken {
+            işleçler[i] -> op
+            py_ifade(d.ç[i]) -> a
+            py_ifade(d.ç[i + 1]) -> b
+            op == "==" -> eğer { parçalar -> ekle("pl_eşit(" + a + ", " + b + ")") }
+            op == "!=" -> eğer { parçalar -> ekle("pl_eşit_değil(" + a + ", " + b + ")") }
+            op == "<" -> eğer { parçalar -> ekle("pl_küçük(" + a + ", " + b + ")") }
+            op == ">" -> eğer { parçalar -> ekle("pl_büyük(" + a + ", " + b + ")") }
+            op == "<=" -> eğer { parçalar -> ekle("pl_küçük_eşit(" + a + ", " + b + ")") }
+            op == ">=" -> eğer { parçalar -> ekle("pl_büyük_eşit(" + a + ", " + b + ")") }
+            op == "in" -> eğer { parçalar -> ekle("pl_içinde(" + a + ", " + b + ")") }
+            op == "not in" -> eğer { parçalar -> ekle("(değil pl_içinde(" + a + ", " + b + "))") }
+            op == "is" -> eğer { parçalar -> ekle("pl_aynı(" + a + ", " + b + ")") }
+            op == "is not" -> eğer { parçalar -> ekle("(değil pl_aynı(" + a + ", " + b + "))") }
+            i + 1 -> i
+        }
+        uzunluk(parçalar) == 1 -> eğer { parçalar[0] -> döndür }
+        "(" + birleş(parçalar, " ve ") + ")" -> döndür
+    }
+    d.tür == "değil" -> eğer { "(değil " + py_koşul(d.ç[0]) + ")" -> döndür }
+    d.tür == "ve" -> eğer { "(" + py_koşul(d.ç[0]) + " ve " + py_koşul(d.ç[1]) + ")" -> döndür }
+    d.tür == "veya" -> eğer { "(" + py_koşul(d.ç[0]) + " veya " + py_koşul(d.ç[1]) + ")" -> döndür }
+    d.tür == "sabit" ve d.d == "True" -> eğer { "doğru" -> döndür }
+    d.tür == "sabit" ve (d.d == "False" veya d.d == "None") -> eğer { "yanlış" -> döndür }
+    "pl_doğru(" + py_ifade(d) + ")" -> döndür
+}
+
+# ── kaldırma: kavramalar, koşullu ifadeler ve kısa devreli ve/veya ayrı işlevlere taşınır ──
+
+işlev py_kaldır(d) {
+    py_kapsam -> saklı
+    py_yeni_kapsam("kaldırılmış", saklı) -> k
+    k -> py_kapsam
+    py_yeni_ad("pg") -> ad
+    metne(d.satır) + " -> pl_satır; " -> gövde
+    d.tür == "koşullu" -> eğer {
+        gövde + py_koşul(d.ç[0]) + " -> eğer { " + py_ifade(d.ç[1]) + " -> döndür }; " + py_ifade(d.ç[2]) + " -> döndür;" -> gövde
+    }
+    d.tür == "ve" -> eğer {
+        gövde + py_ifade(d.ç[0]) + " -> t_a; değil pl_doğru(t_a) -> eğer { t_a -> döndür }; " + py_ifade(d.ç[1]) + " -> döndür;" -> gövde
+    }
+    d.tür == "veya" -> eğer {
+        gövde + py_ifade(d.ç[0]) + " -> t_a; pl_doğru(t_a) -> eğer { t_a -> döndür }; " + py_ifade(d.ç[1]) + " -> döndür;" -> gövde
+    }
+    d.tür == "kavrama" -> eğer {
+        # kavrama değişkenleri bu işlevin yerelleridir
+        dilim(d.ç, 1, uzunluk(d.ç)) -> her (c) { py_hedef_adları(c.ç[0], k.yereller) }
+        d.d -> tür
+        "" -> başlangıç
+        "" -> ekleme
+        tür == "liste" veya tür == "üreteç" -> eğer { "dilim(pl_ARG0, 0, 0) -> t_r; " -> başlangıç }
+        tür == "küme" -> eğer { "pl_küme_boş() -> t_r; " -> başlangıç }
+        tür == "sözlük" -> eğer { "pl_sözlük_boş() -> t_r; " -> başlangıç }
+        "" -> kapanış
+        dilim(d.ç, 1, uzunluk(d.ç)) -> her (c) {
+            ekleme + py_döngü_başı(c.ç[0], c.ç[1]) -> ekleme
+            "} " + kapanış -> kapanış
+            dilim(c.ç, 2, uzunluk(c.ç)) -> her (koşul) {
+                ekleme + py_koşul(koşul) + " -> eğer { " -> ekleme
+                "} " + kapanış -> kapanış
+            }
+        }
+        d.ç[0] -> öğe
+        tür == "liste" veya tür == "üreteç" -> eğer { ekleme + "t_r -> ekle(" + py_ifade(öğe) + "); " -> ekleme }
+        tür == "küme" -> eğer { ekleme + "pl_küme_ekle(t_r, " + py_ifade(öğe) + "); " -> ekleme }
+        tür == "sözlük" -> eğer { ekleme + "pl_koy(t_r, " + py_ifade(öğe.ç[0]) + ", " + py_ifade(öğe.ç[1]) + "); " -> ekleme }
+        "pl_liste(t_r)" -> sonuç_
+        tür == "küme" veya tür == "sözlük" -> eğer { "t_r" -> sonuç_ }
+        gövde + başlangıç + ekleme + kapanış + sonuç_ + " -> döndür;" -> gövde
+    }
+    saklı -> py_kapsam
+    [] -> parametreler
+    k.yakalanan -> her (y) { parametreler -> ekle("y_" + y) }
+    py_ek -> ekle("işlev " + ad + "(" + birleş(parametreler, ", ") + ") { " + gövde + " }")
+    ad + "(" + birleş(parametreler, ", ") + ")" -> döndür
+}
+
+# Bir for döngüsünün başı: yineleme, sayaç ve hedefe atama; "{" açık kalır
+işlev py_döngü_başı(h, yinelenen) {
+    yinelenen.tür == "çağrı" ve yinelenen.ç[0].tür == "ad" ve yinelenen.ç[0].d == "range" ve py_ad_çöz("range") == "" ve uzunluk(yinelenen.ç) >= 2 ve uzunluk(yinelenen.ç) <= 4 ve değil py_adlı_arg_var(yinelenen) -> eğer {
+        dilim(yinelenen.ç, 1, uzunluk(yinelenen.ç)) -> a
+        py_yeni_ad("t_") -> sayaç
+        py_yeni_ad("t_") -> bitiş
+        "0" -> baş_
+        uzunluk(a) == 1 -> eğer { "pl_tam(" + py_ifade(a[0]) + ") -> " + bitiş + "; " -> ön_ }
+        değilse { "pl_tam(" + py_ifade(a[0]) + ") -> " + sayaç + "; pl_tam(" + py_ifade(a[1]) + ") -> " + bitiş + "; " -> ön_ }
+        uzunluk(a) == 1 -> eğer { ön_ + "0 -> " + sayaç + "; " -> ön_ }
+        "1" -> adım
+        "<" -> karş
+        uzunluk(a) == 3 -> eğer {
+            a[2].tür == "sayı" -> eğer { a[2].d -> adım }
+            değilse { a[2].tür == "tekli" ve a[2].d == "-" ve a[2].ç[0].tür == "sayı" -> eğer { "(0 - " + a[2].ç[0].d + ")" -> adım; ">" -> karş }
+            değilse { "" -> adım } }
+        }
+        adım == "0" -> eğer { py_hata_d("range() adımı sıfır olamaz", a[2]) }
+        adım == "" -> eğer {
+            py_yeni_ad("t_") -> adım_d
+            ön_ + "pl_tam(" + py_ifade(a[2]) + ") -> " + adım_d + "; pl_aralıkta(" + sayaç + ", " + bitiş + ", " + adım_d + ") -> iken { " + py_hedefe_ata(h, "pl_int(" + sayaç + ")") + sayaç + " + " + adım_d + " -> " + sayaç + "; " -> döndür
+        }
+        ön_ + sayaç + " " + karş + " " + bitiş + " -> iken { " + py_hedefe_ata(h, "pl_int(" + sayaç + ")") + sayaç + " + " + adım + " -> " + sayaç + "; " -> döndür
+    }
+    py_yeni_ad("t_") -> liste_
+    py_yeni_ad("t_") -> sıra_
+    "pl_yineleme(" + py_ifade(yinelenen) + ") -> " + liste_ + "; 0 -> " + sıra_ + "; " + sıra_ + " < uzunluk(" + liste_ + ") -> iken { " + sıra_ + " + 1 -> " + sıra_ + "; " + py_hedefe_ata(h, liste_ + "[" + sıra_ + " - 1]") -> döndür
+}
+
+işlev py_adlı_arg_var(çağrı_) {
+    dilim(çağrı_.ç, 1, uzunluk(çağrı_.ç)) -> her (a) { a.tür != "kw" ve a.tür != "yıldız" ve a.tür != "çift_yıldız" -> eğer { devam }; 1 -> döndür }
+    0 -> döndür
+}
+
+# Hedefe atama kodu (deyimler, "; " ile biten)
+işlev py_hedefe_ata(h, kaynak) {
+    h.tür == "ad" -> eğer {
+        py_ad_çöz(h.d) -> ad
+        ad == "" -> eğer { "p_" + h.d -> ad }
+        kaynak + " -> " + ad + "; " -> döndür
+    }
+    h.tür == "demet" veya h.tür == "liste" -> eğer {
+        0 -> yıldız_yeri
+        -1 -> yıldız_yeri
+        0 -> i
+        h.ç -> her (c) { c.tür == "yıldız" -> eğer { i -> yıldız_yeri }; i + 1 -> i }
+        py_yeni_ad("t_") -> geçici
+        "" -> r
+        yıldız_yeri < 0 -> eğer { "pl_aç(" + kaynak + ", " + metne(uzunluk(h.ç)) + ") -> " + geçici + "; " -> r }
+        değilse { "pl_aç_yıldızlı(" + kaynak + ", " + metne(yıldız_yeri) + ", " + metne(uzunluk(h.ç) - yıldız_yeri - 1) + ") -> " + geçici + "; " -> r }
+        0 -> j
+        h.ç -> her (c) {
+            c.tür == "yıldız" -> eğer { c.ç[0] -> c }
+            r + py_hedefe_ata(c, geçici + "[" + metne(j) + "]") -> r
+            j + 1 -> j
+        }
+        r -> döndür
+    }
+    h.tür == "indis" -> eğer {
+        h.ç[1].tür == "dilim" -> eğer { py_desteklenmiyor("dilime atama", h) }
+        "pl_koy(" + py_ifade(h.ç[0]) + ", " + py_ifade(h.ç[1]) + ", " + kaynak + "); " -> döndür
+    }
+    h.tür == "alan" -> eğer { "pl_alan_koy(" + py_ifade(h.ç[0]) + ", \"" + h.d + "\", " + kaynak + "); " -> döndür }
+    py_hata_d("sözdizimi hatası: bu ifadeye atama yapılamaz", h)
+}
+
+# ── lambda ve iç işlevler: ortamlı işlev değerleri ──
+
+işlev py_param_bağlama(params, işlev_adı) {
+    # (t_a, t_k) argümanlarını parametrelere bağlayan deyimler
+    [""] -> adlar
+    0 -> n
+    0 -> yıldızlı
+    "" -> r
+    params.ç -> her (p) {
+        p.tür == "param" veya p.tür == "kw" -> eğer { adlar -> ekle(p.d) }
+        p.tür == "param" -> eğer { n + 1 -> n }
+        p.tür == "yıldız" ve p.d != "" -> eğer { 1 -> yıldızlı }
+        p.tür == "çift" -> eğer { py_desteklenmiyor("**kwargs parametresi", p) }
+    }
+    "pl_arg_denetle(t_a, t_k, " + metne(n) + ", [\"" + birleş(adlar, "\", \"") + "\"], \"" + işlev_adı + "\", " + metne(yıldızlı) + "); " -> r
+    0 -> i
+    params.ç -> her (p) {
+        p.tür == "param" veya p.tür == "kw" -> eğer {
+            "1000000" -> sıra_
+            p.tür == "param" -> eğer { metne(i) -> sıra_; i + 1 -> i }
+            uzunluk(p.ç) > 0 -> eğer {
+                py_kapsam -> saklı
+                py_modül_kapsamı -> py_kapsam
+                py_ifade(p.ç[0]) -> varsayılan
+                saklı -> py_kapsam
+                r + "pl_arg_v(t_a, t_k, " + sıra_ + ", \"" + p.d + "\", " + varsayılan + ") -> y_" + p.d + "; " -> r
+            } değilse {
+                r + "pl_arg(t_a, t_k, " + sıra_ + ", \"" + p.d + "\", \"" + işlev_adı + "\") -> y_" + p.d + "; " -> r
+            }
+        }
+        p.tür == "yıldız" ve p.d != "" -> eğer { r + "pl_arg_kalan(t_a, " + metne(n) + ") -> y_" + p.d + "; " -> r }
+    }
+    r -> döndür
+}
+
+işlev py_lambda(d) {
+    py_kapsam -> saklı
+    py_yeni_kapsam("kapanış", saklı) -> k
+    d.ç[0].ç -> her (p) { 1 -> k.yereller[p.d] }
+    k -> py_kapsam
+    py_yeni_ad("pg") -> ad
+    py_param_bağlama(d.ç[0], "<lambda>") -> bağlama
+    py_ifade(d.ç[1]) -> gövde
+    saklı -> py_kapsam
+    "" -> ortam_bağlama
+    [] -> ortam
+    0 -> i
+    k.yakalanan -> her (y) {
+        ortam_bağlama + "t_e[" + metne(i) + "] -> y_" + y + "; " -> ortam_bağlama
+        ortam -> ekle("y_" + y)
+        i + 1 -> i
+    }
+    py_ek -> ekle("işlev " + ad + "(t_a, t_k, t_e) { pl_satır -> t_ç; " + ortam_bağlama + bağlama + metne(d.satır) + " -> pl_satır; " + gövde + " -> t_r; t_ç -> pl_satır; t_r -> döndür; }")
+    py_ortam_listesi(ortam) -> ortam_
+    "pl_işlev(" + ad + ", " + ortam_ + ", \"<lambda>\")" -> döndür
+}
+
+işlev py_ortam_listesi(ortam) {
+    uzunluk(ortam) == 0 -> eğer { "pl_ARG0" -> döndür }
+    "[" + birleş(ortam, ", ") + "]" -> döndür
+}
+
+# İşlev içinde tanımlanan işlev: ortamlı bir işlev değeri olarak dosyanın sonuna taşınır
+işlev py_iç_işlev(d) {
+    uzunluk(d.ç[2].ç) > 0 -> eğer { py_desteklenmiyor("iç işlevlerde süsleyiciler", d.ç[2].ç[0]) }
+    py_kapsam -> saklı
+    py_yeni_kapsam("kapanış", saklı) -> k
+    {"": 0} -> küresel_bildirim
+    py_atananlar(d.ç[1].ç, k.yereller, küresel_bildirim)
+    d.ç[0].ç -> her (p) { 1 -> k.yereller[p.d] }
+    anahtarlar(küresel_bildirim) -> her (a) { py_sil(k.yereller, a); 1 -> k.küresel[a] }
+    py_sil(k.yereller, "")
+    py_sil(k.küresel, "")
+    d.d -> k.işlev_adı
+    k -> py_kapsam
+    py_yeni_ad("pg") -> ad
+    py_ek_tampon -> saklı_tampon
+    py_ek_kipi -> saklı_kip
+    "" -> py_ek_tampon
+    1 -> py_ek_kipi
+    py_param_bağlama(d.ç[0], d.d) -> bağlama
+    "" -> önceden
+    anahtarlar(k.yereller) -> her (y) {
+        py_parametre_mi(d.ç[0], y) -> eğer { devam }
+        önceden + "pl_YOK -> y_" + y + "; " -> önceden
+    }
+    py_blok_üret(d.ç[1])
+    py_ek_tampon -> gövde
+    saklı_tampon -> py_ek_tampon
+    saklı_kip -> py_ek_kipi
+    saklı -> py_kapsam
+    # ortam: yakalanan dış yereller; işlevin kendi adı kendisine bağlanır (özyineleme)
+    "" -> ortam_bağlama
+    [] -> ortam
+    0 -> i
+    k.yakalanan -> her (y) {
+        ortam_bağlama + "t_e[" + metne(i) + "] -> y_" + y + "; " -> ortam_bağlama
+        ortam -> ekle("y_" + y)
+        i + 1 -> i
+    }
+    py_ortam_listesi(ortam) -> ortam_
+    py_ek -> ekle("işlev " + ad + "(t_a, t_k, t_e) { pl_satır -> t_ç; " + ortam_bağlama + "pl_işlev(" + ad + ", t_e, \"" + d.d + "\") -> y_" + d.d + "; " + önceden + bağlama + gövde + " t_ç -> pl_satır; pl_YOK -> döndür; }")
+    py_ad_çöz(d.d) -> hedef_ad
+    py_yaz(d.satır, metne(d.satır) + " -> pl_satır; pl_işlev(" + ad + ", " + ortam_ + ", \"" + d.d + "\") -> " + hedef_ad + ";")
+}
+
+işlev py_parametre_mi(params, ad) {
+    params.ç -> her (p) { p.d == ad -> eğer { 1 -> döndür } }
+    0 -> döndür
+}
+
+# ── çağrılar ──
+
+işlev py_çağrı(d) {
+    d.ç[0] -> f
+    dilim(d.ç, 1, uzunluk(d.ç)) -> argler
+    f.tür == "ad" -> eğer {
+        f.d -> ad
+        py_ad_çöz(ad) != "" -> eğer { py_dinamik_çağrı(py_ad_çöz(ad), argler) -> döndür }
+        var(py_işlevler, ad) -> eğer {
+            py_işlevler[ad] -> tanım
+            py_yıldızlı_çağrı_mı(argler) -> eğer {
+                1 -> py_sarmalanacak[ad]
+                "pw_" + ad + "(" + py_arg_listesi(argler) + ", " + py_kw_sözlüğü(argler) + ", pl_ARG0)" -> döndür
+            }
+            "pf_" + ad + "(" + birleş(py_bağla(tanım.ç[0], argler, ad, d, 0), ", ") + ")" -> döndür
+        }
+        var(py_sınıflar, ad) -> eğer { py_kurucu_çağrısı(ad, argler, d) -> döndür }
+        var(py_alınanlar, ad) -> eğer { py_modül_çağrısı(py_alınanlar[ad], argler, d) -> döndür }
+        bul(PY_İSTİSNALAR, ad) >= 0 -> eğer {
+            py_adlı_arg_var(d) -> eğer { py_desteklenmiyor("istisnalarda adlı argümanlar", d) }
+            "pl_istisna(\"" + ad + "\", " + py_düz_liste(argler) + ")" -> döndür
+        }
+        bul(PY_YERLEŞİKLER, ad) >= 0 -> eğer { py_yerleşik_çağrı(ad, argler, d) -> döndür }
+        py_hata_d("'" + ad + "' adı tanımlı değil (NameError)", f)
+    }
+    f.tür == "alan" -> eğer {
+        f.ç[0] -> o
+        f.d -> ad
+        o.tür == "ad" ve var(py_modüller, o.d) ve py_ad_çöz(o.d) == "" -> eğer {
+            bul(PY_MODÜLLER[py_modüller[o.d]], ad) < 0 -> eğer { py_hata_d("'" + py_modüller[o.d] + "' modülünde '" + ad + "' yok (ya da Piton'da desteklenmiyor)", f) }
+            py_modül_çağrısı(py_modüller[o.d] + "." + ad, argler, d) -> döndür
+        }
+        o.tür == "ad" ve var(py_sınıflar, o.d) ve py_ad_çöz(o.d) == "" -> eğer {
+            py_yöntem_bul(o.d, ad) -> sahibi
+            sahibi != "" -> eğer {
+                py_yöntem_türü[sahibi + "." + ad] -> tür_
+                tür_ == "static" -> eğer { "pm_" + sahibi + "_" + ad + "(" + birleş(py_bağla(py_yöntemler[sahibi + "." + ad].ç[0], argler, ad, d, 0), ", ") + ")" -> döndür }
+                tür_ == "class" -> eğer { "pm_" + sahibi + "_" + ad + "(" + birleş(["pl_sınıf(\"" + o.d + "\")"] + py_bağla(py_yöntemler[sahibi + "." + ad].ç[0], argler, ad, d, 1), ", ") + ")" -> döndür }
+                "pm_" + sahibi + "_" + ad + "(" + birleş(py_bağla(py_yöntemler[sahibi + "." + ad].ç[0], argler, ad, d, 0), ", ") + ")" -> döndür
+            }
+        }
+        o.tür == "çağrı" ve o.ç[0].tür == "ad" ve o.ç[0].d == "super" ve py_ad_çöz("super") == "" -> eğer {
+            py_kapsam.sınıf == "" -> eğer { py_hata_d("super() yalnızca bir sınıfın yöntemlerinde kullanılabilir", o) }
+            py_sınıf_üstü[py_kapsam.sınıf] -> üst_
+            py_yöntem_bul(üst_, ad) -> sahibi
+            "y_" + py_kapsam.ilk_param -> öz
+            sahibi != "" -> eğer {
+                "pm_" + sahibi + "_" + ad + "(" + birleş([öz] + py_bağla(py_yöntemler[sahibi + "." + ad].ç[0], argler, ad, d, 1), ", ") + ")" -> döndür
+            }
+            ad == "__init__" -> eğer {
+                py_istisna_sınıfı_mı(py_kapsam.sınıf) -> eğer { "pl_istisna_başlat(" + öz + ", " + py_düz_liste(argler) + ")" -> döndür }
+                "pl_YOK" -> döndür
+            }
+            "pl_y(pl_sınıf(\"" + üst_ + "\"), \"" + ad + "\", [" + birleş([öz], ", ") + "] + " + py_arg_listesi(argler) + ", " + py_kw_sözlüğü(argler) + ")" -> döndür
+        }
+        py_ifade(o) -> nesne
+        var(py_yöntem_adları, ad) -> eğer { "pg_ym_" + ad + "(" + nesne + ", " + py_arg_listesi(argler) + ", " + py_kw_sözlüğü(argler) + ")" -> döndür }
+        ad == "append" ve uzunluk(argler) == 1 ve argler[0].tür != "kw" ve argler[0].tür != "yıldız" -> eğer { "pl_y_append(" + nesne + ", " + py_ifade(argler[0]) + ")" -> döndür }
+        "pl_y(" + nesne + ", \"" + ad + "\", " + py_arg_listesi(argler) + ", " + py_kw_sözlüğü(argler) + ")" -> döndür
+    }
+    py_dinamik_çağrı(py_ifade(f), argler) -> döndür
+}
+
+işlev py_dinamik_çağrı(f, argler) {
+    "pl_çağır(" + f + ", " + py_arg_listesi(argler) + ", " + py_kw_sözlüğü(argler) + ")" -> döndür
+}
+
+işlev py_yıldızlı_çağrı_mı(argler) {
+    argler -> her (a) { a.tür == "yıldız" veya a.tür == "çift_yıldız" -> eğer { 1 -> döndür } }
+    0 -> döndür
+}
+
+işlev py_konumlular(argler) {
+    dilim(argler, 0, 0) -> r
+    argler -> her (a) { a.tür != "kw" ve a.tür != "çift_yıldız" -> eğer { r -> ekle(a) } }
+    r -> döndür
+}
+
+# Konumlu argümanlar: Nehir'de [Değer] ifadesi
+işlev py_arg_listesi(argler) {
+    py_konumlular(argler) -> k
+    uzunluk(k) == 0 -> eğer { "pl_ARG0" -> döndür }
+    py_yıldızlı_mı(k) -> eğer { py_yıldızlı_liste(k) -> döndür }
+    "[" + py_ifadeler(k) + "]" -> döndür
+}
+işlev py_düz_liste(argler) {
+    argler -> her (a) { a.tür == "kw" -> eğer { py_desteklenmiyor("burada adlı argüman", a) } }
+    py_arg_listesi(argler) -> döndür
+}
+# Adlı argümanlar: Nehir'de {metin: Değer} ifadesi
+işlev py_kw_sözlüğü(argler) {
+    [] -> parçalar
+    "" -> çift_
+    argler -> her (a) {
+        a.tür == "kw" -> eğer { parçalar -> ekle("\"" + a.d + "\": " + py_ifade(a.ç[0])) }
+        a.tür == "çift_yıldız" -> eğer { py_ifade(a.ç[0]) -> çift_ }
+    }
+    "pl_KW0" -> r
+    uzunluk(parçalar) > 0 -> eğer { "{" + birleş(parçalar, ", ") + "}" -> r }
+    çift_ != "" -> eğer { "pl_kw_ekle(" + r + ", " + çift_ + ")" -> r }
+    r -> döndür
+}
+
+# Bilinen bir işlevin parametrelerine argümanları derleme anında bağlar
+işlev py_bağla(params, argler, işlev_adı, d, atla) {
+    [""] -> adlar
+    dilim(adlar, 0, 0) -> adlar
+    dilim(params.ç, 0, 0) -> parametreler
+    0 -> i
+    params.ç -> her (p) {
+        i >= atla -> eğer { parametreler -> ekle(p) }
+        i + 1 -> i
+    }
+    [""] -> değerler_
+    dilim(değerler_, 0, 0) -> değerler_
+    parametreler -> her (p) { değerler_ -> ekle("") }
+    -1 -> yıldız_yeri
+    0 -> i
+    parametreler -> her (p) {
+        p.tür == "yıldız" ve p.d != "" -> eğer { i -> yıldız_yeri }
+        p.tür == "çift" -> eğer { py_desteklenmiyor("**kwargs parametresi", p) }
+        i + 1 -> i
+    }
+    [] -> fazlalar
+    0 -> sıra_
+    argler -> her (a) {
+        a.tür == "kw" veya a.tür == "çift_yıldız" -> eğer { devam }
+        a.tür == "yıldız" -> eğer { py_hata_d("Piton bu çağrıda *argüman açılımını desteklemiyor", a) }
+        sıra_ < uzunluk(parametreler) ve parametreler[sıra_].tür == "param" -> eğer {
+            py_ifade(a) -> değerler_[sıra_]
+            sıra_ + 1 -> sıra_
+        } değilse {
+            yıldız_yeri < 0 -> eğer {
+                0 -> konumlu_sayısı
+                parametreler -> her (p) { p.tür == "param" -> eğer { konumlu_sayısı + 1 -> konumlu_sayısı } }
+                py_hata_d("TypeError: " + işlev_adı + "() en çok " + metne(konumlu_sayısı) + " konumlu argüman alır", a)
+            }
+            fazlalar -> ekle(py_ifade(a))
+        }
+    }
+    argler -> her (a) {
+        a.tür == "çift_yıldız" -> eğer { py_desteklenmiyor("bu çağrıda **sözlük açılımı", a) }
+        a.tür == "kw" -> eğer {
+            -1 -> yer
+            0 -> j
+            parametreler -> her (p) { (p.tür == "param" veya p.tür == "kw") ve p.d == a.d -> eğer { j -> yer }; j + 1 -> j }
+            yer < 0 -> eğer { py_hata_d("TypeError: " + işlev_adı + "() '" + a.d + "' adlı bir argüman almıyor", a) }
+            değerler_[yer] != "" -> eğer { py_hata_d("TypeError: " + işlev_adı + "() '" + a.d + "' argümanını iki kez aldı", a) }
+            py_ifade(a.ç[0]) -> değerler_[yer]
+        }
+    }
+    0 -> j
+    parametreler -> her (p) {
+        p.tür == "yıldız" -> eğer {
+            p.d != "" -> eğer {
+                uzunluk(fazlalar) == 0 -> eğer { "pl_demet_boş()" -> değerler_[j] } değilse { "pl_demet([" + birleş(fazlalar, ", ") + "])" -> değerler_[j] }
+            }
+        } değilse { değerler_[j] == "" -> eğer {
+            uzunluk(p.ç) > 0 -> eğer {
+                py_kapsam -> saklı
+                py_modül_kapsamı -> py_kapsam
+                py_ifade(p.ç[0]) -> değerler_[j]
+                saklı -> py_kapsam
+            } değilse {
+                py_hata_d("TypeError: " + işlev_adı + "() '" + p.d + "' argümanı eksik", d)
+            }
+        } }
+        j + 1 -> j
+    }
+    dilim(değerler_, 0, 0) -> r
+    0 -> j
+    parametreler -> her (p) {
+        değil (p.tür == "yıldız" ve p.d == "") -> eğer { r -> ekle(değerler_[j]) }
+        j + 1 -> j
+    }
+    r -> döndür
+}
+
+# Bir sınıfın __init__'i (atalarınki dahil); yoksa ""
+işlev py_kurucu_sahibi(sınıf) { py_yöntem_bul(sınıf, "__init__") -> döndür }
+
+işlev py_kurucu_çağrısı(sınıf, argler, d) {
+    py_kurucu_sahibi(sınıf) -> sahibi
+    py_yıldızlı_çağrı_mı(argler) -> eğer { "pcw_" + sınıf + "(" + py_arg_listesi(argler) + ", " + py_kw_sözlüğü(argler) + ")" -> döndür }
+    sahibi == "" -> eğer {
+        py_istisna_sınıfı_mı(sınıf) -> eğer { "pl_istisna(\"" + sınıf + "\", " + py_düz_liste(argler) + ")" -> döndür }
+        uzunluk(argler) > 0 -> eğer { py_hata_d("TypeError: " + sınıf + "() argüman almaz (__init__ tanımlı değil)", d) }
+        "pl_nesne(\"" + sınıf + "\")" -> döndür
+    }
+    "pc_" + sınıf + "(" + birleş(py_bağla(py_yöntemler[sahibi + ".__init__"].ç[0], argler, sınıf, d, 1), ", ") + ")" -> döndür
+}
+
+işlev py_kw(argler, ad) {
+    argler -> her (a) { a.tür == "kw" ve a.d == ad -> eğer { py_ifade(a.ç[0]) -> döndür } }
+    "" -> döndür
+}
+işlev py_kw_ya_da(argler, ad, varsayılan) {
+    py_kw(argler, ad) -> r
+    r == "" -> eğer { varsayılan -> döndür }
+    r -> döndür
+}
+işlev py_kw_denetle(argler, izinli, ad, d) {
+    argler -> her (a) {
+        a.tür == "kw" ve bul(izinli, a.d) < 0 -> eğer { py_hata_d("TypeError: " + ad + "() '" + a.d + "' adlı bir argüman almıyor", a) }
+        a.tür == "çift_yıldız" -> eğer { py_desteklenmiyor(ad + "() çağrısında ** açılımı", a) }
+        a.tür == "yıldız" ve ad != "print" ve ad != "zip" -> eğer { py_desteklenmiyor(ad + "() çağrısında * açılımı", a) }
+    }
+}
+işlev py_arg_sayısı(k, en_az, en_çok, ad, d) {
+    uzunluk(k) < en_az veya uzunluk(k) > en_çok -> eğer {
+        en_az == en_çok -> eğer { py_hata_d("TypeError: " + ad + "() " + metne(en_az) + " argüman alır, " + metne(uzunluk(k)) + " verildi", d) }
+        py_hata_d("TypeError: " + ad + "() " + metne(en_az) + " ile " + metne(en_çok) + " arası argüman alır, " + metne(uzunluk(k)) + " verildi", d)
+    }
+}
+işlev py_konum(k, i, varsayılan) {
+    i < uzunluk(k) -> eğer { py_ifade(k[i]) -> döndür }
+    varsayılan -> döndür
+}
+
+işlev py_yerleşik_çağrı(ad, argler, d) {
+    py_konumlular(argler) -> k
+    ad == "print" -> eğer {
+        py_kw_denetle(argler, ["sep", "end", "flush"], ad, d)
+        "pl_b_print(" + py_arg_listesi(k) + ", " + py_kw_ya_da(argler, "sep", "pl_YOK") + ", " + py_kw_ya_da(argler, "end", "pl_YOK") + ")" -> döndür
+    }
+    ad == "min" veya ad == "max" -> eğer {
+        py_kw_denetle(argler, ["key", "default"], ad, d)
+        uzunluk(k) == 0 -> eğer { py_hata_d("TypeError: " + ad + "() en az bir argüman alır", d) }
+        "pl_b_" + ad + "([" + py_ifadeler(k) + "], " + py_kw_ya_da(argler, "key", "pl_YOK") + ", " + py_kw_ya_da(argler, "default", "pl_VARSAYILAN_YOK") + ")" -> döndür
+    }
+    ad == "sorted" -> eğer {
+        py_kw_denetle(argler, ["key", "reverse"], ad, d)
+        py_arg_sayısı(k, 1, 1, ad, d)
+        "pl_b_sorted(" + py_ifade(k[0]) + ", " + py_kw_ya_da(argler, "key", "pl_YOK") + ", " + py_kw_ya_da(argler, "reverse", "pl_YANLIŞ") + ")" -> döndür
+    }
+    ad == "dict" -> eğer {
+        py_arg_sayısı(k, 0, 1, ad, d)
+        "pl_b_dict(" + py_konum(k, 0, "pl_YOK") + ", " + py_kw_sözlüğü(argler) + ")" -> döndür
+    }
+    ad == "enumerate" -> eğer {
+        py_kw_denetle(argler, ["start"], ad, d)
+        py_arg_sayısı(k, 1, 2, ad, d)
+        "pl_b_enumerate(" + py_ifade(k[0]) + ", " + py_konum(k, 1, py_kw_ya_da(argler, "start", py_tam_sabiti("0"))) + ")" -> döndür
+    }
+    ad == "int" -> eğer {
+        py_kw_denetle(argler, ["base"], ad, d)
+        py_arg_sayısı(k, 0, 2, ad, d)
+        uzunluk(k) == 0 -> eğer { py_tam_sabiti("0") -> döndür }
+        "pl_b_int(" + py_ifade(k[0]) + ", " + py_konum(k, 1, py_kw_ya_da(argler, "base", "pl_YOK")) + ")" -> döndür
+    }
+    ad == "round" -> eğer {
+        py_kw_denetle(argler, ["ndigits"], ad, d)
+        py_arg_sayısı(k, 1, 2, ad, d)
+        "pl_b_round(" + py_ifade(k[0]) + ", " + py_konum(k, 1, py_kw_ya_da(argler, "ndigits", "pl_YOK")) + ")" -> döndür
+    }
+    ad == "open" -> eğer {
+        py_kw_denetle(argler, ["mode", "encoding", "newline"], ad, d)
+        py_arg_sayısı(k, 1, 2, ad, d)
+        "pl_b_open(" + py_ifade(k[0]) + ", " + py_konum(k, 1, py_kw_ya_da(argler, "mode", "pl_YOK")) + ")" -> döndür
+    }
+    py_kw_denetle(argler, [""], ad, d)
+    ad == "input" -> eğer { py_arg_sayısı(k, 0, 1, ad, d); "pl_b_input(" + py_konum(k, 0, "pl_YOK") + ")" -> döndür }
+    ad == "range" -> eğer {
+        py_arg_sayısı(k, 1, 3, ad, d)
+        uzunluk(k) == 1 -> eğer { "pl_b_range(" + py_tam_sabiti("0") + ", " + py_ifade(k[0]) + ", " + py_tam_sabiti("1") + ")" -> döndür }
+        "pl_b_range(" + py_ifade(k[0]) + ", " + py_ifade(k[1]) + ", " + py_konum(k, 2, py_tam_sabiti("1")) + ")" -> döndür
+    }
+    ad == "str" -> eğer {
+        py_arg_sayısı(k, 0, 1, ad, d)
+        uzunluk(k) == 0 -> eğer { py_metin_sabiti("") -> döndür }
+        "pl_b_str(" + py_ifade(k[0]) + ")" -> döndür
+    }
+    ad == "float" -> eğer {
+        py_arg_sayısı(k, 0, 1, ad, d)
+        uzunluk(k) == 0 -> eğer { py_sabit("pl_float(0.0)") -> döndür }
+        "pl_b_float(" + py_ifade(k[0]) + ")" -> döndür
+    }
+    ad == "bool" -> eğer {
+        py_arg_sayısı(k, 0, 1, ad, d)
+        uzunluk(k) == 0 -> eğer { "pl_YANLIŞ" -> döndür }
+        "pl_b_bool(" + py_ifade(k[0]) + ")" -> döndür
+    }
+    ad == "iter" -> eğer { py_arg_sayısı(k, 1, 1, ad, d); "pl_b_list(" + py_ifade(k[0]) + ")" -> döndür }
+    ad == "list" veya ad == "tuple" veya ad == "set" -> eğer {
+        py_arg_sayısı(k, 0, 1, ad, d)
+        uzunluk(k) == 0 -> eğer {
+            ad == "list" -> eğer { "pl_liste_boş()" -> döndür }
+            ad == "tuple" -> eğer { "pl_demet_boş()" -> döndür }
+            "pl_küme_boş()" -> döndür
+        }
+        "pl_b_" + ad + "(" + py_ifade(k[0]) + ")" -> döndür
+    }
+    ad == "sum" -> eğer { py_arg_sayısı(k, 1, 2, ad, d); "pl_b_sum(" + py_ifade(k[0]) + ", " + py_konum(k, 1, py_tam_sabiti("0")) + ")" -> döndür }
+    ad == "zip" -> eğer { "pl_b_zip(" + py_arg_listesi(k) + ")" -> döndür }
+    ad == "map" -> eğer {
+        py_arg_sayısı(k, 2, 10, ad, d)
+        "pl_b_map(" + py_ifade(k[0]) + ", [" + py_ifadeler(dilim(k, 1, uzunluk(k))) + "])" -> döndür
+    }
+    ad == "filter" -> eğer { py_arg_sayısı(k, 2, 2, ad, d); "pl_b_filter(" + py_ifade(k[0]) + ", " + py_ifade(k[1]) + ")" -> döndür }
+    ad == "isinstance" -> eğer { py_arg_sayısı(k, 2, 2, ad, d); "pl_b_isinstance(" + py_ifade(k[0]) + ", " + py_ifade(k[1]) + ")" -> döndür }
+    ad == "divmod" -> eğer { py_arg_sayısı(k, 2, 2, ad, d); "pl_b_divmod(" + py_ifade(k[0]) + ", " + py_ifade(k[1]) + ")" -> döndür }
+    ad == "pow" -> eğer { py_arg_sayısı(k, 2, 3, ad, d); "pl_b_pow(" + py_ifade(k[0]) + ", " + py_ifade(k[1]) + ", " + py_konum(k, 2, "pl_YOK") + ")" -> döndür }
+    ad == "exit" veya ad == "quit" -> eğer { py_arg_sayısı(k, 0, 1, ad, d); "pl_b_exit(" + py_konum(k, 0, "pl_YOK") + ")" -> döndür }
+    ad == "callable" -> eğer { py_arg_sayısı(k, 1, 1, ad, d); "pl_b_callable(" + py_ifade(k[0]) + ")" -> döndür }
+    ad == "format" -> eğer { py_arg_sayısı(k, 1, 2, ad, d); "pl_str(pl_biç(" + py_ifade(k[0]) + ", pl_metin(" + py_konum(k, 1, py_metin_sabiti("")) + ")))" -> döndür }
+    bul(["len", "abs", "reversed", "ord", "chr", "any", "all", "type", "hex", "bin", "oct", "repr"], ad) >= 0 -> eğer {
+        py_arg_sayısı(k, 1, 1, ad, d)
+        "pl_b_" + ad + "(" + py_ifade(k[0]) + ")" -> döndür
+    }
+    ad == "super" -> eğer { py_hata_d("super() yalnızca super().yöntem(...) biçiminde kullanılabilir", d) }
+    py_desteklenmiyor(ad + "()", d)
+}
+
+işlev py_modül_çağrısı(tam_ad, argler, d) {
+    py_konumlular(argler) -> k
+    py_kw_denetle(argler, [""], tam_ad, d)
+    bul(["math.sqrt", "math.isqrt", "math.floor", "math.ceil", "math.trunc", "math.fabs", "math.factorial"], tam_ad) >= 0 -> eğer {
+        py_arg_sayısı(k, 1, 1, tam_ad, d)
+        "pl_m_" + dilim(tam_ad, 5, uzunluk(tam_ad)) + "(" + py_ifade(k[0]) + ")" -> döndür
+    }
+    bul(["math.sin", "math.cos", "math.tan", "math.asin", "math.acos", "math.atan", "math.exp", "math.log10", "math.log2", "math.degrees", "math.radians"], tam_ad) >= 0 -> eğer {
+        py_arg_sayısı(k, 1, 1, tam_ad, d)
+        "pl_m_işlev(\"" + dilim(tam_ad, 5, uzunluk(tam_ad)) + "\", " + py_ifade(k[0]) + ")" -> döndür
+    }
+    tam_ad == "math.log" -> eğer { py_arg_sayısı(k, 1, 2, tam_ad, d); "pl_m_log(" + py_ifade(k[0]) + ", " + py_konum(k, 1, "pl_YOK") + ")" -> döndür }
+    bul(["math.atan2", "math.hypot", "math.pow", "math.gcd", "math.isclose"], tam_ad) >= 0 -> eğer {
+        py_arg_sayısı(k, 2, 2, tam_ad, d)
+        "pl_m_" + dilim(tam_ad, 5, uzunluk(tam_ad)) + "(" + py_ifade(k[0]) + ", " + py_ifade(k[1]) + ")" -> döndür
+    }
+    tam_ad == "random.random" -> eğer { py_arg_sayısı(k, 0, 0, tam_ad, d); "pl_r_random()" -> döndür }
+    tam_ad == "random.seed" -> eğer { py_arg_sayısı(k, 0, 1, tam_ad, d); "pl_r_seed(" + py_konum(k, 0, py_tam_sabiti("0")) + ")" -> döndür }
+    bul(["random.randint", "random.uniform", "random.sample"], tam_ad) >= 0 -> eğer {
+        py_arg_sayısı(k, 2, 2, tam_ad, d)
+        "pl_r_" + dilim(tam_ad, 7, uzunluk(tam_ad)) + "(" + py_ifade(k[0]) + ", " + py_ifade(k[1]) + ")" -> döndür
+    }
+    bul(["random.choice", "random.shuffle"], tam_ad) >= 0 -> eğer {
+        py_arg_sayısı(k, 1, 1, tam_ad, d)
+        "pl_r_" + dilim(tam_ad, 7, uzunluk(tam_ad)) + "(" + py_ifade(k[0]) + ")" -> döndür
+    }
+    tam_ad == "random.randrange" -> eğer {
+        py_arg_sayısı(k, 1, 3, tam_ad, d)
+        uzunluk(k) == 1 -> eğer { "pl_r_randrange(" + py_ifade(k[0]) + ", pl_YOK, pl_YOK)" -> döndür }
+        "pl_r_randrange(" + py_ifade(k[0]) + ", " + py_ifade(k[1]) + ", " + py_konum(k, 2, py_tam_sabiti("1")) + ")" -> döndür
+    }
+    tam_ad == "time.time" -> eğer { py_arg_sayısı(k, 0, 0, tam_ad, d); "pl_t_time()" -> döndür }
+    tam_ad == "time.perf_counter" veya tam_ad == "time.monotonic" -> eğer { py_arg_sayısı(k, 0, 0, tam_ad, d); "pl_t_perf()" -> döndür }
+    tam_ad == "time.sleep" -> eğer { py_arg_sayısı(k, 1, 1, tam_ad, d); "pl_t_sleep(" + py_ifade(k[0]) + ")" -> döndür }
+    tam_ad == "sys.exit" -> eğer { py_arg_sayısı(k, 0, 1, tam_ad, d); "pl_b_exit(" + py_konum(k, 0, "pl_YOK") + ")" -> döndür }
+    py_hata_d("'" + tam_ad + "' çağrılamaz", d)
+}
+
+# ── deyimler ──
+
+işlev py_işaret(d) { metne(d.satır) + " -> pl_satır;" -> döndür }
+
+işlev py_blok_üret(b) { b.ç -> her (d) { py_deyim_üret(d) } }
+
+işlev py_deyim_üret(d) {
+    d.satır -> L
+    d.tür == "ifade" -> eğer {
+        d.ç[0] -> e
+        e.tür == "metin" veya e.tür == "sabit" veya e.tür == "sayı" veya e.tür == "fmetin" -> eğer { 0 -> döndür }
+        e.tür == "çağrı" -> eğer { py_yaz(L, py_işaret(d) + " " + py_ifade(e) + ";") } değilse { py_yaz(L, py_işaret(d) + " pl_kullan(" + py_ifade(e) + ");") }
+        0 -> döndür
+    }
+    d.tür == "ata" -> eğer {
+        d.ç[uzunluk(d.ç) - 1] -> değer_
+        uzunluk(d.ç) == 2 ve d.ç[0].tür == "ad" -> eğer {
+            py_yaz(L, py_işaret(d) + " " + py_hedefe_ata(d.ç[0], py_ifade(değer_)))
+            0 -> döndür
+        }
+        py_yeni_ad("t_") -> geçici
+        py_işaret(d) + " " + py_ifade(değer_) + " -> " + geçici + "; " -> kod
+        0 -> j
+        j < uzunluk(d.ç) - 1 -> iken { kod + py_hedefe_ata(d.ç[j], geçici) -> kod; j + 1 -> j }
+        py_yaz(L, kod)
+        0 -> döndür
+    }
+    d.tür == "artır" -> eğer {
+        d.ç[0] -> h
+        d.d == "@" -> eğer { py_desteklenmiyor("@= işleci", d) }
+        PY_İKİLİ_İŞLEVLER[bul(PY_İKİLİLER, d.d)] -> işlev_
+        d.d == "+" -> eğer { "pl_topla_yerinde" -> işlev_ }
+        py_ifade(d.ç[1]) -> sağ
+        h.tür == "ad" -> eğer {
+            py_ad_çöz(h.d) -> ad
+            ad == "" -> eğer { py_hata_d("'" + h.d + "' adı tanımlı değil (NameError)", h) }
+            py_yaz(L, py_işaret(d) + " " + işlev_ + "(" + ad + ", " + sağ + ") -> " + ad + ";")
+            0 -> döndür
+        }
+        h.tür == "indis" -> eğer {
+            h.ç[1].tür == "dilim" -> eğer { py_desteklenmiyor("dilime artırmalı atama", h) }
+            py_yeni_ad("t_") -> t1
+            py_yeni_ad("t_") -> t2
+            py_yaz(L, py_işaret(d) + " " + py_ifade(h.ç[0]) + " -> " + t1 + "; " + py_ifade(h.ç[1]) + " -> " + t2 + "; pl_koy(" + t1 + ", " + t2 + ", " + işlev_ + "(pl_al(" + t1 + ", " + t2 + "), " + sağ + "));")
+            0 -> döndür
+        }
+        h.tür == "alan" -> eğer {
+            py_yeni_ad("t_") -> t1
+            py_yaz(L, py_işaret(d) + " " + py_ifade(h.ç[0]) + " -> " + t1 + "; pl_alan_koy(" + t1 + ", \"" + h.d + "\", " + işlev_ + "(pl_alan(" + t1 + ", \"" + h.d + "\"), " + sağ + "));")
+            0 -> döndür
+        }
+        py_hata_d("sözdizimi hatası: bu ifadeye artırmalı atama yapılamaz", h)
+    }
+    d.tür == "eğer" -> eğer { py_eğer_üret(d); 0 -> döndür }
+    d.tür == "iken" -> eğer {
+        d.ç[0] -> koşul
+        koşul.tür == "sabit" ve koşul.d == "True" -> eğer { py_yaz(L, "doğru -> iken {") }
+        değilse { py_yaz(L, "pl_s(" + metne(L) + ") ve " + py_koşul(koşul) + " -> iken {") }
+        py_kapsam.döngü + 1 -> py_kapsam.döngü
+        py_blok_üret(d.ç[1])
+        py_kapsam.döngü - 1 -> py_kapsam.döngü
+        py_yaz(d.ç[1].son, "}")
+        0 -> döndür
+    }
+    d.tür == "için" -> eğer {
+        py_yaz(L, py_işaret(d) + " " + py_döngü_başı(d.ç[0], d.ç[1]))
+        py_kapsam.döngü + 1 -> py_kapsam.döngü
+        py_blok_üret(d.ç[2])
+        py_kapsam.döngü - 1 -> py_kapsam.döngü
+        py_yaz(d.ç[2].son, "}")
+        0 -> döndür
+    }
+    d.tür == "dene" -> eğer { py_dene_üret(d); 0 -> döndür }
+    d.tür == "dur" veya d.tür == "devam" -> eğer {
+        py_kapsam.döngü == 0 -> eğer {
+            d.tür == "dur" -> eğer { py_hata_d("sözdizimi hatası: 'break' bir döngünün dışında", d) }
+            py_hata_d("sözdizimi hatası: 'continue' bir döngünün dışında", d)
+        }
+        py_yaz(L, py_işaret(d) + " " + py_try_çıkışı(py_kapsam.döngü) + d.tür + ";")
+        0 -> döndür
+    }
+    d.tür == "geç" veya d.tür == "küresel" veya d.tür == "içe_aktar" veya d.tür == "içinden" -> eğer { 0 -> döndür }
+    d.tür == "döndür" -> eğer {
+        py_kapsam.tür == "modül" -> eğer { py_hata_d("sözdizimi hatası: 'return' bir işlevin dışında", d) }
+        "pl_YOK" -> dönen
+        uzunluk(d.ç) > 0 -> eğer { py_ifade(d.ç[0]) -> dönen }
+        py_yaz(L, py_işaret(d) + " " + dönen + " -> t_r; " + py_try_çıkışı(0) + "t_ç -> pl_satır; t_r -> döndür;")
+        0 -> döndür
+    }
+    d.tür == "sil" -> eğer {
+        "" -> kod
+        d.ç -> her (h) {
+            h.tür == "indis" -> eğer {
+                h.ç[1].tür == "dilim" -> eğer { py_desteklenmiyor("dilim silme", h) }
+                kod + "pl_öğe_sil(" + py_ifade(h.ç[0]) + ", " + py_ifade(h.ç[1]) + "); " -> kod
+            } değilse { h.tür == "ad" -> eğer {
+                kod + "pl_YOK -> " + py_ad_çöz(h.d) + "; " -> kod
+            } değilse { py_desteklenmiyor("bu tür silme", h) } }
+        }
+        py_yaz(L, py_işaret(d) + " " + kod)
+        0 -> döndür
+    }
+    d.tür == "doğrula" -> eğer {
+        "pl_YOK" -> mesaj
+        uzunluk(d.ç) > 1 -> eğer { py_ifade(d.ç[1]) -> mesaj }
+        py_yaz(L, py_işaret(d) + " pl_doğrula(" + py_koşul(d.ç[0]) + ", " + mesaj + ");")
+        0 -> döndür
+    }
+    d.tür == "fırlat" -> eğer {
+        uzunluk(d.ç) == 0 -> eğer {
+            py_kapsam.istisna == "" -> eğer { py_hata_d("RuntimeError: tek başına 'raise' yalnızca bir except bloğunda kullanılabilir", d) }
+            py_yaz(L, py_işaret(d) + " pl_fırlat(" + py_kapsam.istisna + ");")
+            0 -> döndür
+        }
+        py_yaz(L, py_işaret(d) + " pl_fırlat(" + py_ifade(d.ç[0]) + ");")
+        0 -> döndür
+    }
+    d.tür == "ile" -> eğer {
+        py_ifade(d.ç[0]) -> bağlam
+        d.ç[1].tür == "boş" -> eğer { py_yaz(L, py_işaret(d) + " pl_kullan(" + bağlam + ");") }
+        değilse { py_yaz(L, py_işaret(d) + " " + py_hedefe_ata(d.ç[1], bağlam)) }
+        py_blok_üret(d.ç[2])
+        0 -> döndür
+    }
+    d.tür == "işlev" -> eğer {
+        py_kapsam.tür == "modül" -> eğer { py_işlev_üret(d, "") } değilse { py_iç_işlev(d) }
+        0 -> döndür
+    }
+    d.tür == "sınıf" -> eğer {
+        py_kapsam.tür != "modül" veya py_ek_kipi > 0 -> eğer { py_desteklenmiyor("işlev içinde sınıf tanımı", d) }
+        py_sınıf_üret(d)
+        0 -> döndür
+    }
+    py_desteklenmiyor("bu deyim (" + d.tür + ")", d)
+}
+
+# Döngü derinliği en az 'derinlik' olan try'lardan çıkış: kaçış noktalarını bırak, finally'leri çalıştır
+işlev py_try_çıkışı(derinlik) {
+    py_kapsam -> k
+    "" -> r
+    uzunluk(k.kaçış_sayı) - 1 -> i
+    i >= 0 ve k.kaçış_döngü[i] >= derinlik -> iken {
+        0 -> j
+        j < k.kaçış_sayı[i] -> iken { r + "kaçış_bırak(); " -> r; j + 1 -> j }
+        k.kaçış_sayı[i] > 0 ve k.kaçış_son[i].tür == "blok" -> eğer { r + py_yakala(k.kaçış_son[i]) -> r }
+        i - 1 -> i
+    }
+    r -> döndür
+}
+
+# Bir bloğun kodunu satırlara yazmadan metin olarak üretir
+işlev py_yakala(b) {
+    py_ek_tampon -> saklı_tampon
+    py_ek_kipi -> saklı_kip
+    "" -> py_ek_tampon
+    1 -> py_ek_kipi
+    # finally içinde aynı try'dan bir daha çıkılmasın diye kaçış bilgileri geçici olarak boşaltılır
+    py_kapsam.kaçış_sayı -> saklı_sayı
+    py_kapsam.kaçış_döngü -> saklı_döngü
+    py_kapsam.kaçış_son -> saklı_son
+    dilim(saklı_sayı, 0, 0) -> py_kapsam.kaçış_sayı
+    dilim(saklı_döngü, 0, 0) -> py_kapsam.kaçış_döngü
+    dilim(saklı_son, 0, 0) -> py_kapsam.kaçış_son
+    py_blok_üret(b)
+    saklı_sayı -> py_kapsam.kaçış_sayı
+    saklı_döngü -> py_kapsam.kaçış_döngü
+    saklı_son -> py_kapsam.kaçış_son
+    py_ek_tampon -> r
+    saklı_tampon -> py_ek_tampon
+    saklı_kip -> py_ek_kipi
+    r -> döndür
+}
+
+işlev py_kaçış_ayarla(n) {
+    py_kapsam.kaçış_sayı -> l
+    n -> l[uzunluk(l) - 1]
+}
+
+# try / except / else / finally
+işlev py_dene_üret(d) {
+    d.ç[0] -> gövde
+    d.ç[1].ç -> işleyiciler
+    d.ç[2] -> değilse_
+    d.ç[3] -> sonunda
+    sonunda.tür == "blok" -> fin
+    uzunluk(işleyiciler) > 0 -> yakalar
+    py_yeni_ad("t_") -> t_ok
+    py_yeni_ad("t_") -> t_e
+    py_yeni_ad("t_") -> t_f
+    py_yeni_ad("t_") -> t_fe
+    py_işaret(d) + " 0 -> " + t_ok + "; " -> baş
+    fin -> eğer { baş + "kaçış_noktası() == 0 -> eğer { " -> baş }
+    yakalar -> eğer { baş + "kaçış_noktası() == 0 -> eğer { " -> baş }
+    py_yaz(d.satır, baş)
+    py_kapsam.kaçış_döngü -> ekle(py_kapsam.döngü)
+    py_kapsam.kaçış_sayı -> ekle(fin + yakalar)
+    py_kapsam.kaçış_son -> ekle(sonunda)
+    py_blok_üret(gövde)
+    py_kaçış_ayarla(fin)
+    yakalar -> eğer {
+        py_yaz(gövde.son, "kaçış_bırak(); 1 -> " + t_ok + "; }")
+        0 -> j
+        py_kapsam.istisna -> saklı_istisna
+        işleyiciler -> her (h) {
+            "" -> ön
+            j == 0 -> eğer { "değilse { pl_hd -> " + t_e + "; " -> ön } değilse { "değilse { " -> ön }
+            "doğru" -> koşul
+            h.ç[0].tür != "boş" -> eğer { "pl_doğru(pl_b_isinstance(" + t_e + ", " + py_ifade(h.ç[0]) + "))" -> koşul }
+            "" -> bağla
+            h.d != "" -> eğer { py_hedefe_ata(py_dd("ad", h.d, h), t_e) -> bağla }
+            py_yaz(h.satır, ön + py_işaret(h) + " " + koşul + " -> eğer { " + bağla)
+            t_e -> py_kapsam.istisna
+            py_blok_üret(h.ç[1])
+            saklı_istisna -> py_kapsam.istisna
+            py_yaz(h.son, "}")
+            j + 1 -> j
+        }
+        "değilse { pl_fırlat(" + t_e + "); }" -> kapanış
+        0 -> j
+        j < uzunluk(işleyiciler) -> iken { kapanış + " }" -> kapanış; j + 1 -> j }
+        py_yaz(işleyiciler[uzunluk(işleyiciler) - 1].son, kapanış)
+    } değilse {
+        py_yaz(gövde.son, "1 -> " + t_ok + ";")
+    }
+    değilse_.tür == "blok" -> eğer {
+        py_yaz(değilse_.satır, t_ok + " -> eğer {")
+        py_blok_üret(değilse_)
+        py_yaz(değilse_.son, "}")
+    }
+    py_kaçış_ayarla(0)
+    fin -> eğer {
+        py_yaz(sonunda.satır, "kaçış_bırak(); 0 -> " + t_f + "; } değilse { 1 -> " + t_f + "; pl_hd -> " + t_fe + "; }")
+    }
+    sil(py_kapsam.kaçış_döngü, uzunluk(py_kapsam.kaçış_döngü) - 1)
+    sil(py_kapsam.kaçış_sayı, uzunluk(py_kapsam.kaçış_sayı) - 1)
+    sil(py_kapsam.kaçış_son, uzunluk(py_kapsam.kaçış_son) - 1)
+    fin -> eğer {
+        py_blok_üret(sonunda)
+        py_yaz(sonunda.son, t_f + " -> eğer { pl_fırlat(" + t_fe + "); }")
+    }
+}
+
+işlev py_eğer_üret(d) {
+    py_yaz(d.satır, py_işaret(d) + " " + py_koşul(d.ç[0]) + " -> eğer {")
+    py_blok_üret(d.ç[1])
+    py_yaz(d.ç[1].son, "}")
+    uzunluk(d.ç) > 2 -> eğer {
+        d.ç[2] -> e
+        py_yaz(e.satır, "değilse {")
+        e.tür == "eğer" -> eğer { py_eğer_üret(e) } değilse { py_blok_üret(e) }
+        py_yaz(e.son, "}")
+    }
+}
+
+# Modül düzeyindeki bir işlev ya da bir sınıfın yöntemi
+işlev py_işlev_üret(d, sınıf) {
+    d.ç[0] -> params
+    sınıf == "" ve uzunluk(d.ç[2].ç) > 0 -> eğer { py_desteklenmiyor("işlev süsleyicileri (yalnızca yöntemlerde @staticmethod, @classmethod, @property)", d.ç[2].ç[0]) }
+    py_yeni_kapsam("işlev", py_modül_kapsamı) -> k
+    {"": 0} -> küresel_bildirim
+    py_atananlar(d.ç[1].ç, k.yereller, küresel_bildirim)
+    params.ç -> her (p) {
+        p.tür == "çift" -> eğer { py_desteklenmiyor("**kwargs parametresi", p) }
+        p.d != "" -> eğer { 1 -> k.yereller[p.d] }
+    }
+    anahtarlar(küresel_bildirim) -> her (a) { py_sil(k.yereller, a); 1 -> k.küresel[a] }
+    py_sil(k.yereller, "")
+    py_sil(k.küresel, "")
+    sınıf -> k.sınıf
+    "" -> k.ilk_param
+    uzunluk(params.ç) > 0 -> eğer { params.ç[0].d -> k.ilk_param }
+    d.d -> k.işlev_adı
+    "pf_" + d.d -> nehir_adı
+    sınıf != "" -> eğer { "pm_" + sınıf + "_" + d.d -> nehir_adı }
+    [] -> parametreler
+    params.ç -> her (p) { p.d != "" -> eğer { parametreler -> ekle("y_" + p.d) } }
+    "" -> önceden
+    anahtarlar(k.yereller) -> her (y) {
+        py_parametre_mi(params, y) -> eğer { devam }
+        önceden + "pl_YOK -> y_" + y + "; " -> önceden
+    }
+    py_kapsam -> saklı
+    k -> py_kapsam
+    py_yaz(d.satır, "işlev " + nehir_adı + "(" + birleş(parametreler, ", ") + ") { pl_satır -> t_ç; " + önceden)
+    py_blok_üret(d.ç[1])
+    py_yaz(d.son, "t_ç -> pl_satır; pl_YOK -> döndür; }")
+    saklı -> py_kapsam
+    sınıf == "" ve var(py_küreseller, d.d) -> eğer {
+        # aynı ad başka yerde de atanıyor: işlev değerini değişkene koy
+        1 -> py_sarmalanacak[d.d]
+        py_yaz(d.son, "pl_işlev(pw_" + d.d + ", pl_ARG0, \"" + d.d + "\") -> p_" + d.d + ";")
+    }
+}
+
+işlev py_sınıf_üret(d) {
+    d.d -> sınıf
+    d.ç[1].ç -> her (öğe) {
+        öğe.tür == "işlev" -> eğer { py_işlev_üret(öğe, sınıf); devam }
+        öğe.tür == "geç" -> eğer { devam }
+        öğe.tür == "ifade" ve (öğe.ç[0].tür == "metin" veya öğe.ç[0].tür == "fmetin") -> eğer { devam }
+        öğe.tür == "ata" ve uzunluk(öğe.ç) == 2 ve öğe.ç[0].tür == "ad" -> eğer {
+            py_yaz(öğe.satır, py_işaret(öğe) + " pl_sınıf_alanı_koy(\"" + sınıf + "\", \"" + öğe.ç[0].d + "\", " + py_ifade(öğe.ç[1]) + ");")
+            devam
+        }
+        py_desteklenmiyor("sınıf gövdesinde bu deyim", öğe)
+    }
+}
+
+# ── sınıf ve işlev destek işlevleri (dosyanın sonuna) ──
+
+işlev py_bağlayıcı(params, işlev_adı, atla) {
+    # t_a, t_k -> parametre ifadeleri (atla: baştan atlanan parametre sayısı)
+    [""] -> adlar
+    0 -> n
+    0 -> yıldızlı
+    0 -> i
+    params.ç -> her (p) {
+        i >= atla -> eğer {
+            p.tür == "param" veya p.tür == "kw" -> eğer { adlar -> ekle(p.d) }
+            p.tür == "param" -> eğer { n + 1 -> n }
+            p.tür == "yıldız" ve p.d != "" -> eğer { 1 -> yıldızlı }
+        }
+        i + 1 -> i
+    }
+    [] -> değerler_
+    0 -> i
+    0 -> sıra_
+    params.ç -> her (p) {
+        i >= atla -> eğer {
+            p.tür == "param" veya p.tür == "kw" -> eğer {
+                "1000000" -> yer
+                p.tür == "param" -> eğer { metne(sıra_) -> yer; sıra_ + 1 -> sıra_ }
+                uzunluk(p.ç) > 0 -> eğer {
+                    py_kapsam -> saklı
+                    py_modül_kapsamı -> py_kapsam
+                    py_ifade(p.ç[0]) -> varsayılan
+                    saklı -> py_kapsam
+                    değerler_ -> ekle("pl_arg_v(t_a, t_k, " + yer + ", \"" + p.d + "\", " + varsayılan + ")")
+                } değilse {
+                    değerler_ -> ekle("pl_arg(t_a, t_k, " + yer + ", \"" + p.d + "\", \"" + işlev_adı + "\")")
+                }
+            }
+            p.tür == "yıldız" ve p.d != "" -> eğer { değerler_ -> ekle("pl_arg_kalan(t_a, " + metne(n) + ")") }
+        }
+        i + 1 -> i
+    }
+    "pl_arg_denetle(t_a, t_k, " + metne(n) + ", [\"" + birleş(adlar, "\", \"") + "\"], \"" + işlev_adı + "\", " + metne(yıldızlı) + ");" -> denetim
+    [denetim, birleş(değerler_, ", ")] -> döndür
+}
+
+işlev py_destek_üret() {
+    # değer olarak kullanılan işlevlerin sarmalayıcıları
+    anahtarlar(py_sarmalanacak) -> her (ad) {
+        ad == "" -> eğer { devam }
+        py_bağlayıcı(py_işlevler[ad].ç[0], ad, 0) -> b
+        py_ek -> ekle("işlev pw_" + ad + "(t_a, t_k, t_e) { " + b[0] + " pf_" + ad + "(" + b[1] + ") -> döndür }")
+    }
+    # sınıflar: kurucular
+    py_sınıf_sırası -> her (c) {
+        py_kurucu_sahibi(c) -> sahibi
+        sahibi != "" -> eğer {
+            py_yöntemler[sahibi + ".__init__"].ç[0] -> params
+            [] -> adlar
+            0 -> i
+            params.ç -> her (p) { i > 0 ve p.d != "" -> eğer { adlar -> ekle("y_" + p.d) }; i + 1 -> i }
+            py_ek -> ekle("işlev pc_" + c + "(" + birleş(adlar, ", ") + ") { pl_nesne(\"" + c + "\") -> t_o; pm_" + sahibi + "___init__(" + birleş(["t_o"] + adlar, ", ") + "); t_o -> döndür }")
+            py_bağlayıcı(params, c, 1) -> b
+            py_ek -> ekle("işlev pcw_" + c + "(t_a, t_k) { " + b[0] + " pc_" + c + "(" + b[1] + ") -> döndür }")
+        } değilse {
+            py_istisna_sınıfı_mı(c) -> eğer {
+                py_ek -> ekle("işlev pcw_" + c + "(t_a, t_k) { pl_istisna(\"" + c + "\", t_a) -> döndür }")
+            } değilse {
+                py_ek -> ekle("işlev pcw_" + c + "(t_a, t_k) { pl_arg_denetle(t_a, t_k, 0, [\"\"], \"" + c + "\", 0); pl_nesne(\"" + c + "\") -> döndür }")
+            }
+        }
+    }
+    # yöntem bağlayıcıları ve dağıtıcılar
+    [] -> yöntem_adları
+    anahtarlar(py_yöntem_adları) -> her (m) { m != "" -> eğer { yöntem_adları -> ekle(m) } }
+    yöntem_adları -> her (m) {
+        [] -> dallar
+        {"": ""} -> sahipler      # uygulayan sınıf -> onu kullanan sınıflar
+        [""] -> sahip_sırası
+        py_sınıf_sırası -> her (c) {
+            py_yöntem_bul(c, m) -> sahibi
+            sahibi == "" -> eğer { devam }
+            var(sahipler, sahibi) -> eğer { sahipler[sahibi] + " veya o.s == \"" + c + "\"" -> sahipler[sahibi] }
+            değilse { "o.s == \"" + c + "\"" -> sahipler[sahibi]; sahip_sırası -> ekle(sahibi) }
+        }
+        sahip_sırası -> her (s) {
+            s == "" -> eğer { devam }
+            s + "." + m -> anahtar_
+            py_yöntemler[anahtar_].ç[0] -> params
+            py_yöntem_türü[anahtar_] -> tür_
+            0 -> atla
+            tür_ == "" veya tür_ == "property" veya tür_ == "class" -> eğer { 1 -> atla }
+            py_bağlayıcı(params, m, atla) -> b
+            "o" -> öz
+            tür_ == "class" -> eğer { "pl_sınıf(o.s)" -> öz }
+            [öz] -> ilk_
+            tür_ == "static" -> eğer { dilim(ilk_, 0, 0) -> ilk_ }
+            b[1] != "" -> eğer { ilk_ -> ekle(b[1]) }
+            py_ek -> ekle("işlev pmw_" + s + "_" + m + "(o, t_a, t_k) { " + b[0] + " pm_" + s + "_" + m + "(" + birleş(ilk_, ", ") + ") -> döndür }")
+            dallar -> ekle("(" + sahipler[s] + ") -> eğer { pmw_" + s + "_" + m + "(o, a, kw) -> döndür }")
+        }
+        py_ek -> ekle("işlev pg_ym_" + m + "(o, a, kw) { o.t == 9 -> eğer { var(o.d, \"" + m + "\") -> eğer { pl_çağır(o.d[\"" + m + "\"], a, kw) -> döndür }; " + birleş(dallar, "; ") + " }; o.t == 11 -> eğer { " + py_sınıf_yöntemi_dalları(m) + " }; pl_y(o, \"" + m + "\", a, kw) -> döndür }")
+    }
+    # genel dağıtıcı
+    [] -> dallar
+    yöntem_adları -> her (m) { dallar -> ekle("ad == \"" + m + "\" -> eğer { pg_ym_" + m + "(o, a, kw) -> döndür }") }
+    py_ek -> ekle("işlev pg_yöntem(o, ad, a, kw) { " + birleş(dallar, "; ") + "; pl_y(o, ad, a, kw) -> döndür }")
+    # yöntem ve özellik var mı?
+    [] -> dallar
+    [] -> özellik_dalları
+    py_sınıf_sırası -> her (c) {
+        [""] -> adlar
+        [""] -> özellikler
+        yöntem_adları -> her (m) {
+            py_yöntem_bul(c, m) -> sahibi
+            sahibi != "" -> eğer {
+                adlar -> ekle(m)
+                py_yöntem_türü[sahibi + "." + m] == "property" -> eğer { özellikler -> ekle(m) }
+            }
+        }
+        dallar -> ekle("c == \"" + c + "\" -> eğer { bul([\"" + birleş(adlar, "\", \"") + "\"], ad) > 0 -> döndür }")
+        özellik_dalları -> ekle("c == \"" + c + "\" -> eğer { bul([\"" + birleş(özellikler, "\", \"") + "\"], ad) > 0 -> döndür }")
+    }
+    py_ek -> ekle("işlev pg_yöntem_var(c, ad) { " + birleş(dallar, "; ") + "; 0 -> döndür }")
+    py_ek -> ekle("işlev pg_özellik_var(c, ad) { " + birleş(özellik_dalları, "; ") + "; 0 -> döndür }")
+    [] -> dallar
+    py_sınıf_sırası -> her (c) { dallar -> ekle("c == \"" + c + "\" -> eğer { \"" + py_sınıf_üstü[c] + "\" -> döndür }") }
+    py_ek -> ekle("işlev pg_üst(c) { " + birleş(dallar, "; ") + "; pl_yerleşik_üst(c) -> döndür }")
+    [] -> dallar
+    py_sınıf_sırası -> her (c) { dallar -> ekle("c == \"" + c + "\" -> eğer { pcw_" + c + "(a, kw) -> döndür }") }
+    py_ek -> ekle("işlev pg_kur(c, a, kw) { " + birleş(dallar, "; ") + "; pl_istisna(c, a) -> döndür }")
+}
+
+# Sınıf nesnesi üzerinden çağrılan yöntem: Sınıf.yöntem(nesne, ...) ya da statik / sınıf yöntemi
+işlev py_sınıf_yöntemi_dalları(m) {
+    [] -> dallar
+    py_sınıf_sırası -> her (c) {
+        py_yöntem_bul(c, m) -> sahibi
+        sahibi == "" -> eğer { devam }
+        py_yöntem_türü[sahibi + "." + m] -> tür_
+        tür_ == "static" veya tür_ == "class" -> eğer { dallar -> ekle("o.s == \"" + c + "\" -> eğer { pmw_" + sahibi + "_" + m + "(o, a, kw) -> döndür }") }
+        değilse { dallar -> ekle("o.s == \"" + c + "\" ve uzunluk(a) > 0 -> eğer { pmw_" + sahibi + "_" + m + "(a[0], dilim(a, 1, uzunluk(a)), kw) -> döndür }") }
+    }
+    birleş(dallar, "; ") -> döndür
+}
+
+# ── bütün program ──
+
+işlev py_nehire_çevir(kök, kitaplık, satır_sayısı) {
+    [""] -> py_çıktı
+    0 -> i
+    i <= satır_sayısı + 1 -> iken { py_çıktı -> ekle(""); i + 1 -> i }
+    dilim(py_ek, 0, 0) -> py_ek
+    py_modülü_çözümle(kök)
+    py_blok_üret(kök)
+    py_destek_üret()
+    # 1. satırın başına: kitaplık, sabitler ve modül değişkenleri
+    ["kullan \"" + kitaplık + "\"; pl_başlat(" + py_nehir_metni(py_yol) + ");"] -> baş
+    py_sabit_kurulumu -> her (s) { baş -> ekle(s) }
+    anahtarlar(py_küreseller) -> her (g) { g != "" -> eğer { baş -> ekle("pl_YOK -> ortak p_" + g + ";") } }
+    birleş(baş, " ") + " " + py_çıktı[1] -> py_çıktı[1]
+    dilim(py_çıktı, 1, uzunluk(py_çıktı)) -> satırlar
+    satırlar + py_ek -> satırlar
+    birleş(satırlar, "\n") + "\n" -> döndür
+}
+
+# ══════════════════════ SÜRÜCÜ ══════════════════════
+
+işlev py_kullanım() {
+    "kullanım: piton [--hedef linux|windows] [-o çıktı] [--nehir] [--asm] [--çalıştır] program.py [-- argümanlar]" -> uyar
+    çık(2)
+}
+
+işlev py_tırnakla(yol) { "\"" + yol + "\"" -> döndür }
+
+işlev py_ana() {
+    işletim_sistemi() -> hedef_sistem
+    "" -> çıktı_
+    "" -> girdi_
+    0 -> yalnız_nehir
+    0 -> asm_kalsın
+    0 -> çalıştır_
+    "" -> kitaplık
+    "calisma_zamani.s" -> çz_yolu
+    [] -> program_argümanları
+    argümanlar() -> a
+    0 -> i
+    i < uzunluk(a) -> iken {
+        a[i] -> x
+        x == "--" -> eğer { dilim(a, i + 1, uzunluk(a)) -> program_argümanları; dur }
+        x == "--hedef" ve i + 1 < uzunluk(a) -> eğer { a[i + 1] -> hedef_sistem; i + 2 -> i; devam }
+        x == "-o" ve i + 1 < uzunluk(a) -> eğer { a[i + 1] -> çıktı_; i + 2 -> i; devam }
+        x == "--kitaplık" ve i + 1 < uzunluk(a) -> eğer { a[i + 1] -> kitaplık; i + 2 -> i; devam }
+        x == "--çalışma-zamanı" ve i + 1 < uzunluk(a) -> eğer { a[i + 1] -> çz_yolu; i + 2 -> i; devam }
+        x == "--nehir" -> eğer { 1 -> yalnız_nehir; i + 1 -> i; devam }
+        x == "--asm" -> eğer { 1 -> asm_kalsın; i + 1 -> i; devam }
+        x == "--çalıştır" veya x == "--run" -> eğer { 1 -> çalıştır_; i + 1 -> i; devam }
+        dilim(x, 0, 1) == "-" -> eğer { py_kullanım() }
+        girdi_ != "" -> eğer { py_kullanım() }
+        x -> girdi_
+        i + 1 -> i
+    }
+    girdi_ == "" -> eğer { py_kullanım() }
+    hedef_sistem != "linux" ve hedef_sistem != "windows" -> eğer { py_kullanım() }
+
+    ayraçları_düzelt(girdi_) -> py_yol
+    kaynağı_oku(py_yol) -> okuma_hatası
+    okuma_hatası != "" -> eğer { konumsuz_bildir("hata", "dosya okunamadı: " + okuma_hatası, girdi_); çık(1) }
+    l_okunan -> py_kaynak
+    py_yol -> l_dosya_adları[0]
+    py_kaynak -> l_kaynaklar[0]
+
+    # temel ad: program.py -> program
+    py_yol -> taban_ad
+    uzunluk(taban_ad) > 3 ve dilim(taban_ad, uzunluk(taban_ad) - 3, uzunluk(taban_ad)) == ".py" -> eğer { dilim(taban_ad, 0, uzunluk(taban_ad) - 3) -> taban_ad }
+    çıktı_ == "" -> eğer {
+        taban_ad -> çıktı_
+        yalnız_nehir -> eğer { taban_ad + ".nehir" -> çıktı_ }
+        değilse { hedef_sistem == "windows" -> eğer { taban_ad + ".exe" -> çıktı_ } }
+    }
+
+    # kitaplık: verilmediyse çalışma dizininde aranır
+    kitaplık == "" -> eğer {
+        "piton/pitonca.nehir" -> kitaplık
+        değil dosya_var(kitaplık) ve dosya_var("pitonca.nehir") -> eğer { "pitonca.nehir" -> kitaplık }
+    }
+    değil dosya_var(kitaplık) -> eğer {
+        konumsuz_bildir("hata", "Piton kitaplığı bulunamadı: " + kitaplık, "piton")
+        "      piton/pitonca.nehir dosyasının bulunduğu dizinde çalıştırın ya da --kitaplık ile yolunu verin" -> uyar
+        çık(1)
+    }
+
+    py_sözcükle(py_kaynak, 1) -> py_s
+    0 -> py_i
+    py_dosya_ayrıştır() -> kök
+    uzunluk(böl(py_kaynak, "\n")) -> satır_sayısı
+    py_nehire_çevir(kök, ayraçları_düzelt(kitaplık), satır_sayısı) -> nehir_kodu
+
+    yalnız_nehir -> eğer {
+        nehir_kodu -> dosya_yaz(çıktı_)
+        çık(0)
+    }
+
+    # Nehir derleyicisinin aşamaları
+    yol_birleştir(dizin_adı(ayraçları_düzelt(çz_yolu)), "calisma_zamani_" + hedef_sistem + ".s") -> katman_yol
+    kaynağı_oku(katman_yol) -> h1
+    h1 != "" -> eğer { konumsuz_bildir("hata", "çalışma zamanı okunamadı: " + h1, katman_yol); çık(1) }
+    l_okunan -> katman
+    kaynağı_oku(çz_yolu) -> h2
+    h2 != "" -> eğer { konumsuz_bildir("hata", "çalışma zamanı okunamadı: " + h2, çz_yolu); çık(1) }
+    l_okunan -> ortak_kısım
+
+    "piton_programı" -> l_dosya
+    doğru -> a_modül_yükle
+    sözcükle(nehir_kodu)
+    py_yol -> l_dosya_adları[0]
+    py_kaynak -> l_kaynaklar[0]
+    program() -> nehir_ağacı
+    üret(nehir_ağacı, katman + ortak_kısım) -> assembly
+
+    çıktı_ + ".s" -> asm_yolu
+    asm_kalsın ve dilim(çıktı_, uzunluk(çıktı_) - 2, uzunluk(çıktı_)) == ".s" -> eğer { çıktı_ -> asm_yolu }
+    assembly -> dosya_yaz(asm_yolu)
+    hedef_sistem == "windows" -> eğer {
+        "gcc -nostdlib -o " + py_tırnakla(çıktı_) + " " + py_tırnakla(asm_yolu) + " -lkernel32 -lshell32 -Wl,-e,_start -Wl,--subsystem,console -Wl,--stack,67108864" -> komut_
+        işletim_sistemi() == "linux" -> eğer { "x86_64-w64-mingw32-" + komut_ -> komut_ }
+        komut_çalıştır(komut_) -> kod
+        kod != 0 -> eğer { konumsuz_bildir("hata", "bağlama başarısız (gcc gerekir)", asm_yolu); çık(1) }
+    } değilse {
+        çıktı_ + ".o" -> nesne_yolu
+        komut_çalıştır("as -o " + py_tırnakla(nesne_yolu) + " " + py_tırnakla(asm_yolu)) -> kod
+        kod != 0 -> eğer { konumsuz_bildir("hata", "birleştirme başarısız ('as' gerekir)", asm_yolu); çık(1) }
+        komut_çalıştır("ld -o " + py_tırnakla(çıktı_) + " " + py_tırnakla(nesne_yolu)) -> kod2
+        kod2 != 0 -> eğer { konumsuz_bildir("hata", "bağlama başarısız ('ld' gerekir)", nesne_yolu); çık(1) }
+        dosya_sil(nesne_yolu)
+    }
+    değil asm_kalsın -> eğer { dosya_sil(asm_yolu) }
+    çalıştır_ -> eğer {
+        çıktı_ -> program_yolu
+        bul(program_yolu, "/") < 0 ve bul(program_yolu, "\\") < 0 -> eğer {
+            işletim_sistemi() == "windows" -> eğer { ".\\" + program_yolu -> program_yolu } değilse { "./" + program_yolu -> program_yolu }
+        }
+        [py_tırnakla(program_yolu)] -> parçalar
+        program_argümanları -> her (pa) { parçalar -> ekle(py_tırnakla(pa)) }
+        çık(komut_çalıştır(birleş(parçalar, " ")))
+    }
+}
+
+py_ana()

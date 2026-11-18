@@ -1,0 +1,3 @@
+piton/sinamalar/hatalar/dongu_disi_break.py:3:1: hata: sözdizimi hatası: 'break' bir döngünün dışında
+    3 | break
+      | ^

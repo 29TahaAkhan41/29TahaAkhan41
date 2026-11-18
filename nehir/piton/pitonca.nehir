@@ -1,0 +1,2650 @@
+# ≈≈≈ PİTONCA: Piton'un çalışma kitaplığı ≈≈≈
+#
+# Piton (piton/piton.nehir), Python programlarını Nehir'e çevirip derler. Çevrilen her program bu
+# modülü kullanır: Python'un dinamik türlü değerleri burada tek bir Nehir kaydıyla (Değer) temsil
+# edilir; işleçler, yerleşik işlevler, yöntemler, yazdırma ve hata mesajları Python'daki gibi
+# davranır. Üretilen kod yalnızca pl_ ile başlayan adları kullanır; geri kalanı bu dosyaya özeldir.
+
+kayıt Değer { t: sayı, i: sayı, f: ondalık, s: metin, l: [Değer], d: {metin: Değer}, k: {metin: Değer}, iş }
+
+# Değer.t: türler
+0 -> _YOK       # None
+1 -> _MAN       # bool (i: 0 ya da 1)
+2 -> _TAM       # int (i)
+3 -> _OND       # float (f)
+4 -> _MET       # str (s)
+5 -> _LİS       # list (l)
+6 -> _DEM       # tuple (l)
+7 -> _SÖZ       # dict (d: anahtar metni -> değer, k: anahtar metni -> asıl anahtar)
+8 -> _KÜM       # set (k: anahtar metni -> öğe)
+9 -> _NES       # nesne (s: sınıf adı, d: öznitelikler)
+10 -> _İŞL      # işlev (iş(argümanlar, adlı argümanlar, ortam), l: ortam, s: ad)
+11 -> _SIN      # sınıf (s: ad)
+
+işlev _iş_yok(a, kw, e) { Değer(0, 0, 0.0, "", e, kw, kw, _iş_yok) -> döndür }
+_iş_yok([], {}, []) -> pl_YOK
+pl_YOK.l -> _BL         # paylaşılan boş liste ve sözlük: hiç değiştirilmez
+pl_YOK.d -> _BD
+[] -> pl_ARG0           # argümansız çağrılar için
+dilim(_BL, 0, 0) -> pl_ARG0
+{} -> pl_KW0
+pl_YOK.d -> pl_KW0
+
+"" -> ortak pl_dosya
+0 -> ortak pl_satır
+
+işlev _yeni(t, i, f, s) { Değer(t, i, f, s, _BL, _BD, _BD, _iş_yok) -> döndür }
+_yeni(1, 1, 0.0, "") -> pl_DOĞRU
+_yeni(1, 0, 0.0, "") -> pl_YANLIŞ
+[pl_YOK] -> _TAMLAR
+dilim(_TAMLAR, 0, 0) -> _TAMLAR
+aralık(-5, 1025) -> her (n) { _TAMLAR -> ekle(_yeni(_TAM, n, 0.0, "")) }
+
+" \t\n\r" + karakter(11) + karakter(12) -> _BOŞLUKLAR
+karakter(127) -> _DEL
+
+işlev pl_başlat(dosya) { dosya -> pl_dosya }
+işlev pl_s(n) { n -> pl_satır; 1 -> döndür }
+
+# ── hata ──
+
+# Etkin bir try varsa istisna oraya kaçar; yoksa program hata mesajıyla biter.
+pl_YOK -> ortak pl_hd           # son fırlatılan istisna
+
+işlev pl_hata(tür, mesaj) {
+    dilim(_BL, 0, 0) -> a
+    mesaj != "" -> eğer { a -> ekle(pl_str(mesaj)) }
+    pl_istisna(tür, a) -> pl_hd
+    kaçış()
+    "" -> ek
+    mesaj != "" -> eğer { ": " + mesaj -> ek }
+    pl_dosya + ":" + metne(pl_satır) + ": çalışma hatası: " + tür + ek -> uyar
+    çık(1)
+}
+
+işlev pl_tür_hatası(m) { pl_hata("TypeError", m) }
+
+# ── değer kurma ──
+
+işlev pl_int(n) {
+    n >= -5 ve n < 1025 -> eğer { _TAMLAR[n + 5] -> döndür }
+    Değer(_TAM, n, 0.0, "", _BL, _BD, _BD, _iş_yok) -> döndür
+}
+işlev pl_float(x) { _yeni(_OND, 0, x, "") -> döndür }
+işlev pl_str(m) { _yeni(_MET, 0, 0.0, m) -> döndür }
+işlev pl_bool(b) {
+    b -> eğer { pl_DOĞRU -> döndür }
+    pl_YANLIŞ -> döndür
+}
+işlev pl_liste(l) { Değer(_LİS, 0, 0.0, "", l, _BD, _BD, _iş_yok) -> döndür }
+işlev pl_liste_boş() { pl_liste(dilim(_BL, 0, 0)) -> döndür }
+işlev pl_demet(l) { Değer(_DEM, 0, 0.0, "", l, _BD, _BD, _iş_yok) -> döndür }
+işlev pl_demet_boş() { pl_demet(_BL) -> döndür }
+işlev pl_sözlük_boş() { Değer(_SÖZ, 0, 0.0, "", _BL, {}, {}, _iş_yok) -> döndür }
+işlev pl_küme_boş() { Değer(_KÜM, 0, 0.0, "", _BL, _BD, {}, _iş_yok) -> döndür }
+işlev pl_sözlük_kur(l) {
+    pl_sözlük_boş() -> d
+    0 -> i
+    i < uzunluk(l) -> iken {
+        _sözlük_koy(d, l[i], l[i + 1])
+        i + 2 -> i
+    }
+    d -> döndür
+}
+işlev pl_küme_kur(l) {
+    pl_küme_boş() -> k
+    l -> her (x) { _küme_ekle(k, x) }
+    k -> döndür
+}
+işlev pl_nesne(sınıf) { Değer(_NES, 0, 0.0, sınıf, _BL, {}, _BD, _iş_yok) -> döndür }
+işlev pl_sınıf(ad) { _yeni(_SIN, 0, 0.0, ad) -> döndür }
+işlev pl_işlev(iş, ortam, ad) { Değer(_İŞL, 0, 0.0, ad, ortam, _BD, _BD, iş) -> döndür }
+
+işlev _ondalık_mı(v) { v.t == _OND -> döndür }
+işlev _tamsı(v) { v.t == _TAM veya v.t == _MAN -> döndür }
+işlev _sayısal(v) { v.t >= _MAN ve v.t <= _OND -> döndür }
+işlev _ondalığı(v) {
+    v.t == _OND -> eğer { v.f -> döndür }
+    ondalığa(v.i) -> döndür
+}
+
+# ── tür adları ──
+
+işlev pl_tür_adı(v) {
+    v.t == _NES -> eğer { v.s -> döndür }
+    ["NoneType", "bool", "int", "float", "str", "list", "tuple", "dict", "set", "object", "function", "type"] -> adlar
+    adlar[v.t] -> döndür
+}
+
+# ── doğruluk ──
+
+işlev pl_doğru(v) {
+    v.t == _MAN veya v.t == _TAM -> eğer { v.i != 0 -> döndür }
+    v.t == _YOK -> eğer { 0 -> döndür }
+    v.t == _MET -> eğer { v.s != "" -> döndür }
+    v.t == _LİS veya v.t == _DEM -> eğer { uzunluk(v.l) > 0 -> döndür }
+    v.t == _OND -> eğer { v.f != 0.0 -> döndür }
+    v.t == _SÖZ veya v.t == _KÜM -> eğer { uzunluk(v.k) > 0 -> döndür }
+    v.t == _NES -> eğer {
+        pg_yöntem_var(v.s, "__bool__") -> eğer { pl_doğru(pg_yöntem(v, "__bool__", pl_ARG0, pl_KW0)) -> döndür }
+        pg_yöntem_var(v.s, "__len__") -> eğer { pl_doğru(pg_yöntem(v, "__len__", pl_ARG0, pl_KW0)) -> döndür }
+    }
+    1 -> döndür
+}
+
+# ── tam sayı aritmetiği (taşma denetimli) ──
+
+işlev _taşma(işlem) {
+    pl_hata("OverflowError", "Piton'da tam sayılar 64 bitliktir; " + işlem + " sonucu sığmadı")
+}
+
+işlev _tam_topla(a, b) {
+    a + b -> r
+    (a >= 0) == (b >= 0) ve (r >= 0) != (a >= 0) -> eğer { _taşma("toplama") }
+    r -> döndür
+}
+işlev _tam_çıkar(a, b) {
+    a - b -> r
+    (a >= 0) != (b >= 0) ve (r >= 0) != (a >= 0) -> eğer { _taşma("çıkarma") }
+    r -> döndür
+}
+işlev _tam_çarp(a, b) {
+    a == 0 veya b == 0 -> eğer { 0 -> döndür }
+    a * b -> r
+    r / b != a veya (a == -1 ve b == r ve b < 0 ve r == 0 - r) -> eğer { _taşma("çarpma") }
+    (b == -1 ve a < 0 ve r < 0) -> eğer { _taşma("çarpma") }
+    r -> döndür
+}
+işlev _tam_aşağı_böl(a, b) {
+    a / b -> q
+    a % b != 0 ve (a < 0) != (b < 0) -> eğer { q - 1 -> q }
+    q -> döndür
+}
+işlev _tam_aşağı_kalan(a, b) {
+    a % b -> r
+    r != 0 ve (r < 0) != (b < 0) -> eğer { r + b -> r }
+    r -> döndür
+}
+
+işlev _işlenen_hatası(op, a, b) {
+    pl_tür_hatası("unsupported operand type(s) for " + op + ": '" + pl_tür_adı(a) + "' and '" + pl_tür_adı(b) + "'")
+}
+
+# İşleç yüklemesi: a.__ad__(b), yoksa b.__rad__(a)
+işlev _yükle(a, b, ad, op) {
+    a.t == _NES ve pg_yöntem_var(a.s, ad) -> eğer { pg_yöntem(a, ad, [b], pl_KW0) -> döndür }
+    "__r" + dilim(ad, 2, uzunluk(ad)) -> rad
+    b.t == _NES ve pg_yöntem_var(b.s, rad) -> eğer { pg_yöntem(b, rad, [a], pl_KW0) -> döndür }
+    _işlenen_hatası(op, a, b)
+}
+
+işlev pl_topla(a, b) {
+    a.t == _TAM ve b.t == _TAM -> eğer {
+        a.i + b.i -> r
+        (a.i >= 0) == (b.i >= 0) ve (r >= 0) != (a.i >= 0) -> eğer { _taşma("toplama") }
+        r >= -5 ve r < 1025 -> eğer { _TAMLAR[r + 5] -> döndür }
+        Değer(_TAM, r, 0.0, "", _BL, _BD, _BD, _iş_yok) -> döndür
+    }
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { pl_float(_ondalığı(a) + _ondalığı(b)) -> döndür }
+        pl_int(_tam_topla(a.i, b.i)) -> döndür
+    }
+    a.t == _MET ve b.t == _MET -> eğer { pl_str(a.s + b.s) -> döndür }
+    a.t == _LİS ve b.t == _LİS -> eğer { pl_liste(a.l + b.l) -> döndür }
+    a.t == _DEM ve b.t == _DEM -> eğer { pl_demet(a.l + b.l) -> döndür }
+    a.t == _MET ve b.t != _NES -> eğer { pl_tür_hatası("can only concatenate str (not \"" + pl_tür_adı(b) + "\") to str") }
+    a.t == _LİS ve b.t != _NES -> eğer { pl_tür_hatası("can only concatenate list (not \"" + pl_tür_adı(b) + "\") to list") }
+    _yükle(a, b, "__add__", "+") -> döndür
+}
+
+# a += b: listeler yerinde genişler
+işlev pl_topla_yerinde(a, b) {
+    a.t == _TAM ve b.t == _TAM -> eğer {
+        a.i + b.i -> r
+        (a.i >= 0) == (b.i >= 0) ve (r >= 0) != (a.i >= 0) -> eğer { _taşma("toplama") }
+        r >= -5 ve r < 1025 -> eğer { _TAMLAR[r + 5] -> döndür }
+        Değer(_TAM, r, 0.0, "", _BL, _BD, _BD, _iş_yok) -> döndür
+    }
+    a.t == _LİS -> eğer {
+        pl_yineleme(b) -> her (x) { a.l -> ekle(x) }
+        a -> döndür
+    }
+    pl_topla(a, b) -> döndür
+}
+
+işlev pl_çıkar(a, b) {
+    a.t == _TAM ve b.t == _TAM -> eğer {
+        a.i - b.i -> r
+        (a.i >= 0) != (b.i >= 0) ve (r >= 0) != (a.i >= 0) -> eğer { _taşma("çıkarma") }
+        r >= -5 ve r < 1025 -> eğer { _TAMLAR[r + 5] -> döndür }
+        Değer(_TAM, r, 0.0, "", _BL, _BD, _BD, _iş_yok) -> döndür
+    }
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { pl_float(_ondalığı(a) - _ondalığı(b)) -> döndür }
+        pl_int(_tam_çıkar(a.i, b.i)) -> döndür
+    }
+    a.t == _KÜM ve b.t == _KÜM -> eğer {
+        pl_küme_boş() -> fark_
+        değerler(a.k) -> her (x) { değil var(b.k, pl_anahtar(x)) -> eğer { _küme_ekle(fark_, x) } }
+        fark_ -> döndür
+    }
+    _yükle(a, b, "__sub__", "-") -> döndür
+}
+
+işlev _tekrarla(l, n) {
+    dilim(l, 0, 0) -> r
+    0 -> i
+    i < n -> iken { r + l -> r; i + 1 -> i }
+    r -> döndür
+}
+
+işlev pl_çarp(a, b) {
+    a.t == _TAM ve b.t == _TAM -> eğer {
+        a.i -> x
+        b.i -> y
+        x > -3037000499 ve x < 3037000499 ve y > -3037000499 ve y < 3037000499 -> eğer {
+            x * y -> r
+            r >= -5 ve r < 1025 -> eğer { _TAMLAR[r + 5] -> döndür }
+            Değer(_TAM, r, 0.0, "", _BL, _BD, _BD, _iş_yok) -> döndür
+        }
+        pl_int(_tam_çarp(x, y)) -> döndür
+    }
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { pl_float(_ondalığı(a) * _ondalığı(b)) -> döndür }
+        pl_int(_tam_çarp(a.i, b.i)) -> döndür
+    }
+    _tamsı(a) ve (b.t == _MET veya b.t == _LİS veya b.t == _DEM) -> eğer { pl_çarp(b, a) -> döndür }
+    a.t == _MET ve _tamsı(b) -> eğer {
+        [] -> parçalar
+        0 -> i
+        i < b.i -> iken { parçalar -> ekle(a.s); i + 1 -> i }
+        pl_str(birleş(parçalar, "")) -> döndür
+    }
+    a.t == _LİS ve _tamsı(b) -> eğer { pl_liste(_tekrarla(a.l, b.i)) -> döndür }
+    a.t == _DEM ve _tamsı(b) -> eğer { pl_demet(_tekrarla(a.l, b.i)) -> döndür }
+    _yükle(a, b, "__mul__", "*") -> döndür
+}
+
+işlev _sıfır_mı(b) { (_tamsı(b) ve b.i == 0) veya (b.t == _OND ve b.f == 0.0) -> döndür }
+
+işlev pl_böl(a, b) {
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _sıfır_mı(b) -> eğer {
+            _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { pl_hata("ZeroDivisionError", "float division by zero") }
+            pl_hata("ZeroDivisionError", "division by zero")
+        }
+        pl_float(_ondalığı(a) / _ondalığı(b)) -> döndür
+    }
+    _yükle(a, b, "__truediv__", "/") -> döndür
+}
+
+işlev pl_tböl(a, b) {
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _sıfır_mı(b) -> eğer {
+            _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { pl_hata("ZeroDivisionError", "float floor division by zero") }
+            pl_hata("ZeroDivisionError", "integer division or modulo by zero")
+        }
+        _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { pl_float(ondalığa(taban(_ondalığı(a) / _ondalığı(b)))) -> döndür }
+        pl_int(_tam_aşağı_böl(a.i, b.i)) -> döndür
+    }
+    _yükle(a, b, "__floordiv__", "//") -> döndür
+}
+
+işlev pl_kalan(a, b) {
+    a.t == _TAM ve b.t == _TAM ve b.i > 0 -> eğer {
+        a.i % b.i -> r
+        r < 0 -> eğer { r + b.i -> r }
+        r < 1025 -> eğer { _TAMLAR[r + 5] -> döndür }
+        Değer(_TAM, r, 0.0, "", _BL, _BD, _BD, _iş_yok) -> döndür
+    }
+    a.t == _MET -> eğer { pl_str(_yüzde_biçimle(a.s, b)) -> döndür }
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _sıfır_mı(b) -> eğer {
+            _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { pl_hata("ZeroDivisionError", "float modulo") }
+            pl_hata("ZeroDivisionError", "integer division or modulo by zero")
+        }
+        _ondalık_mı(a) veya _ondalık_mı(b) -> eğer {
+            _ondalığı(a) -> fx
+            _ondalığı(b) -> fy
+            pl_float(fx - fy * ondalığa(taban(fx / fy))) -> döndür
+        }
+        pl_int(_tam_aşağı_kalan(a.i, b.i)) -> döndür
+    }
+    _yükle(a, b, "__mod__", "%") -> döndür
+}
+
+işlev pl_üs(a, b) {
+    _tamsı(a) ve _tamsı(b) ve b.i >= 0 -> eğer {
+        1 -> r
+        a.i -> x
+        b.i -> n
+        n > 0 -> iken {
+            n % 2 == 1 -> eğer { _tam_çarp(r, x) -> r }
+            n / 2 -> n
+            n > 0 -> eğer { _tam_çarp(x, x) -> x }
+        }
+        pl_int(r) -> döndür
+    }
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _ondalığı(a) == 0.0 ve _ondalığı(b) < 0.0 -> eğer { pl_hata("ZeroDivisionError", "0.0 cannot be raised to a negative power") }
+        pl_float(üs(_ondalığı(a), _ondalığı(b))) -> döndür
+    }
+    _yükle(a, b, "__pow__", "** or pow()") -> döndür
+}
+
+işlev pl_eksi(a) {
+    a.t == _TAM veya a.t == _MAN -> eğer { pl_int(_tam_çıkar(0, a.i)) -> döndür }
+    a.t == _OND -> eğer { pl_float(0.0 - a.f) -> döndür }
+    a.t == _NES ve pg_yöntem_var(a.s, "__neg__") -> eğer { pg_yöntem(a, "__neg__", pl_ARG0, pl_KW0) -> döndür }
+    pl_tür_hatası("bad operand type for unary -: '" + pl_tür_adı(a) + "'")
+}
+işlev pl_artı(a) {
+    _sayısal(a) -> eğer {
+        a.t == _MAN -> eğer { pl_int(a.i) -> döndür }
+        a -> döndür
+    }
+    pl_tür_hatası("bad operand type for unary +: '" + pl_tür_adı(a) + "'")
+}
+işlev pl_tümle(a) {
+    _tamsı(a) -> eğer { pl_int(bit_değil(a.i)) -> döndür }
+    pl_tür_hatası("bad operand type for unary ~: '" + pl_tür_adı(a) + "'")
+}
+işlev pl_değil(a) { pl_bool(değil pl_doğru(a)) -> döndür }
+
+işlev _küme_işlemi(a, b, işlem) {
+    pl_küme_boş() -> r
+    işlem == "|" -> eğer {
+        değerler(a.k) -> her (x) { _küme_ekle(r, x) }
+        değerler(b.k) -> her (x) { _küme_ekle(r, x) }
+    }
+    işlem == "&" -> eğer { değerler(a.k) -> her (x) { var(b.k, pl_anahtar(x)) -> eğer { _küme_ekle(r, x) } } }
+    işlem == "^" -> eğer {
+        değerler(a.k) -> her (x) { değil var(b.k, pl_anahtar(x)) -> eğer { _küme_ekle(r, x) } }
+        değerler(b.k) -> her (x) { değil var(a.k, pl_anahtar(x)) -> eğer { _küme_ekle(r, x) } }
+    }
+    r -> döndür
+}
+
+işlev pl_ve(a, b) {
+    a.t == _MAN ve b.t == _MAN -> eğer { pl_bool(bit_ve(a.i, b.i)) -> döndür }
+    _tamsı(a) ve _tamsı(b) -> eğer { pl_int(bit_ve(a.i, b.i)) -> döndür }
+    a.t == _KÜM ve b.t == _KÜM -> eğer { _küme_işlemi(a, b, "&") -> döndür }
+    _yükle(a, b, "__and__", "&") -> döndür
+}
+işlev pl_veya(a, b) {
+    a.t == _MAN ve b.t == _MAN -> eğer { pl_bool(bit_veya(a.i, b.i)) -> döndür }
+    _tamsı(a) ve _tamsı(b) -> eğer { pl_int(bit_veya(a.i, b.i)) -> döndür }
+    a.t == _KÜM ve b.t == _KÜM -> eğer { _küme_işlemi(a, b, "|") -> döndür }
+    a.t == _SÖZ ve b.t == _SÖZ -> eğer {
+        pl_sözlük_boş() -> r
+        anahtarlar(a.d) -> her (ka) { _sözlük_koy(r, a.k[ka], a.d[ka]) }
+        anahtarlar(b.d) -> her (ka) { _sözlük_koy(r, b.k[ka], b.d[ka]) }
+        r -> döndür
+    }
+    _yükle(a, b, "__or__", "|") -> döndür
+}
+işlev pl_yada(a, b) {
+    a.t == _MAN ve b.t == _MAN -> eğer { pl_bool(bit_yada(a.i, b.i)) -> döndür }
+    _tamsı(a) ve _tamsı(b) -> eğer { pl_int(bit_yada(a.i, b.i)) -> döndür }
+    a.t == _KÜM ve b.t == _KÜM -> eğer { _küme_işlemi(a, b, "^") -> döndür }
+    _yükle(a, b, "__xor__", "^") -> döndür
+}
+işlev pl_sola(a, b) {
+    _tamsı(a) ve _tamsı(b) -> eğer {
+        b.i < 0 -> eğer { pl_hata("ValueError", "negative shift count") }
+        b.i >= 63 ve a.i != 0 -> eğer { _taşma("sola kaydırma") }
+        sola_kaydır(a.i, b.i) -> r
+        sağa_kaydır(r, b.i) != a.i -> eğer { _taşma("sola kaydırma") }
+        pl_int(r) -> döndür
+    }
+    _yükle(a, b, "__lshift__", "<<") -> döndür
+}
+işlev pl_sağa(a, b) {
+    _tamsı(a) ve _tamsı(b) -> eğer {
+        b.i < 0 -> eğer { pl_hata("ValueError", "negative shift count") }
+        pl_int(sağa_kaydır(a.i, en_küçük(b.i, 63))) -> döndür
+    }
+    _yükle(a, b, "__rshift__", ">>") -> döndür
+}
+
+# ── karşılaştırma ──
+
+işlev pl_eşit(a, b) {
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { _ondalığı(a) == _ondalığı(b) -> döndür }
+        a.i == b.i -> döndür
+    }
+    a.t == _NES ve pg_yöntem_var(a.s, "__eq__") -> eğer { pl_doğru(pg_yöntem(a, "__eq__", [b], pl_KW0)) -> döndür }
+    a.t != b.t -> eğer { 0 -> döndür }
+    a.t == _MET -> eğer { a.s == b.s -> döndür }
+    a.t == _YOK -> eğer { 1 -> döndür }
+    a.t == _LİS veya a.t == _DEM -> eğer {
+        uzunluk(a.l) != uzunluk(b.l) -> eğer { 0 -> döndür }
+        0 -> i
+        i < uzunluk(a.l) -> iken {
+            değil pl_eşit(a.l[i], b.l[i]) -> eğer { 0 -> döndür }
+            i + 1 -> i
+        }
+        1 -> döndür
+    }
+    a.t == _SÖZ -> eğer {
+        uzunluk(a.d) != uzunluk(b.d) -> eğer { 0 -> döndür }
+        anahtarlar(a.d) -> her (ka) {
+            değil var(b.d, ka) -> eğer { 0 -> döndür }
+            değil pl_eşit(a.d[ka], b.d[ka]) -> eğer { 0 -> döndür }
+        }
+        1 -> döndür
+    }
+    a.t == _KÜM -> eğer {
+        uzunluk(a.k) != uzunluk(b.k) -> eğer { 0 -> döndür }
+        anahtarlar(a.k) -> her (ka) { değil var(b.k, ka) -> eğer { 0 -> döndür } }
+        1 -> döndür
+    }
+    a.t == _SIN -> eğer { a.s == b.s -> döndür }
+    a == b -> döndür
+}
+
+işlev pl_aynı(a, b) {
+    a == b -> eğer { 1 -> döndür }
+    a.t == _YOK ve b.t == _YOK -> eğer { 1 -> döndür }
+    a.t == _MAN ve b.t == _MAN -> eğer { a.i == b.i -> döndür }
+    a.t == _SIN ve b.t == _SIN -> eğer { a.s == b.s -> döndür }
+    _tamsı(a) ve a.t == b.t ve a.i == b.i ve a.i >= -5 ve a.i < 1025 -> eğer { 1 -> döndür }
+    0 -> döndür
+}
+
+işlev _karşılaştırma_hatası(op, a, b) {
+    pl_tür_hatası("'" + op + "' not supported between instances of '" + pl_tür_adı(a) + "' and '" + pl_tür_adı(b) + "'")
+}
+
+# a < b ise 1
+işlev pl_küçük(a, b) {
+    a.t == _TAM ve b.t == _TAM -> eğer { a.i < b.i -> döndür }
+    _sayısal(a) ve _sayısal(b) -> eğer {
+        _ondalık_mı(a) veya _ondalık_mı(b) -> eğer { _ondalığı(a) < _ondalığı(b) -> döndür }
+        a.i < b.i -> döndür
+    }
+    a.t == _MET ve b.t == _MET -> eğer { a.s < b.s -> döndür }
+    (a.t == _LİS ve b.t == _LİS) veya (a.t == _DEM ve b.t == _DEM) -> eğer {
+        0 -> i
+        i < uzunluk(a.l) ve i < uzunluk(b.l) -> iken {
+            değil pl_eşit(a.l[i], b.l[i]) -> eğer { pl_küçük(a.l[i], b.l[i]) -> döndür }
+            i + 1 -> i
+        }
+        uzunluk(a.l) < uzunluk(b.l) -> döndür
+    }
+    a.t == _KÜM ve b.t == _KÜM -> eğer {
+        uzunluk(a.k) >= uzunluk(b.k) -> eğer { 0 -> döndür }
+        anahtarlar(a.k) -> her (ka) { değil var(b.k, ka) -> eğer { 0 -> döndür } }
+        1 -> döndür
+    }
+    a.t == _NES ve pg_yöntem_var(a.s, "__lt__") -> eğer { pl_doğru(pg_yöntem(a, "__lt__", [b], pl_KW0)) -> döndür }
+    b.t == _NES ve pg_yöntem_var(b.s, "__gt__") -> eğer { pl_doğru(pg_yöntem(b, "__gt__", [a], pl_KW0)) -> döndür }
+    _karşılaştırma_hatası("<", a, b)
+}
+işlev pl_küçük_eşit(a, b) {
+    a.t == _TAM ve b.t == _TAM -> eğer { a.i <= b.i -> döndür }
+    a.t == _NES ve pg_yöntem_var(a.s, "__le__") -> eğer { pl_doğru(pg_yöntem(a, "__le__", [b], pl_KW0)) -> döndür }
+    a.t == _KÜM ve b.t == _KÜM -> eğer {
+        anahtarlar(a.k) -> her (ka) { değil var(b.k, ka) -> eğer { 0 -> döndür } }
+        1 -> döndür
+    }
+    pl_küçük(a, b) veya pl_eşit(a, b) -> döndür
+}
+işlev pl_büyük(a, b) {
+    a.t == _NES ve pg_yöntem_var(a.s, "__gt__") -> eğer { pl_doğru(pg_yöntem(a, "__gt__", [b], pl_KW0)) -> döndür }
+    a.t == _TAM ve b.t == _TAM -> eğer { a.i > b.i -> döndür }
+    pl_küçük(b, a) -> döndür
+}
+işlev pl_büyük_eşit(a, b) {
+    a.t == _NES ve pg_yöntem_var(a.s, "__ge__") -> eğer { pl_doğru(pg_yöntem(a, "__ge__", [b], pl_KW0)) -> döndür }
+    a.t == _TAM ve b.t == _TAM -> eğer { a.i >= b.i -> döndür }
+    pl_küçük_eşit(b, a) -> döndür
+}
+işlev pl_eşit_değil(a, b) {
+    a.t == _NES ve pg_yöntem_var(a.s, "__ne__") -> eğer { pl_doğru(pg_yöntem(a, "__ne__", [b], pl_KW0)) -> döndür }
+    değil pl_eşit(a, b) -> döndür
+}
+
+işlev pl_içinde(x, kap) {
+    kap.t == _LİS veya kap.t == _DEM -> eğer {
+        kap.l -> her (e) { pl_eşit(e, x) -> eğer { 1 -> döndür } }
+        0 -> döndür
+    }
+    kap.t == _MET -> eğer {
+        x.t != _MET -> eğer { pl_tür_hatası("'in <string>' requires string as left operand, not " + pl_tür_adı(x)) }
+        bul(kap.s, x.s) >= 0 -> döndür
+    }
+    kap.t == _SÖZ veya kap.t == _KÜM -> eğer { var(kap.k, pl_anahtar(x)) -> döndür }
+    kap.t == _NES ve pg_yöntem_var(kap.s, "__contains__") -> eğer { pl_doğru(pg_yöntem(kap, "__contains__", [x], pl_KW0)) -> döndür }
+    pl_tür_hatası("argument of type '" + pl_tür_adı(kap) + "' is not iterable")
+}
+
+# ── sözlük ve küme anahtarları ──
+
+işlev pl_anahtar(v) {
+    v.t == _MET -> eğer { "s" + v.s -> döndür }
+    _tamsı(v) -> eğer { metne(v.i) -> döndür }
+    v.t == _OND -> eğer {
+        v.f == ondalığa(taban(v.f)) ve v.f < ondalığa("9.0e18") ve v.f > -ondalığa("9.0e18") -> eğer { metne(taban(v.f)) -> döndür }
+        "f" + _ondalık_temsil(v.f) -> döndür
+    }
+    v.t == _YOK -> eğer { "N" -> döndür }
+    v.t == _DEM -> eğer {
+        [] -> parçalar
+        v.l -> her (e) {
+            e.t == _MET -> eğer { parçalar -> ekle("s" + metne(uzunluk(e.s)) + ":" + e.s) } değilse { parçalar -> ekle(pl_anahtar(e)) }
+        }
+        "t(" + birleş(parçalar, ",") + ")" -> döndür
+    }
+    v.t == _NES veya v.t == _İŞL -> eğer { "o" + v.s + metne(_kimlik(v)) -> döndür }
+    v.t == _SIN -> eğer { "c" + v.s -> döndür }
+    pl_tür_hatası("unhashable type: '" + pl_tür_adı(v) + "'")
+}
+
+# Nesnelerin kimliği: her nesneye ilk sorulduğunda bir sayı verilir
+{} -> _KİMLİKLER
+[pl_YOK] -> _KİMLİKLİLER
+işlev _kimlik(v) {
+    0 -> i
+    i < uzunluk(_KİMLİKLİLER) -> iken {
+        _KİMLİKLİLER[i] == v -> eğer { i -> döndür }
+        i + 1 -> i
+    }
+    _KİMLİKLİLER -> ekle(v)
+    uzunluk(_KİMLİKLİLER) - 1 -> döndür
+}
+
+işlev _sözlük_koy(d, a, v) {
+    pl_anahtar(a) -> ka
+    değil var(d.k, ka) -> eğer { a -> d.k[ka] }
+    v -> d.d[ka]
+}
+işlev _küme_ekle(k, x) {
+    pl_anahtar(x) -> ka
+    değil var(k.k, ka) -> eğer { x -> k.k[ka] }
+}
+
+# ── yineleme ──
+
+işlev _harfler(m) {
+    dilim(_BL, 0, 0) -> l
+    m -> her (k) { l -> ekle(pl_str(k)) }
+    l -> döndür
+}
+
+işlev pl_yineleme(v) {
+    v.t == _LİS veya v.t == _DEM -> eğer { v.l -> döndür }
+    v.t == _MET -> eğer { _harfler(v.s) -> döndür }
+    v.t == _SÖZ veya v.t == _KÜM -> eğer { değerler(v.k) -> döndür }
+    v.t == _NES ve v.s == "_io.TextIOWrapper" -> eğer { pl_dosya_yöntemi(v, "__iter__", _BL).l -> döndür }
+    v.t == _NES ve pg_yöntem_var(v.s, "__iter__") -> eğer { pl_yineleme(pg_yöntem(v, "__iter__", pl_ARG0, pl_KW0)) -> döndür }
+    pl_tür_hatası("'" + pl_tür_adı(v) + "' object is not iterable")
+}
+
+# Demeti ya da listeyi n değişkene açar
+işlev pl_aç(v, n) {
+    pl_yineleme(v) -> l
+    uzunluk(l) > n -> eğer { pl_hata("ValueError", "too many values to unpack (expected " + metne(n) + ")") }
+    uzunluk(l) < n -> eğer { pl_hata("ValueError", "not enough values to unpack (expected " + metne(n) + ", got " + metne(uzunluk(l)) + ")") }
+    l -> döndür
+}
+
+işlev pl_tam(v) {
+    _tamsı(v) -> eğer { v.i -> döndür }
+    pl_tür_hatası("'" + pl_tür_adı(v) + "' object cannot be interpreted as an integer")
+}
+
+# ── dizinleme ──
+
+işlev _dizin(n, boy, ne) {
+    n < 0 -> eğer { n + boy -> n }
+    n < 0 veya n >= boy -> eğer { pl_hata("IndexError", ne + " index out of range") }
+    n -> döndür
+}
+
+işlev pl_al(kap, i) {
+    kap.t == _LİS ve i.t == _TAM -> eğer { kap.l[_dizin(i.i, uzunluk(kap.l), "list")] -> döndür }
+    kap.t == _SÖZ -> eğer {
+        pl_anahtar(i) -> ka
+        var(kap.d, ka) -> eğer { kap.d[ka] -> döndür }
+        _anahtar_hatası(i)
+    }
+    kap.t == _NES ve pg_yöntem_var(kap.s, "__getitem__") -> eğer { pg_yöntem(kap, "__getitem__", [i], pl_KW0) -> döndür }
+    kap.t == _LİS veya kap.t == _DEM veya kap.t == _MET -> eğer {
+        değil _tamsı(i) -> eğer { pl_tür_hatası(pl_tür_adı(kap) + " indices must be integers or slices, not " + pl_tür_adı(i)) }
+        kap.t == _MET -> eğer { pl_str(kap.s[_dizin(i.i, uzunluk(kap.s), "string")]) -> döndür }
+        kap.t == _DEM -> eğer { kap.l[_dizin(i.i, uzunluk(kap.l), "tuple")] -> döndür }
+        kap.l[_dizin(i.i, uzunluk(kap.l), "list")] -> döndür
+    }
+    pl_tür_hatası("'" + pl_tür_adı(kap) + "' object is not subscriptable")
+}
+
+işlev pl_koy(kap, i, v) {
+    kap.t == _LİS -> eğer {
+        değil _tamsı(i) -> eğer { pl_tür_hatası("list indices must be integers or slices, not " + pl_tür_adı(i)) }
+        v -> kap.l[_dizin(i.i, uzunluk(kap.l), "list assignment")]
+        0 -> döndür
+    }
+    kap.t == _SÖZ -> eğer { _sözlük_koy(kap, i, v); 0 -> döndür }
+    kap.t == _NES ve pg_yöntem_var(kap.s, "__setitem__") -> eğer { pg_yöntem(kap, "__setitem__", [i, v], pl_KW0); 0 -> döndür }
+    pl_tür_hatası("'" + pl_tür_adı(kap) + "' object does not support item assignment")
+}
+
+işlev pl_öğe_sil(kap, i) {
+    kap.t == _LİS -> eğer {
+        sil(kap.l, _dizin(pl_tam(i), uzunluk(kap.l), "list assignment"))
+        0 -> döndür
+    }
+    kap.t == _SÖZ -> eğer {
+        pl_anahtar(i) -> ka
+        değil var(kap.d, ka) -> eğer { _anahtar_hatası(i) }
+        sil(kap.d, ka)
+        sil(kap.k, ka)
+        0 -> döndür
+    }
+    pl_tür_hatası("'" + pl_tür_adı(kap) + "' object doesn't support item deletion")
+}
+
+# Python dilimleri: kap[baş:son:adım]; verilmeyenler None
+işlev _dilim_dizinleri(boy, baş, son, adım) {
+    1 -> a
+    adım.t != _YOK -> eğer { pl_tam(adım) -> a }
+    a == 0 -> eğer { pl_hata("ValueError", "slice step cannot be zero") }
+    dilim(_TAMLAR, 0, 0) -> boş_
+    [0] -> r
+    dilim(r, 0, 0) -> r
+    a > 0 -> eğer {
+        0 -> b
+        boy -> s
+        baş.t != _YOK -> eğer { pl_tam(baş) -> b; b < 0 -> eğer { en_büyük(b + boy, 0) -> b }; en_küçük(b, boy) -> b }
+        son.t != _YOK -> eğer { pl_tam(son) -> s; s < 0 -> eğer { en_büyük(s + boy, 0) -> s }; en_küçük(s, boy) -> s }
+        b < s -> iken { r -> ekle(b); b + a -> b }
+    } değilse {
+        boy - 1 -> b
+        -1 -> s
+        baş.t != _YOK -> eğer { pl_tam(baş) -> b; b < 0 -> eğer { en_büyük(b + boy, -1) -> b }; en_küçük(b, boy - 1) -> b }
+        son.t != _YOK -> eğer { pl_tam(son) -> s; s < 0 -> eğer { en_büyük(s + boy, -1) -> s }; en_küçük(s, boy - 1) -> s }
+        b > s -> iken { r -> ekle(b); b + a -> b }
+    }
+    r -> döndür
+}
+
+işlev pl_dilim(kap, baş, son, adım) {
+    kap.t == _NES ve pg_yöntem_var(kap.s, "__getitem__") -> eğer { pl_tür_hatası("Piton'da nesneler dilimlenemez") }
+    kap.t != _LİS ve kap.t != _DEM ve kap.t != _MET -> eğer { pl_tür_hatası("'" + pl_tür_adı(kap) + "' object is not subscriptable") }
+    uzunluk(kap.l) -> boy
+    kap.t == _MET -> eğer { uzunluk(kap.s) -> boy }
+    _dilim_dizinleri(boy, baş, son, adım) -> dz
+    kap.t == _MET -> eğer {
+        (adım.t == _YOK veya (_tamsı(adım) ve adım.i == 1)) -> eğer {
+            uzunluk(dz) == 0 -> eğer { pl_str("") -> döndür }
+            pl_str(dilim(kap.s, dz[0], dz[uzunluk(dz) - 1] + 1)) -> döndür
+        }
+        [] -> parçalar
+        dz -> her (j) { parçalar -> ekle(kap.s[j]) }
+        pl_str(birleş(parçalar, "")) -> döndür
+    }
+    dilim(kap.l, 0, 0) -> l
+    dz -> her (j) { l -> ekle(kap.l[j]) }
+    kap.t == _DEM -> eğer { pl_demet(l) -> döndür }
+    pl_liste(l) -> döndür
+}
+
+# ── öznitelikler ──
+
+{} -> _SINIF_ALANLARI     # "Sınıf\tad" -> değer
+
+işlev pl_sınıf_alanı_koy(sınıf, ad, v) { v -> _SINIF_ALANLARI[sınıf + "\t" + ad] }
+
+işlev _sınıf_alanı_var(sınıf, ad) {
+    sınıf -> c
+    c != "" -> iken {
+        var(_SINIF_ALANLARI, c + "\t" + ad) -> eğer { 1 -> döndür }
+        pg_üst(c) -> c
+    }
+    0 -> döndür
+}
+işlev _sınıf_alanı(sınıf, ad) {
+    sınıf -> c
+    c != "" -> iken {
+        var(_SINIF_ALANLARI, c + "\t" + ad) -> eğer { _SINIF_ALANLARI[c + "\t" + ad] -> döndür }
+        pg_üst(c) -> c
+    }
+    pl_YOK -> döndür
+}
+
+işlev _bağlı_yöntem(a, kw, e) { pg_yöntem(e[0], e[1].s, a, kw) -> döndür }
+işlev _bağlı_yerleşik(a, kw, e) { pl_y(e[0], e[1].s, a, kw) -> döndür }
+işlev _sınıf_yöntemi(a, kw, e) {
+    uzunluk(a) == 0 -> eğer { pl_tür_hatası(e[1].s + "() missing 1 required positional argument: 'self'") }
+    pg_yöntem(a[0], e[1].s, dilim(a, 1, uzunluk(a)), kw) -> döndür
+}
+
+işlev pl_alan(o, ad) {
+    o.t == _NES -> eğer {
+        var(o.d, ad) -> eğer { o.d[ad] -> döndür }
+        pg_özellik_var(o.s, ad) -> eğer { pg_yöntem(o, ad, pl_ARG0, pl_KW0) -> döndür }
+        _sınıf_alanı_var(o.s, ad) -> eğer { _sınıf_alanı(o.s, ad) -> döndür }
+        pg_yöntem_var(o.s, ad) -> eğer { pl_işlev(_bağlı_yöntem, [o, pl_str(ad)], ad) -> döndür }
+        pl_hata("AttributeError", "'" + o.s + "' object has no attribute '" + ad + "'")
+    }
+    o.t == _SIN -> eğer {
+        _sınıf_alanı_var(o.s, ad) -> eğer { _sınıf_alanı(o.s, ad) -> döndür }
+        ad == "__name__" -> eğer { pl_str(o.s) -> döndür }
+        pg_yöntem_var(o.s, ad) -> eğer { pl_işlev(_sınıf_yöntemi, [o, pl_str(ad)], ad) -> döndür }
+        pl_hata("AttributeError", "type object '" + o.s + "' has no attribute '" + ad + "'")
+    }
+    o.t == _İŞL ve ad == "__name__" -> eğer { pl_str(o.s) -> döndür }
+    _yerleşik_yöntem_mi(o, ad) -> eğer { pl_işlev(_bağlı_yerleşik, [o, pl_str(ad)], ad) -> döndür }
+    pl_hata("AttributeError", "'" + pl_tür_adı(o) + "' object has no attribute '" + ad + "'")
+}
+
+işlev pl_alan_koy(o, ad, v) {
+    o.t == _NES -> eğer { v -> o.d[ad]; 0 -> döndür }
+    o.t == _SIN -> eğer { pl_sınıf_alanı_koy(o.s, ad, v); 0 -> döndür }
+    pl_hata("AttributeError", "'" + pl_tür_adı(o) + "' object has no attribute '" + ad + "'")
+}
+
+# ── çağrılar ──
+
+işlev pl_çağır(f, a, kw) {
+    f.t == _İŞL -> eğer {
+        f.iş -> iş_
+        iş_(a, kw, f.l) -> döndür
+    }
+    f.t == _SIN -> eğer {
+        _yerleşik_tür_mü(f.s) -> eğer { _tür_çağır(f.s, a, kw) -> döndür }
+        pg_kur(f.s, a, kw) -> döndür
+    }
+    f.t == _NES ve pg_yöntem_var(f.s, "__call__") -> eğer { pg_yöntem(f, "__call__", a, kw) -> döndür }
+    pl_tür_hatası("'" + pl_tür_adı(f) + "' object is not callable")
+}
+
+# Üretilen sarmalayıcıların argüman bağlaması
+işlev pl_arg(a, kw, i, ad, işlev_adı) {
+    i < uzunluk(a) -> eğer { a[i] -> döndür }
+    var(kw, ad) -> eğer { kw[ad] -> döndür }
+    pl_tür_hatası(işlev_adı + "() missing required argument: '" + ad + "'")
+}
+işlev pl_arg_v(a, kw, i, ad, varsayılan) {
+    i < uzunluk(a) -> eğer { a[i] -> döndür }
+    var(kw, ad) -> eğer { kw[ad] -> döndür }
+    varsayılan -> döndür
+}
+işlev pl_arg_kalan(a, n) {
+    uzunluk(a) <= n -> eğer { pl_demet_boş() -> döndür }
+    pl_demet(dilim(a, n, uzunluk(a))) -> döndür
+}
+işlev pl_arg_denetle(a, kw, n, adlar, işlev_adı, kalan_var) {
+    değil kalan_var ve uzunluk(a) > n -> eğer {
+        pl_tür_hatası(işlev_adı + "() takes " + metne(n) + " positional arguments but " + metne(uzunluk(a)) + " were given")
+    }
+    anahtarlar(kw) -> her (ad) {
+        bul(adlar, ad) < 0 -> eğer { pl_tür_hatası(işlev_adı + "() got an unexpected keyword argument '" + ad + "'") }
+    }
+    1 -> döndür
+}
+
+# ── istisnalar ──
+
+["BaseException", "Exception", "ArithmeticError", "LookupError", "ValueError", "TypeError", "KeyError",
+ "IndexError", "ZeroDivisionError", "RuntimeError", "NotImplementedError", "AssertionError", "NameError",
+ "AttributeError", "StopIteration", "OverflowError", "KeyboardInterrupt", "EOFError", "OSError",
+ "FileNotFoundError", "RecursionError", "SystemExit", "UnicodeError", "PermissionError"] -> _İSTİSNALAR
+{"BaseException": "", "Exception": "BaseException", "ArithmeticError": "Exception", "LookupError": "Exception",
+ "ValueError": "Exception", "TypeError": "Exception", "KeyError": "LookupError", "IndexError": "LookupError",
+ "ZeroDivisionError": "ArithmeticError", "OverflowError": "ArithmeticError", "RuntimeError": "Exception",
+ "NotImplementedError": "RuntimeError", "RecursionError": "RuntimeError", "AssertionError": "Exception",
+ "NameError": "Exception", "AttributeError": "Exception", "StopIteration": "Exception",
+ "KeyboardInterrupt": "BaseException", "SystemExit": "BaseException", "EOFError": "Exception",
+ "OSError": "Exception", "FileNotFoundError": "OSError", "PermissionError": "OSError",
+ "UnicodeError": "ValueError"} -> _İSTİSNA_ÜSTÜ
+
+işlev pl_yerleşik_üst(c) {
+    var(_İSTİSNA_ÜSTÜ, c) -> eğer { _İSTİSNA_ÜSTÜ[c] -> döndür }
+    "" -> döndür
+}
+
+işlev pl_istisna(sınıf, a) {
+    pl_nesne(sınıf) -> o
+    pl_demet(a) -> o.d["args"]
+    o -> döndür
+}
+
+işlev _istisna_metni(e) {
+    e.t == _NES -> eğer {
+        pg_yöntem_var(e.s, "__str__") -> eğer { pl_metin(e) -> döndür }
+        var(e.d, "args") -> eğer {
+            e.d["args"] -> a
+            uzunluk(a.l) == 0 -> eğer { "" -> döndür }
+            uzunluk(a.l) == 1 -> eğer {
+                e.s == "KeyError" -> eğer { pl_temsil(a.l[0]) -> döndür }
+                pl_metin(a.l[0]) -> döndür
+            }
+            pl_temsil(a) -> döndür
+        }
+        "" -> döndür
+    }
+    pl_metin(e) -> döndür
+}
+
+işlev pl_fırlat(e) {
+    e.t == _SIN -> eğer { pl_istisna(e.s, dilim(_BL, 0, 0)) -> e }
+    e.t != _NES veya değil _istisna_mı(e.s) -> eğer { pl_tür_hatası("exceptions must derive from BaseException") }
+    e -> pl_hd
+    kaçış()
+    _istisna_metni(e) -> m
+    "" -> ek
+    m != "" -> eğer { ": " + m -> ek }
+    pl_dosya + ":" + metne(pl_satır) + ": çalışma hatası: " + e.s + ek -> uyar
+    çık(1)
+}
+
+işlev _anahtar_hatası(k) {
+    pl_istisna("KeyError", [k]) -> pl_hd
+    kaçış()
+    pl_hata("KeyError", pl_temsil(k))
+}
+
+işlev pl_doğrula(koşul, mesaj) {
+    değil koşul -> eğer {
+        mesaj.t == _YOK -> eğer { pl_hata("AssertionError", "") }
+        pl_hata("AssertionError", pl_metin(mesaj))
+    }
+    0 -> döndür
+}
+
+# ── yazıya çevirme ──
+
+işlev _kod(k) {
+    baytlar(k) -> b
+    uzunluk(b) == 1 -> eğer { b[0] -> döndür }
+    uzunluk(b) == 2 -> eğer { (b[0] % 32) * 64 + b[1] % 64 -> döndür }
+    uzunluk(b) == 3 -> eğer { (b[0] % 16) * 4096 + (b[1] % 64) * 64 + b[2] % 64 -> döndür }
+    (b[0] % 8) * 262144 + (b[1] % 64) * 4096 + (b[2] % 64) * 64 + b[3] % 64 -> döndür
+}
+
+işlev _onaltılık(n, basamak) {
+    "0123456789abcdef" -> rakamlar
+    "" -> r
+    n > 0 veya uzunluk(r) < basamak -> iken {
+        rakamlar[n % 16] + r -> r
+        n / 16 -> n
+    }
+    r -> döndür
+}
+
+işlev _tırnakla(m) {
+    "'" -> tırnak
+    bul(m, "'") >= 0 ve bul(m, "\"") < 0 -> eğer { "\"" -> tırnak }
+    [] -> parçalar
+    m -> her (k) {
+        k == "\\" -> eğer { "\\\\" -> k }
+        değilse { k == tırnak -> eğer { "\\" + k -> k }
+        değilse { k == "\n" -> eğer { "\\n" -> k }
+        değilse { k == "\r" -> eğer { "\\r" -> k }
+        değilse { k == "\t" -> eğer { "\\t" -> k }
+        değilse {
+            _kod(k) -> c
+            c < 32 veya c == 127 -> eğer { "\\x" + _onaltılık(c, 2) -> k }
+            değilse { c >= 128 ve c < 160 -> eğer { "\\x" + _onaltılık(c, 2) -> k } }
+        } } } } }
+        parçalar -> ekle(k)
+    }
+    tırnak + birleş(parçalar, "") + tırnak -> döndür
+}
+
+işlev pl_metin(v) {
+    v.t == _MET -> eğer { v.s -> döndür }
+    v.t == _TAM -> eğer { metne(v.i) -> döndür }
+    v.t == _NES ve pg_yöntem_var(v.s, "__str__") -> eğer {
+        pl_YOK -> r
+        pg_yöntem(v, "__str__", pl_ARG0, pl_KW0) -> r
+        r.t != _MET -> eğer { pl_tür_hatası("__str__ returned non-string (type " + pl_tür_adı(r) + ")") }
+        r.s -> döndür
+    }
+    v.t == _NES ve _istisna_mı(v.s) -> eğer { _istisna_metni(v) -> döndür }
+    pl_temsil(v) -> döndür
+}
+
+işlev _istisna_mı(c) {
+    c != "" -> iken {
+        var(_İSTİSNA_ÜSTÜ, c) -> eğer { 1 -> döndür }
+        pg_üst(c) -> c
+    }
+    0 -> döndür
+}
+
+işlev _temsiller(l) {
+    [] -> parçalar
+    l -> her (e) { parçalar -> ekle(pl_temsil(e)) }
+    birleş(parçalar, ", ") -> döndür
+}
+
+işlev pl_temsil(v) {
+    v.t == _MET -> eğer { _tırnakla(v.s) -> döndür }
+    v.t == _TAM -> eğer { metne(v.i) -> döndür }
+    v.t == _OND -> eğer { _ondalık_temsil(v.f) -> döndür }
+    v.t == _YOK -> eğer { "None" -> döndür }
+    v.t == _MAN -> eğer {
+        v.i -> eğer { "True" -> döndür }
+        "False" -> döndür
+    }
+    v.t == _LİS -> eğer { "[" + _temsiller(v.l) + "]" -> döndür }
+    v.t == _DEM -> eğer {
+        uzunluk(v.l) == 1 -> eğer { "(" + pl_temsil(v.l[0]) + ",)" -> döndür }
+        "(" + _temsiller(v.l) + ")" -> döndür
+    }
+    v.t == _SÖZ -> eğer {
+        [] -> parçalar
+        anahtarlar(v.d) -> her (ka) { parçalar -> ekle(pl_temsil(v.k[ka]) + ": " + pl_temsil(v.d[ka])) }
+        "{" + birleş(parçalar, ", ") + "}" -> döndür
+    }
+    v.t == _KÜM -> eğer {
+        uzunluk(v.k) == 0 -> eğer { "set()" -> döndür }
+        "{" + _temsiller(değerler(v.k)) + "}" -> döndür
+    }
+    v.t == _NES -> eğer {
+        pg_yöntem_var(v.s, "__repr__") -> eğer {
+            pl_YOK -> r
+            pg_yöntem(v, "__repr__", pl_ARG0, pl_KW0) -> r
+            r.t != _MET -> eğer { pl_tür_hatası("__repr__ returned non-string (type " + pl_tür_adı(r) + ")") }
+            r.s -> döndür
+        }
+        _istisna_mı(v.s) ve var(v.d, "args") -> eğer {
+            v.d["args"] -> a
+            uzunluk(a.l) == 1 -> eğer { v.s + "(" + pl_temsil(a.l[0]) + ")" -> döndür }
+            v.s + pl_temsil(a) -> döndür
+        }
+        "<" + v.s + " object>" -> döndür
+    }
+    v.t == _İŞL -> eğer { "<function " + v.s + ">" -> döndür }
+    "<class '" + v.s + "'>" -> döndür
+}
+
+# ── ondalık sayıların yazımı ──
+# Bir ondalık sayının tam onluk açılımı çıkarılır (m·2^e = B·10^-k); Python'un repr'i gibi
+# geri okunduğunda aynı sayıyı veren en kısa basamak dizisi seçilir.
+
+1000000000 -> _MİLYAR
+9007199254740992.0 -> _İKİ53
+4503599627370496.0 -> _İKİ52
+
+kayıt _Açılım { b: metin, k: sayı }
+
+işlev _büyük_çarp(l, m) {
+    dilim(l, 0, 0) -> r
+    0 -> elde
+    l -> her (x) {
+        x * m + elde -> p
+        r -> ekle(p % _MİLYAR)
+        p / _MİLYAR -> elde
+    }
+    elde > 0 -> iken {
+        r -> ekle(elde % _MİLYAR)
+        elde / _MİLYAR -> elde
+    }
+    r -> döndür
+}
+
+işlev _büyük_metin(l) {
+    uzunluk(l) - 1 -> i
+    i > 0 ve l[i] == 0 -> iken { i - 1 -> i }
+    metne(l[i]) -> r
+    i - 1 -> i
+    i >= 0 -> iken {
+        metne(l[i]) -> p
+        uzunluk(p) < 9 -> iken { "0" + p -> p }
+        r + p -> r
+        i - 1 -> i
+    }
+    r -> döndür
+}
+
+işlev _açılım(x) {
+    0 -> e
+    x >= _İKİ53 -> iken { x / 2.0 -> x; e + 1 -> e }
+    x < _İKİ52 ve e > -1074 -> iken { x * 2.0 -> x; e - 1 -> e }
+    sayıya(x) -> m
+    [m % _MİLYAR, m / _MİLYAR] -> l
+    0 -> k
+    e >= 0 -> eğer {
+        e >= 30 -> iken { _büyük_çarp(l, 1073741824) -> l; e - 30 -> e }
+        _büyük_çarp(l, üs(2, e)) -> l
+    } değilse {
+        0 - e -> n
+        n -> k
+        n >= 13 -> iken { _büyük_çarp(l, 1220703125) -> l; n - 13 -> n }
+        _büyük_çarp(l, üs(5, n)) -> l
+    }
+    _Açılım(_büyük_metin(l), k) -> döndür
+}
+
+işlev _sıfırlar(n) {
+    "" -> r
+    uzunluk(r) < n -> iken { r + "0" -> r }
+    r -> döndür
+}
+
+# b'nin ilk n basamağı, kalanına göre yarıda çifte yuvarlanmış; taşarsa n+1 basamak
+işlev _yuvarla_bas(b, n) {
+    n >= uzunluk(b) -> eğer { b + _sıfırlar(n - uzunluk(b)) -> döndür }
+    n < 0 -> eğer { "" -> döndür }
+    dilim(b, 0, n) -> baş
+    b[n] -> d
+    0 -> yukarı
+    d > "5" -> eğer { 1 -> yukarı }
+    d == "5" -> eğer {
+        n + 1 -> j
+        j < uzunluk(b) ve b[j] == "0" -> iken { j + 1 -> j }
+        j < uzunluk(b) -> eğer { 1 -> yukarı }
+        değilse { n > 0 ve bul("13579", baş[n - 1]) >= 0 -> eğer { 1 -> yukarı } }
+    }
+    değil yukarı -> eğer { baş -> döndür }
+    "" -> son
+    n - 1 -> i
+    i >= 0 ve baş[i] == "9" -> iken { "0" + son -> son; i - 1 -> i }
+    i < 0 -> eğer { "1" + son -> döndür }
+    "0123456789"[bul("0123456789", baş[i]) + 1] -> r
+    dilim(baş, 0, i) + r + son -> döndür
+}
+
+işlev _eksi_sıfır_mı(x) { x == 0.0 ve atan2(x, -1.0) < 0.0 -> döndür }
+
+işlev _özel_ondalık(x) {
+    x != x -> eğer { "nan" -> döndür }
+    x > ondalığa("1.7976931348623157e308") -> eğer { "inf" -> döndür }
+    x < -ondalığa("1.7976931348623157e308") -> eğer { "-inf" -> döndür }
+    "" -> döndür
+}
+
+işlev _üs_yaz(n) {
+    "+" -> i
+    n < 0 -> eğer { "-" -> i; 0 - n -> n }
+    metne(n) -> r
+    uzunluk(r) < 2 -> eğer { "0" + r -> r }
+    i + r -> döndür
+}
+
+işlev _ondalık_temsil(x) {
+    _özel_ondalık(x) -> öz
+    öz != "" -> eğer { öz -> döndür }
+    x == 0.0 -> eğer {
+        _eksi_sıfır_mı(x) -> eğer { "-0.0" -> döndür }
+        "0.0" -> döndür
+    }
+    "" -> işaret_
+    x < 0.0 -> eğer { "-" -> işaret_; 0.0 - x -> x }
+    _açılım(x) -> A
+    uzunluk(A.b) - A.k - 1 -> X0
+    "" -> r
+    0 -> X
+    1 -> p
+    p <= 17 -> iken {
+        _yuvarla_bas(A.b, p) -> r
+        X0 -> X
+        uzunluk(r) > p -> eğer { X + 1 -> X; dilim(r, 0, p) -> r }
+        dilim(r, 0, 1) + "." + dilim(r, 1, p) + "0e" + metne(X) -> deneme
+        ondalığa(deneme) == x -> eğer { dur }
+        p + 1 -> p
+    }
+    uzunluk(r) > 1 ve r[uzunluk(r) - 1] == "0" -> iken { dilim(r, 0, uzunluk(r) - 1) -> r }
+    X >= -4 ve X < 16 -> eğer {
+        X < 0 -> eğer { işaret_ + "0." + _sıfırlar(0 - X - 1) + r -> döndür }
+        uzunluk(r) <= X + 1 -> eğer { işaret_ + r + _sıfırlar(X + 1 - uzunluk(r)) + ".0" -> döndür }
+        işaret_ + dilim(r, 0, X + 1) + "." + dilim(r, X + 1, uzunluk(r)) -> döndür
+    }
+    dilim(r, 0, 1) -> m
+    uzunluk(r) > 1 -> eğer { m + "." + dilim(r, 1, uzunluk(r)) -> m }
+    işaret_ + m + "e" + _üs_yaz(X) -> döndür
+}
+
+# x'i virgülden sonra n basamakla yazar (format(x, ".nf"))
+işlev _sabit_yaz(x, n) {
+    _özel_ondalık(x) -> öz
+    öz != "" -> eğer { öz -> döndür }
+    "" -> işaret_
+    (x < 0.0 veya _eksi_sıfır_mı(x)) -> eğer { "-" -> işaret_; 0.0 - x -> x }
+    "0" -> r
+    x != 0.0 -> eğer {
+        _açılım(x) -> A
+        uzunluk(A.b) - A.k + n -> tut
+        tut >= 0 -> eğer { _yuvarla_bas(A.b, tut) -> r }
+        r == "" -> eğer { "0" -> r }
+    }
+    uzunluk(r) < n + 1 -> iken { "0" + r -> r }
+    n == 0 -> eğer { işaret_ + r -> döndür }
+    işaret_ + dilim(r, 0, uzunluk(r) - n) + "." + dilim(r, uzunluk(r) - n, uzunluk(r)) -> döndür
+}
+
+# x'i n+1 anlamlı basamakla bilimsel yazar (format(x, ".ne"))
+işlev _bilimsel_yaz(x, n) {
+    _özel_ondalık(x) -> öz
+    öz != "" -> eğer { öz -> döndür }
+    "" -> işaret_
+    (x < 0.0 veya _eksi_sıfır_mı(x)) -> eğer { "-" -> işaret_; 0.0 - x -> x }
+    _sıfırlar(n + 1) -> r
+    0 -> X
+    x != 0.0 -> eğer {
+        _açılım(x) -> A
+        uzunluk(A.b) - A.k - 1 -> X
+        _yuvarla_bas(A.b, n + 1) -> r
+        uzunluk(r) > n + 1 -> eğer { X + 1 -> X; dilim(r, 0, n + 1) -> r }
+    }
+    dilim(r, 0, 1) -> m
+    n > 0 -> eğer { m + "." + dilim(r, 1, uzunluk(r)) -> m }
+    işaret_ + m + "e" + _üs_yaz(X) -> döndür
+}
+
+# format(x, ".ng")
+işlev _genel_yaz(x, n, nokta_kalsın) {
+    _özel_ondalık(x) -> öz
+    öz != "" -> eğer { öz -> döndür }
+    n == 0 -> eğer { 1 -> n }
+    0 -> X
+    x != 0.0 -> eğer {
+        _açılım(mutlak(x)) -> A
+        uzunluk(A.b) - A.k - 1 -> X
+        _yuvarla_bas(A.b, n) -> r
+        uzunluk(r) > n -> eğer { X + 1 -> X }
+    }
+    "" -> s
+    X >= -4 ve X < n -> eğer { _sabit_yaz(x, n - 1 - X) -> s } değilse { _bilimsel_yaz(x, n - 1) -> s }
+    değil nokta_kalsın -> eğer {
+        bul(s, "e") -> e_yeri
+        "" -> üs_
+        e_yeri >= 0 -> eğer { dilim(s, e_yeri, uzunluk(s)) -> üs_; dilim(s, 0, e_yeri) -> s }
+        bul(s, ".") >= 0 -> eğer {
+            s[uzunluk(s) - 1] == "0" -> iken { dilim(s, 0, uzunluk(s) - 1) -> s }
+            s[uzunluk(s) - 1] == "." -> eğer { dilim(s, 0, uzunluk(s) - 1) -> s }
+        }
+        s + üs_ -> s
+    }
+    s -> döndür
+}
+
+# ── biçim belirteçleri: f"{x:>8.2f}", format(), str.format ──
+
+işlev _gruplandır(m, ayraç) {
+    m -> tam_
+    "" -> kalan_
+    0 -> nokta
+    nokta < uzunluk(m) ve m[nokta] >= "0" ve m[nokta] <= "9" -> iken { nokta + 1 -> nokta }
+    dilim(m, 0, nokta) -> tam_
+    dilim(m, nokta, uzunluk(m)) -> kalan_
+    "" -> r
+    0 -> say
+    uzunluk(tam_) - 1 -> i
+    i >= 0 -> iken {
+        say == 3 -> eğer { ayraç + r -> r; 0 -> say }
+        tam_[i] + r -> r
+        say + 1 -> say
+        i - 1 -> i
+    }
+    r + kalan_ -> döndür
+}
+
+işlev _taban_yaz(n, taban_) {
+    n == 0 -> eğer { "0" -> döndür }
+    "0123456789abcdefghijklmnopqrstuvwxyz" -> rakamlar
+    "" -> r
+    n > 0 -> iken { rakamlar[n % taban_] + r -> r; n / taban_ -> n }
+    r -> döndür
+}
+
+işlev pl_biç(v, belirteç) {
+    belirteç == "" -> eğer {
+        v.t == _NES ve pg_yöntem_var(v.s, "__format__") -> eğer { pl_metin(pg_yöntem(v, "__format__", [pl_str("")], pl_KW0)) -> döndür }
+        pl_metin(v) -> döndür
+    }
+    v.t == _NES ve pg_yöntem_var(v.s, "__format__") -> eğer { pl_metin(pg_yöntem(v, "__format__", [pl_str(belirteç)], pl_KW0)) -> döndür }
+    belirteç -> b
+    " " -> dolgu
+    "" -> hiza
+    "-" -> işaret_kuralı
+    0 -> diyez
+    "" -> grup
+    -1 -> duyarlık
+    0 -> genişlik
+    "" -> tür
+    0 -> i
+    0 -> dolgu_verildi
+    uzunluk(b) >= 2 ve bul("<>^=", b[1]) >= 0 -> eğer { b[0] -> dolgu; b[1] -> hiza; 2 -> i; 1 -> dolgu_verildi }
+    değilse { uzunluk(b) >= 1 ve bul("<>^=", b[0]) >= 0 -> eğer { b[0] -> hiza; 1 -> i } }
+    i < uzunluk(b) ve bul("+- ", b[i]) >= 0 -> eğer { b[i] -> işaret_kuralı; i + 1 -> i }
+    i < uzunluk(b) ve b[i] == "#" -> eğer { 1 -> diyez; i + 1 -> i }
+    i < uzunluk(b) ve b[i] == "0" -> eğer {
+        değil dolgu_verildi -> eğer { "0" -> dolgu }
+        hiza == "" -> eğer { "=" -> hiza }
+        i + 1 -> i
+    }
+    i < uzunluk(b) ve b[i] >= "0" ve b[i] <= "9" -> iken { genişlik * 10 + sayıya(b[i]) -> genişlik; i + 1 -> i }
+    i < uzunluk(b) ve (b[i] == "," veya b[i] == "_") -> eğer { b[i] -> grup; i + 1 -> i }
+    i < uzunluk(b) ve b[i] == "." -> eğer {
+        i + 1 -> i
+        0 -> duyarlık
+        i < uzunluk(b) ve b[i] >= "0" ve b[i] <= "9" -> iken { duyarlık * 10 + sayıya(b[i]) -> duyarlık; i + 1 -> i }
+    }
+    i < uzunluk(b) -> eğer { b[i] -> tür; i + 1 -> i }
+    i < uzunluk(b) -> eğer { pl_hata("ValueError", "Invalid format specifier '" + belirteç + "'") }
+
+    "" -> gövde
+    "" -> işaret_
+    1 -> sayı_mı
+    _tamsı(v) ve (tür == "" veya bul("dnxXobc", tür) >= 0) ve değil (v.t == _MAN ve tür == "") -> eğer {
+        v.i -> n
+        n < 0 -> eğer { "-" -> işaret_; 0 - n -> n }
+        tür == "x" -> eğer { _taban_yaz(n, 16) -> gövde; diyez -> eğer { "0x" + gövde -> gövde } }
+        değilse { tür == "X" -> eğer { _büyük_harf(_taban_yaz(n, 16)) -> gövde; diyez -> eğer { "0X" + gövde -> gövde } }
+        değilse { tür == "o" -> eğer { _taban_yaz(n, 8) -> gövde; diyez -> eğer { "0o" + gövde -> gövde } }
+        değilse { tür == "b" -> eğer { _taban_yaz(n, 2) -> gövde; diyez -> eğer { "0b" + gövde -> gövde } }
+        değilse { tür == "c" -> eğer { karakter(n) -> gövde; 0 -> sayı_mı }
+        değilse { metne(n) -> gövde } } } } }
+    } değilse { _sayısal(v) ve (tür == "" veya bul("eEfFgG%n", tür) >= 0) -> eğer {
+        _ondalığı(v) -> x
+        (x < 0.0 veya _eksi_sıfır_mı(x)) ve x == x -> eğer { "-" -> işaret_; 0.0 - x -> x }
+        duyarlık < 0 ve tür != "" -> eğer { 6 -> duyarlık }
+        tür == "f" veya tür == "F" -> eğer { _sabit_yaz(x, duyarlık) -> gövde }
+        değilse { tür == "e" veya tür == "E" -> eğer { _bilimsel_yaz(x, duyarlık) -> gövde }
+        değilse { tür == "%" -> eğer { _sabit_yaz(x * 100.0, duyarlık) + "%" -> gövde }
+        değilse { tür == "g" veya tür == "G" veya tür == "n" -> eğer { _genel_yaz(x, duyarlık, diyez) -> gövde }
+        değilse {
+            duyarlık < 0 -> eğer { _ondalık_temsil(x) -> gövde }
+            değilse { _genel_yaz(x, duyarlık, 0) -> gövde; bul(gövde, ".") < 0 ve bul(gövde, "e") < 0 ve bul(gövde, "n") < 0 -> eğer { gövde + ".0" -> gövde } }
+        } } } }
+        tür == "E" veya tür == "G" veya tür == "F" -> eğer { _büyük_harf(gövde) -> gövde }
+    } değilse {
+        0 -> sayı_mı
+        tür != "" ve tür != "s" -> eğer {
+            pl_hata("ValueError", "Unknown format code '" + tür + "' for object of type '" + pl_tür_adı(v) + "'")
+        }
+        pl_metin(v) -> gövde
+        duyarlık >= 0 -> eğer { dilim(gövde, 0, duyarlık) -> gövde }
+    } }
+    sayı_mı -> eğer {
+        grup != "" -> eğer { _gruplandır(gövde, grup) -> gövde }
+        işaret_ == "" ve işaret_kuralı == "+" -> eğer { "+" -> işaret_ }
+        işaret_ == "" ve işaret_kuralı == " " -> eğer { " " -> işaret_ }
+    }
+    hiza == "" -> eğer {
+        sayı_mı -> eğer { ">" -> hiza } değilse { "<" -> hiza }
+    }
+    işaret_ + gövde -> tümü
+    metin_genişliği(tümü) -> boy
+    boy >= genişlik -> eğer { tümü -> döndür }
+    genişlik - boy -> eksik
+    "" -> dolu
+    0 -> j
+    j < eksik -> iken { dolu + dolgu -> dolu; j + 1 -> j }
+    hiza == "<" -> eğer { tümü + dolu -> döndür }
+    hiza == ">" -> eğer { dolu + tümü -> döndür }
+    hiza == "=" -> eğer { işaret_ + dolu + gövde -> döndür }
+    eksik / 2 -> sol
+    dilim(dolu, 0, sol) + tümü + dilim(dolu, sol, eksik) -> döndür
+}
+
+işlev pl_biç_r(v, belirteç) { pl_biç(pl_str(pl_temsil(v)), belirteç) -> döndür }
+
+# "%d kişi" % n
+işlev _yüzde_biçimle(m, değerler_) {
+    dilim(_BL, 0, 0) -> dz
+    değerler_.t == _DEM -> eğer { değerler_.l -> dz } değilse { dz -> ekle(değerler_) }
+    0 -> sıra
+    [] -> parçalar
+    0 -> i
+    i < uzunluk(m) -> iken {
+        m[i] -> k
+        k != "%" -> eğer { parçalar -> ekle(k); i + 1 -> i; devam }
+        i + 1 -> i
+        i < uzunluk(m) ve m[i] == "%" -> eğer { parçalar -> ekle("%"); i + 1 -> i; devam }
+        "" -> belirteç
+        i < uzunluk(m) ve bul("-+ 0#", m[i]) >= 0 -> iken {
+            m[i] == "-" -> eğer { "<" + belirteç -> belirteç } değilse { belirteç + m[i] -> belirteç }
+            i + 1 -> i
+        }
+        i < uzunluk(m) ve ((m[i] >= "0" ve m[i] <= "9") veya m[i] == ".") -> iken { belirteç + m[i] -> belirteç; i + 1 -> i }
+        dilim(belirteç, 0, 1) != "<" ve bul(belirteç, "0") != 0 ve bul(belirteç, "+0") != 0 ve bul(belirteç, " 0") != 0 -> eğer { ">" + belirteç -> belirteç }
+        i >= uzunluk(m) -> eğer { pl_hata("ValueError", "incomplete format") }
+        m[i] -> tür
+        i + 1 -> i
+        sıra >= uzunluk(dz) -> eğer { pl_tür_hatası("not enough arguments for format string") }
+        dz[sıra] -> v
+        sıra + 1 -> sıra
+        tür == "s" -> eğer { parçalar -> ekle(pl_biç(pl_str(pl_metin(v)), belirteç)) }
+        değilse { tür == "r" -> eğer { parçalar -> ekle(pl_biç(pl_str(pl_temsil(v)), belirteç)) }
+        değilse { tür == "i" veya tür == "u" veya tür == "d" -> eğer {
+            v.t == _OND -> eğer { pl_int(sayıya(v.f)) -> v }
+            parçalar -> ekle(pl_biç(v, belirteç + "d"))
+        }
+        değilse { parçalar -> ekle(pl_biç(v, belirteç + tür)) } } }
+    }
+    sıra < uzunluk(dz) -> eğer { pl_tür_hatası("not all arguments converted during string formatting") }
+    birleş(parçalar, "") -> döndür
+}
+
+# "{} ve {:.2f}".format(a, b)
+işlev _biçimle(m, a, kw) {
+    [] -> parçalar
+    0 -> sıra
+    0 -> i
+    i < uzunluk(m) -> iken {
+        m[i] -> k
+        k == "{" ve i + 1 < uzunluk(m) ve m[i + 1] == "{" -> eğer { parçalar -> ekle("{"); i + 2 -> i; devam }
+        k == "}" ve i + 1 < uzunluk(m) ve m[i + 1] == "}" -> eğer { parçalar -> ekle("}"); i + 2 -> i; devam }
+        k != "{" -> eğer { parçalar -> ekle(k); i + 1 -> i; devam }
+        bul(dilim(m, i, uzunluk(m)), "}") -> son_
+        son_ < 0 -> eğer { pl_hata("ValueError", "Single '{' encountered in format string") }
+        dilim(m, i + 1, i + son_) -> alan_
+        i + son_ + 1 -> i
+        "" -> belirteç
+        bul(alan_, ":") -> iki_nokta
+        iki_nokta >= 0 -> eğer { dilim(alan_, iki_nokta + 1, uzunluk(alan_)) -> belirteç; dilim(alan_, 0, iki_nokta) -> alan_ }
+        0 -> temsil_mi
+        bul(alan_, "!r") >= 0 -> eğer { 1 -> temsil_mi; dilim(alan_, 0, bul(alan_, "!r")) -> alan_ }
+        bul(alan_, "!s") >= 0 -> eğer { dilim(alan_, 0, bul(alan_, "!s")) -> alan_ }
+        pl_YOK -> v
+        alan_ == "" -> eğer {
+            sıra >= uzunluk(a) -> eğer { pl_hata("IndexError", "Replacement index " + metne(sıra) + " out of range for positional args tuple") }
+            a[sıra] -> v
+            sıra + 1 -> sıra
+        } değilse { alan_[0] >= "0" ve alan_[0] <= "9" -> eğer {
+            sayıya(alan_) -> no
+            no >= uzunluk(a) -> eğer { pl_hata("IndexError", "Replacement index " + alan_ + " out of range for positional args tuple") }
+            a[no] -> v
+        } değilse {
+            değil var(kw, alan_) -> eğer { pl_hata("KeyError", "'" + alan_ + "'") }
+            kw[alan_] -> v
+        } }
+        temsil_mi -> eğer { pl_str(pl_temsil(v)) -> v }
+        parçalar -> ekle(pl_biç(v, belirteç))
+    }
+    birleş(parçalar, "") -> döndür
+}
+
+# ── yazdırma ve girdi ──
+
+işlev pl_b_print(a, ayraç, son) {
+    " " -> ay
+    ayraç.t != _YOK -> eğer { pl_metin(ayraç) -> ay }
+    "\n" -> sn
+    son.t != _YOK -> eğer { pl_metin(son) -> sn }
+    uzunluk(a) == 1 -> eğer { göster(pl_metin(a[0]) + sn); pl_YOK -> döndür }
+    [] -> parçalar
+    a -> her (v) { parçalar -> ekle(pl_metin(v)) }
+    göster(birleş(parçalar, ay) + sn)
+    pl_YOK -> döndür
+}
+
+işlev pl_b_input(istem) {
+    istem.t == _YOK -> eğer { pl_str(oku()) -> döndür }
+    pl_str(oku(pl_metin(istem))) -> döndür
+}
+
+# ── yerleşik işlevler ──
+
+işlev pl_b_len(v) {
+    v.t == _MET -> eğer { pl_int(uzunluk(v.s)) -> döndür }
+    v.t == _LİS veya v.t == _DEM -> eğer { pl_int(uzunluk(v.l)) -> döndür }
+    v.t == _SÖZ veya v.t == _KÜM -> eğer { pl_int(uzunluk(v.k)) -> döndür }
+    v.t == _NES ve pg_yöntem_var(v.s, "__len__") -> eğer { pg_yöntem(v, "__len__", pl_ARG0, pl_KW0) -> döndür }
+    pl_tür_hatası("object of type '" + pl_tür_adı(v) + "' has no len()")
+}
+
+işlev pl_b_range(a, b, c) {
+    pl_tam(a) -> x
+    pl_tam(b) -> y
+    pl_tam(c) -> s
+    s == 0 -> eğer { pl_hata("ValueError", "range() arg 3 must not be zero") }
+    dilim(_BL, 0, 0) -> l
+    s > 0 -> eğer { x < y -> iken { l -> ekle(pl_int(x)); x + s -> x } }
+    değilse { x > y -> iken { l -> ekle(pl_int(x)); x + s -> x } }
+    pl_liste(l) -> döndür
+}
+işlev pl_aralıkta(x, y, s) {
+    s > 0 -> eğer { x < y -> döndür }
+    s == 0 -> eğer { pl_hata("ValueError", "range() arg 3 must not be zero") }
+    x > y -> döndür
+}
+
+işlev pl_b_str(v) {
+    v.t == _MET -> eğer { v -> döndür }
+    pl_str(pl_metin(v)) -> döndür
+}
+işlev pl_b_repr(v) { pl_str(pl_temsil(v)) -> döndür }
+
+işlev _boşlukları_kırp(m) {
+    0 -> b
+    uzunluk(m) -> s
+    b < s ve bul(_BOŞLUKLAR, m[b]) >= 0 -> iken { b + 1 -> b }
+    s > b ve bul(_BOŞLUKLAR, m[s - 1]) >= 0 -> iken { s - 1 -> s }
+    dilim(m, b, s) -> döndür
+}
+
+işlev _tam_ayrıştır(m, taban_, asıl) {
+    _boşlukları_kırp(m) -> s
+    "invalid literal for int() with base " + metne(taban_) + ": " + _tırnakla(asıl) -> hata_
+    1 -> işaret_
+    0 -> i
+    i < uzunluk(s) ve (s[i] == "+" veya s[i] == "-") -> eğer {
+        s[i] == "-" -> eğer { -1 -> işaret_ }
+        i + 1 -> i
+    }
+    taban_ == 0 -> eğer {
+        10 -> taban_
+        i + 1 < uzunluk(s) ve s[i] == "0" -> eğer {
+            bul("xX", s[i + 1]) >= 0 -> eğer { 16 -> taban_; i + 2 -> i }
+            değilse { bul("oO", s[i + 1]) >= 0 -> eğer { 8 -> taban_; i + 2 -> i }
+            değilse { bul("bB", s[i + 1]) >= 0 -> eğer { 2 -> taban_; i + 2 -> i } } }
+        }
+    } değilse {
+        i + 1 < uzunluk(s) ve s[i] == "0" -> eğer {
+            taban_ == 16 ve bul("xX", s[i + 1]) >= 0 -> eğer { i + 2 -> i }
+            taban_ == 8 ve bul("oO", s[i + 1]) >= 0 -> eğer { i + 2 -> i }
+            taban_ == 2 ve bul("bB", s[i + 1]) >= 0 -> eğer { i + 2 -> i }
+        }
+    }
+    i >= uzunluk(s) -> eğer { pl_hata("ValueError", hata_) }
+    0 -> n
+    0 -> önceki_alt
+    i < uzunluk(s) -> iken {
+        s[i] -> k
+        k == "_" -> eğer {
+            önceki_alt veya i + 1 >= uzunluk(s) -> eğer { pl_hata("ValueError", hata_) }
+            1 -> önceki_alt
+            i + 1 -> i
+            devam
+        }
+        0 -> önceki_alt
+        bul("0123456789abcdefghijklmnopqrstuvwxyz", _küçük_harf(k)) -> r
+        r < 0 veya r >= taban_ -> eğer { pl_hata("ValueError", hata_) }
+        _tam_topla(_tam_çarp(n, taban_), r) -> n
+        i + 1 -> i
+    }
+    n * işaret_ -> döndür
+}
+
+işlev pl_b_int(v, taban_) {
+    taban_.t != _YOK -> eğer {
+        v.t != _MET -> eğer { pl_tür_hatası("int() can't convert non-string with explicit base") }
+        pl_int(_tam_ayrıştır(v.s, pl_tam(taban_), v.s)) -> döndür
+    }
+    _tamsı(v) -> eğer { pl_int(v.i) -> döndür }
+    v.t == _OND -> eğer {
+        _özel_ondalık(v.f) != "" -> eğer {
+            v.f != v.f -> eğer { pl_hata("ValueError", "cannot convert float NaN to integer") }
+            pl_hata("OverflowError", "cannot convert float infinity to integer")
+        }
+        mutlak(v.f) >= ondalığa("9.2e18") -> eğer { _taşma("int()") }
+        pl_int(sayıya(v.f)) -> döndür
+    }
+    v.t == _MET -> eğer { pl_int(_tam_ayrıştır(v.s, 10, v.s)) -> döndür }
+    v.t == _NES ve pg_yöntem_var(v.s, "__int__") -> eğer { pg_yöntem(v, "__int__", pl_ARG0, pl_KW0) -> döndür }
+    pl_tür_hatası("int() argument must be a string, a bytes-like object or a real number, not '" + pl_tür_adı(v) + "'")
+}
+
+işlev _ondalık_ayrıştır(m, asıl) {
+    _boşlukları_kırp(m) -> s
+    "could not convert string to float: " + _tırnakla(asıl) -> hata_
+    _küçük_harf(s) -> ks
+    "" -> işaret_
+    uzunluk(ks) > 0 ve (ks[0] == "+" veya ks[0] == "-") -> eğer { ks[0] -> işaret_; dilim(ks, 1, uzunluk(ks)) -> ks }
+    ks == "inf" veya ks == "infinity" -> eğer {
+        ondalığa("1.0e308") * 10.0 -> sonsuz
+        işaret_ == "-" -> eğer { 0.0 - sonsuz -> döndür }
+        sonsuz -> döndür
+    }
+    ks == "nan" -> eğer { ondalığa("1.0e308") * 10.0 -> sonsuz; sonsuz - sonsuz -> döndür }
+    # rakamlar [. rakamlar] [e [+-] rakamlar]; alt çizgiler rakamlar arasında
+    [] -> parçalar
+    0 -> rakam_say
+    0 -> i
+    0 -> evre      # 0 tam kısım, 1 kesir, 2 üs işareti, 3 üs
+    i < uzunluk(ks) -> iken {
+        ks[i] -> k
+        k >= "0" ve k <= "9" -> eğer {
+            parçalar -> ekle(k)
+            evre < 2 -> eğer { rakam_say + 1 -> rakam_say }
+            evre == 2 -> eğer { 3 -> evre }
+        } değilse { k == "_" -> eğer {
+            i == 0 veya i + 1 >= uzunluk(ks) -> eğer { pl_hata("ValueError", hata_) }
+            değil (ks[i - 1] >= "0" ve ks[i - 1] <= "9" ve ks[i + 1] >= "0" ve ks[i + 1] <= "9") -> eğer { pl_hata("ValueError", hata_) }
+        } değilse { k == "." ve evre == 0 -> eğer {
+            parçalar -> ekle(k)
+            1 -> evre
+        } değilse { k == "e" ve evre < 2 ve rakam_say > 0 -> eğer {
+            parçalar -> ekle(k)
+            2 -> evre
+            i + 1 < uzunluk(ks) ve (ks[i + 1] == "+" veya ks[i + 1] == "-") -> eğer { parçalar -> ekle(ks[i + 1]); i + 1 -> i }
+        } değilse { pl_hata("ValueError", hata_) } } } }
+        i + 1 -> i
+    }
+    rakam_say == 0 veya evre == 2 -> eğer { pl_hata("ValueError", hata_) }
+    birleş(parçalar, "") -> sayı_
+    sayı_[0] == "." -> eğer { "0" + sayı_ -> sayı_ }
+    ondalığa(sayı_) -> x
+    işaret_ == "-" -> eğer { 0.0 - x -> döndür }
+    x -> döndür
+}
+
+işlev pl_b_float(v) {
+    v.t == _OND -> eğer { v -> döndür }
+    _tamsı(v) -> eğer { pl_float(ondalığa(v.i)) -> döndür }
+    v.t == _MET -> eğer { pl_float(_ondalık_ayrıştır(v.s, v.s)) -> döndür }
+    v.t == _NES ve pg_yöntem_var(v.s, "__float__") -> eğer { pg_yöntem(v, "__float__", pl_ARG0, pl_KW0) -> döndür }
+    pl_tür_hatası("float() argument must be a string or a real number, not '" + pl_tür_adı(v) + "'")
+}
+
+işlev pl_b_bool(v) { pl_bool(pl_doğru(v)) -> döndür }
+
+işlev pl_b_list(v) {
+    pl_yineleme(v) -> l
+    pl_liste(dilim(l, 0, uzunluk(l))) -> döndür
+}
+işlev pl_b_tuple(v) {
+    v.t == _DEM -> eğer { v -> döndür }
+    pl_yineleme(v) -> l
+    pl_demet(dilim(l, 0, uzunluk(l))) -> döndür
+}
+işlev pl_b_set(v) { pl_küme_kur(pl_yineleme(v)) -> döndür }
+işlev pl_b_dict(v, kw) {
+    pl_sözlük_boş() -> d
+    v.t == _SÖZ -> eğer {
+        anahtarlar(v.d) -> her (ka) { _sözlük_koy(d, v.k[ka], v.d[ka]) }
+    } değilse { v.t != _YOK -> eğer {
+        pl_yineleme(v) -> her (çift) {
+            pl_aç(çift, 2) -> ç
+            _sözlük_koy(d, ç[0], ç[1])
+        }
+    } }
+    anahtarlar(kw) -> her (ad) { _sözlük_koy(d, pl_str(ad), kw[ad]) }
+    d -> döndür
+}
+
+işlev pl_b_abs(v) {
+    _tamsı(v) -> eğer {
+        v.i < 0 -> eğer { pl_int(_tam_çıkar(0, v.i)) -> döndür }
+        pl_int(v.i) -> döndür
+    }
+    v.t == _OND -> eğer { pl_float(mutlak(v.f)) -> döndür }
+    v.t == _NES ve pg_yöntem_var(v.s, "__abs__") -> eğer { pg_yöntem(v, "__abs__", pl_ARG0, pl_KW0) -> döndür }
+    pl_tür_hatası("bad operand type for abs(): '" + pl_tür_adı(v) + "'")
+}
+
+işlev _uygula(f, x) { pl_çağır(f, [x], pl_KW0) -> döndür }
+
+# min ve max: tek argüman yinelenebilir, birden çoksa argümanların kendisi
+işlev _uç_değer(a, anahtar_, varsayılan, büyük_mü, ad) {
+    a -> l
+    uzunluk(a) == 1 -> eğer { pl_yineleme(a[0]) -> l }
+    uzunluk(l) == 0 -> eğer {
+        varsayılan.t != _İŞL veya varsayılan.s != "<yok>" -> eğer { varsayılan -> döndür }
+        pl_hata("ValueError", ad + "() arg is an empty sequence")
+    }
+    l[0] -> en
+    en -> en_a
+    anahtar_.t != _YOK -> eğer { _uygula(anahtar_, en) -> en_a }
+    1 -> i
+    i < uzunluk(l) -> iken {
+        l[i] -> x
+        x -> xa
+        anahtar_.t != _YOK -> eğer { _uygula(anahtar_, x) -> xa }
+        büyük_mü -> eğer {
+            pl_küçük(en_a, xa) -> eğer { x -> en; xa -> en_a }
+        } değilse {
+            pl_küçük(xa, en_a) -> eğer { x -> en; xa -> en_a }
+        }
+        i + 1 -> i
+    }
+    en -> döndür
+}
+pl_işlev(_iş_yok, _BL, "<yok>") -> pl_VARSAYILAN_YOK
+işlev pl_b_min(a, anahtar_, varsayılan) { _uç_değer(a, anahtar_, varsayılan, 0, "min") -> döndür }
+işlev pl_b_max(a, anahtar_, varsayılan) { _uç_değer(a, anahtar_, varsayılan, 1, "max") -> döndür }
+
+işlev pl_b_sum(v, baş) {
+    baş -> t
+    pl_yineleme(v) -> her (x) { pl_topla(t, x) -> t }
+    t -> döndür
+}
+
+işlev _önce(a, b) { pl_küçük(a, b) -> döndür }
+işlev _önce_ters(a, b) { pl_küçük(b, a) -> döndür }
+işlev _önce_ilk(a, b) { pl_küçük(a.l[0], b.l[0]) -> döndür }
+işlev _önce_ilk_ters(a, b) { pl_küçük(b.l[0], a.l[0]) -> döndür }
+
+işlev _sırala(l, anahtar_, ters_) {
+    anahtar_.t == _YOK -> eğer {
+        ters_ -> eğer { sırala(l, _önce_ters) -> döndür }
+        sırala(l, _önce) -> döndür
+    }
+    dilim(_BL, 0, 0) -> çiftler
+    l -> her (x) { çiftler -> ekle(pl_demet([_uygula(anahtar_, x), x])) }
+    ters_ -> eğer { sırala(çiftler, _önce_ilk_ters) -> çiftler } değilse { sırala(çiftler, _önce_ilk) -> çiftler }
+    dilim(_BL, 0, 0) -> r
+    çiftler -> her (ç) { r -> ekle(ç.l[1]) }
+    r -> döndür
+}
+
+işlev pl_b_sorted(v, anahtar_, ters_) { pl_liste(_sırala(pl_yineleme(v), anahtar_, pl_doğru(ters_))) -> döndür }
+işlev pl_b_reversed(v) {
+    pl_yineleme(v) -> l
+    pl_liste(ters_çevir(l)) -> döndür
+}
+işlev pl_b_enumerate(v, baş) {
+    pl_tam(baş) -> i
+    dilim(_BL, 0, 0) -> r
+    pl_yineleme(v) -> her (x) { r -> ekle(pl_demet([pl_int(i), x])); i + 1 -> i }
+    pl_liste(r) -> döndür
+}
+işlev pl_b_zip(a) {
+    dilim(_BL, 0, 0) -> r
+    uzunluk(a) == 0 -> eğer { pl_liste(r) -> döndür }
+    [_BL] -> listeler
+    dilim(listeler, 0, 0) -> listeler
+    a -> her (v) { listeler -> ekle(pl_yineleme(v)) }
+    uzunluk(listeler[0]) -> n
+    listeler -> her (l) { en_küçük(n, uzunluk(l)) -> n }
+    0 -> i
+    i < n -> iken {
+        dilim(_BL, 0, 0) -> öğe
+        listeler -> her (l) { öğe -> ekle(l[i]) }
+        r -> ekle(pl_demet(öğe))
+        i + 1 -> i
+    }
+    pl_liste(r) -> döndür
+}
+işlev pl_b_ord(v) {
+    v.t != _MET veya uzunluk(v.s) != 1 -> eğer {
+        v.t == _MET -> eğer { pl_tür_hatası("ord() expected a character, but string of length " + metne(uzunluk(v.s)) + " found") }
+        pl_tür_hatası("ord() expected string of length 1, but " + pl_tür_adı(v) + " found")
+    }
+    pl_int(_kod(v.s)) -> döndür
+}
+işlev pl_b_chr(v) {
+    pl_tam(v) -> n
+    n < 0 veya n > 1114111 -> eğer { pl_hata("ValueError", "chr() arg not in range(0x110000)") }
+    pl_str(karakter(n)) -> döndür
+}
+
+işlev pl_b_round(v, n) {
+    n.t == _YOK -> eğer {
+        _tamsı(v) -> eğer { pl_int(v.i) -> döndür }
+        v.t == _OND -> eğer {
+            _özel_ondalık(v.f) != "" -> eğer { pl_b_int(v, pl_YOK) -> döndür }
+            pl_int(sayıya(_sabit_yaz(v.f, 0))) -> döndür
+        }
+        pl_tür_hatası("type " + pl_tür_adı(v) + " doesn't define __round__ method")
+    }
+    pl_tam(n) -> b
+    _tamsı(v) -> eğer {
+        b >= 0 -> eğer { pl_int(v.i) -> döndür }
+        1 -> kat
+        0 -> j
+        j < 0 - b ve j < 19 -> iken { kat * 10 -> kat; j + 1 -> j }
+        _tam_aşağı_kalan(v.i, kat) -> k
+        v.i - k -> r
+        k * 2 > kat veya (k * 2 == kat ve _tam_aşağı_kalan(r / kat, 2) == 1) -> eğer { r + kat -> r }
+        pl_int(r) -> döndür
+    }
+    v.t == _OND -> eğer {
+        _özel_ondalık(v.f) != "" veya v.f == 0.0 -> eğer { v -> döndür }
+        b >= 0 -> eğer { pl_float(ondalığa(_sabit_yaz(v.f, en_küçük(b, 340)))) -> döndür }
+        "" -> işaret_
+        v.f -> x
+        x < 0.0 -> eğer { "-" -> işaret_; 0.0 - x -> x }
+        _açılım(x) -> A
+        uzunluk(A.b) - A.k + b -> tut
+        tut <= 0 -> eğer {
+            tut == 0 -> eğer {
+                _yuvarla_bas(A.b, 0) -> yr
+                yr == "1" -> eğer { pl_float(ondalığa(işaret_ + "1" + _sıfırlar(0 - b))) -> döndür }
+            }
+            pl_float(ondalığa(işaret_ + "0")) -> döndür
+        }
+        pl_float(ondalığa(işaret_ + _yuvarla_bas(A.b, tut) + _sıfırlar(0 - b))) -> döndür
+    }
+    pl_tür_hatası("type " + pl_tür_adı(v) + " doesn't define __round__ method")
+}
+
+işlev pl_b_any(v) {
+    pl_yineleme(v) -> her (x) { pl_doğru(x) -> eğer { pl_DOĞRU -> döndür } }
+    pl_YANLIŞ -> döndür
+}
+işlev pl_b_all(v) {
+    pl_yineleme(v) -> her (x) { değil pl_doğru(x) -> eğer { pl_YANLIŞ -> döndür } }
+    pl_DOĞRU -> döndür
+}
+işlev pl_b_map(f, a) {
+    dilim(_BL, 0, 0) -> r
+    uzunluk(a) == 1 -> eğer {
+        pl_yineleme(a[0]) -> her (x) { r -> ekle(_uygula(f, x)) }
+        pl_liste(r) -> döndür
+    }
+    pl_b_zip(a) -> z
+    z.l -> her (ç) { r -> ekle(pl_çağır(f, ç.l, pl_KW0)) }
+    pl_liste(r) -> döndür
+}
+işlev pl_b_filter(f, v) {
+    dilim(_BL, 0, 0) -> r
+    pl_yineleme(v) -> her (x) {
+        f.t == _YOK -> eğer { pl_doğru(x) -> eğer { r -> ekle(x) } }
+        değilse { pl_doğru(_uygula(f, x)) -> eğer { r -> ekle(x) } }
+    }
+    pl_liste(r) -> döndür
+}
+
+işlev _yerleşik_tür_mü(ad) {
+    bul(["int", "float", "str", "bool", "list", "tuple", "dict", "set", "object", "type", "NoneType", "function"], ad) >= 0 -> döndür
+}
+
+işlev _alt_sınıf_mı(c, hedef) {
+    c == hedef -> eğer { 1 -> döndür }
+    hedef == "object" -> eğer { 1 -> döndür }
+    c == "bool" ve hedef == "int" -> eğer { 1 -> döndür }
+    c -> x
+    x != "" -> iken {
+        x == hedef -> eğer { 1 -> döndür }
+        pg_üst(x) -> x
+    }
+    0 -> döndür
+}
+işlev pl_b_isinstance(v, türler) {
+    pl_tür_adı(v) -> c
+    türler.t == _DEM -> eğer {
+        türler.l -> her (t) { pl_doğru(pl_b_isinstance(v, t)) -> eğer { pl_DOĞRU -> döndür } }
+        pl_YANLIŞ -> döndür
+    }
+    türler.t != _SIN -> eğer { pl_tür_hatası("isinstance() arg 2 must be a type, a tuple of types, or a union") }
+    pl_bool(_alt_sınıf_mı(c, türler.s)) -> döndür
+}
+işlev pl_b_type(v) { pl_sınıf(pl_tür_adı(v)) -> döndür }
+
+işlev pl_b_hex(v) {
+    pl_tam(v) -> n
+    n < 0 -> eğer { pl_str("-0x" + _taban_yaz(0 - n, 16)) -> döndür }
+    pl_str("0x" + _taban_yaz(n, 16)) -> döndür
+}
+işlev pl_b_bin(v) {
+    pl_tam(v) -> n
+    n < 0 -> eğer { pl_str("-0b" + _taban_yaz(0 - n, 2)) -> döndür }
+    pl_str("0b" + _taban_yaz(n, 2)) -> döndür
+}
+işlev pl_b_oct(v) {
+    pl_tam(v) -> n
+    n < 0 -> eğer { pl_str("-0o" + _taban_yaz(0 - n, 8)) -> döndür }
+    pl_str("0o" + _taban_yaz(n, 8)) -> döndür
+}
+işlev pl_b_divmod(a, b) { pl_demet([pl_tböl(a, b), pl_kalan(a, b)]) -> döndür }
+işlev pl_b_pow(a, b, m) {
+    m.t == _YOK -> eğer { pl_üs(a, b) -> döndür }
+    pl_tam(a) -> x
+    pl_tam(b) -> n
+    pl_tam(m) -> md
+    md == 0 -> eğer { pl_hata("ValueError", "pow() 3rd argument cannot be 0") }
+    1 -> r
+    _tam_aşağı_kalan(x, md) -> x
+    n > 0 -> iken {
+        n % 2 == 1 -> eğer { _tam_aşağı_kalan(_tam_çarp(r, x), md) -> r }
+        _tam_aşağı_kalan(_tam_çarp(x, x), md) -> x
+        n / 2 -> n
+    }
+    pl_int(_tam_aşağı_kalan(r, md)) -> döndür
+}
+işlev pl_b_exit(v) {
+    _tamsı(v) -> eğer { çık(v.i) }
+    v.t == _YOK -> eğer { çık(0) }
+    uyar(pl_metin(v))
+    çık(1)
+}
+
+# Sınıf olarak kullanılan yerleşik türlerin çağrılması: int("5"), list(...), ...
+işlev _tür_çağır(ad, a, kw) {
+    pl_arg_v(a, kw, 0, "x", pl_YOK) -> x
+    uzunluk(a) == 0 -> eğer {
+        ad == "int" -> eğer { pl_int(0) -> döndür }
+        ad == "float" -> eğer { pl_float(0.0) -> döndür }
+        ad == "str" -> eğer { pl_str("") -> döndür }
+        ad == "bool" -> eğer { pl_YANLIŞ -> döndür }
+        ad == "list" -> eğer { pl_liste_boş() -> döndür }
+        ad == "tuple" -> eğer { pl_demet_boş() -> döndür }
+        ad == "dict" -> eğer { pl_b_dict(pl_YOK, kw) -> döndür }
+        ad == "set" -> eğer { pl_küme_boş() -> döndür }
+    }
+    ad == "int" -> eğer { pl_b_int(x, pl_arg_v(a, kw, 1, "base", pl_YOK)) -> döndür }
+    ad == "float" -> eğer { pl_b_float(x) -> döndür }
+    ad == "str" -> eğer { pl_b_str(x) -> döndür }
+    ad == "bool" -> eğer { pl_b_bool(x) -> döndür }
+    ad == "list" -> eğer { pl_b_list(x) -> döndür }
+    ad == "tuple" -> eğer { pl_b_tuple(x) -> döndür }
+    ad == "dict" -> eğer { pl_b_dict(x, kw) -> döndür }
+    ad == "set" -> eğer { pl_b_set(x) -> döndür }
+    ad == "type" -> eğer { pl_b_type(x) -> döndür }
+    pl_tür_hatası("cannot create '" + ad + "' instances")
+}
+
+# Yerleşik işlevlerin değer olarak kullanılması: map(int, ...), key=len, ...
+işlev _yerleşik_iş(a, kw, e) {
+    e[0].s -> ad
+    pl_arg_v(a, kw, 0, "x", pl_YOK) -> x
+    ad == "len" -> eğer { pl_b_len(x) -> döndür }
+    ad == "abs" -> eğer { pl_b_abs(x) -> döndür }
+    ad == "repr" -> eğer { pl_b_repr(x) -> döndür }
+    ad == "ord" -> eğer { pl_b_ord(x) -> döndür }
+    ad == "chr" -> eğer { pl_b_chr(x) -> döndür }
+    ad == "sum" -> eğer { pl_b_sum(x, pl_int(0)) -> döndür }
+    ad == "sorted" -> eğer { pl_b_sorted(x, pl_YOK, pl_YANLIŞ) -> döndür }
+    ad == "reversed" -> eğer { pl_b_reversed(x) -> döndür }
+    ad == "round" -> eğer { pl_b_round(x, pl_arg_v(a, kw, 1, "ndigits", pl_YOK)) -> döndür }
+    ad == "min" -> eğer { pl_b_min(a, pl_YOK, pl_VARSAYILAN_YOK) -> döndür }
+    ad == "max" -> eğer { pl_b_max(a, pl_YOK, pl_VARSAYILAN_YOK) -> döndür }
+    ad == "print" -> eğer { pl_b_print(a, pl_arg_v(_BL, kw, 0, "sep", pl_YOK), pl_arg_v(_BL, kw, 0, "end", pl_YOK)) -> döndür }
+    ad == "hex" -> eğer { pl_b_hex(x) -> döndür }
+    ad == "bin" -> eğer { pl_b_bin(x) -> döndür }
+    ad == "any" -> eğer { pl_b_any(x) -> döndür }
+    ad == "all" -> eğer { pl_b_all(x) -> döndür }
+    ad == "input" -> eğer { pl_b_input(x) -> döndür }
+    ad == "callable" -> eğer { pl_bool(x.t == _İŞL veya x.t == _SIN) -> döndür }
+    pl_tür_hatası("'" + ad + "' Piton'da değer olarak kullanılamaz")
+}
+işlev pl_yerleşik(ad) {
+    _yerleşik_tür_mü(ad) -> eğer { pl_sınıf(ad) -> döndür }
+    pl_işlev(_yerleşik_iş, [pl_str(ad)], ad) -> döndür
+}
+
+# ── harf dönüşümleri ──
+
+işlev _büyük_kod(c) {
+    c >= 97 ve c <= 122 -> eğer { c - 32 -> döndür }
+    c < 181 -> eğer { c -> döndür }
+    c == 181 -> eğer { 924 -> döndür }
+    c >= 224 ve c <= 254 ve c != 247 -> eğer { c - 32 -> döndür }
+    c == 255 -> eğer { 376 -> döndür }
+    c == 305 -> eğer { 73 -> döndür }
+    c >= 256 ve c <= 383 -> eğer {
+        (c >= 313 ve c <= 328) veya (c >= 377 ve c <= 382) -> eğer {
+            c % 2 == 0 -> eğer { c - 1 -> döndür }
+            c -> döndür
+        }
+        c == 312 veya c == 329 veya c == 383 veya c == 304 -> eğer { c -> döndür }
+        c % 2 == 1 -> eğer { c - 1 -> döndür }
+        c -> döndür
+    }
+    c >= 945 ve c <= 969 ve c != 962 -> eğer { c - 32 -> döndür }
+    c == 962 -> eğer { 931 -> döndür }
+    c >= 1072 ve c <= 1103 -> eğer { c - 32 -> döndür }
+    c >= 1104 ve c <= 1119 -> eğer { c - 80 -> döndür }
+    c -> döndür
+}
+işlev _küçük_kod(c) {
+    c >= 65 ve c <= 90 -> eğer { c + 32 -> döndür }
+    c < 192 -> eğer { c -> döndür }
+    c >= 192 ve c <= 222 ve c != 215 -> eğer { c + 32 -> döndür }
+    c == 376 -> eğer { 255 -> döndür }
+    c >= 256 ve c <= 383 -> eğer {
+        (c >= 313 ve c <= 328) veya (c >= 377 ve c <= 382) -> eğer {
+            c % 2 == 1 -> eğer { c + 1 -> döndür }
+            c -> döndür
+        }
+        c == 312 veya c == 329 veya c == 383 veya c == 305 -> eğer { c -> döndür }
+        c % 2 == 0 -> eğer { c + 1 -> döndür }
+        c -> döndür
+    }
+    c >= 913 ve c <= 937 ve c != 930 -> eğer { c + 32 -> döndür }
+    c >= 1040 ve c <= 1071 -> eğer { c + 32 -> döndür }
+    c >= 1024 ve c <= 1039 -> eğer { c + 80 -> döndür }
+    c -> döndür
+}
+işlev _büyük_harf(m) {
+    [] -> parçalar
+    m -> her (k) {
+        k < "a" -> eğer { parçalar -> ekle(k); devam }
+        k <= "z" -> eğer { parçalar -> ekle(karakter(_kod(k) - 32)); devam }
+        k == "ß" -> eğer { parçalar -> ekle("SS"); devam }
+        parçalar -> ekle(karakter(_büyük_kod(_kod(k))))
+    }
+    birleş(parçalar, "") -> döndür
+}
+işlev _küçük_harf(m) {
+    [] -> parçalar
+    m -> her (k) {
+        k >= "A" ve k <= "Z" -> eğer { parçalar -> ekle(karakter(_kod(k) + 32)); devam }
+        k < _DEL -> eğer { parçalar -> ekle(k); devam }
+        k == "İ" -> eğer { parçalar -> ekle("i" + karakter(775)); devam }
+        parçalar -> ekle(karakter(_küçük_kod(_kod(k))))
+    }
+    birleş(parçalar, "") -> döndür
+}
+
+işlev _harf_mi(k) {
+    (k >= "a" ve k <= "z") veya (k >= "A" ve k <= "Z") -> eğer { 1 -> döndür }
+    _kod(k) -> c
+    c < 170 -> eğer { 0 -> döndür }
+    c == 215 veya c == 247 -> eğer { 0 -> döndür }
+    (c >= 8192 ve c <= 11263) veya (c >= 12288 ve c <= 12351) -> eğer { 0 -> döndür }
+    _büyük_kod(c) != c veya _küçük_kod(c) != c veya c >= 1424 -> döndür
+}
+işlev _rakam_mı(k) { k >= "0" ve k <= "9" -> döndür }
+işlev _boşluk_mu(k) { bul(_BOŞLUKLAR, k) >= 0 -> döndür }
+
+işlev _hepsi(m, sınama) {
+    m == "" -> eğer { 0 -> döndür }
+    m -> her (k) { değil sınama(k) -> eğer { 0 -> döndür } }
+    1 -> döndür
+}
+işlev _harf_rakam_mı(k) { _harf_mi(k) veya _rakam_mı(k) -> döndür }
+
+# ── yöntemler ──
+
+işlev _a(a, i, ad) {
+    i < uzunluk(a) -> eğer { a[i] -> döndür }
+    pl_tür_hatası(ad + "() takes at least " + metne(i + 1) + " argument(s) (" + metne(uzunluk(a)) + " given)")
+}
+işlev _av(a, kw, i, ad, varsayılan) { pl_arg_v(a, kw, i, ad, varsayılan) -> döndür }
+
+işlev _yerleşik_yöntem_mi(o, ad) {
+    o.t == _MET -> eğer { bul(_METİN_YÖNTEMLERİ, ad) >= 0 -> döndür }
+    o.t == _LİS -> eğer { bul(_LİSTE_YÖNTEMLERİ, ad) >= 0 -> döndür }
+    o.t == _SÖZ -> eğer { bul(_SÖZLÜK_YÖNTEMLERİ, ad) >= 0 -> döndür }
+    o.t == _KÜM -> eğer { bul(_KÜME_YÖNTEMLERİ, ad) >= 0 -> döndür }
+    o.t == _DEM -> eğer { ad == "count" veya ad == "index" -> döndür }
+    0 -> döndür
+}
+["upper", "lower", "strip", "lstrip", "rstrip", "split", "rsplit", "join", "replace", "startswith", "endswith",
+ "find", "rfind", "index", "rindex", "count", "isdigit", "isnumeric", "isdecimal", "isalpha", "isalnum", "isspace",
+ "isupper", "islower", "istitle", "capitalize", "title", "swapcase", "zfill", "center", "ljust", "rjust", "format",
+ "splitlines", "partition", "rpartition", "casefold", "removeprefix", "removesuffix", "encode", "expandtabs",
+ "isidentifier", "isprintable"] -> _METİN_YÖNTEMLERİ
+["append", "pop", "insert", "extend", "remove", "index", "count", "sort", "reverse", "copy", "clear"] -> _LİSTE_YÖNTEMLERİ
+["get", "keys", "values", "items", "pop", "setdefault", "update", "copy", "clear", "popitem"] -> _SÖZLÜK_YÖNTEMLERİ
+["add", "remove", "discard", "pop", "union", "intersection", "difference", "symmetric_difference", "issubset",
+ "issuperset", "isdisjoint", "copy", "clear", "update"] -> _KÜME_YÖNTEMLERİ
+
+işlev pl_y(o, ad, a, kw) {
+    o.t == _MET -> eğer { _y_metin(o, ad, a, kw) -> döndür }
+    o.t == _LİS -> eğer { _y_liste(o, ad, a, kw) -> döndür }
+    o.t == _SÖZ -> eğer { _y_sözlük(o, ad, a, kw) -> döndür }
+    o.t == _KÜM -> eğer { _y_küme(o, ad, a, kw) -> döndür }
+    o.t == _DEM -> eğer {
+        ad == "count" -> eğer { _say(o.l, _a(a, 0, ad)) -> döndür }
+        ad == "index" -> eğer { _dizini(o.l, _a(a, 0, ad), "tuple") -> döndür }
+    }
+    o.t == _NES -> eğer {
+        o.s == "_io.TextIOWrapper" -> eğer { pl_dosya_yöntemi(o, ad, a) -> döndür }
+        var(o.d, ad) -> eğer { pl_çağır(o.d[ad], a, kw) -> döndür }
+        _sınıf_alanı_var(o.s, ad) -> eğer { pl_çağır(_sınıf_alanı(o.s, ad), a, kw) -> döndür }
+        pl_hata("AttributeError", "'" + o.s + "' object has no attribute '" + ad + "'")
+    }
+    o.t == _SIN -> eğer {
+        _sınıf_alanı_var(o.s, ad) -> eğer { pl_çağır(_sınıf_alanı(o.s, ad), a, kw) -> döndür }
+        pg_yöntem_var(o.s, ad) ve uzunluk(a) > 0 -> eğer { pg_yöntem(a[0], ad, dilim(a, 1, uzunluk(a)), kw) -> döndür }
+        _yerleşik_tür_mü(o.s) ve uzunluk(a) > 0 -> eğer { pl_y(a[0], ad, dilim(a, 1, uzunluk(a)), kw) -> döndür }
+    }
+    o.t == _OND ve ad == "is_integer" -> eğer { pl_bool(o.f == ondalığa(taban(o.f))) -> döndür }
+    _tamsı(o) ve ad == "bit_length" -> eğer {
+        mutlak(o.i) -> n
+        0 -> b
+        n > 0 -> iken { b + 1 -> b; n / 2 -> n }
+        pl_int(b) -> döndür
+    }
+    pl_hata("AttributeError", "'" + pl_tür_adı(o) + "' object has no attribute '" + ad + "'")
+}
+
+işlev _say(l, x) {
+    0 -> n
+    l -> her (e) { pl_eşit(e, x) -> eğer { n + 1 -> n } }
+    pl_int(n) -> döndür
+}
+işlev _dizini(l, x, ne) {
+    0 -> i
+    i < uzunluk(l) -> iken {
+        pl_eşit(l[i], x) -> eğer { pl_int(i) -> döndür }
+        i + 1 -> i
+    }
+    ne == "list" -> eğer { pl_hata("ValueError", pl_temsil(x) + " is not in list") }
+    pl_hata("ValueError", "tuple.index(x): x not in tuple")
+}
+
+işlev pl_y_append(o, x) {
+    o.t == _LİS -> eğer { o.l -> ekle(x); pl_YOK -> döndür }
+    pl_y(o, "append", [x], pl_KW0) -> döndür
+}
+
+işlev _y_liste(o, ad, a, kw) {
+    o.l -> l
+    ad == "append" -> eğer { l -> ekle(_a(a, 0, ad)); pl_YOK -> döndür }
+    ad == "pop" -> eğer {
+        uzunluk(l) == 0 -> eğer { pl_hata("IndexError", "pop from empty list") }
+        uzunluk(l) - 1 -> i
+        uzunluk(a) > 0 -> eğer { _dizin(pl_tam(a[0]), uzunluk(l), "pop") -> i }
+        sil(l, i) -> döndür
+    }
+    ad == "insert" -> eğer {
+        pl_tam(_a(a, 0, ad)) -> i
+        i < 0 -> eğer { en_büyük(i + uzunluk(l), 0) -> i }
+        en_küçük(i, uzunluk(l)) -> i
+        _a(a, 1, ad) -> x
+        l -> ekle(x)
+        uzunluk(l) - 1 -> j
+        j > i -> iken { l[j - 1] -> l[j]; j - 1 -> j }
+        x -> l[i]
+        pl_YOK -> döndür
+    }
+    ad == "extend" -> eğer {
+        pl_yineleme(_a(a, 0, ad)) -> yeni
+        dilim(yeni, 0, uzunluk(yeni)) -> her (x) { l -> ekle(x) }
+        pl_YOK -> döndür
+    }
+    ad == "remove" -> eğer {
+        _a(a, 0, ad) -> x
+        0 -> i
+        i < uzunluk(l) -> iken {
+            pl_eşit(l[i], x) -> eğer { sil(l, i); pl_YOK -> döndür }
+            i + 1 -> i
+        }
+        pl_hata("ValueError", "list.remove(x): x not in list")
+    }
+    ad == "index" -> eğer { _dizini(l, _a(a, 0, ad), "list") -> döndür }
+    ad == "count" -> eğer { _say(l, _a(a, 0, ad)) -> döndür }
+    ad == "sort" -> eğer {
+        _sırala(l, _av(_BL, kw, 0, "key", pl_YOK), pl_doğru(_av(_BL, kw, 0, "reverse", pl_YANLIŞ))) -> s
+        0 -> i
+        i < uzunluk(s) -> iken { s[i] -> l[i]; i + 1 -> i }
+        pl_YOK -> döndür
+    }
+    ad == "reverse" -> eğer {
+        ters_çevir(l) -> s
+        0 -> i
+        i < uzunluk(s) -> iken { s[i] -> l[i]; i + 1 -> i }
+        pl_YOK -> döndür
+    }
+    ad == "copy" -> eğer { pl_liste(dilim(l, 0, uzunluk(l))) -> döndür }
+    ad == "clear" -> eğer { uzunluk(l) > 0 -> iken { sil(l, uzunluk(l) - 1) }; pl_YOK -> döndür }
+    pl_hata("AttributeError", "'list' object has no attribute '" + ad + "'")
+}
+
+işlev _y_sözlük(o, ad, a, kw) {
+    ad == "get" -> eğer {
+        pl_anahtar(_a(a, 0, ad)) -> ka
+        var(o.d, ka) -> eğer { o.d[ka] -> döndür }
+        _av(a, kw, 1, "default", pl_YOK) -> döndür
+    }
+    ad == "keys" -> eğer { pl_liste(değerler(o.k)) -> döndür }
+    ad == "values" -> eğer { pl_liste(değerler(o.d)) -> döndür }
+    ad == "items" -> eğer {
+        dilim(_BL, 0, 0) -> r
+        anahtarlar(o.d) -> her (ka) { r -> ekle(pl_demet([o.k[ka], o.d[ka]])) }
+        pl_liste(r) -> döndür
+    }
+    ad == "pop" -> eğer {
+        _a(a, 0, ad) -> x
+        pl_anahtar(x) -> ka
+        var(o.d, ka) -> eğer {
+            o.d[ka] -> v
+            sil(o.d, ka)
+            sil(o.k, ka)
+            v -> döndür
+        }
+        uzunluk(a) > 1 -> eğer { a[1] -> döndür }
+        _anahtar_hatası(x)
+    }
+    ad == "popitem" -> eğer {
+        uzunluk(o.d) == 0 -> eğer { pl_hata("KeyError", "'popitem(): dictionary is empty'") }
+        anahtarlar(o.d) -> as_
+        as_[uzunluk(as_) - 1] -> ka
+        pl_demet([o.k[ka], o.d[ka]]) -> çift_
+        sil(o.d, ka)
+        sil(o.k, ka)
+        çift_ -> döndür
+    }
+    ad == "setdefault" -> eğer {
+        _a(a, 0, ad) -> x
+        pl_anahtar(x) -> ka
+        var(o.d, ka) -> eğer { o.d[ka] -> döndür }
+        _av(a, kw, 1, "default", pl_YOK) -> v
+        _sözlük_koy(o, x, v)
+        v -> döndür
+    }
+    ad == "update" -> eğer {
+        uzunluk(a) > 0 -> eğer {
+            a[0] -> öteki
+            öteki.t == _SÖZ -> eğer { anahtarlar(öteki.d) -> her (ka) { _sözlük_koy(o, öteki.k[ka], öteki.d[ka]) } }
+            değilse { pl_yineleme(öteki) -> her (çift) { pl_aç(çift, 2) -> ç; _sözlük_koy(o, ç[0], ç[1]) } }
+        }
+        anahtarlar(kw) -> her (ad_) { _sözlük_koy(o, pl_str(ad_), kw[ad_]) }
+        pl_YOK -> döndür
+    }
+    ad == "copy" -> eğer { pl_b_dict(o, pl_KW0) -> döndür }
+    ad == "clear" -> eğer {
+        anahtarlar(o.d) -> her (ka) { sil(o.d, ka); sil(o.k, ka) }
+        pl_YOK -> döndür
+    }
+    pl_hata("AttributeError", "'dict' object has no attribute '" + ad + "'")
+}
+
+işlev _y_küme(o, ad, a, kw) {
+    ad == "add" -> eğer { _küme_ekle(o, _a(a, 0, ad)); pl_YOK -> döndür }
+    ad == "remove" veya ad == "discard" -> eğer {
+        _a(a, 0, ad) -> x
+        pl_anahtar(x) -> ka
+        var(o.k, ka) -> eğer { sil(o.k, ka); pl_YOK -> döndür }
+        ad == "remove" -> eğer { _anahtar_hatası(x) }
+        pl_YOK -> döndür
+    }
+    ad == "pop" -> eğer {
+        uzunluk(o.k) == 0 -> eğer { pl_hata("KeyError", "'pop from an empty set'") }
+        anahtarlar(o.k)[0] -> ka
+        o.k[ka] -> x
+        sil(o.k, ka)
+        x -> döndür
+    }
+    ad == "union" -> eğer { _küme_işlemi(o, pl_b_set(_a(a, 0, ad)), "|") -> döndür }
+    ad == "intersection" -> eğer { _küme_işlemi(o, pl_b_set(_a(a, 0, ad)), "&") -> döndür }
+    ad == "difference" -> eğer { pl_çıkar(o, pl_b_set(_a(a, 0, ad))) -> döndür }
+    ad == "symmetric_difference" -> eğer { _küme_işlemi(o, pl_b_set(_a(a, 0, ad)), "^") -> döndür }
+    ad == "issubset" -> eğer { pl_bool(pl_küçük_eşit(o, pl_b_set(_a(a, 0, ad)))) -> döndür }
+    ad == "issuperset" -> eğer { pl_bool(pl_küçük_eşit(pl_b_set(_a(a, 0, ad)), o)) -> döndür }
+    ad == "isdisjoint" -> eğer { pl_bool(uzunluk(_küme_işlemi(o, pl_b_set(_a(a, 0, ad)), "&").k) == 0) -> döndür }
+    ad == "copy" -> eğer { pl_küme_kur(değerler(o.k)) -> döndür }
+    ad == "clear" -> eğer { anahtarlar(o.k) -> her (ka) { sil(o.k, ka) }; pl_YOK -> döndür }
+    ad == "update" -> eğer { a -> her (öteki) { pl_yineleme(öteki) -> her (x) { _küme_ekle(o, x) } }; pl_YOK -> döndür }
+    pl_hata("AttributeError", "'set' object has no attribute '" + ad + "'")
+}
+
+işlev _metin_arg(v, ad) {
+    v.t != _MET -> eğer { pl_tür_hatası(ad + "() argument must be str, not " + pl_tür_adı(v)) }
+    v.s -> döndür
+}
+
+işlev _kırp_kümeyle(m, kırpılacak, sol, sağ) {
+    0 -> b
+    uzunluk(m) -> s
+    sol -> eğer { b < s ve bul(kırpılacak, m[b]) >= 0 -> iken { b + 1 -> b } }
+    sağ -> eğer { s > b ve bul(kırpılacak, m[s - 1]) >= 0 -> iken { s - 1 -> s } }
+    dilim(m, b, s) -> döndür
+}
+
+işlev _böl_boşlukla(m, en_çok) {
+    dilim(_BL, 0, 0) -> r
+    0 -> i
+    uzunluk(m) -> n
+    i < n -> iken {
+        i < n ve _boşluk_mu(m[i]) -> iken { i + 1 -> i }
+        i >= n -> eğer { dur }
+        en_çok >= 0 ve uzunluk(r) >= en_çok -> eğer { r -> ekle(pl_str(_kırp_kümeyle(dilim(m, i, n), _BOŞLUKLAR, 0, 1))); dur }
+        i -> b
+        i < n ve değil _boşluk_mu(m[i]) -> iken { i + 1 -> i }
+        r -> ekle(pl_str(dilim(m, b, i)))
+    }
+    r -> döndür
+}
+
+işlev _say_metin(m, alt) {
+    alt == "" -> eğer { uzunluk(m) + 1 -> döndür }
+    0 -> n
+    0 -> i
+    doğru -> iken {
+        bul(dilim(m, i, uzunluk(m)), alt) -> j
+        j < 0 -> eğer { dur }
+        n + 1 -> n
+        i + j + uzunluk(alt) -> i
+    }
+    n -> döndür
+}
+
+işlev _son_bul(m, alt) {
+    -1 -> son_
+    0 -> i
+    doğru -> iken {
+        bul(dilim(m, i, uzunluk(m)), alt) -> j
+        j < 0 -> eğer { dur }
+        i + j -> son_
+        i + j + 1 -> i
+        i > uzunluk(m) -> eğer { dur }
+    }
+    son_ -> döndür
+}
+
+işlev _y_metin(o, ad, a, kw) {
+    o.s -> m
+    ad == "upper" -> eğer { pl_str(_büyük_harf(m)) -> döndür }
+    ad == "lower" veya ad == "casefold" -> eğer { pl_str(_küçük_harf(m)) -> döndür }
+    ad == "strip" veya ad == "lstrip" veya ad == "rstrip" -> eğer {
+        _BOŞLUKLAR -> küme
+        _av(a, kw, 0, "chars", pl_YOK) -> kv
+        kv.t != _YOK -> eğer { _metin_arg(kv, ad) -> küme }
+        pl_str(_kırp_kümeyle(m, küme, ad != "rstrip", ad != "lstrip")) -> döndür
+    }
+    ad == "split" veya ad == "rsplit" -> eğer {
+        _av(a, kw, 0, "sep", pl_YOK) -> ayraç
+        pl_tam(_av(a, kw, 1, "maxsplit", pl_int(-1))) -> en_çok
+        ayraç.t == _YOK -> eğer { pl_liste(_böl_boşlukla(m, en_çok)) -> döndür }
+        _metin_arg(ayraç, ad) -> ay
+        ay == "" -> eğer { pl_hata("ValueError", "empty separator") }
+        böl(m, ay) -> parçalar
+        en_çok >= 0 ve uzunluk(parçalar) > en_çok + 1 -> eğer {
+            ad == "split" -> eğer {
+                dilim(parçalar, 0, en_çok) -> ilkler
+                ilkler -> ekle(birleş(dilim(parçalar, en_çok, uzunluk(parçalar)), ay))
+                ilkler -> parçalar
+            } değilse {
+                uzunluk(parçalar) - en_çok -> kes
+                [birleş(dilim(parçalar, 0, kes), ay)] + dilim(parçalar, kes, uzunluk(parçalar)) -> parçalar
+            }
+        }
+        dilim(_BL, 0, 0) -> r
+        parçalar -> her (p) { r -> ekle(pl_str(p)) }
+        pl_liste(r) -> döndür
+    }
+    ad == "splitlines" -> eğer {
+        dilim(_BL, 0, 0) -> r
+        böl(birleş(böl(m, "\r\n"), "\n"), "\n") -> satırlar
+        uzunluk(satırlar) > 0 ve satırlar[uzunluk(satırlar) - 1] == "" -> eğer { sil(satırlar, uzunluk(satırlar) - 1) }
+        satırlar -> her (s) { r -> ekle(pl_str(s)) }
+        pl_liste(r) -> döndür
+    }
+    ad == "join" -> eğer {
+        [] -> parçalar
+        pl_yineleme(_a(a, 0, ad)) -> her (x) {
+            x.t != _MET -> eğer { pl_tür_hatası("sequence item " + metne(uzunluk(parçalar)) + ": expected str instance, " + pl_tür_adı(x) + " found") }
+            parçalar -> ekle(x.s)
+        }
+        pl_str(birleş(parçalar, m)) -> döndür
+    }
+    ad == "replace" -> eğer {
+        _metin_arg(_a(a, 0, ad), ad) -> eski
+        _metin_arg(_a(a, 1, ad), ad) -> yeni
+        pl_tam(_av(a, kw, 2, "count", pl_int(-1))) -> kaç
+        eski == "" -> eğer {
+            [] -> parçalar
+            m -> her (k) { parçalar -> ekle(k) }
+            pl_str(yeni + birleş(parçalar, yeni) + yeni) -> döndür
+        }
+        böl(m, eski) -> parçalar
+        kaç < 0 veya kaç >= uzunluk(parçalar) - 1 -> eğer { pl_str(birleş(parçalar, yeni)) -> döndür }
+        pl_str(birleş(dilim(parçalar, 0, kaç + 1), yeni) + eski + birleş(dilim(parçalar, kaç + 1, uzunluk(parçalar)), eski)) -> döndür
+    }
+    ad == "startswith" veya ad == "endswith" -> eğer {
+        _a(a, 0, ad) -> ön
+        dilim(_BL, 0, 0) -> adaylar
+        ön.t == _DEM -> eğer { ön.l -> adaylar } değilse { adaylar -> ekle(ön) }
+        adaylar -> her (aday) {
+            _metin_arg(aday, ad) -> ps
+            ad == "startswith" ve dilim(m, 0, uzunluk(ps)) == ps -> eğer { pl_DOĞRU -> döndür }
+            ad == "endswith" ve uzunluk(ps) <= uzunluk(m) ve dilim(m, uzunluk(m) - uzunluk(ps), uzunluk(m)) == ps -> eğer { pl_DOĞRU -> döndür }
+        }
+        pl_YANLIŞ -> döndür
+    }
+    ad == "find" veya ad == "index" -> eğer {
+        _metin_arg(_a(a, 0, ad), ad) -> alt
+        pl_tam(_av(a, kw, 1, "start", pl_int(0))) -> baş
+        baş < 0 -> eğer { en_büyük(baş + uzunluk(m), 0) -> baş }
+        bul(dilim(m, baş, uzunluk(m)), alt) -> j
+        j >= 0 -> eğer { baş + j -> j }
+        j < 0 ve ad == "index" -> eğer { pl_hata("ValueError", "substring not found") }
+        pl_int(j) -> döndür
+    }
+    ad == "rfind" veya ad == "rindex" -> eğer {
+        _son_bul(m, _metin_arg(_a(a, 0, ad), ad)) -> j
+        j < 0 ve ad == "rindex" -> eğer { pl_hata("ValueError", "substring not found") }
+        pl_int(j) -> döndür
+    }
+    ad == "count" -> eğer { pl_int(_say_metin(m, _metin_arg(_a(a, 0, ad), ad))) -> döndür }
+    ad == "isdigit" veya ad == "isnumeric" veya ad == "isdecimal" -> eğer { pl_bool(_hepsi(m, _rakam_mı)) -> döndür }
+    ad == "isalpha" -> eğer { pl_bool(_hepsi(m, _harf_mi)) -> döndür }
+    ad == "isalnum" -> eğer { pl_bool(_hepsi(m, _harf_rakam_mı)) -> döndür }
+    ad == "isspace" -> eğer { pl_bool(_hepsi(m, _boşluk_mu)) -> döndür }
+    ad == "isupper" veya ad == "islower" -> eğer {
+        0 -> harfli
+        m -> her (k) {
+            _harf_mi(k) -> eğer {
+                1 -> harfli
+                ad == "isupper" ve _büyük_harf(k) != k -> eğer { pl_YANLIŞ -> döndür }
+                ad == "islower" ve _küçük_harf(k) != k -> eğer { pl_YANLIŞ -> döndür }
+            }
+        }
+        pl_bool(harfli) -> döndür
+    }
+    ad == "isidentifier" -> eğer {
+        m == "" veya _rakam_mı(m[0]) -> eğer { pl_YANLIŞ -> döndür }
+        m -> her (k) { değil (_harf_rakam_mı(k) veya k == "_") -> eğer { pl_YANLIŞ -> döndür } }
+        pl_DOĞRU -> döndür
+    }
+    ad == "isprintable" -> eğer {
+        m -> her (k) { _kod(k) < 32 veya k == _DEL -> eğer { pl_YANLIŞ -> döndür } }
+        pl_DOĞRU -> döndür
+    }
+    ad == "capitalize" -> eğer {
+        m == "" -> eğer { o -> döndür }
+        pl_str(_büyük_harf(m[0]) + _küçük_harf(dilim(m, 1, uzunluk(m)))) -> döndür
+    }
+    ad == "title" veya ad == "istitle" -> eğer {
+        [] -> parçalar
+        0 -> önceki_harf
+        m -> her (k) {
+            _harf_mi(k) -> eğer {
+                önceki_harf -> eğer { parçalar -> ekle(_küçük_harf(k)) } değilse { parçalar -> ekle(_büyük_harf(k)) }
+                1 -> önceki_harf
+            } değilse { parçalar -> ekle(k); 0 -> önceki_harf }
+        }
+        birleş(parçalar, "") -> başlık_
+        ad == "istitle" -> eğer { pl_bool(başlık_ == m ve _hepsi(m, _rakam_mı) == 0) -> döndür }
+        pl_str(başlık_) -> döndür
+    }
+    ad == "swapcase" -> eğer {
+        [] -> parçalar
+        m -> her (k) {
+            _büyük_harf(k) != k -> eğer { parçalar -> ekle(_büyük_harf(k)) } değilse { parçalar -> ekle(_küçük_harf(k)) }
+        }
+        pl_str(birleş(parçalar, "")) -> döndür
+    }
+    ad == "zfill" -> eğer {
+        pl_tam(_a(a, 0, ad)) -> n
+        "" -> işaret_
+        m -> gövde
+        uzunluk(m) > 0 ve (m[0] == "-" veya m[0] == "+") -> eğer { m[0] -> işaret_; dilim(m, 1, uzunluk(m)) -> gövde }
+        uzunluk(işaret_) + uzunluk(gövde) < n -> iken { "0" + gövde -> gövde }
+        pl_str(işaret_ + gövde) -> döndür
+    }
+    ad == "center" veya ad == "ljust" veya ad == "rjust" -> eğer {
+        pl_tam(_a(a, 0, ad)) -> n
+        " " -> dolgu
+        uzunluk(a) > 1 -> eğer { _metin_arg(a[1], ad) -> dolgu }
+        "<" -> hiza
+        ad == "rjust" -> eğer { ">" -> hiza }
+        ad == "center" -> eğer { "^" -> hiza }
+        uzunluk(m) >= n -> eğer { o -> döndür }
+        n - uzunluk(m) -> eksik
+        "" -> dolu
+        0 -> j
+        j < eksik -> iken { dolu + dolgu -> dolu; j + 1 -> j }
+        hiza == "<" -> eğer { pl_str(m + dolu) -> döndür }
+        hiza == ">" -> eğer { pl_str(dolu + m) -> döndür }
+        eksik / 2 -> sol
+        eksik % 2 == 1 ve n % 2 == 1 -> eğer { sol + 1 -> sol }
+        pl_str(dilim(dolu, 0, sol) + m + dilim(dolu, sol, eksik)) -> döndür
+    }
+    ad == "format" -> eğer { pl_str(_biçimle(m, a, kw)) -> döndür }
+    ad == "partition" veya ad == "rpartition" -> eğer {
+        _metin_arg(_a(a, 0, ad), ad) -> ay
+        bul(m, ay) -> j
+        ad == "rpartition" -> eğer { _son_bul(m, ay) -> j }
+        j < 0 -> eğer {
+            ad == "partition" -> eğer { pl_demet([o, pl_str(""), pl_str("")]) -> döndür }
+            pl_demet([pl_str(""), pl_str(""), o]) -> döndür
+        }
+        pl_demet([pl_str(dilim(m, 0, j)), pl_str(ay), pl_str(dilim(m, j + uzunluk(ay), uzunluk(m)))]) -> döndür
+    }
+    ad == "removeprefix" -> eğer {
+        _metin_arg(_a(a, 0, ad), ad) -> p
+        dilim(m, 0, uzunluk(p)) == p -> eğer { pl_str(dilim(m, uzunluk(p), uzunluk(m))) -> döndür }
+        o -> döndür
+    }
+    ad == "removesuffix" -> eğer {
+        _metin_arg(_a(a, 0, ad), ad) -> p
+        p != "" ve uzunluk(p) <= uzunluk(m) ve dilim(m, uzunluk(m) - uzunluk(p), uzunluk(m)) == p -> eğer { pl_str(dilim(m, 0, uzunluk(m) - uzunluk(p))) -> döndür }
+        o -> döndür
+    }
+    ad == "expandtabs" -> eğer { pl_str(birleş(böl(m, "\t"), "        ")) -> döndür }
+    ad == "encode" -> eğer { pl_tür_hatası("Piton'da bytes türü yok") }
+    pl_hata("AttributeError", "'str' object has no attribute '" + ad + "'")
+}
+
+# ── modüller: math, random, time, sys ──
+
+işlev pl_m_sqrt(x) {
+    _ondalığı(_sayısal_arg(x)) -> f
+    f < 0.0 -> eğer { pl_hata("ValueError", "math domain error") }
+    pl_float(karekök(f)) -> döndür
+}
+işlev _sayısal_arg(x) {
+    değil _sayısal(x) -> eğer { pl_tür_hatası("must be real number, not " + pl_tür_adı(x)) }
+    x -> döndür
+}
+işlev pl_m_isqrt(x) {
+    pl_tam(x) -> n
+    n < 0 -> eğer { pl_hata("ValueError", "isqrt() argument must be nonnegative") }
+    sayıya(karekök(ondalığa(n))) -> r
+    r * r > n -> iken { r - 1 -> r }
+    (r + 1) * (r + 1) <= n -> iken { r + 1 -> r }
+    pl_int(r) -> döndür
+}
+işlev pl_m_floor(x) {
+    _tamsı(x) -> eğer { pl_int(x.i) -> döndür }
+    pl_int(taban(_ondalığı(_sayısal_arg(x)))) -> döndür
+}
+işlev pl_m_ceil(x) {
+    _tamsı(x) -> eğer { pl_int(x.i) -> döndür }
+    pl_int(tavan(_ondalığı(_sayısal_arg(x)))) -> döndür
+}
+işlev pl_m_trunc(x) { pl_b_int(_sayısal_arg(x), pl_YOK) -> döndür }
+işlev pl_m_fabs(x) { pl_float(mutlak(_ondalığı(_sayısal_arg(x)))) -> döndür }
+işlev pl_m_işlev(ad, x) {
+    _ondalığı(_sayısal_arg(x)) -> f
+    ad == "sin" -> eğer { pl_float(sin(f)) -> döndür }
+    ad == "cos" -> eğer { pl_float(cos(f)) -> döndür }
+    ad == "tan" -> eğer { pl_float(tan(f)) -> döndür }
+    ad == "asin" -> eğer { pl_float(asin(f)) -> döndür }
+    ad == "acos" -> eğer { pl_float(acos(f)) -> döndür }
+    ad == "atan" -> eğer { pl_float(atan(f)) -> döndür }
+    ad == "exp" -> eğer { pl_float(üstel(f)) -> döndür }
+    ad == "degrees" -> eğer { pl_float(f * 180.0 / pi()) -> döndür }
+    ad == "radians" -> eğer { pl_float(f * pi() / 180.0) -> döndür }
+    f <= 0.0 -> eğer { pl_hata("ValueError", "math domain error") }
+    ad == "log10" -> eğer { pl_float(ln(f) / ln(10.0)) -> döndür }
+    ad == "log2" -> eğer { pl_float(ln(f) / ln(2.0)) -> döndür }
+    pl_float(ln(f)) -> döndür
+}
+işlev pl_m_log(x, b) {
+    b.t == _YOK -> eğer { pl_m_işlev("log", x) -> döndür }
+    pl_float(_ondalığı(pl_m_işlev("log", x)) / _ondalığı(pl_m_işlev("log", b))) -> döndür
+}
+işlev pl_m_atan2(y, x) { pl_float(atan2(_ondalığı(_sayısal_arg(y)), _ondalığı(_sayısal_arg(x)))) -> döndür }
+işlev pl_m_hypot(x, y) {
+    _ondalığı(_sayısal_arg(x)) -> a
+    _ondalığı(_sayısal_arg(y)) -> b
+    pl_float(karekök(a * a + b * b)) -> döndür
+}
+işlev pl_m_pow(x, y) { pl_float(üs(_ondalığı(_sayısal_arg(x)), _ondalığı(_sayısal_arg(y)))) -> döndür }
+işlev pl_m_gcd(a, b) {
+    mutlak(pl_tam(a)) -> x
+    mutlak(pl_tam(b)) -> y
+    y != 0 -> iken { x % y -> r; y -> x; r -> y }
+    pl_int(x) -> döndür
+}
+işlev pl_m_factorial(x) {
+    pl_tam(x) -> n
+    n < 0 -> eğer { pl_hata("ValueError", "factorial() not defined for negative values") }
+    1 -> r
+    2 -> i
+    i <= n -> iken { _tam_çarp(r, i) -> r; i + 1 -> i }
+    pl_int(r) -> döndür
+}
+işlev pl_m_isclose(a, b) {
+    _ondalığı(a) -> x
+    _ondalığı(b) -> y
+    mutlak(x - y) -> fark
+    pl_bool(fark <= ondalığa("1.0e-9") * en_büyük(mutlak(x), mutlak(y))) -> döndür
+}
+
+0 -> ortak _tohumlandı
+işlev pl_r_seed(v) {
+    pl_tam(v) -> n
+    rastgele_tohum(n)
+    1 -> _tohumlandı
+    pl_YOK -> döndür
+}
+işlev pl_r_random() { pl_float(ondalığa(rastgele(1073741824)) / 1073741824.0 + ondalığa(rastgele(1073741824)) / 1152921504606846976.0) -> döndür }
+işlev pl_r_randint(a, b) {
+    pl_tam(a) -> x
+    pl_tam(b) -> y
+    y < x -> eğer { pl_hata("ValueError", "empty range for randint()") }
+    pl_int(x + rastgele(y - x + 1)) -> döndür
+}
+işlev pl_r_randrange(a, b, s) {
+    b.t == _YOK -> eğer { pl_r_randint(pl_int(0), pl_int(pl_tam(a) - 1)) -> döndür }
+    pl_b_range(a, b, s) -> l
+    uzunluk(l.l) == 0 -> eğer { pl_hata("ValueError", "empty range for randrange()") }
+    l.l[rastgele(uzunluk(l.l))] -> döndür
+}
+işlev pl_r_uniform(a, b) {
+    _ondalığı(a) -> x
+    _ondalığı(b) -> y
+    pl_float(x + (y - x) * _ondalığı(pl_r_random())) -> döndür
+}
+işlev pl_r_choice(v) {
+    pl_yineleme(v) -> l
+    uzunluk(l) == 0 -> eğer { pl_hata("IndexError", "Cannot choose from an empty sequence") }
+    l[rastgele(uzunluk(l))] -> döndür
+}
+işlev pl_r_shuffle(v) {
+    v.t != _LİS -> eğer { pl_tür_hatası("shuffle() argument must be a list") }
+    v.l -> l
+    uzunluk(l) - 1 -> i
+    i > 0 -> iken {
+        rastgele(i + 1) -> j
+        l[i] -> geçici
+        l[j] -> l[i]
+        geçici -> l[j]
+        i - 1 -> i
+    }
+    pl_YOK -> döndür
+}
+işlev pl_r_sample(v, k) {
+    pl_b_list(v) -> l
+    pl_tam(k) -> n
+    n > uzunluk(l.l) veya n < 0 -> eğer { pl_hata("ValueError", "Sample larger than population or is negative") }
+    pl_r_shuffle(l)
+    pl_liste(dilim(l.l, 0, n)) -> döndür
+}
+
+zaman() -> _BAŞLANGIÇ
+işlev pl_t_time() { pl_float(ondalığa(zaman() - _BAŞLANGIÇ) / 1000.0 + 1700000000.0) -> döndür }
+işlev pl_t_perf() { pl_float(ondalığa(zaman() - _BAŞLANGIÇ) / 1000.0) -> döndür }
+işlev pl_t_sleep(s) {
+    bekle(yuvarla(_ondalığı(_sayısal_arg(s)) * 1000.0))
+    pl_YOK -> döndür
+}
+
+işlev pl_sys_argv() {
+    dilim(_BL, 0, 0) -> l
+    l -> ekle(pl_str(pl_dosya))
+    argümanlar() -> her (a) { l -> ekle(pl_str(a)) }
+    pl_liste(l) -> döndür
+}
+
+# ── dosyalar: open(yol).read(), with open(...) as f ──
+
+işlev pl_b_open(yol, kip) {
+    pl_metin(yol) -> y
+    "r" -> k
+    kip.t != _YOK -> eğer { pl_metin(kip) -> k }
+    pl_nesne("_io.TextIOWrapper") -> f
+    pl_str(y) -> f.d["name"]
+    pl_str(k) -> f.d["mode"]
+    bul(k, "r") >= 0 -> eğer {
+        değil dosya_var(y) -> eğer { pl_hata("FileNotFoundError", "[Errno 2] No such file or directory: " + _tırnakla(y)) }
+        pl_str(birleş(böl(dosya_oku(y), "\r\n"), "\n")) -> f.d["_içerik"]
+        pl_int(0) -> f.d["_konum"]
+    } değilse {
+        bul(k, "w") >= 0 -> eğer { dosya_yaz("", y) }
+        pl_int(1) -> f.d["_yazılır"]
+    }
+    f -> döndür
+}
+
+işlev pl_dosya_yöntemi(f, ad, a) {
+    f.d["name"].s -> yol
+    ad == "read" -> eğer {
+        f.d["_içerik"].s -> m
+        pl_tam(f.d["_konum"]) -> k
+        pl_int(uzunluk(m)) -> f.d["_konum"]
+        pl_str(dilim(m, k, uzunluk(m))) -> döndür
+    }
+    ad == "readline" -> eğer {
+        f.d["_içerik"].s -> m
+        pl_tam(f.d["_konum"]) -> k
+        bul(dilim(m, k, uzunluk(m)), "\n") -> j
+        uzunluk(m) -> son_
+        j >= 0 -> eğer { k + j + 1 -> son_ }
+        pl_int(son_) -> f.d["_konum"]
+        pl_str(dilim(m, k, son_)) -> döndür
+    }
+    ad == "readlines" veya ad == "__iter__" -> eğer {
+        f.d["_içerik"].s -> m
+        pl_tam(f.d["_konum"]) -> k
+        dilim(m, k, uzunluk(m)) -> kalan
+        pl_int(uzunluk(m)) -> f.d["_konum"]
+        dilim(_BL, 0, 0) -> r
+        böl(kalan, "\n") -> parçalar
+        0 -> i
+        i < uzunluk(parçalar) -> iken {
+            parçalar[i] -> p
+            i < uzunluk(parçalar) - 1 -> eğer { r -> ekle(pl_str(p + "\n")) } değilse { p != "" -> eğer { r -> ekle(pl_str(p)) } }
+            i + 1 -> i
+        }
+        pl_liste(r) -> döndür
+    }
+    ad == "write" -> eğer {
+        pl_metin(_a(a, 0, "write")) -> m
+        dosya_ekle(m, yol)
+        pl_int(uzunluk(m)) -> döndür
+    }
+    ad == "close" veya ad == "__exit__" veya ad == "flush" -> eğer { pl_YOK -> döndür }
+    ad == "__enter__" -> eğer { f -> döndür }
+    pl_hata("AttributeError", "'_io.TextIOWrapper' object has no attribute '" + ad + "'")
+}
+
+# ── üretilen kodun yardımcıları ──
+
+işlev pl_kullan(v) { 0 -> döndür }
+işlev pl_seç(koşul, a, b) {
+    koşul -> eğer { a -> döndür }
+    b -> döndür
+}
+işlev pl_mantık_ve(a, b) {
+    pl_doğru(a) -> eğer { b -> döndür }
+    a -> döndür
+}
+işlev pl_mantık_veya(a, b) {
+    pl_doğru(a) -> eğer { a -> döndür }
+    b -> döndür
+}
+işlev pl_küme_ekle(k, x) {
+    k.t == _KÜM -> eğer { _küme_ekle(k, x); 0 -> döndür }
+    pl_y(k, "add", [x], pl_KW0)
+    0 -> döndür
+}
+işlev pl_b_callable(v) { pl_bool(v.t == _İŞL veya v.t == _SIN) -> döndür }
+
+# a, *b, c = ... : önce baştakiler, ortada liste, sonra sondakiler
+işlev pl_aç_yıldızlı(v, önce, sonra) {
+    pl_yineleme(v) -> l
+    uzunluk(l) < önce + sonra -> eğer {
+        pl_hata("ValueError", "not enough values to unpack (expected at least " + metne(önce + sonra) + ", got " + metne(uzunluk(l)) + ")")
+    }
+    dilim(l, 0, önce) -> r
+    r -> ekle(pl_liste(dilim(l, önce, uzunluk(l) - sonra)))
+    r + dilim(l, uzunluk(l) - sonra, uzunluk(l)) -> döndür
+}
+
+işlev pl_istisna_başlat(o, a) {
+    pl_demet(a) -> o.d["args"]
+    pl_YOK -> döndür
+}
+
+işlev pl_kw_ekle(kw, d) {
+    d.t != _SÖZ -> eğer { pl_tür_hatası("argument after ** must be a mapping, not " + pl_tür_adı(d)) }
+    {"": pl_YOK} -> r
+    sil(r, "")
+    anahtarlar(kw) -> her (ad) { kw[ad] -> r[ad] }
+    anahtarlar(d.d) -> her (ka) {
+        d.k[ka] -> anahtar_
+        anahtar_.t != _MET -> eğer { pl_tür_hatası("keywords must be strings") }
+        d.d[ka] -> r[anahtar_.s]
+    }
+    r -> döndür
+}
+
+# İşlev alanının türü: bir kez doğrudan çağrılınca belirlenir
+_iş_yok(_BL, _BD, _BL) -> _ilk

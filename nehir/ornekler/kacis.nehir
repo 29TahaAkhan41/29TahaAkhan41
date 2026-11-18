@@ -1,0 +1,18 @@
+# Yerel olmayan çıkış: kaçış_noktası() bir dönüş noktası kaydeder, kaçış() aradaki işlev
+# çağrılarını bırakıp o noktaya döner (Piton, Python'un try/except'ini bununla kurar).
+
+işlev derin(n) {
+    n == 0 -> eğer { "dipte kaçılıyor" -> yazdır; kaçış() }
+    derin(n - 1)
+    "buraya gelinmemeli" -> yazdır
+}
+0 -> sayaç
+kaçış_noktası() -> eğer { "yakalandı" -> yazdır } değilse {
+    derin(50)
+    kaçış_bırak()
+}
+[1, 2, 3] -> l
+aralık(0, 3) -> her (i) {
+    kaçış_noktası() == 0 -> eğer { i == 1 -> eğer { kaçış() }; kaçış_bırak(); "tur " + metne(i) -> yazdır } değilse { "tur " + metne(i) + " kaçtı" -> yazdır }
+}
+kaçış() -> yazdır

@@ -1,0 +1,3 @@
+piton/sinamalar/hatalar/girinti.py:3:1: hata: girinti hatası: girinti, dıştaki hiçbir bloğun girintisine uymuyor
+    3 |    y = 2
+      | ^

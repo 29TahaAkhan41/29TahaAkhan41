@@ -1,0 +1,3 @@
+piton/sinamalar/hatalar/tanimsiz_ad.py:2:7: hata: 'toplm' adı tanımlı değil (NameError)
+    2 | print(toplm)
+      |       ^

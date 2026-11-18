@@ -1,0 +1,4 @@
+piton/sinamalar/hatalar/desteklenmeyen.py:2:5: hata: Piton bunu henüz desteklemiyor: üreteçler (yield)
+    2 |     yield 1
+      |     ^
+      = ipucu: desteklenenlerin listesi için: piton/BENIOKU.md

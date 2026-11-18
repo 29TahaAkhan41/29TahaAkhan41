@@ -1,0 +1,26 @@
+sonuç: 10.0
+bitti 10
+değer hatası: invalid literal for int() with base 10: 'abc'
+bitti abc
+sıfır: division by zero ZeroDivisionError
+bitti 0
+sonuç: 20.0
+bitti 5
+yakalandı: kod 42 42 True ('kod 42',)
+anahtar yok: 'b' KeyError('b')
+dizin: list index out of range
+tür: unsupported operand type(s) for +: 'NoneType' and 'int'
+içte yakalandı, yeniden fırlatılıyor
+dışta: iç
+finally önce çalışır
+try'dan dönüş
+[1, 2, 4, 5, 7]
+geçersiz: x
+geçersiz: y
+okundu: 7
+ValueError: invalid literal for int() with base 10: 'q' IndexError: list index out of range KeyError: 'k' ZeroDivisionError: integer division or modulo by zero
+doğrulama: matematik bozuk
+üst sınıfla yakalandı KeyError('k')
+x hâlâ 5
+son
+piton/sinamalar/istisnalar.py:104: çalışma hatası: BenimHatam: kod 7

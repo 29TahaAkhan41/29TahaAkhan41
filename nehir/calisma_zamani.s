@@ -3617,6 +3617,54 @@ __tus_birakma_var:              # -> rax = uçbirim tuş bırakmalarını bildir
     movzx eax, byte ptr [rip+__tk_birakma]
     ret
 
+# Yerel olmayan çıkış. kaçış_noktası() bir dönüş noktası (dönüş adresi, çağıranın rsp ve rbp'si)
+# kaydedip 0 verir; kaçış() son noktayı siler ve o noktaya döner, kaçış_noktası() bu kez 1 verir.
+# Üretilen kod yerel değerleri yığında tuttuğu için başka yazmacın saklanması gerekmez.
+KACIS_EN_COK = 4096
+__kacis_noktasi:                # -> rax = 0 (kaçış() ile dönülünce 1)
+    mov rax, [rip+__kacis_sayisi]
+    cmp rax, KACIS_EN_COK
+    jae __kacis_tasti
+    lea rcx, [rip+__kacis_yigini]
+    imul rdx, rax, 24
+    add rcx, rdx
+    mov rdx, [rsp]
+    mov [rcx], rdx
+    lea rdx, [rsp+8]
+    mov [rcx+8], rdx
+    mov [rcx+16], rbp
+    inc rax
+    mov [rip+__kacis_sayisi], rax
+    xor eax, eax
+    ret
+__kacis_birak:                  # son noktayı siler -> rax = 0
+    mov rax, [rip+__kacis_sayisi]
+    test rax, rax
+    jz 1f
+    dec rax
+    mov [rip+__kacis_sayisi], rax
+1:  xor eax, eax
+    ret
+__kacis:                        # son noktaya döner; nokta yoksa rax = 0 ile geri döner
+    mov rax, [rip+__kacis_sayisi]
+    test rax, rax
+    jz 1f
+    dec rax
+    mov [rip+__kacis_sayisi], rax
+    lea rcx, [rip+__kacis_yigini]
+    imul rdx, rax, 24
+    add rcx, rdx
+    mov rbp, [rcx+16]
+    mov rsp, [rcx+8]
+    mov eax, 1
+    jmp [rcx]
+1:  xor eax, eax
+    ret
+__kacis_tasti:
+    lea rsi, [rip+__h_kacis]
+    mov edx, __h_kacis_son - __h_kacis
+    jmp __hata
+
 __sifira_bolme:
     lea rsi, [rip+__h_sifir]
     mov edx, __h_sifir_son - __h_sifir
@@ -3784,6 +3832,8 @@ __h_yigin: .ascii "çağrı yığını taştı (sonu gelmeyen bir özyineleme mi
 __h_yigin_son:
 __h_us: .ascii "tam sayının üssü negatif olamaz (ondalıkla deneyin: üs(2.0, -1))"
 __h_us_son:
+__h_kacis: .ascii "iç içe kaçış noktası çok fazla (en çok 4096; kaçış_bırak unutulmuş olabilir)"
+__h_kacis_son:
 __h_bos_liste: .ascii "boş listenin en küçüğü ya da en büyüğü yok"
 __h_bos_liste_son:
     .balign 8
@@ -3944,6 +3994,8 @@ __gc_canli: .skip 8             # son toplamadan sağ çıkan bayt
 __gc_tasti: .skip 8             # işaret yığını taştı mı
 __cagri_tepe: .skip 8           # çağrı yığınının programın başındaki tepesi
 __yigin_siniri: .skip 8         # işlevler girişte yığının bunun altına inip inmediğine bakar
+__kacis_sayisi: .skip 8         # kayıtlı kaçış noktası sayısı
+__kacis_yigini: .skip KACIS_EN_COK * 24
 __gc_baslar: .skip YIGIN_BOYUTU / 64 + 64   # blok başları bit haritası
 __gc_isaret: .skip 8388608      # işaret yığını (1M blok)
     .balign 16

@@ -150,6 +150,9 @@ YERLEŞİKLER = {
     "ters_çevir": "ters_çevir", "ters_cevir": "ters_çevir", "reverse": "ters_çevir",
     "tuş_bırakma_var": "tuş_bırakma_var", "tus_birakma_var": "tuş_bırakma_var",
     "key_release_supported": "tuş_bırakma_var",
+    "kaçış_noktası": "kaçış_noktası", "kacis_noktasi": "kaçış_noktası", "escape_point": "kaçış_noktası",
+    "kaçış_bırak": "kaçış_bırak", "kacis_birak": "kaçış_bırak", "escape_drop": "kaçış_bırak",
+    "kaçış": "kaçış", "kacis": "kaçış", "escape": "kaçış",
     "metin_genişliği": "metin_genişliği", "metin_genisligi": "metin_genişliği", "text_width": "metin_genişliği",
     "komut_çalıştır": "komut_çalıştır", "komut_calistir": "komut_çalıştır", "run_command": "komut_çalıştır",
     "dizin_listele": "dizin_listele", "list_dir": "dizin_listele",
@@ -918,7 +921,7 @@ RİSKLİ = {"jz __sifira_bolme", "jz __yok_hatasi", "call __ayir"} | {"call " + 
     "__ondalik_metin", "__metinden_ondalik", "__us_sayi", "__liste_en", "__ekran_ac",
     "__ekran_temizle", "__ekran_yaz", "__ekran_doldur", "__ekran_ciz", "__liste_sirala",
     "__liste_ters", "__sayi_bol", "__sayi_kalan", "__ondalik_tama", "__ondalik_yuvarla",
-    "__komut_calistir", "__dizin_listele")}
+    "__komut_calistir", "__dizin_listele", "__kacis_noktasi")}
 
 # ── gözetleme deliği eniyilemesi ──
 # Üretilen kod her ara değeri yığına iter. Ardışık birkaç satırlık kalıplar daha kısa ve eşdeğer
@@ -1952,14 +1955,17 @@ class KodÜretici:
                 yanlış("argümansız")
             self.yaz("call __girdi_var")
             return "sayı"
-        if asıl in ("zaman", "tuş", "uçbirim_boyutu", "çöp_topla", "tuş_bırakma_var"):
+        if asıl in ("zaman", "tuş", "uçbirim_boyutu", "çöp_topla", "tuş_bırakma_var",
+                    "kaçış_noktası", "kaçış_bırak", "kaçış"):
             if türler:
                 yanlış("argümansız")
             self.yaz({"zaman": "call __zaman", "tuş": "call __tus",
                       "uçbirim_boyutu": "call __ucbirim_boyutu", "çöp_topla": "call __bellek_topla",
-                      "tuş_bırakma_var": "call __tus_birakma_var"}[asıl])
+                      "tuş_bırakma_var": "call __tus_birakma_var", "kaçış_noktası": "call __kacis_noktasi",
+                      "kaçış_bırak": "call __kacis_birak", "kaçış": "call __kacis"}[asıl])
             return {"zaman": "sayı", "tuş": "metin", "uçbirim_boyutu": Liste("sayı"),
-                    "çöp_topla": "sayı", "tuş_bırakma_var": "sayı"}[asıl]
+                    "çöp_topla": "sayı", "tuş_bırakma_var": "sayı", "kaçış_noktası": "sayı",
+                    "kaçış_bırak": "sayı", "kaçış": "sayı"}[asıl]
         if asıl in ("bekle", "rastgele", "rastgele_tohum", "tuş_kipi"):
             if türler != ["sayı"]:
                 yanlış({"bekle": "milisaniye", "rastgele": "üst sınır", "rastgele_tohum": "tohum",

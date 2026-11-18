@@ -76,6 +76,9 @@ kullan "ayristirici.nehir"
     "sırala": "sırala", "sirala": "sırala", "sort": "sırala", "ters_çevir": "ters_çevir",
     "ters_cevir": "ters_çevir", "reverse": "ters_çevir", "tuş_bırakma_var": "tuş_bırakma_var",
     "tus_birakma_var": "tuş_bırakma_var", "key_release_supported": "tuş_bırakma_var",
+    "kaçış_noktası": "kaçış_noktası", "kacis_noktasi": "kaçış_noktası", "escape_point": "kaçış_noktası",
+    "kaçış_bırak": "kaçış_bırak", "kacis_birak": "kaçış_bırak", "escape_drop": "kaçış_bırak",
+    "kaçış": "kaçış", "kacis": "kaçış", "escape": "kaçış",
     "metin_genişliği": "metin_genişliği", "metin_genisligi": "metin_genişliği", "text_width": "metin_genişliği",
     "komut_çalıştır": "komut_çalıştır", "komut_calistir": "komut_çalıştır", "run_command": "komut_çalıştır",
     "dizin_listele": "dizin_listele", "list_dir": "dizin_listele"
@@ -98,7 +101,8 @@ kullan "ayristirici.nehir"
     "call __liste_en": 1, "call __ekran_ac": 1, "call __ekran_temizle": 1, "call __ekran_yaz": 1,
     "call __ekran_doldur": 1, "call __ekran_ciz": 1, "call __liste_sirala": 1,
     "call __liste_ters": 1, "call __sayi_bol": 1, "call __sayi_kalan": 1, "call __ondalik_tama": 1,
-    "call __ondalik_yuvarla": 1, "call __komut_calistir": 1, "call __dizin_listele": 1
+    "call __ondalik_yuvarla": 1, "call __komut_calistir": 1, "call __dizin_listele": 1,
+    "call __kacis_noktasi": 1
 } -> RİSKLİ
 
 # ── gözetleme deliği eniyilemesi ──
@@ -1468,8 +1472,21 @@ işlev yerleşik_çağır(ad, türler, d) {
         "sayı" -> döndür
     }
     asıl == "zaman" veya asıl == "tuş" veya asıl == "uçbirim_boyutu" veya asıl == "çöp_topla"
-        veya asıl == "tuş_bırakma_var" -> eğer {
+        veya asıl == "tuş_bırakma_var" veya asıl == "kaçış_noktası" veya asıl == "kaçış_bırak"
+        veya asıl == "kaçış" -> eğer {
         n != 0 -> eğer { yanlış_argüman(ad, "argümansız", türler, d) }
+        asıl == "kaçış_noktası" -> eğer {
+            komut("call __kacis_noktasi", d)
+            "sayı" -> döndür
+        }
+        asıl == "kaçış_bırak" -> eğer {
+            komut("call __kacis_birak", d)
+            "sayı" -> döndür
+        }
+        asıl == "kaçış" -> eğer {
+            komut("call __kacis", d)
+            "sayı" -> döndür
+        }
         asıl == "tuş_bırakma_var" -> eğer {
             komut("call __tus_birakma_var", d)
             "sayı" -> döndür

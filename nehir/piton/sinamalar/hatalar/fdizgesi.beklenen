@@ -1,0 +1,3 @@
+piton/sinamalar/hatalar/fdizgesi.py:2:6: hata: sözdizimi hatası: f-dizgesindeki ifadede bir ifade bekleniyordu, ')' bulundu
+    2 | print(f"{ad + }")
+      |      ^

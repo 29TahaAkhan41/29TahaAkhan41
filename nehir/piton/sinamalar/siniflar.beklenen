@@ -1,0 +1,8 @@
+Karabaş der ki: hav
+Tekir der ki: miyav!
+Balık der ki: ...
+[Hayvan('Karabaş'), Hayvan('Tekir'), Hayvan('Balık')]
+3 True False
+(5, 8) 2 9.433981132056603 True (0, 0)
+(5, 8) Hayvan('Tekir') Vektör
+Karabaş der ki: hav

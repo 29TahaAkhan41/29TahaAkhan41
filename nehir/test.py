@@ -60,9 +60,61 @@ def ana():
                 print(f"BAŞARISIZ {ad}")
                 print("  beklenen:", repr(beklenen))
                 print("  çıkan:   ", repr(çıktı))
+        başarısız += pitonu_sına(geçici, güncelle)
         if not güncelle:
             başarısız += kendi_derleyiciyi_sına(geçici, kaynaklar)
     return 1 if başarısız else 0
+
+
+def pitonu_sına(geçici, güncelle):
+    """Piton (piton/piton.nehir, Nehir ile yazılmış Python derleyicisi) derlenir; piton/sinamalar/
+    altındaki her Python programı derlenip çalıştırılır ve çıktısı .beklenen ile karşılaştırılır.
+    hatalar/ altındakilerde derleyicinin hata mesajı karşılaştırılır. Beklenen çıktılar CPython'unkiyle
+    aynıdır (yakalanmayan istisnaların biçimi dışında)."""
+    piton = os.path.join(geçici, "piton")
+    s = subprocess.run([sys.executable, "nehir.py", "piton/piton.nehir", "-o", piton],
+                       cwd=KÖK, capture_output=True, text=True, encoding="utf-8")
+    if s.returncode != 0:
+        print("BAŞARISIZ piton derlenemedi:", (s.stdout + s.stderr).split("\n")[0])
+        return 1
+    başarısız = 0
+    for kaynak in sorted(glob.glob(os.path.join(KÖK, "piton", "sinamalar", "*.py"))) + \
+            sorted(glob.glob(os.path.join(KÖK, "piton", "sinamalar", "hatalar", "*.py"))):
+        göreli = os.path.relpath(kaynak, KÖK).replace(os.sep, "/")
+        ad = göreli.replace("piton/sinamalar/", "piton/", 1)[:-3]
+        ikili = os.path.join(geçici, "py_" + os.path.basename(kaynak)[:-3])
+        try:
+            with open(kaynak[:-3] + ".girdi", encoding="utf-8") as f:
+                girdi = f.read()
+        except FileNotFoundError:
+            girdi = ""
+        d = subprocess.run([piton, göreli, "-o", ikili], cwd=KÖK, capture_output=True, text=True,
+                           encoding="utf-8", env=dict(os.environ, NO_COLOR="1"))
+        çıktı = d.stdout + d.stderr
+        if d.returncode == 0:
+            ç = subprocess.run([ikili], cwd=KÖK, input=girdi, capture_output=True, text=True, encoding="utf-8")
+            çıktı += ç.stdout + ç.stderr
+        if güncelle:
+            with open(kaynak[:-3] + ".beklenen", "w", encoding="utf-8") as f:
+                f.write(çıktı)
+            print(f"yazıldı   {ad}")
+            continue
+        try:
+            with open(kaynak[:-3] + ".beklenen", encoding="utf-8") as f:
+                beklenen = f.read()
+        except FileNotFoundError:
+            beklenen = None
+        if çıktı == beklenen:
+            print(f"geçti     {ad}")
+        else:
+            başarısız += 1
+            print(f"BAŞARISIZ {ad}")
+            print("  beklenen:", repr(beklenen)[:400])
+            print("  çıkan:   ", repr(çıktı)[:400])
+    deneme_dosyası = os.path.join(KÖK, "piton_deneme.txt")     # ek_ozellikler.py yazar
+    if os.path.exists(deneme_dosyası):
+        os.remove(deneme_dosyası)
+    return başarısız
 
 
 def kendi_derleyiciyi_sına(geçici, kaynaklar):
@@ -74,7 +126,7 @@ def kendi_derleyiciyi_sına(geçici, kaynaklar):
 
     kaynaklar = list(kaynaklar)
     for kalıp in ("ornekler/moduller/*.nehir", "ornekler/hatalar/moduller/*.nehir",
-                  "kendi/*.nehir", "kendi/sinamalar/*.nehir"):
+                  "kendi/*.nehir", "kendi/sinamalar/*.nehir", "piton/*.nehir"):
         kaynaklar += sorted(glob.glob(os.path.join(KÖK, *kalıp.split("/"))))
 
     başarısız = 0
