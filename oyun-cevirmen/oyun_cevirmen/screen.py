@@ -23,6 +23,9 @@ class TextBlock:
     bg: str = "#101418"
     fg: str = "#ffffff"
     patch: object = None  # oyunun görünümüne uydurulmuş çeviri resmi (render.py)
+    room_w: float | None = None  # komşulara çarpmadan kullanılabilecek genişlik
+    neighbors: tuple = ()  # yakındaki diğer bloklar (render.py)
+    align: str = "center"  # left / center / right (komşulara göre tahmin edilir)
     px: int = 0
     py: int = 0
 
@@ -407,8 +410,12 @@ def group_words(words: list[dict], offset: tuple[int, int], joiner: str = " ") -
             vgap = ln["y0"] - last["y1"]
             similar_size = 0.7 < ln["h"] / max(last["h"], 1) < 1.4
             h_overlap = min(ln["x1"], last["x1"]) - max(ln["x0"], last["x0"])
+            # Paragraf satırı mı? Sarılmış metinde üstteki satır uzundur ya da alttaki satır
+            # cümlenin devamıdır (küçük harfle başlar). Alt alta kısa menü öğeleri
+            # ("Seçenekler", "Ekstralar", "Çık") ayrı kalmalı; birleşirse çeviri bozulur.
+            continues = len(last["text"]) >= 20 or ln["text"][:1].islower()
             if -last["h"] * 0.3 <= vgap < last["h"] * 0.9 and similar_size and h_overlap > 0 \
-                    and abs(ln["x0"] - last["x0"]) < last["h"] * 3:
+                    and abs(ln["x0"] - last["x0"]) < last["h"] * 3 and continues:
                 blk.append(ln)
                 break
         else:

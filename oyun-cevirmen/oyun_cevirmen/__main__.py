@@ -24,7 +24,12 @@ def cli(argv: list[str]) -> int:
     p.add_argument("--model", default="", help="Yapay zekâ modeli (boşsa varsayılan)")
     a = p.parse_args(argv)
 
-    tr = Translator(make_backend(a.motor, a.anahtar, a.model), source=a.kaynak, target="tr")
+    from .glossary import Glossary
+    from .translator import CONFIG_DIR
+
+    tr = Translator(make_backend(a.motor, a.anahtar, a.model), source=a.kaynak, target="tr",
+                    glossary=Glossary(CONFIG_DIR / "sozluk.json",
+                                      use_builtin=a.kaynak in ("en", "auto")))
     if a.girdi.is_dir():
         out = a.cikti or Path(str(a.girdi).rstrip("/\\") + "_tr")
         for path, res in ft.translate_folder(a.girdi, out, tr,

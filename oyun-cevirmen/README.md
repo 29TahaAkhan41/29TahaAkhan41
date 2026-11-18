@@ -71,6 +71,22 @@ Kısayollar arayüzden değiştirilebilir (ör. `ctrl+shift+t`).
 arka plan (geçişli renkler, dokular) korunur ve Türkçe yazı oyunun kendi yazı renginde,
 kontur ve büyüklüğünde çizilir. Kapatırsanız çeviri koyu kutular içinde gösterilir.
 
+**Yazı tipi:** Fantastik/RPG oyunlarında (ör. tırnaklı menü yazıları) "Tırnaklı / klasik"
+seçeneği oyunun havasına daha çok uyar.
+
+**Sözlük:** "Start Game", "Quit Game", "Options", "Inventory" gibi 150'den fazla yaygın oyun
+yazısının doğru Türkçesi uygulamanın içinde hazır gelir. Çeviri motoruna hiç gitmezler, OCR
+bir iki harfi yanlış okusa bile ("QUlT GAME") tanınırlar. Bir yazı yanlış çevriliyorsa
+**Sözlüğü düzenle…** düğmesiyle açılan dosyaya doğrusunu ekleyin; kaydettiğiniz anda geçerli olur:
+```json
+{
+  "Geo": "Geo",
+  "Soul": "Ruh",
+  "Hallownest": "Hallownest"
+}
+```
+Karakter ve yer adlarının çevrilmesini istemiyorsanız buraya olduğu gibi yazın.
+
 Durum satırında yazı tanıma ve çeviri süreleri ayrı ayrı görünür. Hangisi yavaşsa onu
 değiştirin (ör. çeviri yavaşsa daha küçük bir yapay zekâ modeli veya Google Çeviri).
 

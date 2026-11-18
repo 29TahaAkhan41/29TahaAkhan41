@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from PIL import Image, ImageDraw, ImageFont, ImageTk  # noqa: E402
 
-from oyun_cevirmen import gui, overlay, screen  # noqa: E402
+from oyun_cevirmen import gui, overlay, render, screen  # noqa: E402
 from oyun_cevirmen.translator import Backend  # noqa: E402
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -60,6 +60,30 @@ def game_image(w=1000, h=600):
     return img
 
 
+def menu_image(w=1000, h=600):
+    """Parlayan, tırnaklı, BÜYÜK HARFLİ, ortalanmış bir ana menü (fantastik oyun tarzı)."""
+    import numpy as np
+    from PIL import ImageFilter
+
+    rng = np.random.default_rng(1)
+    yy, xx = np.mgrid[0:h, 0:w]
+    arr = np.stack([20 + xx * 0.02, 70 + np.sin(xx / 90) * 15 + yy * 0.05,
+                    150 + np.sin(xx / 60) * 25], -1) + rng.normal(0, 4, (h, w, 3))
+    img = Image.fromarray(np.clip(arr, 0, 255).astype("uint8"))
+    text_l = Image.new("L", (w, h), 0)
+    dt = ImageDraw.Draw(text_l)
+    for t, size, y in (("START GAME", 34, 90), ("OPTIONS", 34, 180), ("ACHIEVEMENTS", 44, 270),
+                       ("EXTRAS", 34, 370), ("QUIT GAME", 34, 460)):
+        f = ImageFont.truetype(r"C:\Windows\Fonts\georgia.ttf", size)
+        dt.text(((w - dt.textlength(t, font=f)) / 2, y), t, font=f, fill=255)
+    glow = text_l.filter(ImageFilter.GaussianBlur(6)).point(lambda v: min(255, v * 2) // 2)
+    img = Image.composite(Image.new("RGB", (w, h), (150, 210, 255)), img, glow)
+    return Image.composite(Image.new("RGB", (w, h), (245, 248, 255)), img, text_l)
+
+
+SCENES = {"rpg": game_image, "menu": menu_image}
+
+
 def grab(path, box):
     with screen._mss() as sct:
         g = sct.grab({"left": box[0], "top": box[1], "width": box[2], "height": box[3]})
@@ -79,21 +103,25 @@ overlay.exclude_from_capture = lambda win: False
 
 results = {"ekran_goruntusunden_gizleme_calisiyor": CAPTURE_EXCLUSION_WORKS}
 for spec in sys.argv[2:] or ["windows", "tesseract"]:
-    # "windows@2" = Windows OCR, görüntü 2 kat büyütülerek
-    engine, _, sc = spec.partition("@")
+    # "windows@2" = Windows OCR, görüntü 2 kat büyütülerek; "windows:menu" = menü sahnesi
+    spec_core, _, scene = spec.partition(":")
+    scene = scene or "rpg"
+    engine, _, sc = spec_core.partition("@")
     screen.WindowsOcr.scale = float(sc) if sc else None
     app = gui.App()
     app.s.region = None
     app.s.ocr_engine = engine
+    if scene == "menu":
+        app.var_font.set(render.FONT_STYLES["serif"])
     app.var_ocr.set(screen.OCR_ENGINES[engine])
     game = tk.Toplevel(app.root)
     game.overrideredirect(True)
     game.geometry("1000x600+0+0")
-    photo = ImageTk.PhotoImage(game_image())
+    photo = ImageTk.PhotoImage(SCENES[scene]())
     tk.Label(game, image=photo, bd=0).pack()
 
     def finish(spec=spec, app=app):
-        grab(OUT / f"sonuc-{spec.replace('@', '-x')}.png", (0, 0, 1000, 600))
+        grab(OUT / f"sonuc-{spec.replace('@', '-x').replace(':', '-')}.png", (0, 0, 1000, 600))
         results[spec] = {
             "durum": app.lbl_status.cget("text"),
             "katman": len(app.overlay.windows),
@@ -106,7 +134,7 @@ for spec in sys.argv[2:] or ["windows", "tesseract"]:
     app.root.after(2000, app.translate_screen)
     app.root.after(9000, finish)
     app.run()
-    game_image().save(OUT / "oyun.png")
+    SCENES[scene]().save(OUT / f"oyun-{scene}.png")
 
 (OUT / "sonuc.json").write_text(json.dumps(results, ensure_ascii=False, indent=2),
                                 encoding="utf-8")

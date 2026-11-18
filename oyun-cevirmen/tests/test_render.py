@@ -46,7 +46,9 @@ def test_render_block_makes_patch_at_position():
     b = TextBlock(50 + 100, 30 + 200, 60, 20, "Start", 18, translated="Başla")
     render_block(img, b, (100, 200))
     assert b.patch is not None and b.patch.width >= 60
-    assert 140 <= b.px <= 150 and 220 <= b.py <= 230
+    # Çeviri resmi orijinal yazıyı (ekran koordinatı 150,230 - 210,250) tamamen örtmeli
+    assert b.px <= 150 and b.px + b.patch.width >= 210
+    assert b.py <= 230 and b.py + b.patch.height >= 250
 
 
 def test_looks_like_text():

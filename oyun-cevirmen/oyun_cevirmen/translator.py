@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 from pathlib import Path
 from typing import Callable, Iterable
 
 from . import placeholders as ph
+from .glossary import is_all_caps, tr_upper
 
 CONFIG_DIR = Path(os.environ.get("OYUN_CEVIRMEN_DIR", Path.home() / ".oyun_cevirmen"))
 
@@ -158,8 +160,10 @@ class Translator:
         source: str = "auto",
         target: str = "tr",
         cache_file: Path | None = CONFIG_DIR / "onbellek.json",
+        glossary=None,
     ):
         self.backend = backend
+        self.glossary = glossary  # glossary.Glossary: sık arayüz yazıları ve kullanıcı düzeltmeleri
         self.source = source
         self.target = target
         self.cache_file = cache_file
@@ -172,7 +176,8 @@ class Translator:
                 self._cache = {}
 
     def _key(self, text: str) -> str:
-        return f"{self.backend.name}|{self.source}|{self.target}|{text}"
+        # "v2": büyük harf düzeltmesinden önceki hatalı önbellek girdileri kullanılmasın
+        return f"v2|{self.backend.name}|{self.source}|{self.target}|{text}"
 
     def save_cache(self) -> None:
         if not self.cache_file:
@@ -198,8 +203,11 @@ class Translator:
         todo: list[str] = []
         with self._lock:
             for t in dict.fromkeys(texts):
+                hit = self.glossary.lookup(t) if self.glossary else None
                 if not ph.has_letters(t):
                     result[t] = t
+                elif hit is not None:
+                    result[t] = hit
                 elif self._key(t) in self._cache:
                     result[t] = self._cache[self._key(t)]
                 else:
@@ -222,9 +230,17 @@ class Translator:
 
     def _translate_uncached(self, batch: list[str]) -> list[str]:
         protected = [ph.protect(t) for t in batch]
-        raw = self.backend.translate_batch([p[0] for p in protected], self.source, self.target)
+        # BÜYÜK HARFLİ yazıları çevirmenler kötü çevirir ("QUIT GAME" -> "OYNU"):
+        # normal yazıyla gönder, sonucu Türkçe kurallarıyla (i -> İ) yeniden büyüt.
+        caps = [is_all_caps(t) and len(t) > 3 for t in batch]
+        send = [_sentence_case(p[0]) if c else p[0] for p, c in zip(protected, caps)]
+        raw = self.backend.translate_batch(send, self.source, self.target)
         out: list[str] = []
-        for original, (_, found), tr in zip(batch, protected, raw):
+        for original, (prot, found), tr, c, sent in zip(batch, protected, raw, caps, send):
+            if c and tr:
+                # Çevirmen değiştirmeden döndürdüyse (özel adlar: "HOLLOW KNIGHT") olduğu gibi
+                # bırak; yoksa Türkçe kuralla büyütmek "KNİGHT" gibi hatalara yol açar.
+                tr = prot if tr.strip().lower() == sent.strip().lower() else tr_upper(tr)
             restored = ph.restore(tr or "", found) if found else (tr or original)
             if restored is None:
                 restored = self._segmentwise(original)
@@ -244,6 +260,12 @@ class Translator:
         for i, tr in zip(idx, translated):
             parts[i] = _match_edges(segs[i][1], tr or segs[i][1])
         return "".join(parts)
+
+
+def _sentence_case(s: str) -> str:
+    """'QUIT GAME. PRESS A' -> 'Quit game. Press a' (cümle başları büyük)."""
+    low = s.lower()
+    return re.sub(r"(^|[.!?]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), low)
 
 
 def _match_edges(original: str, translated: str) -> str:

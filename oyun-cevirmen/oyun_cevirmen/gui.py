@@ -16,7 +16,9 @@ from tkinter import filedialog, messagebox, ttk
 
 from . import file_translator as ft
 from .overlay import Overlay, RegionSelector, enable_dpi_awareness
-from .render import render_all
+from . import render
+from .glossary import Glossary
+from .render import FONT_STYLES, render_all
 from .screen import DEFAULT_OCR, OCR_ENGINES, Region, apply_colors, capture, image_signature, \
     make_ocr, monitors, signature_changed
 from .translator import AI_BACKENDS, BACKENDS, CONFIG_DIR, KEY_HELP, SOURCE_LANGUAGES, Translator, \
@@ -42,6 +44,7 @@ class Settings:
     auto_interval: float = 2.0
     opacity: float = 1.0
     match_colors: bool = True
+    font_style: str = "sans-bold"
     version: int = 2  # ayar dosyası sürümü (eski ayarları yükseltmek için)
 
     def __post_init__(self):
@@ -123,7 +126,7 @@ class App:
         enable_dpi_awareness()
         self.root = tk.Tk()
         self.root.title("Oyun Çevirmeni — Her şeyi Türkçe yap")
-        self.root.geometry("780x820")
+        self.root.geometry("800x880")
         self.root.minsize(700, 700)
         self.s = Settings.load()
         if not self.s.tesseract_path or not os.path.isfile(self.s.tesseract_path):
@@ -183,6 +186,12 @@ class App:
         self.ent_model.grid(row=3, column=1, sticky="w", padx=6, pady=(6, 0))
         self.lbl_key_help = ttk.Label(box, text="", foreground="#777")
         self.lbl_key_help.grid(row=4, column=0, columnspan=3, sticky="w", pady=(4, 0))
+        sf = ttk.Frame(box)
+        sf.grid(row=5, column=0, columnspan=3, sticky="w", pady=(6, 0))
+        ttk.Button(sf, text="Sözlüğü düzenle…", command=self.edit_glossary).pack(side="left")
+        ttk.Label(sf, foreground="#777",
+                  text="  Yanlış çevrilen bir yazının doğrusunu buraya yazın; hep o kullanılır."
+                  ).pack(side="left")
         self._shown_backend = self.s.backend
         self._load_backend_fields()
         self.var_backend.trace_add("write", lambda *_: self._on_backend_change())
@@ -230,9 +239,29 @@ class App:
             pass
         self.s.opacity = round(self.var_opacity.get(), 2)
         self.s.match_colors = bool(self.var_colors.get())
+        self.s.font_style = _key_by_label(FONT_STYLES, self.var_font.get())
+        render.font_style = self.s.font_style
         self.overlay.opacity = self.s.opacity
         self.overlay.match_colors = self.s.match_colors
         self.s.save()
+
+    def glossary(self) -> Glossary:
+        # Hazır sözlük İngilizce; diğer dillerde yalnızca kullanıcının girdileri kullanılır
+        return Glossary(CONFIG_DIR / "sozluk.json",
+                        use_builtin=self.s.source_lang in ("en", "auto"))
+
+    def edit_glossary(self) -> None:
+        path = self.glossary().ensure_user_file()
+        try:
+            if sys.platform == "win32":
+                os.startfile(path)  # Not Defteri vb. ile açar
+            else:
+                import subprocess
+
+                subprocess.Popen(["xdg-open" if sys.platform != "darwin" else "open", str(path)])
+            self.status(f"Sözlük açıldı: {path}  (kaydedince hemen geçerli olur)")
+        except Exception:
+            messagebox.showinfo("Oyun Çevirmeni", f"Sözlük dosyası:\n{path}")
 
     def translator(self) -> Translator:
         api_key = self.s.api_keys.get(self.s.backend, "")
@@ -240,7 +269,8 @@ class App:
         key = (self.s.backend, api_key, model, self.s.source_lang)
         if self._translator is None or self._translator_key != key:
             self._translator = Translator(make_backend(self.s.backend, api_key, model),
-                                          source=self.s.source_lang, target="tr")
+                                          source=self.s.source_lang, target="tr",
+                                          glossary=self.glossary())
             self._translator_key = key
         return self._translator
 
@@ -319,6 +349,12 @@ class App:
         self.var_opacity = tk.DoubleVar(value=self.s.opacity)
         ttk.Scale(box, from_=0.4, to=1.0, variable=self.var_opacity, length=160).grid(
             row=4, column=1, columnspan=2, sticky="w", padx=6, pady=(6, 0))
+        ttk.Label(box, text="Çeviri yazı tipi:").grid(row=6, column=0, sticky="w", pady=(6, 0))
+        self.var_font = tk.StringVar(value=FONT_STYLES.get(self.s.font_style, "Kalın (okunaklı)"))
+        ttk.Combobox(box, textvariable=self.var_font, values=list(FONT_STYLES.values()),
+                     state="readonly", width=40).grid(row=6, column=1, columnspan=2, sticky="w",
+                                                     padx=6, pady=(6, 0))
+        render.font_style = self.s.font_style
         self.var_colors = tk.BooleanVar(value=self.s.match_colors)
         ttk.Checkbutton(box, text="Çeviriyi oyunun görünümüne uydur (arka plan ve yazı rengi)",
                         variable=self.var_colors).grid(row=5, column=0, columnspan=3,
