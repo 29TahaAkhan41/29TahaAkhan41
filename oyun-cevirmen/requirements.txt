@@ -10,3 +10,12 @@ numpy>=1.24
 # İsteğe bağlı (requirements-extra.txt içinde):
 #   easyocr        -> oyun ekranlarında daha iyi yazı tanıma
 #   argostranslate -> internetsiz çeviri
+
+# Windows'un yerleşik yazı tanıma motoru (Windows OCR) - yalnızca Windows'ta kurulur
+winrt-runtime>=3.0; sys_platform == "win32"
+winrt-Windows.Media.Ocr; sys_platform == "win32"
+winrt-Windows.Graphics.Imaging; sys_platform == "win32"
+winrt-Windows.Storage.Streams; sys_platform == "win32"
+winrt-Windows.Globalization; sys_platform == "win32"
+winrt-Windows.Foundation; sys_platform == "win32"
+winrt-Windows.Foundation.Collections; sys_platform == "win32"

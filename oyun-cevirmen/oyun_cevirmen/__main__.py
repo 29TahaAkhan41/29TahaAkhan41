@@ -39,7 +39,34 @@ def cli(argv: list[str]) -> int:
     return 0
 
 
+def ocr_self_test(out_path: str) -> int:
+    """Paketlenmiş .exe'de OCR motorlarının çalıştığını doğrular (CI kullanır)."""
+    import json
+    import traceback
+
+    from PIL import Image, ImageDraw, ImageFont
+
+    from .gui import find_tesseract
+    from .screen import TesseractOcr, WindowsOcr
+
+    img = Image.new("RGB", (700, 200), (25, 30, 60))
+    font = ImageFont.truetype(r"C:\Windows\Fonts\arial.ttf", 30)
+    ImageDraw.Draw(img).text((40, 60), "Start New Game", font=font, fill=(255, 255, 255))
+    report = {}
+    for name, make in (("windows", lambda: WindowsOcr("en")),
+                       ("tesseract", lambda: TesseractOcr("en", find_tesseract()))):
+        try:
+            report[name] = [b.text for b in make().read(img, (0, 0))]
+        except Exception:
+            report[name] = "HATA: " + traceback.format_exc()
+    Path(out_path).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    ok = all(isinstance(v, list) and "Start New Game" in v for v in report.values())
+    return 0 if ok else 1
+
+
 def main() -> None:
+    if len(sys.argv) > 2 and sys.argv[1] == "--ocr-test":
+        sys.exit(ocr_self_test(sys.argv[2]))
     if len(sys.argv) > 1 and sys.argv[1] in ("dosya", "file"):
         sys.exit(cli(sys.argv[2:]))
     from .gui import main as gui_main

@@ -34,16 +34,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller pytest
 
-      - name: Testler
-        run: python -m pytest -q tests
-
       - name: Tesseract OCR'i indir
         run: choco install tesseract -y --no-progress
+
+      - name: Testler (Windows OCR testi dahil)
+        run: |
+          $env:PATH = "C:\Program Files\Tesseract-OCR;$env:PATH"
+          python -m pytest -q -rs -s tests
+
+      - name: Uctan uca deneme (sahte oyun ekrani + ekran goruntusu)
+        run: |
+          $env:PATH = "C:\Program Files\Tesseract-OCR;$env:PATH"
+          $env:OYUN_CEVIRMEN_DIR = "$env:RUNNER_TEMP/oc-e2e"
+          python tools/windows_e2e.py e2e windows tesseract
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uctan-uca-ekran-goruntuleri
+          path: oyun-cevirmen/e2e
 
       - name: .exe derle
         run: >
           pyinstaller --noconfirm --windowed --name OyunCevirmeni
-          --collect-submodules pynput --hidden-import requests
+          --collect-submodules pynput --hidden-import requests --collect-all winrt
           OyunCevirmeni.py
 
       - name: Tesseract'i ve dil paketlerini ekle
@@ -60,6 +74,12 @@ jobs:
           & "$dst/tesseract.exe" --version
           & "$dst/tesseract.exe" --list-langs
           Copy-Item README.md "dist/OyunCevirmeni/BENIOKU.md"
+
+      - name: .exe icinde OCR calisiyor mu?
+        run: |
+          $p = Start-Process "dist/OyunCevirmeni/OyunCevirmeni.exe" -ArgumentList "--ocr-test","$env:RUNNER_TEMP/ocr.json" -PassThru -Wait
+          Get-Content "$env:RUNNER_TEMP/ocr.json"
+          if ($p.ExitCode -ne 0) { throw "OCR oz-testi basarisiz (cikis kodu $($p.ExitCode))" }
 
       - name: .exe aciliyor mu? (duman testi)
         run: |

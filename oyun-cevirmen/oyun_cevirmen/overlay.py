@@ -5,6 +5,8 @@ import sys
 import tkinter as tk
 import tkinter.font as tkfont
 
+from PIL import ImageTk
+
 from .screen import Region, TextBlock
 
 IS_WINDOWS = sys.platform == "win32"
@@ -71,7 +73,7 @@ class Overlay:
         self.fg = "#ffffff"
         self.font_family = "Segoe UI" if IS_WINDOWS else "DejaVu Sans"
         self.min_font_px = 10
-        self.match_colors = True  # kutular oyunun arkaplan rengini alsın
+        self.match_colors = True  # çeviri oyunun görünümüne uydurulsun (render.py)
 
     # -- yardımcılar --
     def _wrap(self, font: tkfont.Font, text: str, width: int) -> list[str]:
@@ -105,12 +107,12 @@ class Overlay:
 
     # -- genel API --
     def show(self, blocks: list[TextBlock]) -> None:
-        self.clear()
+        # Önce yenilerini oluştur, sonra eskileri kaldır: yenilemede yanıp sönme olmaz
+        old = self.windows
+        self.windows = []
         for b in blocks:
             if not b.translated or b.translated.strip() == b.text.strip():
                 continue
-            font, lines, w, h = self._fit(b)
-            pad = 3
             win = tk.Toplevel(self.root)
             win.overrideredirect(True)
             win.attributes("-topmost", True)
@@ -118,14 +120,22 @@ class Overlay:
                 win.attributes("-alpha", self.opacity)
             except tk.TclError:
                 pass
-            bg = b.bg if self.match_colors else self.bg
-            fg = b.fg if self.match_colors else self.fg
-            win.configure(bg=bg)
-            tk.Label(
-                win, text="\n".join(lines), font=font, fg=fg, bg=bg,
-                justify="left", anchor="nw", padx=pad, pady=0,
-            ).pack(fill="both", expand=True)
-            win.geometry(f"{w + pad * 2}x{h}+{b.x - pad}+{b.y}")
+            if self.match_colors and getattr(b, "patch", None) is not None:
+                # Oyunun görünümüne uydurulmuş hazır resim (render.py)
+                photo = ImageTk.PhotoImage(b.patch, master=self.root)
+                label = tk.Label(win, image=photo, bd=0, highlightthickness=0)
+                label.image = photo  # çöp toplayıcı silmesin
+                label.pack()
+                win.geometry(f"{b.patch.width}x{b.patch.height}+{b.px}+{b.py}")
+            else:
+                font, lines, w, h = self._fit(b)
+                pad = 3
+                win.configure(bg=self.bg)
+                tk.Label(
+                    win, text="\n".join(lines), font=font, fg=self.fg, bg=self.bg,
+                    justify="left", anchor="nw", padx=pad, pady=0,
+                ).pack(fill="both", expand=True)
+                win.geometry(f"{w + pad * 2}x{h}+{b.x - pad}+{b.y}")
             win.update_idletasks()
             if IS_WINDOWS:
                 try:
@@ -137,6 +147,11 @@ class Overlay:
             if not self.visible:
                 win.withdraw()
             self.windows.append(win)
+        for w in old:
+            try:
+                w.destroy()
+            except tk.TclError:
+                pass
 
     def clear(self) -> None:
         for w in self.windows:

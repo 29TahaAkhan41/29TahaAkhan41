@@ -16,8 +16,9 @@ from tkinter import filedialog, messagebox, ttk
 
 from . import file_translator as ft
 from .overlay import Overlay, RegionSelector, enable_dpi_awareness
-from .screen import OCR_ENGINES, Region, apply_colors, capture, image_signature, make_ocr, \
-    monitors, signature_changed
+from .render import render_all
+from .screen import DEFAULT_OCR, OCR_ENGINES, Region, apply_colors, capture, image_signature, \
+    make_ocr, monitors, signature_changed
 from .translator import AI_BACKENDS, BACKENDS, CONFIG_DIR, KEY_HELP, SOURCE_LANGUAGES, Translator, \
     make_backend
 
@@ -31,7 +32,7 @@ class Settings:
     deepl_key: str = ""  # eski sürümlerden kalan ayar; api_keys["deepl"]'e taşınır
     api_keys: dict = None  # motor -> API anahtarı
     ai_models: dict = None  # yapay zekâ motoru -> model adı (boşsa varsayılan)
-    ocr_engine: str = "tesseract"
+    ocr_engine: str = DEFAULT_OCR
     tesseract_path: str = ""
     monitor: int = 0
     region: list | None = None  # [left, top, width, height] veya None = tüm monitör
@@ -39,8 +40,9 @@ class Settings:
     hotkey_toggle: str = "F10"
     hotkey_auto: str = "F11"
     auto_interval: float = 2.0
-    opacity: float = 0.95
+    opacity: float = 1.0
     match_colors: bool = True
+    version: int = 2  # ayar dosyası sürümü (eski ayarları yükseltmek için)
 
     def __post_init__(self):
         self.api_keys = dict(self.api_keys or {})
@@ -53,6 +55,13 @@ class Settings:
     def load(cls) -> "Settings":
         try:
             data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+            if data.get("version", 1) < 2:
+                # v2: Windows OCR varsayılan oldu, çeviri artık oyunun görünümüyle çiziliyor
+                if data.get("ocr_engine") == "tesseract":
+                    data["ocr_engine"] = DEFAULT_OCR
+                data["opacity"] = 1.0
+                data["match_colors"] = True
+                data["version"] = 2
             names = {f.name for f in fields(cls)}
             return cls(**{k: v for k, v in data.items() if k in names})
         except (OSError, ValueError, TypeError):
@@ -311,7 +320,7 @@ class App:
         ttk.Scale(box, from_=0.4, to=1.0, variable=self.var_opacity, length=160).grid(
             row=4, column=1, columnspan=2, sticky="w", padx=6, pady=(6, 0))
         self.var_colors = tk.BooleanVar(value=self.s.match_colors)
-        ttk.Checkbutton(box, text="Çeviri kutuları oyunun renklerini alsın",
+        ttk.Checkbutton(box, text="Çeviriyi oyunun görünümüne uydur (arka plan ve yazı rengi)",
                         variable=self.var_colors).grid(row=5, column=0, columnspan=3,
                                                        sticky="w", pady=(6, 0))
 
@@ -401,7 +410,14 @@ class App:
     def _get_ocr(self):
         key = (self.s.ocr_engine, self.s.source_lang, self.s.tesseract_path)
         if self._ocr is None or self._ocr_key != key:
-            self._ocr = make_ocr(self.s.ocr_engine, self.s.source_lang, self.s.tesseract_path)
+            try:
+                self._ocr = make_ocr(self.s.ocr_engine, self.s.source_lang, self.s.tesseract_path)
+            except (RuntimeError, ImportError) as e:
+                if self.s.ocr_engine != "windows":
+                    raise
+                # Windows OCR bu dil için yoksa Tesseract ile devam et, kullanıcıya bildir
+                self._ocr = make_ocr("tesseract", self.s.source_lang, self.s.tesseract_path)
+                self.post(self.status, f"{e}  Şimdilik Tesseract kullanılıyor.", True)
             self._ocr_key = key
         return self._ocr
 
@@ -414,27 +430,35 @@ class App:
             if own:
                 blocks = [b for b in blocks if not (own[0] <= b.x + b.w / 2 <= own[2]
                                                     and own[1] <= b.y + b.h / 2 <= own[3])]
+            t_ocr = time.time() - t0
             if not blocks:
-                self.post(self._done, [], auto, "Ekranda okunabilir yazı bulunamadı.", t0)
+                self.post(self._done, [], auto, "Ekranda okunabilir yazı bulunamadı.", (t_ocr, 0))
                 return
+            t1 = time.time()
             translated = self.translator().translate_many([b.text for b in blocks])
+            t_tr = time.time() - t1
             for b, tr in zip(blocks, translated):
                 b.translated = tr
-            apply_colors(img, blocks, offset)
-            self.post(self._done, blocks, auto, None, t0)
+            if self.s.match_colors:
+                render_all(img, blocks, offset)
+            else:
+                apply_colors(img, blocks, offset)
+            self.post(self._done, blocks, auto, None, (t_ocr, t_tr))
         except Exception as e:
             msg = _friendly_error(e)
             traceback.print_exc()
             self.post(self._fail, msg)
 
-    def _done(self, blocks, auto, note, t0) -> None:
+    def _done(self, blocks, auto, note, times) -> None:
         self.busy = False
         self.overlay.show(blocks)
         if note:
             if not auto:
                 self.status(note)
             return
-        self.status(f"{len(blocks)} metin çevrildi ({time.time() - t0:.1f} sn).")
+        t_ocr, t_tr = times
+        self.status(f"{len(blocks)} metin çevrildi · yazı tanıma {t_ocr:.1f} sn · "
+                    f"çeviri {t_tr:.1f} sn")
         self.log.delete("1.0", "end")
         for b in blocks:
             self.log.insert("end", f"{b.text}\n   → {b.translated}\n")
@@ -621,6 +645,8 @@ class App:
 def _friendly_error(e: Exception) -> str:
     name = type(e).__name__
     text = str(e)
+    if "yazı tanıma paketi" in text:
+        return text
     if "TesseractNotFound" in name or "tesseract is not installed" in text:
         return ("Tesseract bulunamadı. README'deki adımlarla kurun ve 'Tesseract yolu' "
                 "alanına tesseract.exe'nin yolunu yazın.")
