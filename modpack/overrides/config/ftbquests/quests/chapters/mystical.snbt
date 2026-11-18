@@ -23,7 +23,7 @@
 			]
 			tasks: [
 				{
-					id: "B9127DAD4BD06DFB"
+					id: "39127DAD4BD06DFB"
 					item: {
 						count: 1
 						id: "mysticalagriculture:inferium_essence"
@@ -36,20 +36,20 @@
 			y: 0.0d
 		}
 		{
-			id: "87A24D78381A812D"
+			id: "07A24D78381A812D"
 			dependencies: [
 				"6568571F3199E6C8"
 			]
 			rewards: [
 				{
-					id: "C56C613BD2851C1A"
+					id: "456C613BD2851C1A"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "C43B5AC2EB133394"
+					id: "443B5AC2EB133394"
 					item: {
 						count: 1
 						id: "mysticalagriculture:prosperity_shard"
@@ -64,7 +64,7 @@
 		{
 			id: "49ED3BBE921C5F7D"
 			dependencies: [
-				"87A24D78381A812D"
+				"07A24D78381A812D"
 			]
 			rewards: [
 				{
@@ -75,7 +75,7 @@
 			]
 			tasks: [
 				{
-					id: "EA81824699C0B926"
+					id: "6A81824699C0B926"
 					item: {
 						count: 1
 						id: "mysticalagriculture:inferium_seeds"
@@ -100,7 +100,7 @@
 			]
 			tasks: [
 				{
-					id: "8EC8AC92E5EB7F76"
+					id: "0EC8AC92E5EB7F76"
 					item: {
 						count: 1
 						id: "mysticalagriculture:prudentium_essence"
@@ -113,20 +113,20 @@
 			y: 0.0d
 		}
 		{
-			id: "CB38B529B450B6A6"
+			id: "4B38B529B450B6A6"
 			dependencies: [
 				"44AE981DE977A119"
 			]
 			rewards: [
 				{
-					id: "DDF33F8CF3B5BB17"
+					id: "5DF33F8CF3B5BB17"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "E63C74AE3780143A"
+					id: "663C74AE3780143A"
 					item: {
 						count: 1
 						id: "mysticalagriculture:tertium_essence"
@@ -141,18 +141,18 @@
 		{
 			id: "595406196E409F25"
 			dependencies: [
-				"CB38B529B450B6A6"
+				"4B38B529B450B6A6"
 			]
 			rewards: [
 				{
-					id: "AC8C0DDD6ABECFAA"
+					id: "2C8C0DDD6ABECFAA"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "B405F836709619C8"
+					id: "3405F836709619C8"
 					item: {
 						count: 1
 						id: "mysticalagriculture:imperium_essence"
@@ -191,7 +191,7 @@
 			y: 0.0d
 		}
 		{
-			id: "9F27C97B5B4901F4"
+			id: "1F27C97B5B4901F4"
 			dependencies: [
 				"23B0F62F0626B175"
 			]
@@ -228,13 +228,13 @@
 			y: 0.0d
 		}
 		{
-			id: "DDA8955EDA347C5B"
+			id: "5DA8955EDA347C5B"
 			dependencies: [
 				"6568571F3199E6C8"
 			]
 			rewards: [
 				{
-					id: "F88BE10352990111"
+					id: "788BE10352990111"
 					type: "xp"
 					xp: 30
 				}
@@ -255,7 +255,7 @@
 		{
 			id: "26A6E5466B3510D4"
 			dependencies: [
-				"DDA8955EDA347C5B"
+				"5DA8955EDA347C5B"
 			]
 			rewards: [
 				{
@@ -285,7 +285,7 @@
 			]
 			rewards: [
 				{
-					id: "A0F5FE1C4D655B98"
+					id: "20F5FE1C4D655B98"
 					type: "xp"
 					xp: 30
 				}
@@ -304,13 +304,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "AB7DDA7C9D07FB6A"
+			id: "2B7DDA7C9D07FB6A"
 			dependencies: [
 				"0FD2C0EBE99664C4"
 			]
 			rewards: [
 				{
-					id: "A66C0B8B84441688"
+					id: "266C0B8B84441688"
 					type: "xp"
 					xp: 60
 				}
@@ -329,13 +329,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "AC450F2FAA30712E"
+			id: "2C450F2FAA30712E"
 			dependencies: [
-				"AB7DDA7C9D07FB6A"
+				"2B7DDA7C9D07FB6A"
 			]
 			rewards: [
 				{
-					id: "C533B8CF7D2A96A8"
+					id: "4533B8CF7D2A96A8"
 					type: "xp"
 					xp: 60
 				}
@@ -356,7 +356,7 @@
 		{
 			id: "5DEC5D70DB958579"
 			dependencies: [
-				"AC450F2FAA30712E"
+				"2C450F2FAA30712E"
 			]
 			rewards: [
 				{
@@ -367,7 +367,7 @@
 			]
 			tasks: [
 				{
-					id: "BB3F8B81000C59E6"
+					id: "3B3F8B81000C59E6"
 					item: {
 						count: 1
 						id: "mysticalagriculture:soulium_ingot"
@@ -386,7 +386,7 @@
 			]
 			rewards: [
 				{
-					id: "9A5591926C2BECAC"
+					id: "1A5591926C2BECAC"
 					type: "xp"
 					xp: 90
 				}
@@ -416,7 +416,7 @@
 					xp: 90
 				}
 				{
-					id: "E0516B3912F2ABE0"
+					id: "60516B3912F2ABE0"
 					item: {
 						count: 1
 						id: "mysticalagriculture:inferium_essence"
@@ -440,13 +440,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "C2259B25CB1411EC"
+			id: "42259B25CB1411EC"
 			dependencies: [
 				"6568571F3199E6C8"
 			]
 			rewards: [
 				{
-					id: "C37010479F95272C"
+					id: "437010479F95272C"
 					type: "xp"
 					xp: 30
 				}
@@ -467,11 +467,11 @@
 		{
 			id: "6BEF2F416AF70F0F"
 			dependencies: [
-				"C2259B25CB1411EC"
+				"42259B25CB1411EC"
 			]
 			rewards: [
 				{
-					id: "B1512B5197FBDEEB"
+					id: "31512B5197FBDEEB"
 					type: "xp"
 					xp: 30
 				}
@@ -496,14 +496,14 @@
 			]
 			rewards: [
 				{
-					id: "F674FBC22F45D1C2"
+					id: "7674FBC22F45D1C2"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "845AC1FE88CF4269"
+					id: "045AC1FE88CF4269"
 					item: {
 						count: 1
 						id: "productivebees:honey_treat"
@@ -516,7 +516,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "D17ADDFB9B77C212"
+			id: "517ADDFB9B77C212"
 			dependencies: [
 				"591AA61E76F451DD"
 			]
@@ -542,9 +542,9 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "B12B184A40EA70C8"
+			id: "312B184A40EA70C8"
 			dependencies: [
-				"D17ADDFB9B77C212"
+				"517ADDFB9B77C212"
 			]
 			rewards: [
 				{
@@ -564,7 +564,7 @@
 			]
 			tasks: [
 				{
-					id: "A80E5FFFD6765D0D"
+					id: "280E5FFFD6765D0D"
 					item: {
 						count: 1
 						id: "botanypots:terracotta_botany_pot"

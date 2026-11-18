@@ -11,55 +11,55 @@
 	quest_links: [ ]
 	quests: [
 		{
-			id: "AFAF435E6D2B1F5A"
+			id: "2FAF435E6D2B1F5A"
 			dependencies: [
 				"5A6F6580F8A8C00C"
-				"D76CBD399111579A"
+				"576CBD399111579A"
 				"40BD40D68F1683D3"
 				"1FA8DA909C39127C"
 				"56B1FE6CBE991A5B"
 				"0ED84927144A5DAE"
-				"BC4D41C020AB11F9"
-				"E5BC4AE036F9EFB7"
-				"878E475B574DDF2D"
+				"3C4D41C020AB11F9"
+				"65BC4AE036F9EFB7"
+				"078E475B574DDF2D"
 				"16A29D977FF609DA"
-				"C44C307700D2F3A8"
-				"DBD7B7564481A8C9"
+				"444C307700D2F3A8"
+				"5BD7B7564481A8C9"
 				"371157C4A37D8B3E"
-				"C0A20A8B6DB7CFDC"
+				"40A20A8B6DB7CFDC"
 				"48C3ED86CBB618CA"
 				"58D81077DE352E27"
-				"E528936A75CCEE22"
+				"6528936A75CCEE22"
 				"01EC2268D86073E0"
-				"CC8E6F9E1945BF0E"
-				"9F27C97B5B4901F4"
-				"A782EFC4B7F64508"
-				"E1F2E6A331769777"
-				"97F6DC6DDF56F125"
-				"CBBEC21E9B94D4E9"
+				"4C8E6F9E1945BF0E"
+				"1F27C97B5B4901F4"
+				"2782EFC4B7F64508"
+				"61F2E6A331769777"
+				"17F6DC6DDF56F125"
+				"4BBEC21E9B94D4E9"
 				"0D49DC176AA27FB8"
 				"464BBCD71730C008"
-				"C17B60A14CB7D3CA"
+				"417B60A14CB7D3CA"
 				"602B2C58B4700681"
 				"5E2694D49431F542"
-				"B978C209D833EE0D"
+				"3978C209D833EE0D"
 				"18F596B2A8154FF2"
 				"0F927246F1D70C5C"
 				"2A912791039C9B0D"
-				"D11AE4DD778DFA6A"
+				"511AE4DD778DFA6A"
 				"389E6FF542D88D75"
-				"AE5D2877DA415F62"
+				"2E5D2877DA415F62"
 				"7A69F570E427A776"
 				"37B6D1BE6792D925"
-				"EE8CAF1123A480C3"
+				"6E8CAF1123A480C3"
 				"0689451492CFF6D2"
 				"360EF5170DAB4FC4"
-				"96C3D503127BF245"
+				"16C3D503127BF245"
 				"4C44615F300780BD"
-				"A8107A43DEBC7DE6"
+				"28107A43DEBC7DE6"
 				"05943E7CB058CF25"
-				"FE5B08DDB48BE414"
-				"FEABAD90ED5E8474"
+				"7E5B08DDB48BE414"
+				"7EABAD90ED5E8474"
 			]
 			shape: "gear"
 			size: 3.0d
@@ -73,7 +73,7 @@
 					type: "item"
 				}
 				{
-					id: "FBDCF4AD055466AC"
+					id: "7BDCF4AD055466AC"
 					type: "xp"
 					xp: 5000
 				}
@@ -86,7 +86,7 @@
 					player_command: false
 				}
 				{
-					id: "A65FA2C91A265FEE"
+					id: "265FA2C91A265FEE"
 					type: "command"
 					command: "/title {p} title {\"translate\":\"title.kubejs.pack_complete\",\"color\":\"gold\",\"bold\":true}"
 					elevate_perms: true
@@ -94,7 +94,7 @@
 					player_command: false
 				}
 				{
-					id: "D37F16F263D63B87"
+					id: "537F16F263D63B87"
 					type: "command"
 					command: "/execute at {p} run summon firework_rocket ~ ~1 ~ {LifeTime:20,FireworksItem:{id:\"minecraft:firework_rocket\",count:1,components:{\"minecraft:fireworks\":{flight_duration:1,explosions:[{shape:\"star\",colors:[I;16766720,11141290],has_trail:true,has_twinkle:true}]}}}}"
 					elevate_perms: true
@@ -104,7 +104,7 @@
 			]
 			tasks: [
 				{
-					id: "9F64963F1770D5A3"
+					id: "1F64963F1770D5A3"
 					item: {
 						count: 1
 						id: "kubejs:heart_of_the_stars"

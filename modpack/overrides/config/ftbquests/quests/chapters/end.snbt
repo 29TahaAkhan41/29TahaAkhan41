@@ -6,12 +6,12 @@
 	icon: {
 		id: "minecraft:end_stone"
 	}
-	id: "F0F8433DAB661C8E"
+	id: "70F8433DAB661C8E"
 	order_index: 4
 	quest_links: [ ]
 	quests: [
 		{
-			id: "86ABA8598E2AB227"
+			id: "06ABA8598E2AB227"
 			shape: "hexagon"
 			size: 1.5d
 			rewards: [
@@ -23,7 +23,7 @@
 			]
 			tasks: [
 				{
-					id: "900B80E736B18729"
+					id: "100B80E736B18729"
 					item: {
 						count: 1
 						id: "minecraft:ender_pearl"
@@ -36,13 +36,13 @@
 			y: 0.0d
 		}
 		{
-			id: "B3DC28113A983FB9"
+			id: "33DC28113A983FB9"
 			dependencies: [
-				"86ABA8598E2AB227"
+				"06ABA8598E2AB227"
 			]
 			rewards: [
 				{
-					id: "8EE63A6A1408F7E4"
+					id: "0EE63A6A1408F7E4"
 					type: "xp"
 					xp: 30
 				}
@@ -62,9 +62,9 @@
 			y: 0.0d
 		}
 		{
-			id: "C40BF47DDD4EAE78"
+			id: "440BF47DDD4EAE78"
 			dependencies: [
-				"B3DC28113A983FB9"
+				"33DC28113A983FB9"
 			]
 			rewards: [
 				{
@@ -90,11 +90,11 @@
 		{
 			id: "2CDFA753A0AD23C2"
 			dependencies: [
-				"C40BF47DDD4EAE78"
+				"440BF47DDD4EAE78"
 			]
 			rewards: [
 				{
-					id: "FC292A00025CB550"
+					id: "7C292A00025CB550"
 					type: "xp"
 					xp: 60
 				}
@@ -120,14 +120,14 @@
 			]
 			rewards: [
 				{
-					id: "D96AFA35543E9D44"
+					id: "596AFA35543E9D44"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "A03EC98257434C60"
+					id: "203EC98257434C60"
 					item: {
 						count: 1
 						id: "minecraft:dragon_egg"
@@ -139,7 +139,7 @@
 			y: 0.0d
 		}
 		{
-			id: "BD72B5C58B52038D"
+			id: "3D72B5C58B52038D"
 			dependencies: [
 				"03985FF885C6FDE2"
 			]
@@ -152,7 +152,7 @@
 			]
 			tasks: [
 				{
-					id: "D291C51C2CDF89E3"
+					id: "5291C51C2CDF89E3"
 					item: {
 						count: 1
 						id: "minecraft:shulker_shell"
@@ -165,9 +165,9 @@
 			y: 0.0d
 		}
 		{
-			id: "F3C29D41E6B81075"
+			id: "73C29D41E6B81075"
 			dependencies: [
-				"BD72B5C58B52038D"
+				"3D72B5C58B52038D"
 			]
 			rewards: [
 				{
@@ -192,18 +192,18 @@
 		{
 			id: "5168A11BB53A2472"
 			dependencies: [
-				"F3C29D41E6B81075"
+				"73C29D41E6B81075"
 			]
 			rewards: [
 				{
-					id: "E82EDF2BDBBE0426"
+					id: "682EDF2BDBBE0426"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "850BFA018B87C2B9"
+					id: "050BFA018B87C2B9"
 					item: {
 						count: 1
 						id: "minecraft:elytra"
@@ -223,7 +223,7 @@
 			size: 1.5d
 			rewards: [
 				{
-					id: "E0CAC6202D0A6148"
+					id: "60CAC6202D0A6148"
 					type: "xp"
 					xp: 90
 				}
@@ -253,7 +253,7 @@
 		{
 			id: "78B2D20BFEB2F3DC"
 			dependencies: [
-				"86ABA8598E2AB227"
+				"06ABA8598E2AB227"
 			]
 			rewards: [
 				{
@@ -264,7 +264,7 @@
 			]
 			tasks: [
 				{
-					id: "F56A46C6EBB35754"
+					id: "756A46C6EBB35754"
 					item: {
 						count: 1
 						id: "minecraft:chorus_fruit"
@@ -290,7 +290,7 @@
 			]
 			tasks: [
 				{
-					id: "CF2632866B6137A2"
+					id: "4F2632866B6137A2"
 					item: {
 						count: 1
 						id: "minecraft:popped_chorus_fruit"
@@ -303,7 +303,7 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "A0BECB8DDA16C676"
+			id: "20BECB8DDA16C676"
 			dependencies: [
 				"65A3E2988D6D2056"
 			]
@@ -316,7 +316,7 @@
 			]
 			tasks: [
 				{
-					id: "B05AA723EF0CEE43"
+					id: "305AA723EF0CEE43"
 					item: {
 						count: 1
 						id: "minecraft:purpur_block"
@@ -331,7 +331,7 @@
 		{
 			id: "25A8B7232BD521A9"
 			dependencies: [
-				"A0BECB8DDA16C676"
+				"20BECB8DDA16C676"
 			]
 			rewards: [
 				{
@@ -342,7 +342,7 @@
 			]
 			tasks: [
 				{
-					id: "FF4B403B7484AB31"
+					id: "7F4B403B7484AB31"
 					item: {
 						count: 1
 						id: "minecraft:end_rod"
@@ -361,14 +361,14 @@
 			]
 			rewards: [
 				{
-					id: "A1141E3868B01280"
+					id: "21141E3868B01280"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "D44D7211654BDD8F"
+					id: "544D7211654BDD8F"
 					item: {
 						count: 1
 						id: "minecraft:end_crystal"
@@ -381,20 +381,20 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "8D5104E034AE5D70"
+			id: "0D5104E034AE5D70"
 			dependencies: [
 				"64C8DE9678DC6209"
 			]
 			rewards: [
 				{
-					id: "EF9D4F2DF78BC0CB"
+					id: "6F9D4F2DF78BC0CB"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "9792D7D22B3AA9FD"
+					id: "1792D7D22B3AA9FD"
 					item: {
 						count: 1
 						id: "minecraft:ender_chest"
@@ -406,9 +406,9 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "E35BEF47C1FDB1A4"
+			id: "635BEF47C1FDB1A4"
 			dependencies: [
-				"8D5104E034AE5D70"
+				"0D5104E034AE5D70"
 			]
 			rewards: [
 				{
@@ -417,7 +417,7 @@
 					xp: 90
 				}
 				{
-					id: "CB900B40E91C0507"
+					id: "4B900B40E91C0507"
 					item: {
 						count: 1
 						id: "minecraft:ender_pearl"
@@ -428,7 +428,7 @@
 			]
 			tasks: [
 				{
-					id: "B2AF0A269FE262B8"
+					id: "32AF0A269FE262B8"
 					item: {
 						count: 1
 						id: "minecraft:firework_rocket"

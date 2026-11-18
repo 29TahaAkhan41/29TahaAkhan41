@@ -36,7 +36,7 @@
 			y: 0.0d
 		}
 		{
-			id: "F88EAC8118D75F3B"
+			id: "788EAC8118D75F3B"
 			dependencies: [
 				"74508657BF099BA6"
 			]
@@ -49,7 +49,7 @@
 			]
 			tasks: [
 				{
-					id: "C000E92AC2380F57"
+					id: "4000E92AC2380F57"
 					item: {
 						count: 1
 						id: "minecraft:wheat"
@@ -64,7 +64,7 @@
 		{
 			id: "74BF1E5A2EDD5C33"
 			dependencies: [
-				"F88EAC8118D75F3B"
+				"788EAC8118D75F3B"
 			]
 			rewards: [
 				{
@@ -75,7 +75,7 @@
 			]
 			tasks: [
 				{
-					id: "F1F04BDDBBAA34BF"
+					id: "71F04BDDBBAA34BF"
 					item: {
 						count: 1
 						id: "minecraft:bread"
@@ -101,7 +101,7 @@
 			]
 			tasks: [
 				{
-					id: "B7181458D32B7657"
+					id: "37181458D32B7657"
 					item: {
 						count: 1
 						id: "minecraft:carrot"
@@ -140,20 +140,20 @@
 			y: 0.0d
 		}
 		{
-			id: "ED4FFCD21A4C4176"
+			id: "6D4FFCD21A4C4176"
 			dependencies: [
 				"0E4906817D452BD4"
 			]
 			rewards: [
 				{
-					id: "8B0B7C539B0F61F5"
+					id: "0B0B7C539B0F61F5"
 					type: "xp"
 					xp: 20
 				}
 			]
 			tasks: [
 				{
-					id: "E38CC057BF7BA67F"
+					id: "638CC057BF7BA67F"
 					item: {
 						count: 1
 						id: "minecraft:beetroot"
@@ -168,11 +168,11 @@
 		{
 			id: "0453BF1ABE67B6D0"
 			dependencies: [
-				"ED4FFCD21A4C4176"
+				"6D4FFCD21A4C4176"
 			]
 			rewards: [
 				{
-					id: "A90B59C0215EE186"
+					id: "290B59C0215EE186"
 					type: "xp"
 					xp: 30
 				}
@@ -192,7 +192,7 @@
 			y: 0.0d
 		}
 		{
-			id: "9090DBDC7B3DD732"
+			id: "1090DBDC7B3DD732"
 			dependencies: [
 				"0453BF1ABE67B6D0"
 			]
@@ -205,7 +205,7 @@
 			]
 			tasks: [
 				{
-					id: "C0CE6C0682AC4FF5"
+					id: "40CE6C0682AC4FF5"
 					item: {
 						count: 1
 						id: "minecraft:melon_slice"
@@ -220,7 +220,7 @@
 		{
 			id: "40BD40D68F1683D3"
 			dependencies: [
-				"9090DBDC7B3DD732"
+				"1090DBDC7B3DD732"
 			]
 			shape: "hexagon"
 			size: 1.5d
@@ -231,7 +231,7 @@
 					xp: 30
 				}
 				{
-					id: "971C83946A2E7731"
+					id: "171C83946A2E7731"
 					item: {
 						count: 1
 						id: "minecraft:bone_meal"
@@ -268,7 +268,7 @@
 			]
 			tasks: [
 				{
-					id: "BCB7762E3D62681D"
+					id: "3CB7762E3D62681D"
 					item: {
 						count: 1
 						id: "minecraft:cooked_beef"
@@ -294,7 +294,7 @@
 			]
 			tasks: [
 				{
-					id: "A58F6F5A8073C9C2"
+					id: "258F6F5A8073C9C2"
 					item: {
 						count: 1
 						id: "minecraft:cooked_porkchop"
@@ -320,7 +320,7 @@
 			]
 			tasks: [
 				{
-					id: "9E447AF5D126081E"
+					id: "1E447AF5D126081E"
 					item: {
 						count: 1
 						id: "minecraft:cooked_chicken"
@@ -346,7 +346,7 @@
 			]
 			tasks: [
 				{
-					id: "D0BD07AD8FD5D721"
+					id: "50BD07AD8FD5D721"
 					item: {
 						count: 1
 						id: "minecraft:cooked_mutton"
@@ -365,14 +365,14 @@
 			]
 			rewards: [
 				{
-					id: "CA602730178A8264"
+					id: "4A602730178A8264"
 					type: "xp"
 					xp: 20
 				}
 			]
 			tasks: [
 				{
-					id: "AA82B4D116F6472C"
+					id: "2A82B4D116F6472C"
 					item: {
 						count: 1
 						id: "minecraft:cooked_cod"
@@ -391,7 +391,7 @@
 			]
 			rewards: [
 				{
-					id: "CCD64DB4B0F0296A"
+					id: "4CD64DB4B0F0296A"
 					type: "xp"
 					xp: 20
 				}
@@ -417,14 +417,14 @@
 			]
 			rewards: [
 				{
-					id: "CF0430D51509D288"
+					id: "4F0430D51509D288"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "CDC8AE00D960A7F2"
+					id: "4DC8AE00D960A7F2"
 					item: {
 						count: 1
 						id: "minecraft:cake"
@@ -458,7 +458,7 @@
 			]
 			tasks: [
 				{
-					id: "C525D380756A7EBF"
+					id: "4525D380756A7EBF"
 					item: {
 						count: 1
 						id: "minecraft:pumpkin_pie"
@@ -484,7 +484,7 @@
 			]
 			tasks: [
 				{
-					id: "A779680C6AB1B6A6"
+					id: "2779680C6AB1B6A6"
 					item: {
 						count: 1
 						id: "minecraft:sugar_cane"
@@ -497,20 +497,20 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "E859A0EF0ABF7F58"
+			id: "6859A0EF0ABF7F58"
 			dependencies: [
 				"68C186E305BFE2EB"
 			]
 			rewards: [
 				{
-					id: "A8A403A5D2BC75A4"
+					id: "28A403A5D2BC75A4"
 					type: "xp"
 					xp: 10
 				}
 			]
 			tasks: [
 				{
-					id: "AB3D57555EB38EA7"
+					id: "2B3D57555EB38EA7"
 					item: {
 						count: 1
 						id: "minecraft:bamboo"
@@ -523,9 +523,9 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "A1D6AAFCF26AB85B"
+			id: "21D6AAFCF26AB85B"
 			dependencies: [
-				"E859A0EF0ABF7F58"
+				"6859A0EF0ABF7F58"
 			]
 			rewards: [
 				{
@@ -536,7 +536,7 @@
 			]
 			tasks: [
 				{
-					id: "E655EF92E34ED5B5"
+					id: "6655EF92E34ED5B5"
 					item: {
 						count: 1
 						id: "minecraft:cactus"
@@ -551,7 +551,7 @@
 		{
 			id: "1172C77EAC76A9C8"
 			dependencies: [
-				"A1D6AAFCF26AB85B"
+				"21D6AAFCF26AB85B"
 			]
 			rewards: [
 				{
@@ -581,7 +581,7 @@
 			]
 			rewards: [
 				{
-					id: "E86A002A476004F8"
+					id: "686A002A476004F8"
 					type: "xp"
 					xp: 20
 				}
@@ -607,7 +607,7 @@
 			]
 			rewards: [
 				{
-					id: "FC5CA14BB71A9D1D"
+					id: "7C5CA14BB71A9D1D"
 					type: "xp"
 					xp: 20
 				}
@@ -633,14 +633,14 @@
 			]
 			rewards: [
 				{
-					id: "A399FF70D00C4F04"
+					id: "2399FF70D00C4F04"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "8D1B5D1F050F01BE"
+					id: "0D1B5D1F050F01BE"
 					item: {
 						count: 1
 						id: "minecraft:honey_bottle"
@@ -653,7 +653,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "CC9A2E8BCE9BA61B"
+			id: "4C9A2E8BCE9BA61B"
 			dependencies: [
 				"7360DF92EBB85A35"
 			]
@@ -688,13 +688,13 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "F1A607703D62F903"
+			id: "71A607703D62F903"
 			dependencies: [
 				"74508657BF099BA6"
 			]
 			rewards: [
 				{
-					id: "93D05962221BF1B0"
+					id: "13D05962221BF1B0"
 					type: "xp"
 					xp: 10
 				}
@@ -716,11 +716,11 @@
 		{
 			id: "34EE7DA48434AC59"
 			dependencies: [
-				"F1A607703D62F903"
+				"71A607703D62F903"
 			]
 			rewards: [
 				{
-					id: "BA89FE8CE11D21C7"
+					id: "3A89FE8CE11D21C7"
 					type: "xp"
 					xp: 10
 				}
@@ -745,14 +745,14 @@
 			]
 			rewards: [
 				{
-					id: "9D882CE039257702"
+					id: "1D882CE039257702"
 					type: "xp"
 					xp: 10
 				}
 			]
 			tasks: [
 				{
-					id: "AA74480C089BF567"
+					id: "2A74480C089BF567"
 					item: {
 						count: 1
 						id: "minecraft:egg"
@@ -771,7 +771,7 @@
 			]
 			rewards: [
 				{
-					id: "BFAF408AD24E3581"
+					id: "3FAF408AD24E3581"
 					type: "xp"
 					xp: 20
 				}
@@ -791,7 +791,7 @@
 			y: 6.3d
 		}
 		{
-			id: "96DEC5726503D491"
+			id: "16DEC5726503D491"
 			dependencies: [
 				"68F490B84382F822"
 			]
@@ -804,7 +804,7 @@
 			]
 			tasks: [
 				{
-					id: "A52900543D723AE8"
+					id: "252900543D723AE8"
 					item: {
 						count: 1
 						id: "minecraft:white_wool"
@@ -819,7 +819,7 @@
 		{
 			id: "0BFFFAE62EF441D5"
 			dependencies: [
-				"96DEC5726503D491"
+				"16DEC5726503D491"
 			]
 			rewards: [
 				{
@@ -848,12 +848,12 @@
 			]
 			rewards: [
 				{
-					id: "A0823A8B4AFFBCCC"
+					id: "20823A8B4AFFBCCC"
 					type: "xp"
 					xp: 30
 				}
 				{
-					id: "80210056070CEA17"
+					id: "00210056070CEA17"
 					item: {
 						count: 1
 						id: "minecraft:bone_meal"
@@ -889,7 +889,7 @@
 			]
 			tasks: [
 				{
-					id: "C16D7755B9A2B4D5"
+					id: "416D7755B9A2B4D5"
 					item: {
 						count: 1
 						id: "farmersdelight:flint_knife"
@@ -907,14 +907,14 @@
 			]
 			rewards: [
 				{
-					id: "9BFB6A94FD80F817"
+					id: "1BFB6A94FD80F817"
 					type: "xp"
 					xp: 10
 				}
 			]
 			tasks: [
 				{
-					id: "D2B3AEEFBE1D4E57"
+					id: "52B3AEEFBE1D4E57"
 					item: {
 						count: 1
 						id: "farmersdelight:cutting_board"
@@ -926,7 +926,7 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "C9725D2FC92A10A5"
+			id: "49725D2FC92A10A5"
 			dependencies: [
 				"3D50712E77CE8053"
 			]
@@ -939,7 +939,7 @@
 			]
 			tasks: [
 				{
-					id: "807D65E38F29226D"
+					id: "007D65E38F29226D"
 					item: {
 						count: 1
 						id: "farmersdelight:cooking_pot"
@@ -953,18 +953,18 @@
 		{
 			id: "55E159E68850CC4D"
 			dependencies: [
-				"C9725D2FC92A10A5"
+				"49725D2FC92A10A5"
 			]
 			rewards: [
 				{
-					id: "8B0D8B7EA701DAE8"
+					id: "0B0D8B7EA701DAE8"
 					type: "xp"
 					xp: 20
 				}
 			]
 			tasks: [
 				{
-					id: "B61250078795EAFF"
+					id: "361250078795EAFF"
 					item: {
 						count: 1
 						id: "farmersdelight:skillet"
@@ -976,13 +976,13 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "D4F3B070A77BAE62"
+			id: "54F3B070A77BAE62"
 			dependencies: [
 				"55E159E68850CC4D"
 			]
 			rewards: [
 				{
-					id: "9D82A907E5BE9263"
+					id: "1D82A907E5BE9263"
 					type: "xp"
 					xp: 20
 				}
@@ -1003,18 +1003,18 @@
 		{
 			id: "3FEA9EE9A51C340E"
 			dependencies: [
-				"D4F3B070A77BAE62"
+				"54F3B070A77BAE62"
 			]
 			rewards: [
 				{
-					id: "F54475565D705DBB"
+					id: "754475565D705DBB"
 					type: "xp"
 					xp: 20
 				}
 			]
 			tasks: [
 				{
-					id: "A833362869009992"
+					id: "2833362869009992"
 					item: {
 						count: 1
 						id: "farmersdelight:tomato"
@@ -1053,13 +1053,13 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "E9EE3378D4FE50FA"
+			id: "69EE3378D4FE50FA"
 			dependencies: [
 				"3DD6B10E0FC97122"
 			]
 			rewards: [
 				{
-					id: "86CFF99A891E313E"
+					id: "06CFF99A891E313E"
 					type: "xp"
 					xp: 30
 				}
@@ -1079,9 +1079,9 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "F9B4D054FE1FEA4E"
+			id: "79B4D054FE1FEA4E"
 			dependencies: [
-				"E9EE3378D4FE50FA"
+				"69EE3378D4FE50FA"
 			]
 			rewards: [
 				{
@@ -1090,7 +1090,7 @@
 					xp: 30
 				}
 				{
-					id: "D8F8FD73BB901FE1"
+					id: "58F8FD73BB901FE1"
 					item: {
 						count: 1
 						id: "minecraft:bone_meal"
@@ -1114,20 +1114,20 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "9464C779DAA8643B"
+			id: "1464C779DAA8643B"
 			dependencies: [
 				"74508657BF099BA6"
 			]
 			rewards: [
 				{
-					id: "80FD03AF53FD29CA"
+					id: "00FD03AF53FD29CA"
 					type: "xp"
 					xp: 10
 				}
 			]
 			tasks: [
 				{
-					id: "9E176A7BC4BD42C7"
+					id: "1E176A7BC4BD42C7"
 					item: {
 						count: 1
 						id: "farmersdelight:straw"
@@ -1142,11 +1142,11 @@
 		{
 			id: "2DB9C6450936C384"
 			dependencies: [
-				"9464C779DAA8643B"
+				"1464C779DAA8643B"
 			]
 			rewards: [
 				{
-					id: "D0C06AAC9EAA34E3"
+					id: "50C06AAC9EAA34E3"
 					type: "xp"
 					xp: 10
 				}
@@ -1166,7 +1166,7 @@
 			y: 10.5d
 		}
 		{
-			id: "BD6260B549407803"
+			id: "3D6260B549407803"
 			dependencies: [
 				"2DB9C6450936C384"
 			]
@@ -1179,7 +1179,7 @@
 			]
 			tasks: [
 				{
-					id: "DD49C6220227AA55"
+					id: "5D49C6220227AA55"
 					item: {
 						count: 1
 						id: "farmersdelight:rich_soil"
@@ -1192,20 +1192,20 @@
 			y: 10.5d
 		}
 		{
-			id: "DBE5BAE30A2DA6B7"
+			id: "5BE5BAE30A2DA6B7"
 			dependencies: [
-				"BD6260B549407803"
+				"3D6260B549407803"
 			]
 			rewards: [
 				{
-					id: "B9F598DA95D74F29"
+					id: "39F598DA95D74F29"
 					type: "xp"
 					xp: 20
 				}
 			]
 			tasks: [
 				{
-					id: "8FC596D4154AABC7"
+					id: "0FC596D4154AABC7"
 					item: {
 						count: 1
 						id: "farmersdelight:beef_stew"
@@ -1218,9 +1218,9 @@
 			y: 10.5d
 		}
 		{
-			id: "D388CE2CC25A4AA0"
+			id: "5388CE2CC25A4AA0"
 			dependencies: [
-				"DBE5BAE30A2DA6B7"
+				"5BE5BAE30A2DA6B7"
 			]
 			rewards: [
 				{
@@ -1246,7 +1246,7 @@
 		{
 			id: "4C745729BA6E3CF7"
 			dependencies: [
-				"D388CE2CC25A4AA0"
+				"5388CE2CC25A4AA0"
 			]
 			rewards: [
 				{
@@ -1270,20 +1270,20 @@
 			y: 10.5d
 		}
 		{
-			id: "B6919AEAF96AD484"
+			id: "36919AEAF96AD484"
 			dependencies: [
 				"4C745729BA6E3CF7"
 			]
 			rewards: [
 				{
-					id: "8F9B8C5B5B6AA5B5"
+					id: "0F9B8C5B5B6AA5B5"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "F346D0A20F454FE8"
+					id: "7346D0A20F454FE8"
 					item: {
 						count: 1
 						id: "farmersdelight:hamburger"
@@ -1298,16 +1298,16 @@
 		{
 			id: "51D22CA69B8B5D65"
 			dependencies: [
-				"B6919AEAF96AD484"
+				"36919AEAF96AD484"
 			]
 			rewards: [
 				{
-					id: "B4C3E211E57EE30B"
+					id: "34C3E211E57EE30B"
 					type: "xp"
 					xp: 30
 				}
 				{
-					id: "E744C1A9D21E45B5"
+					id: "6744C1A9D21E45B5"
 					item: {
 						count: 1
 						id: "minecraft:bone_meal"

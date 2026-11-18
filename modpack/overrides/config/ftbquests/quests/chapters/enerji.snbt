@@ -6,17 +6,17 @@
 	icon: {
 		id: "powah:energizing_orb"
 	}
-	id: "F8E972A61CEB3CE6"
+	id: "78E972A61CEB3CE6"
 	order_index: 10
 	quest_links: [ ]
 	quests: [
 		{
-			id: "E71C6075162C525A"
+			id: "671C6075162C525A"
 			shape: "hexagon"
 			size: 1.5d
 			rewards: [
 				{
-					id: "D7FA6DFCBB532B3A"
+					id: "57FA6DFCBB532B3A"
 					type: "xp"
 					xp: 30
 				}
@@ -36,9 +36,9 @@
 			y: 0.0d
 		}
 		{
-			id: "8F7667EC754C6D60"
+			id: "0F7667EC754C6D60"
 			dependencies: [
-				"E71C6075162C525A"
+				"671C6075162C525A"
 			]
 			rewards: [
 				{
@@ -62,9 +62,9 @@
 			y: 0.0d
 		}
 		{
-			id: "9C4D48087B83A0ED"
+			id: "1C4D48087B83A0ED"
 			dependencies: [
-				"8F7667EC754C6D60"
+				"0F7667EC754C6D60"
 			]
 			rewards: [
 				{
@@ -75,7 +75,7 @@
 			]
 			tasks: [
 				{
-					id: "B21FCB357B7E4AF8"
+					id: "321FCB357B7E4AF8"
 					item: {
 						count: 1
 						id: "powah:energizing_orb"
@@ -89,18 +89,18 @@
 		{
 			id: "4878DA4E6DAAB106"
 			dependencies: [
-				"9C4D48087B83A0ED"
+				"1C4D48087B83A0ED"
 			]
 			rewards: [
 				{
-					id: "E923FEAC47383195"
+					id: "6923FEAC47383195"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "E1911DCDEF912A3C"
+					id: "61911DCDEF912A3C"
 					item: {
 						count: 1
 						id: "powah:energizing_rod_starter"
@@ -113,7 +113,7 @@
 			y: 0.0d
 		}
 		{
-			id: "F59B4DD006E201BF"
+			id: "759B4DD006E201BF"
 			dependencies: [
 				"4878DA4E6DAAB106"
 			]
@@ -126,7 +126,7 @@
 			]
 			tasks: [
 				{
-					id: "95E492F9646E028E"
+					id: "15E492F9646E028E"
 					item: {
 						count: 1
 						id: "powah:steel_energized"
@@ -141,7 +141,7 @@
 		{
 			id: "00471F4A9367DB30"
 			dependencies: [
-				"F59B4DD006E201BF"
+				"759B4DD006E201BF"
 			]
 			rewards: [
 				{
@@ -165,7 +165,7 @@
 			y: 0.0d
 		}
 		{
-			id: "A601E0D83ED4D4E2"
+			id: "2601E0D83ED4D4E2"
 			dependencies: [
 				"00471F4A9367DB30"
 			]
@@ -191,13 +191,13 @@
 			y: 0.0d
 		}
 		{
-			id: "EFC6DD638C6F7901"
+			id: "6FC6DD638C6F7901"
 			dependencies: [
-				"A601E0D83ED4D4E2"
+				"2601E0D83ED4D4E2"
 			]
 			rewards: [
 				{
-					id: "F0FA30E6C530A910"
+					id: "70FA30E6C530A910"
 					type: "xp"
 					xp: 90
 				}
@@ -217,9 +217,9 @@
 			y: 0.0d
 		}
 		{
-			id: "9C3E8FCABF8B056E"
+			id: "1C3E8FCABF8B056E"
 			dependencies: [
-				"EFC6DD638C6F7901"
+				"6FC6DD638C6F7901"
 			]
 			rewards: [
 				{
@@ -230,7 +230,7 @@
 			]
 			tasks: [
 				{
-					id: "A762B31F999F6D1E"
+					id: "2762B31F999F6D1E"
 					item: {
 						count: 1
 						id: "powah:crystal_nitro"
@@ -243,9 +243,9 @@
 			y: 0.0d
 		}
 		{
-			id: "C44C307700D2F3A8"
+			id: "444C307700D2F3A8"
 			dependencies: [
-				"9C3E8FCABF8B056E"
+				"1C3E8FCABF8B056E"
 			]
 			shape: "hexagon"
 			size: 1.5d
@@ -281,11 +281,11 @@
 		{
 			id: "0201AFB7FAF6E3FA"
 			dependencies: [
-				"E71C6075162C525A"
+				"671C6075162C525A"
 			]
 			rewards: [
 				{
-					id: "928522FE7BD83ACC"
+					id: "128522FE7BD83ACC"
 					type: "xp"
 					xp: 30
 				}
@@ -311,7 +311,7 @@
 			]
 			rewards: [
 				{
-					id: "DC7CDC58EC6CD37B"
+					id: "5C7CDC58EC6CD37B"
 					type: "xp"
 					xp: 30
 				}
@@ -330,20 +330,20 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "A2094DE1BD5575CB"
+			id: "22094DE1BD5575CB"
 			dependencies: [
 				"04A5471DC1A126B7"
 			]
 			rewards: [
 				{
-					id: "B3A45624F728F948"
+					id: "33A45624F728F948"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "B5A552C9BDA649D3"
+					id: "35A552C9BDA649D3"
 					item: {
 						count: 1
 						id: "powah:reactor_starter"
@@ -358,7 +358,7 @@
 		{
 			id: "311D95AA0B93D377"
 			dependencies: [
-				"A2094DE1BD5575CB"
+				"22094DE1BD5575CB"
 			]
 			rewards: [
 				{
@@ -369,7 +369,7 @@
 			]
 			tasks: [
 				{
-					id: "BA5BD3F3B09CE531"
+					id: "3A5BD3F3B09CE531"
 					item: {
 						count: 1
 						id: "powah:energy_cell_starter"
@@ -387,12 +387,12 @@
 			]
 			rewards: [
 				{
-					id: "BB97867A2CAB55E4"
+					id: "3B97867A2CAB55E4"
 					type: "xp"
 					xp: 60
 				}
 				{
-					id: "9878975C37EFDBAF"
+					id: "1878975C37EFDBAF"
 					item: {
 						count: 1
 						id: "minecraft:redstone_block"
@@ -415,9 +415,9 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "F4D096B0509DA7E4"
+			id: "74D096B0509DA7E4"
 			dependencies: [
-				"E71C6075162C525A"
+				"671C6075162C525A"
 			]
 			rewards: [
 				{
@@ -442,11 +442,11 @@
 		{
 			id: "578B8F6F77D3CF5C"
 			dependencies: [
-				"F4D096B0509DA7E4"
+				"74D096B0509DA7E4"
 			]
 			rewards: [
 				{
-					id: "BEA89096691EB913"
+					id: "3EA89096691EB913"
 					type: "xp"
 					xp: 30
 				}
@@ -472,14 +472,14 @@
 			]
 			rewards: [
 				{
-					id: "8B09DAF402318A0D"
+					id: "0B09DAF402318A0D"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "8730FF0A253795E9"
+					id: "0730FF0A253795E9"
 					item: {
 						count: 1
 						id: "immersiveengineering:cokebrick"
@@ -492,7 +492,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "DB6654224A6FA7D6"
+			id: "5B6654224A6FA7D6"
 			dependencies: [
 				"648FB8673E47F181"
 			]
@@ -518,20 +518,20 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "C5D1CEE159610A16"
+			id: "45D1CEE159610A16"
 			dependencies: [
-				"DB6654224A6FA7D6"
+				"5B6654224A6FA7D6"
 			]
 			rewards: [
 				{
-					id: "D0ED6B266E1FD53A"
+					id: "50ED6B266E1FD53A"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "E70A5DC1EE11AD88"
+					id: "670A5DC1EE11AD88"
 					item: {
 						count: 1
 						id: "immersiveengineering:ingot_steel"
@@ -546,18 +546,18 @@
 		{
 			id: "6CDFA731EE5F25D8"
 			dependencies: [
-				"C5D1CEE159610A16"
+				"45D1CEE159610A16"
 			]
 			rewards: [
 				{
-					id: "EC38E2BB0D56B875"
+					id: "6C38E2BB0D56B875"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "F5DC4EC180AB3B87"
+					id: "75DC4EC180AB3B87"
 					item: {
 						count: 1
 						id: "immersiveengineering:ingot_aluminum"
@@ -570,13 +570,13 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "A0E2CD0966F7C50C"
+			id: "20E2CD0966F7C50C"
 			dependencies: [
 				"6CDFA731EE5F25D8"
 			]
 			rewards: [
 				{
-					id: "C872103278F5DC63"
+					id: "4872103278F5DC63"
 					type: "xp"
 					xp: 90
 				}
@@ -596,9 +596,9 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "81B048984BEEDC35"
+			id: "01B048984BEEDC35"
 			dependencies: [
-				"A0E2CD0966F7C50C"
+				"20E2CD0966F7C50C"
 			]
 			rewards: [
 				{
@@ -609,7 +609,7 @@
 			]
 			tasks: [
 				{
-					id: "926E635C11FDE9F8"
+					id: "126E635C11FDE9F8"
 					item: {
 						count: 1
 						id: "immersiveengineering:component_iron"
@@ -624,7 +624,7 @@
 		{
 			id: "6C678BB5C9EC4402"
 			dependencies: [
-				"81B048984BEEDC35"
+				"01B048984BEEDC35"
 			]
 			rewards: [
 				{
@@ -635,7 +635,7 @@
 			]
 			tasks: [
 				{
-					id: "B9DA05AF2AF12549"
+					id: "39DA05AF2AF12549"
 					item: {
 						count: 1
 						id: "immersiveengineering:component_steel"
@@ -648,20 +648,20 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "E805A004AA8B642A"
+			id: "6805A004AA8B642A"
 			dependencies: [
 				"6C678BB5C9EC4402"
 			]
 			rewards: [
 				{
-					id: "BACFBF60791B2E65"
+					id: "3ACFBF60791B2E65"
 					type: "xp"
 					xp: 120
 				}
 			]
 			tasks: [
 				{
-					id: "8596D717733D6E39"
+					id: "0596D717733D6E39"
 					item: {
 						count: 1
 						id: "immersiveengineering:light_engineering"
@@ -676,16 +676,16 @@
 		{
 			id: "638C67163E4227C7"
 			dependencies: [
-				"E805A004AA8B642A"
+				"6805A004AA8B642A"
 			]
 			rewards: [
 				{
-					id: "B872FA1E7110FBB0"
+					id: "3872FA1E7110FBB0"
 					type: "xp"
 					xp: 120
 				}
 				{
-					id: "86E28AFD8BCE5A3D"
+					id: "06E28AFD8BCE5A3D"
 					item: {
 						count: 1
 						id: "minecraft:redstone_block"
@@ -696,7 +696,7 @@
 			]
 			tasks: [
 				{
-					id: "87102FD97453D202"
+					id: "07102FD97453D202"
 					item: {
 						count: 1
 						id: "immersiveengineering:heavy_engineering"
@@ -711,18 +711,18 @@
 		{
 			id: "3E5A19EC0A1834DA"
 			dependencies: [
-				"E71C6075162C525A"
+				"671C6075162C525A"
 			]
 			rewards: [
 				{
-					id: "A76085B62B9B6947"
+					id: "276085B62B9B6947"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "B785DF4D3A5F9994"
+					id: "3785DF4D3A5F9994"
 					item: {
 						count: 1
 						id: "immersiveengineering:wirecoil_copper"
@@ -735,7 +735,7 @@
 			y: 6.3d
 		}
 		{
-			id: "EF0CF1377B873F2E"
+			id: "6F0CF1377B873F2E"
 			dependencies: [
 				"3E5A19EC0A1834DA"
 			]
@@ -760,20 +760,20 @@
 			y: 6.3d
 		}
 		{
-			id: "CC5AF463FBB92D7E"
+			id: "4C5AF463FBB92D7E"
 			dependencies: [
-				"EF0CF1377B873F2E"
+				"6F0CF1377B873F2E"
 			]
 			rewards: [
 				{
-					id: "E7308B33D3F5CD9C"
+					id: "67308B33D3F5CD9C"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "D7B39FD614A35327"
+					id: "57B39FD614A35327"
 					item: {
 						count: 1
 						id: "immersiveengineering:capacitor_lv"
@@ -785,13 +785,13 @@
 			y: 6.3d
 		}
 		{
-			id: "CCB4FD5C9B8F4DAA"
+			id: "4CB4FD5C9B8F4DAA"
 			dependencies: [
-				"CC5AF463FBB92D7E"
+				"4C5AF463FBB92D7E"
 			]
 			rewards: [
 				{
-					id: "CB194E65A0DB310B"
+					id: "4B194E65A0DB310B"
 					type: "xp"
 					xp: 60
 				}
@@ -812,7 +812,7 @@
 		{
 			id: "44B3CEB333BEA862"
 			dependencies: [
-				"CCB4FD5C9B8F4DAA"
+				"4CB4FD5C9B8F4DAA"
 			]
 			rewards: [
 				{
@@ -823,7 +823,7 @@
 			]
 			tasks: [
 				{
-					id: "CB99E0EFF8402357"
+					id: "4B99E0EFF8402357"
 					item: {
 						count: 1
 						id: "immersiveengineering:capacitor_hv"
@@ -861,18 +861,18 @@
 			y: 6.3d
 		}
 		{
-			id: "9A8553176439C946"
+			id: "1A8553176439C946"
 			dependencies: [
 				"3FBEBC6054DB7EEE"
 			]
 			rewards: [
 				{
-					id: "D754E540ADC5C45F"
+					id: "5754E540ADC5C45F"
 					type: "xp"
 					xp: 90
 				}
 				{
-					id: "A80B947B0844D3D0"
+					id: "280B947B0844D3D0"
 					item: {
 						count: 1
 						id: "minecraft:redstone_block"
@@ -883,7 +883,7 @@
 			]
 			tasks: [
 				{
-					id: "912AA69310EE71CD"
+					id: "112AA69310EE71CD"
 					item: {
 						count: 1
 						id: "immersiveengineering:rs_engineering"
@@ -896,9 +896,9 @@
 			y: 6.3d
 		}
 		{
-			id: "A4D1075C74B3944B"
+			id: "24D1075C74B3944B"
 			dependencies: [
-				"E71C6075162C525A"
+				"671C6075162C525A"
 			]
 			rewards: [
 				{
@@ -909,7 +909,7 @@
 			]
 			tasks: [
 				{
-					id: "9C8E2D2FE20DFF77"
+					id: "1C8E2D2FE20DFF77"
 					item: {
 						count: 1
 						id: "pipez:item_pipe"
@@ -922,9 +922,9 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "FA6E6F1F551E81A1"
+			id: "7A6E6F1F551E81A1"
 			dependencies: [
-				"A4D1075C74B3944B"
+				"24D1075C74B3944B"
 			]
 			rewards: [
 				{
@@ -935,7 +935,7 @@
 			]
 			tasks: [
 				{
-					id: "C26832FAAD8ADC74"
+					id: "426832FAAD8ADC74"
 					item: {
 						count: 1
 						id: "pipez:fluid_pipe"
@@ -948,20 +948,20 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "B7D06EE3A89A7893"
+			id: "37D06EE3A89A7893"
 			dependencies: [
-				"FA6E6F1F551E81A1"
+				"7A6E6F1F551E81A1"
 			]
 			rewards: [
 				{
-					id: "EEAF3216A5BBFDCF"
+					id: "6EAF3216A5BBFDCF"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "C92608D61E278DE2"
+					id: "492608D61E278DE2"
 					item: {
 						count: 1
 						id: "pipez:energy_pipe"
@@ -976,18 +976,18 @@
 		{
 			id: "60DD66E632A1128C"
 			dependencies: [
-				"B7D06EE3A89A7893"
+				"37D06EE3A89A7893"
 			]
 			rewards: [
 				{
-					id: "82A333D0231D0178"
+					id: "02A333D0231D0178"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "B08DE2A2D933A9D7"
+					id: "308DE2A2D933A9D7"
 					item: {
 						count: 1
 						id: "pipez:universal_pipe"
@@ -1006,7 +1006,7 @@
 			]
 			rewards: [
 				{
-					id: "F0E8D5A4B77EFF45"
+					id: "70E8D5A4B77EFF45"
 					type: "xp"
 					xp: 60
 				}
@@ -1031,7 +1031,7 @@
 			]
 			rewards: [
 				{
-					id: "EF5AF6A516E0B5F8"
+					id: "6F5AF6A516E0B5F8"
 					type: "xp"
 					xp: 60
 				}
@@ -1075,18 +1075,18 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "EF1B73FEFE79FDBA"
+			id: "6F1B73FEFE79FDBA"
 			dependencies: [
 				"6F0D39721CF9AFD3"
 			]
 			rewards: [
 				{
-					id: "9733437E4B2A5D05"
+					id: "1733437E4B2A5D05"
 					type: "xp"
 					xp: 90
 				}
 				{
-					id: "980D0020D9583309"
+					id: "180D0020D9583309"
 					item: {
 						count: 1
 						id: "minecraft:redstone_block"

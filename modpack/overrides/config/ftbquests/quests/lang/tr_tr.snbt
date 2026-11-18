@@ -1,8 +1,8 @@
 {
 	file.0000000000000001.title: "Yıldız Yolu"
-	chapter.FF2ED409C73C020E.title: "&eBaşlangıç"
-	quest.F16B0A2DE90268D9.title: "Gökyüzüne Hoş Geldin"
-	quest.F16B0A2DE90268D9.quest_desc: [
+	chapter.7F2ED409C73C020E.title: "&eBaşlangıç"
+	quest.716B0A2DE90268D9.title: "Gökyüzüne Hoş Geldin"
+	quest.716B0A2DE90268D9.quest_desc: [
 		"Bu paket seni sıradan bir hayattan yıldızların sırlarına götürecek. Bölümleri bitir, sonunda &dYıldızların Kalbi&r'ni yap ve paketi tamamla!"
 	]
 	quest.788A5A536C53BD66.title: "İlk Odun"
@@ -13,8 +13,8 @@
 	quest.1E83515968E830E3.quest_desc: [
 		"Bir çalışma masası yap."
 	]
-	quest.D216177F6822B3BE.title: "Tahta Kazma"
-	quest.D216177F6822B3BE.quest_desc: [
+	quest.5216177F6822B3BE.title: "Tahta Kazma"
+	quest.5216177F6822B3BE.quest_desc: [
 		"İlk aletin."
 	]
 	quest.2A2115F84A33C5DE.title: "Kırık Taş"
@@ -29,8 +29,8 @@
 	quest.1BDF0CF97D227619.quest_desc: [
 		"Eritme zamanı."
 	]
-	quest.A876C5C36F6670B1.title: "Demir Çağı"
-	quest.A876C5C36F6670B1.quest_desc: [
+	quest.2876C5C36F6670B1.title: "Demir Çağı"
+	quest.2876C5C36F6670B1.quest_desc: [
 		"Biraz demir erit."
 	]
 	quest.1660585CE5EE5ACC.title: "Demir Kazma"
@@ -41,8 +41,8 @@
 	quest.5A6F6580F8A8C00C.quest_desc: [
 		"Elmas bul."
 	]
-	quest.C7D790ED74A003AC.title: "Kömür"
-	quest.C7D790ED74A003AC.quest_desc: [
+	quest.47D790ED74A003AC.title: "Kömür"
+	quest.47D790ED74A003AC.quest_desc: [
 		"Meşaleler ve fırın için."
 	]
 	quest.55FB3B50F317B6D3.title: "Işık"
@@ -57,8 +57,8 @@
 	quest.656155F97B7CFF09.quest_desc: [
 		"Eşyalarını sakla."
 	]
-	quest.F4B9DD3789093682.title: "Kalkan"
-	quest.F4B9DD3789093682.quest_desc: [
+	quest.74B9DD3789093682.title: "Kalkan"
+	quest.74B9DD3789093682.quest_desc: [
 		"Oklara karşı koruma."
 	]
 	quest.7E69973894F7BD3C.title: "Yay"
@@ -69,17 +69,17 @@
 	quest.41131A28F63E0712.quest_desc: [
 		"Yay için cephane."
 	]
-	quest.BE8997D18FA74037.title: "Demir Miğfer"
-	quest.BE8997D18FA74037.quest_desc: [
+	quest.3E8997D18FA74037.title: "Demir Miğfer"
+	quest.3E8997D18FA74037.quest_desc: [
 		"Zırhın ilk parçası."
 	]
-	quest.8D4F8D59DB56AD12.title: "Demir Göğüslük"
-	quest.8D4F8D59DB56AD12.quest_desc: [
+	quest.0D4F8D59DB56AD12.title: "Demir Göğüslük"
+	quest.0D4F8D59DB56AD12.quest_desc: [
 		"Zırhın en önemli parçası."
 	]
 	quest.6A69A5ED677D95AD.title: "Demir Pantolon"
-	quest.8152113DCB0F954D.title: "Demir Botlar"
-	quest.8152113DCB0F954D.quest_desc: [
+	quest.0152113DCB0F954D.title: "Demir Botlar"
+	quest.0152113DCB0F954D.quest_desc: [
 		"Tam set!"
 	]
 	quest.20350E9DECCD3B91.title: "Elmas Kılıç"
@@ -94,36 +94,36 @@
 	quest.33B3AB43C25F8C60.quest_desc: [
 		"Sophisticated Backpacks ile envanterini büyüt."
 	]
-	quest.BBC392D4A3894077.title: "Bakır Çanta"
-	quest.BBC392D4A3894077.quest_desc: [
+	quest.3BC392D4A3894077.title: "Bakır Çanta"
+	quest.3BC392D4A3894077.quest_desc: [
 		"Daha büyük bir çanta."
 	]
 	quest.7EBF33ABBA2DDC01.title: "Demir Çanta"
-	quest.897EEFE606B7379E.title: "Altın Çanta"
-	quest.EE9707D615A5ED88.title: "Elmas Çanta"
+	quest.097EEFE606B7379E.title: "Altın Çanta"
+	quest.6E9707D615A5ED88.title: "Elmas Çanta"
 	quest.20AB53B1CB76E7A2.title: "Netherit Çanta"
 	quest.20AB53B1CB76E7A2.quest_desc: [
 		"En büyük çanta."
 	]
-	quest.B7225956D5684D9A.title: "Işınlanma Taşı"
-	quest.B7225956D5684D9A.quest_desc: [
+	quest.37225956D5684D9A.title: "Işınlanma Taşı"
+	quest.37225956D5684D9A.quest_desc: [
 		"Bir Waystone ile üssüne istediğin zaman dön."
 	]
-	quest.D0ADC99DD4897737.title: "Işınlanma Kristali"
-	quest.D0ADC99DD4897737.quest_desc: [
+	quest.50ADC99DD4897737.title: "Işınlanma Kristali"
+	quest.50ADC99DD4897737.quest_desc: [
 		"Her yerden waystone'lara git."
 	]
 	quest.003C7623F224757C.title: "Demir Sandık"
 	quest.003C7623F224757C.quest_desc: [
 		"Daha büyük sandıklar."
 	]
-	quest.82918B66023B3E60.title: "Altın Sandık"
+	quest.02918B66023B3E60.title: "Altın Sandık"
 	quest.44190A91C3FF1696.title: "Elmas Sandık"
 	quest.09E635CAEFBF2A78.title: "Mega Meşale"
 	quest.09E635CAEFBF2A78.quest_desc: [
 		"Etrafında yaratık doğmasını engeller."
 	]
-	chapter.90E796BE71EEF38B.title: "&8Madencilik"
+	chapter.10E796BE71EEF38B.title: "&8Madencilik"
 	quest.050FB851DADA2D60.title: "Ham Demir"
 	quest.050FB851DADA2D60.quest_desc: [
 		"Derinlere in."
@@ -136,64 +136,64 @@
 	quest.753775E76F47EEE1.quest_desc: [
 		"Altın daha derinde."
 	]
-	quest.EB3B83C42C2A1548.title: "Kızıltaş"
-	quest.EB3B83C42C2A1548.quest_desc: [
+	quest.6B3B83C42C2A1548.title: "Kızıltaş"
+	quest.6B3B83C42C2A1548.quest_desc: [
 		"Elektriğin vanilla hali."
 	]
-	quest.FA4CD589F71AEEB3.title: "Lapis"
-	quest.FA4CD589F71AEEB3.quest_desc: [
+	quest.7A4CD589F71AEEB3.title: "Lapis"
+	quest.7A4CD589F71AEEB3.quest_desc: [
 		"Büyüler için."
 	]
-	quest.D73B2335654BA18D.title: "Zümrüt"
-	quest.D73B2335654BA18D.quest_desc: [
+	quest.573B2335654BA18D.title: "Zümrüt"
+	quest.573B2335654BA18D.quest_desc: [
 		"Dağlarda bulunur."
 	]
-	quest.F48EA786174F28F9.title: "Elmas Damarı"
-	quest.F48EA786174F28F9.quest_desc: [
+	quest.748EA786174F28F9.title: "Elmas Damarı"
+	quest.748EA786174F28F9.quest_desc: [
 		"Y=-58 civarı en iyisi."
 	]
-	quest.D76CBD399111579A.title: "Obsidiyen"
-	quest.D76CBD399111579A.quest_desc: [
+	quest.576CBD399111579A.title: "Obsidiyen"
+	quest.576CBD399111579A.quest_desc: [
 		"Lav ve su buluşunca."
 	]
-	quest.C6EC5A61EDC14948.title: "Demir Blok"
+	quest.46EC5A61EDC14948.title: "Demir Blok"
 	quest.18FC68A56C3BEAB5.title: "Bakır Blok"
 	quest.45EF735FC9C6F716.title: "Altın Blok"
-	quest.A737A65E78FE86FA.title: "Kızıltaş Blok"
+	quest.2737A65E78FE86FA.title: "Kızıltaş Blok"
 	quest.3BDDD0E0B5F0A24D.title: "Lapis Blok"
-	quest.CC8F23ED3ABCE954.title: "Elmas Blok"
-	quest.CC8F23ED3ABCE954.quest_desc: [
+	quest.4C8F23ED3ABCE954.title: "Elmas Blok"
+	quest.4C8F23ED3ABCE954.quest_desc: [
 		"Zengin oldun!"
 	]
-	quest.B4D7168F7D5C6EE9.title: "Zümrüt Blok"
-	quest.C76F4040A3081C9F.title: "Ametist"
-	quest.C76F4040A3081C9F.quest_desc: [
+	quest.34D7168F7D5C6EE9.title: "Zümrüt Blok"
+	quest.476F4040A3081C9F.title: "Ametist"
+	quest.476F4040A3081C9F.quest_desc: [
 		"Jeotlarda bulunur."
 	]
 	quest.0B4164D22F0FD266.title: "Dürbün"
 	quest.0B4164D22F0FD266.quest_desc: [
 		"Yıldızlara bakmak için mükemmel!"
 	]
-	quest.C90E72A4E6E3D620.title: "Renkli Cam"
-	quest.D69B46D1BC68E026.title: "Kalsit"
+	quest.490E72A4E6E3D620.title: "Renkli Cam"
+	quest.569B46D1BC68E026.title: "Kalsit"
 	quest.464B35F9E82431F0.title: "Sarkıt"
 	quest.38A769F540937CA9.title: "Kayrak"
 	quest.38A769F540937CA9.quest_desc: [
 		"Derin karanlık."
 	]
-	quest.F9AB96755BC9C214.title: "Kırık Kayrak"
-	quest.9DA916F2877F3854.title: "Raylar"
+	quest.79AB96755BC9C214.title: "Kırık Kayrak"
+	quest.1DA916F2877F3854.title: "Raylar"
 	quest.03AD5D980F89DCEA.title: "Güçlü Ray"
-	quest.ACEB21E260E61FCC.title: "Maden Arabası"
-	quest.FE6D369A4EED1AEB.title: "Huni"
-	quest.FE6D369A4EED1AEB.quest_desc: [
+	quest.2CEB21E260E61FCC.title: "Maden Arabası"
+	quest.7E6D369A4EED1AEB.title: "Huni"
+	quest.7E6D369A4EED1AEB.quest_desc: [
 		"Otomasyonun başlangıcı."
 	]
-	quest.B7B287F99A97FDEE.title: "Piston"
-	quest.DA95DDAA1B54E195.title: "Yapışkan Piston"
-	quest.D71AB7BA667FCB21.title: "Gözlemci"
-	quest.B5DEEFC0732D398B.title: "Üretici"
-	quest.B5DEEFC0732D398B.quest_desc: [
+	quest.37B287F99A97FDEE.title: "Piston"
+	quest.5A95DDAA1B54E195.title: "Yapışkan Piston"
+	quest.571AB7BA667FCB21.title: "Gözlemci"
+	quest.35DEEFC0732D398B.title: "Üretici"
+	quest.35DEEFC0732D398B.quest_desc: [
 		"1.21'in otomatik üretim bloğu."
 	]
 	chapter.50AEBA4E1D6000CA.title: "&aTarım ve Yemek"
@@ -201,13 +201,13 @@
 	quest.74508657BF099BA6.quest_desc: [
 		"Uzun ot kır."
 	]
-	quest.F88EAC8118D75F3B.title: "Buğday"
+	quest.788EAC8118D75F3B.title: "Buğday"
 	quest.74BF1E5A2EDD5C33.title: "Ekmek"
 	quest.6682E767FC1C1AA8.title: "Havuç"
 	quest.0E4906817D452BD4.title: "Patates"
-	quest.ED4FFCD21A4C4176.title: "Pancar"
+	quest.6D4FFCD21A4C4176.title: "Pancar"
 	quest.0453BF1ABE67B6D0.title: "Bal Kabağı"
-	quest.9090DBDC7B3DD732.title: "Karpuz"
+	quest.1090DBDC7B3DD732.title: "Karpuz"
 	quest.40BD40D68F1683D3.title: "Altın Havuç"
 	quest.40BD40D68F1683D3.quest_desc: [
 		"En iyi vanilla yemeklerinden."
@@ -224,18 +224,18 @@
 	]
 	quest.2AC525DAC56A8881.title: "Bal Kabağı Turtası"
 	quest.68C186E305BFE2EB.title: "Şeker Kamışı"
-	quest.E859A0EF0ABF7F58.title: "Bambu"
-	quest.A1D6AAFCF26AB85B.title: "Kaktüs"
+	quest.6859A0EF0ABF7F58.title: "Bambu"
+	quest.21D6AAFCF26AB85B.title: "Kaktüs"
 	quest.1172C77EAC76A9C8.title: "Kakao"
 	quest.69D1AE127FA9A447.title: "Tatlı Meyveler"
 	quest.0ECF65B4D1A85A6E.title: "Parlak Meyveler"
 	quest.7360DF92EBB85A35.title: "Bal"
-	quest.CC9A2E8BCE9BA61B.title: "Bal Peteği"
-	quest.F1A607703D62F903.title: "Kayış"
+	quest.4C9A2E8BCE9BA61B.title: "Bal Peteği"
+	quest.71A607703D62F903.title: "Kayış"
 	quest.34EE7DA48434AC59.title: "Eyer"
 	quest.42A72074DB366E79.title: "Yumurta"
 	quest.68F490B84382F822.title: "Deri"
-	quest.96DEC5726503D491.title: "Yün"
+	quest.16DEC5726503D491.title: "Yün"
 	quest.0BFFFAE62EF441D5.title: "Makas"
 	quest.26E461E47453C2E7.title: "Süt"
 	quest.67515B7E665E5583.title: "Çakmaktaşı Bıçak"
@@ -243,95 +243,95 @@
 		"Farmer's Delight'a hoş geldin."
 	]
 	quest.3D50712E77CE8053.title: "Kesme Tahtası"
-	quest.C9725D2FC92A10A5.title: "Pişirme Tenceresi"
+	quest.49725D2FC92A10A5.title: "Pişirme Tenceresi"
 	quest.55E159E68850CC4D.title: "Tava"
-	quest.D4F3B070A77BAE62.title: "Ocak"
+	quest.54F3B070A77BAE62.title: "Ocak"
 	quest.3FEA9EE9A51C340E.title: "Domates"
 	quest.3DD6B10E0FC97122.title: "Lahana"
-	quest.E9EE3378D4FE50FA.title: "Soğan"
-	quest.F9B4D054FE1FEA4E.title: "Pirinç"
-	quest.9464C779DAA8643B.title: "Saman"
+	quest.69EE3378D4FE50FA.title: "Soğan"
+	quest.79B4D054FE1FEA4E.title: "Pirinç"
+	quest.1464C779DAA8643B.title: "Saman"
 	quest.2DB9C6450936C384.title: "Kanvas"
-	quest.BD6260B549407803.title: "Zengin Toprak"
-	quest.DBE5BAE30A2DA6B7.title: "Et Yahnisi"
-	quest.D388CE2CC25A4AA0.title: "Kızarmış Pilav"
+	quest.3D6260B549407803.title: "Zengin Toprak"
+	quest.5BE5BAE30A2DA6B7.title: "Et Yahnisi"
+	quest.5388CE2CC25A4AA0.title: "Kızarmış Pilav"
 	quest.4C745729BA6E3CF7.title: "Mantı"
 	quest.4C745729BA6E3CF7.quest_desc: [
 		"Neredeyse ev yapımı!"
 	]
-	quest.B6919AEAF96AD484.title: "Hamburger"
+	quest.36919AEAF96AD484.title: "Hamburger"
 	quest.51D22CA69B8B5D65.title: "Elmas Bıçak"
-	chapter.A0C8627B6ED3DAEC.title: "&4Nether"
+	chapter.20C8627B6ED3DAEC.title: "&4Nether"
 	quest.5005DFF74B325300.title: "Çakmak"
 	quest.5005DFF74B325300.quest_desc: [
 		"Geçidi yakmak için."
 	]
-	quest.E7819FF36D544154.title: "Nether'e Giriş"
-	quest.E7819FF36D544154.quest_desc: [
+	quest.67819FF36D544154.title: "Nether'e Giriş"
+	quest.67819FF36D544154.quest_desc: [
 		"Obsidiyen geçidini yak."
 	]
-	quest.8C4C9E0915C8ECA1.title: "Nether Kuvarsı"
-	quest.F3F9F30D39AC64ED.title: "Işıktaşı"
+	quest.0C4C9E0915C8ECA1.title: "Nether Kuvarsı"
+	quest.73F9F30D39AC64ED.title: "Işıktaşı"
 	quest.60E8E417DABB1E1D.title: "Alaz Çubuğu"
 	quest.60E8E417DABB1E1D.quest_desc: [
 		"Nether kalesini bul."
 	]
-	quest.E1CBCDA2E29F487A.title: "Simya Standı"
-	quest.A56A3F367B92B86D.title: "Antik Kalıntı"
-	quest.A56A3F367B92B86D.quest_desc: [
+	quest.61CBCDA2E29F487A.title: "Simya Standı"
+	quest.256A3F367B92B86D.title: "Antik Kalıntı"
+	quest.256A3F367B92B86D.quest_desc: [
 		"Y=15 civarında ara."
 	]
-	quest.ED5CB194746C2B35.title: "Netherit Hurdası"
+	quest.6D5CB194746C2B35.title: "Netherit Hurdası"
 	quest.7AACB3D13A6581E1.title: "Netherit Külçesi"
-	quest.A5E0FF74CC1AECB6.title: "Yükseltme Şablonu"
-	quest.A5E0FF74CC1AECB6.quest_desc: [
+	quest.25E0FF74CC1AECB6.title: "Yükseltme Şablonu"
+	quest.25E0FF74CC1AECB6.quest_desc: [
 		"Kale kalıntılarında bulunur."
 	]
 	quest.1FA8DA909C39127C.title: "Netherit Kazma"
 	quest.1FA8DA909C39127C.quest_desc: [
 		"En iyi vanilla kazma."
 	]
-	quest.C5C8EAC3AB9E7EFE.title: "Magma Kremi"
-	quest.DF0DAD81891399DB.title: "Ghast Gözyaşı"
+	quest.45C8EAC3AB9E7EFE.title: "Magma Kremi"
+	quest.5F0DAD81891399DB.title: "Ghast Gözyaşı"
 	quest.0AB486BAD55D4A26.title: "Nether Siğili"
 	quest.0AB486BAD55D4A26.quest_desc: [
 		"İksirlerin temeli."
 	]
-	quest.D2E8422EBD089403.title: "Ruh Kumu"
-	quest.C95508D2BF9522B7.title: "Wither İskelet Kafası"
-	quest.C95508D2BF9522B7.quest_desc: [
+	quest.52E8422EBD089403.title: "Ruh Kumu"
+	quest.495508D2BF9522B7.title: "Wither İskelet Kafası"
+	quest.495508D2BF9522B7.quest_desc: [
 		"Üç tane lazım..."
 	]
-	quest.C7112161B951D2EC.title: "Wither'ı Yen"
-	quest.C7112161B951D2EC.quest_desc: [
+	quest.47112161B951D2EC.title: "Wither'ı Yen"
+	quest.47112161B951D2EC.quest_desc: [
 		"Nether Yıldızı kazan."
 	]
-	quest.A3786B22F5E80DC0.title: "Fener"
-	quest.A3786B22F5E80DC0.quest_desc: [
+	quest.23786B22F5E80DC0.title: "Fener"
+	quest.23786B22F5E80DC0.quest_desc: [
 		"Güç ışını."
 	]
-	quest.8ADB4D8251BFA96F.title: "Kızıl Gövde"
-	quest.E59125682989515D.title: "Çarpık Gövde"
-	quest.EF27ABEC132CF3FF.title: "Mantar Işığı"
+	quest.0ADB4D8251BFA96F.title: "Kızıl Gövde"
+	quest.659125682989515D.title: "Çarpık Gövde"
+	quest.6F27ABEC132CF3FF.title: "Mantar Işığı"
 	quest.2F91EBCAC2F76D6D.title: "Karataş"
 	quest.33ABA8AF258DE91B.title: "Bazalt"
-	quest.94DF37A07DFA6D7F.title: "Ağlayan Obsidiyen"
-	quest.AD40ED096D840B47.title: "Yeniden Doğma Çapası"
-	quest.8EC73F17AD17453E.title: "Pusula Taşı"
-	quest.F4FF5ED1D786F74E.title: "Yaldızlı Karataş"
-	quest.F4FF5ED1D786F74E.quest_desc: [
+	quest.14DF37A07DFA6D7F.title: "Ağlayan Obsidiyen"
+	quest.2D40ED096D840B47.title: "Yeniden Doğma Çapası"
+	quest.0EC73F17AD17453E.title: "Pusula Taşı"
+	quest.74FF5ED1D786F74E.title: "Yaldızlı Karataş"
+	quest.74FF5ED1D786F74E.quest_desc: [
 		"Kale kalıntılarında."
 	]
-	quest.D1843A731BE8EC5C.title: "Piglin Kafası"
-	quest.DBA969E34693B102.title: "Pigstep"
-	chapter.F0F8433DAB661C8E.title: "&5End"
-	quest.86ABA8598E2AB227.title: "Ender İncisi"
-	quest.B3DC28113A983FB9.title: "Ender Gözü"
-	quest.B3DC28113A983FB9.quest_desc: [
+	quest.51843A731BE8EC5C.title: "Piglin Kafası"
+	quest.5BA969E34693B102.title: "Pigstep"
+	chapter.70F8433DAB661C8E.title: "&5End"
+	quest.06ABA8598E2AB227.title: "Ender İncisi"
+	quest.33DC28113A983FB9.title: "Ender Gözü"
+	quest.33DC28113A983FB9.quest_desc: [
 		"Kaleyi bul."
 	]
-	quest.C40BF47DDD4EAE78.title: "End Taşı"
-	quest.C40BF47DDD4EAE78.quest_desc: [
+	quest.440BF47DDD4EAE78.title: "End Taşı"
+	quest.440BF47DDD4EAE78.quest_desc: [
 		"Boyuta ilk adım."
 	]
 	quest.2CDFA753A0AD23C2.title: "Ejder Nefesi"
@@ -339,9 +339,9 @@
 	quest.03985FF885C6FDE2.quest_desc: [
 		"Ejderin yumurtasını al."
 	]
-	quest.BD72B5C58B52038D.title: "Shulker Kabuğu"
-	quest.F3C29D41E6B81075.title: "Shulker Kutusu"
-	quest.F3C29D41E6B81075.quest_desc: [
+	quest.3D72B5C58B52038D.title: "Shulker Kabuğu"
+	quest.73C29D41E6B81075.title: "Shulker Kutusu"
+	quest.73C29D41E6B81075.quest_desc: [
 		"Taşınabilir depo."
 	]
 	quest.5168A11BB53A2472.title: "Elitra"
@@ -354,19 +354,19 @@
 	]
 	quest.78B2D20BFEB2F3DC.title: "Koro Meyvesi"
 	quest.65A3E2988D6D2056.title: "Patlamış Koro"
-	quest.A0BECB8DDA16C676.title: "Purpur"
+	quest.20BECB8DDA16C676.title: "Purpur"
 	quest.25A8B7232BD521A9.title: "End Çubuğu"
 	quest.64C8DE9678DC6209.title: "End Kristali"
-	quest.8D5104E034AE5D70.title: "Ender Sandığı"
-	quest.E35BEF47C1FDB1A4.title: "Roketler"
-	quest.E35BEF47C1FDB1A4.quest_desc: [
+	quest.0D5104E034AE5D70.title: "Ender Sandığı"
+	quest.635BEF47C1FDB1A4.title: "Roketler"
+	quest.635BEF47C1FDB1A4.quest_desc: [
 		"Elitra ile uçmak için."
 	]
-	chapter.BF3AF6014542A4E9.title: "&2Keşif"
+	chapter.3F3AF6014542A4E9.title: "&2Keşif"
 	quest.5A2C7D5980AC9739.title: "Pusula"
-	quest.B6BCD4CE1EB96C17.title: "Harita"
-	quest.8DC2C3CDF4028611.title: "Deneme Anahtarı"
-	quest.8DC2C3CDF4028611.quest_desc: [
+	quest.36BCD4CE1EB96C17.title: "Harita"
+	quest.0DC2C3CDF4028611.title: "Deneme Anahtarı"
+	quest.0DC2C3CDF4028611.quest_desc: [
 		"Deneme odalarını keşfet."
 	]
 	quest.5750FDCB2F035EAB.title: "Esinti Çubuğu"
@@ -378,65 +378,65 @@
 		"1.21'in en güçlü silahı."
 	]
 	quest.3B0B01D646DDE58A.title: "İsim Etiketi"
-	quest.FE17DA968CBF5B46.title: "Altın Elma"
+	quest.7E17DA968CBF5B46.title: "Altın Elma"
 	quest.03FCCFCC7EA3BA17.title: "Büyülü Altın Elma"
 	quest.03FCCFCC7EA3BA17.quest_desc: [
 		"Sandıklarda nadiren bulunur."
 	]
-	quest.9322BC67E0B5F11A.title: "Ölümsüzlük Totemi"
-	quest.9322BC67E0B5F11A.quest_desc: [
+	quest.1322BC67E0B5F11A.title: "Ölümsüzlük Totemi"
+	quest.1322BC67E0B5F11A.quest_desc: [
 		"Konaklarda bulunur."
 	]
-	quest.C53F9CD20B2946C3.title: "Üç Dişli Mızrak"
+	quest.453F9CD20B2946C3.title: "Üç Dişli Mızrak"
 	quest.7C371395BE35651B.title: "Denizin Kalbi"
 	quest.4B0F954EFEADD102.title: "Kanal"
-	quest.C99D2215CECC5020.title: "Yankı Parçası"
-	quest.C99D2215CECC5020.quest_desc: [
+	quest.499D2215CECC5020.title: "Yankı Parçası"
+	quest.499D2215CECC5020.quest_desc: [
 		"Antik şehirlerde."
 	]
 	quest.1A9D0DB73BE69560.title: "Kurtarma Pusulası"
-	quest.A3FC8468687D4728.title: "Büyü Masası"
-	quest.F4CCC55580CBD645.title: "Kitaplıklar"
-	quest.F4CCC55580CBD645.quest_desc: [
+	quest.23FC8468687D4728.title: "Büyü Masası"
+	quest.74CCC55580CBD645.title: "Kitaplıklar"
+	quest.74CCC55580CBD645.quest_desc: [
 		"Tam güç için 15 tane."
 	]
 	quest.271834AE37563ED8.title: "Örs"
 	quest.3A6D97AA11802B90.title: "Tecrübe Şişesi"
 	quest.7FB1647B8C6F7339.title: "Koklayıcı Yumurtası"
-	quest.C7D27622EECE1421.title: "Meşale Çiçeği"
+	quest.47D27622EECE1421.title: "Meşale Çiçeği"
 	quest.38679B6FE1C9D288.title: "Armadillo Pulu"
 	quest.78D89C276623A3CF.title: "Kurt Zırhı"
-	quest.EAA55FDBEF38BBC4.title: "Doğa Pusulası"
-	quest.EAA55FDBEF38BBC4.quest_desc: [
+	quest.6AA55FDBEF38BBC4.title: "Doğa Pusulası"
+	quest.6AA55FDBEF38BBC4.quest_desc: [
 		"Biyomları bul."
 	]
 	quest.5B1AEE1337A75159.title: "Kaşif Pusulası"
 	quest.5B1AEE1337A75159.quest_desc: [
 		"Yapıları bul."
 	]
-	quest.9FD14E0AB1BC7D19.title: "Zırh Süsü"
-	quest.9FD14E0AB1BC7D19.quest_desc: [
+	quest.1FD14E0AB1BC7D19.title: "Zırh Süsü"
+	quest.1FD14E0AB1BC7D19.quest_desc: [
 		"Zırh süslerini toplamaya başla."
 	]
-	quest.E8843AC149E860CD.title: "Sessizlik Süsü"
-	quest.E8843AC149E860CD.quest_desc: [
+	quest.68843AC149E860CD.title: "Sessizlik Süsü"
+	quest.68843AC149E860CD.quest_desc: [
 		"En nadir süs."
 	]
-	chapter.B9221EA068E7BFB6.title: "&bAstral Sorcery"
+	chapter.39221EA068E7BFB6.title: "&bAstral Sorcery"
 	quest.1D36A80AC9796A61.title: "Kaya Kristali"
 	quest.1D36A80AC9796A61.quest_desc: [
 		"Mermer yakınlarında, derinlerde &bKaya Kristali&r ara."
 	]
-	quest.8D9FC45C723ED539.title: "Bilgi Defteri"
-	quest.8D9FC45C723ED539.quest_desc: [
+	quest.0D9FC45C723ED539.title: "Bilgi Defteri"
+	quest.0D9FC45C723ED539.quest_desc: [
 		"Astral Tome ile araştırmalarını takip et."
 	]
 	quest.38157F12CBB14070.title: "Rezonans Asası"
 	quest.38157F12CBB14070.quest_desc: [
 		"Asanla gece gökyüzündeki ışığı hisset."
 	]
-	quest.CB81B10AABB6440C.title: "Işıltı Sunağı"
-	quest.CB81B10AABB6440C.quest_desc: [
+	quest.4B81B10AABB6440C.title: "Işıltı Sunağı"
+	quest.4B81B10AABB6440C.quest_desc: [
 		"İlk sunağın: &eLuminance Altar&r."
 	]
 	quest.4708D7FB443AD783.title: "Takımyıldız Kağıdı"
@@ -455,12 +455,12 @@
 	quest.5EF6D15564691775.quest_desc: [
 		"Kendini bir takımyıldızına uyumla."
 	]
-	quest.A4ABFD359CE4DF03.title: "Rezonans Sunağı"
-	quest.A4ABFD359CE4DF03.quest_desc: [
+	quest.24ABFD359CE4DF03.title: "Rezonans Sunağı"
+	quest.24ABFD359CE4DF03.quest_desc: [
 		"Üçüncü aşama sunak."
 	]
-	quest.FC9045ABEA891948.title: "Parlaklık Sunağı"
-	quest.FC9045ABEA891948.quest_desc: [
+	quest.7C9045ABEA891948.title: "Parlaklık Sunağı"
+	quest.7C9045ABEA891948.quest_desc: [
 		"Son ve en güçlü sunak."
 	]
 	quest.6ED2C95636753E37.title: "Rezonans Mücevheri"
@@ -471,116 +471,116 @@
 	quest.14CFCC49AD03EB4E.quest_desc: [
 		"Evrenin hafızası avucunda."
 	]
-	quest.BC4D41C020AB11F9.title: "Artefakt"
-	quest.BC4D41C020AB11F9.quest_desc: [
+	quest.3C4D41C020AB11F9.title: "Artefakt"
+	quest.3C4D41C020AB11F9.quest_desc: [
 		"Astral Sorcery'nin en derin sırrı."
 	]
-	quest.AAFFCBC7631426C3.title: "Mermer"
-	quest.AAFFCBC7631426C3.quest_desc: [
+	quest.2AFFCBC7631426C3.title: "Mermer"
+	quest.2AFFCBC7631426C3.quest_desc: [
 		"Astral yapıların temeli."
 	]
 	quest.6F87808210F28005.title: "Mermer Tuğla"
-	quest.E20B2EA58CB0C3C5.title: "Mermer Sütun"
+	quest.620B2EA58CB0C3C5.title: "Mermer Sütun"
 	quest.253FEBD8DD4FEA3E.title: "Oymalı Mermer"
 	quest.3CC9A04529A96445.title: "Kazınmış Mermer"
 	quest.4883EF21666CE7E8.title: "Rünlü Mermer"
-	quest.BF7E7B5432FA606A.title: "Mermer Kemer"
-	quest.AAA9B349851BCCB5.title: "İsli Mermer"
+	quest.3F7E7B5432FA606A.title: "Mermer Kemer"
+	quest.2AA9B349851BCCB5.title: "İsli Mermer"
 	quest.141B69F804751AC9.title: "İsli Mermer Tuğla"
 	quest.489263185115F71A.title: "Akuamarin"
 	quest.489263185115F71A.quest_desc: [
 		"Kum ve çakılda bulunur."
 	]
-	quest.ACDBF174CB8A413D.title: "Yıldız Tozu"
-	quest.B2FC15EC4CC2D239.title: "Ham Yıldız Metali"
-	quest.A0216FFAA0ADD8FE.title: "Yıldız Metali"
+	quest.2CDBF174CB8A413D.title: "Yıldız Tozu"
+	quest.32FC15EC4CC2D239.title: "Ham Yıldız Metali"
+	quest.20216FFAA0ADD8FE.title: "Yıldız Metali"
 	quest.6221E037CCBFAACE.title: "Ham Yıldız Metali Bloğu"
 	quest.5C0946C06D3876D1.title: "Aydınlatma Tozu"
-	quest.C68BE2E4437CE401.title: "Gece Tozu"
+	quest.468BE2E4437CE401.title: "Gece Tozu"
 	quest.5D5AD2AA397BB08D.title: "Canlı Toz"
-	quest.8097830C10941662.title: "Yıldız Çiyi"
+	quest.0097830C10941662.title: "Yıldız Çiyi"
 	quest.0FC6F8AD751AB926.title: "Aşılanmış Odun"
 	quest.71C762C92D4FB1B9.title: "Aşılanmış Kalas"
 	quest.274DCBA0DB59C408.title: "Aşılanmış Sütun"
 	quest.398FCA76DE64814D.title: "Aşılanmış Kemer"
-	quest.B9C8C161364951E8.title: "Kazınmış Aşılanmış Odun"
-	quest.C2A6AE955A0615B0.title: "Zenginleştirilmiş Aşılanmış Odun"
+	quest.39C8C161364951E8.title: "Kazınmış Aşılanmış Odun"
+	quest.42A6AE955A0615B0.title: "Zenginleştirilmiş Aşılanmış Odun"
 	quest.69CF4AFE4658EC4D.title: "Tamamen Aşılanmış Odun"
 	quest.0C98905C5881B3F6.title: "Cam Mercek"
 	quest.0B2B15D5AA5712DC.title: "Mercek"
 	quest.0B2B15D5AA5712DC.quest_desc: [
 		"Yıldız ışığını yönlendir."
 	]
-	quest.AF10D8AF391FB0DD.title: "Prizma"
-	quest.AF10D8AF391FB0DD.quest_desc: [
+	quest.2F10D8AF391FB0DD.title: "Prizma"
+	quest.2F10D8AF391FB0DD.quest_desc: [
 		"Işığı böl."
 	]
-	quest.9FAA514FC1678E38.title: "Bağlama Aleti"
-	quest.83C8B755AC42DE89.title: "Kaya Kristali Odağı"
+	quest.1FAA514FC1678E38.title: "Bağlama Aleti"
+	quest.03C8B755AC42DE89.title: "Kaya Kristali Odağı"
 	quest.5361B18A2460AF4F.title: "Gök Kristali Odağı"
-	quest.85F4BF901BF68508.title: "Işık Kuyusu"
-	quest.CB6F99817DF98A2D.title: "Kadeh"
+	quest.05F4BF901BF68508.title: "Işık Kuyusu"
+	quest.4B6F99817DF98A2D.title: "Kadeh"
 	quest.12EFD1F665ECF28E.title: "Yıldız Işığı Aşılayıcı"
 	quest.12EFD1F665ECF28E.quest_desc: [
 		"Sıvı yıldız ışığıyla eşyaları dönüştür."
 	]
 	quest.7B777B0F49334543.title: "Sıvı Yıldız Işığı"
-	quest.8E2F24E2AEB92DBC.title: "Kristal Kazma"
+	quest.0E2F24E2AEB92DBC.title: "Kristal Kazma"
 	quest.7EE4553F9ADD1C2D.title: "Kristal Kılıç"
-	quest.BEA81CF7B8FC8A8A.title: "Kristal Balta"
+	quest.3EA81CF7B8FC8A8A.title: "Kristal Balta"
 	quest.210B81EFA2B0149B.title: "Kristal Kürek"
 	quest.368BFC8D86801158.title: "Yanardöner Kazma"
-	quest.C9E32EEAAA9DFAF1.title: "Yanardöner Kılıç"
+	quest.49E32EEAAA9DFAF1.title: "Yanardöner Kılıç"
 	quest.3FDA337A8643CD79.title: "Yanardöner Balta"
-	quest.AF090C362F6146F2.title: "Yanardöner Kürek"
+	quest.2F090C362F6146F2.title: "Yanardöner Kürek"
 	quest.5BDB5D91E169DCE3.title: "Keski"
-	quest.C519ABF7FF9D233C.title: "Aydınlatma Asası"
+	quest.4519ABF7FF9D233C.title: "Aydınlatma Asası"
 	quest.256622EB5F7F7A34.title: "Mimar Asası"
-	quest.D62DC7500B1443D6.title: "Değiştirme Asası"
-	quest.F704A3D7641B378A.title: "Kanca Asası"
-	quest.DC01FEDA116A5C0F.title: "Işınlanma Asası"
-	quest.BBD1FFEC4E87680D.title: "Usturlap"
+	quest.562DC7500B1443D6.title: "Değiştirme Asası"
+	quest.7704A3D7641B378A.title: "Kanca Asası"
+	quest.5C01FEDA116A5C0F.title: "Işınlanma Asası"
+	quest.3BD1FFEC4E87680D.title: "Usturlap"
 	quest.7D6C24FA292D4F49.title: "Büyü Muskası"
-	quest.BE7589741011B128.title: "Bilgi Paylaşımı"
+	quest.3E7589741011B128.title: "Bilgi Paylaşımı"
 	quest.7CAE30E214D409D7.title: "Uyumlanmış Kaya Kristali"
 	quest.4243A940F96CAE7F.title: "Uyumlanmış Gök Kristali"
-	quest.FB1449BDB4EE86BF.title: "Lümen Kristali"
-	quest.FB1449BDB4EE86BF.quest_desc: [
+	quest.7B1449BDB4EE86BF.title: "Lümen Kristali"
+	quest.7B1449BDB4EE86BF.quest_desc: [
 		"Lümen enerjisinin kalbi."
 	]
-	quest.D504BB9BB5EBC8EF.title: "Lümen Kristalleştirici"
-	quest.D936D9002F072748.title: "Lümen Dizisi"
-	quest.FA5EBF694963DA7C.title: "Lümen Simya Dizisi"
-	quest.E82FA014FA35F11F.title: "Lümen Filamenti"
+	quest.5504BB9BB5EBC8EF.title: "Lümen Kristalleştirici"
+	quest.5936D9002F072748.title: "Lümen Dizisi"
+	quest.7A5EBF694963DA7C.title: "Lümen Simya Dizisi"
+	quest.682FA014FA35F11F.title: "Lümen Filamenti"
 	quest.6DEE4E4EDD8BE905.title: "Yıldız Filamenti"
-	quest.C86E5476640B6488.title: "Odak Rölesi"
-	quest.BF5D95E1ED2D2FDD.title: "Gündüz Dinamizm Mücevheri"
-	quest.C880898AFECD6775.title: "Gece Dinamizm Mücevheri"
-	quest.9146999137B7AD62.title: "Gök Dinamizm Mücevheri"
+	quest.486E5476640B6488.title: "Odak Rölesi"
+	quest.3F5D95E1ED2D2FDD.title: "Gündüz Dinamizm Mücevheri"
+	quest.4880898AFECD6775.title: "Gece Dinamizm Mücevheri"
+	quest.1146999137B7AD62.title: "Gök Dinamizm Mücevheri"
 	quest.3C8D809C448630CA.title: "Değişen Yıldız"
 	quest.196348871BB26966.title: "Yetenek Mührü"
 	quest.333B5AA0AC286E1A.title: "Ağaç Feneri"
 	quest.4AD466EFB14334B2.title: "Mağara Aydınlatıcı"
-	quest.FA43F3D85336EAA7.title: "Göksel Geçit"
-	quest.FA43F3D85336EAA7.quest_desc: [
+	quest.7A43F3D85336EAA7.title: "Göksel Geçit"
+	quest.7A43F3D85336EAA7.quest_desc: [
 		"Kendi göksel geçidini kur."
 	]
-	quest.D5833F6835D5562C.title: "Artefakt Parçası"
+	quest.55833F6835D5562C.title: "Artefakt Parçası"
 	quest.0B870414B4401D4A.title: "Parıltı Amarantı"
 	quest.0B870414B4401D4A.quest_desc: [
 		"Astral çiçekleri topla."
 	]
-	quest.B2DDED4E4C52D0D1.title: "Sümbül"
-	quest.D96AFE76D301B5B5.title: "Süsen"
-	quest.C9E8FAEF01598584.title: "Orkide"
+	quest.32DDED4E4C52D0D1.title: "Sümbül"
+	quest.596AFE76D301B5B5.title: "Süsen"
+	quest.49E8FAEF01598584.title: "Orkide"
 	quest.7FB394961FB732F2.title: "Protea"
 	quest.3F510EA41F87D4B6.title: "Devedikeni"
-	quest.9FE8E72386701287.title: "Astral Fluix Kristali"
-	quest.9FE8E72386701287.quest_desc: [
+	quest.1FE8E72386701287.title: "Astral Fluix Kristali"
+	quest.1FE8E72386701287.quest_desc: [
 		"Applied AstralSorcery: yıldızlar ME ağıyla buluşuyor."
 	]
 	quest.31C6C961EA41F6A3.title: "Astral İşlemci Kalıbı"
-	quest.85D6B9144839142A.title: "Basılı Astral İşlemci"
+	quest.05D6B9144839142A.title: "Basılı Astral İşlemci"
 	quest.3110358AE60EBD9D.title: "Astral İşlemci"
 	quest.54DEC259FDF5A623.title: "Lümen İşlemcisi"
 	quest.523F57519A6C84AC.title: "Lümen Hücre Kasası"
@@ -591,208 +591,208 @@
 	quest.3BD494E025EA8F3C.title: "64k Lümen Hücresi"
 	quest.0ACE305EAB178DE2.title: "ME Lümen Kristalleştirici"
 	quest.0DB12022EA314612.title: "ME Yıldız Işığı Aşılayıcı"
-	quest.BB3D759610054C72.title: "Yanardöner Uyumlama Sunağı"
+	quest.3B3D759610054C72.title: "Yanardöner Uyumlama Sunağı"
 	quest.77B67650A5CDCC8E.title: "ME Göksel Geçit"
 	quest.77B67650A5CDCC8E.quest_desc: [
 		"Astral ve AE2'nin zirvesi."
 	]
-	quest.C4C35B688117E6DA.title: "Ezilmiş Yıldız Metali"
-	quest.C4C35B688117E6DA.quest_desc: [
+	quest.44C35B688117E6DA.title: "Ezilmiş Yıldız Metali"
+	quest.44C35B688117E6DA.quest_desc: [
 		"Create: Astral Sorcery ile yıldız metalini Create'te işle."
 	]
-	quest.888000DFA41BF6C9.title: "Yıldız Metali Parçası"
-	quest.D1D1A06FF0AF5F32.title: "Yıldız Metali Kasası"
-	quest.F10A74BF20B776F1.title: "Yıldız Kasalı Mil"
-	quest.D7FAA85A24C84151.title: "Yıldız Kasalı Dişli"
-	quest.9815DA19A5ED79C9.title: "Yıldız Kasalı Büyük Dişli"
-	chapter.A2342087C3E31DF2.title: "&6Create"
+	quest.088000DFA41BF6C9.title: "Yıldız Metali Parçası"
+	quest.51D1A06FF0AF5F32.title: "Yıldız Metali Kasası"
+	quest.710A74BF20B776F1.title: "Yıldız Kasalı Mil"
+	quest.57FAA85A24C84151.title: "Yıldız Kasalı Dişli"
+	quest.1815DA19A5ED79C9.title: "Yıldız Kasalı Büyük Dişli"
+	chapter.22342087C3E31DF2.title: "&6Create"
 	quest.2A6343F5ED0023ED.title: "Andezit Alaşımı"
 	quest.2A6343F5ED0023ED.quest_desc: [
 		"Create ile mekaniğin temeli."
 	]
 	quest.03D782F4427A4999.title: "Mil"
-	quest.AA5BDFF8437AED0F.title: "Dişli"
-	quest.C2909E633529D604.title: "Su Çarkı"
-	quest.C2909E633529D604.quest_desc: [
+	quest.2A5BDFF8437AED0F.title: "Dişli"
+	quest.42909E633529D604.title: "Su Çarkı"
+	quest.42909E633529D604.quest_desc: [
 		"İlk güç kaynağın."
 	]
-	quest.D621F7CD68AB0716.title: "Andezit Kasa"
+	quest.5621F7CD68AB0716.title: "Andezit Kasa"
 	quest.143735E2DB03A672.title: "Mekanik Pres"
-	quest.E5FDDA3D0204BAA0.title: "Mekanik Karıştırıcı"
-	quest.EF3B560D0ED0D7A0.title: "Pirinç"
-	quest.EF3B560D0ED0D7A0.quest_desc: [
+	quest.65FDDA3D0204BAA0.title: "Mekanik Karıştırıcı"
+	quest.6F3B560D0ED0D7A0.title: "Pirinç"
+	quest.6F3B560D0ED0D7A0.quest_desc: [
 		"Create'in ikinci aşaması."
 	]
 	quest.3BC38C1C5BCC2CFA.title: "Pirinç Kasa"
 	quest.032E86766379CC34.title: "Hassas Mekanizma"
 	quest.3E2556F6D92307F3.title: "Mekanik Üreticiler"
-	quest.E5BC4AE036F9EFB7.title: "Buhar Motoru"
-	quest.E5BC4AE036F9EFB7.quest_desc: [
+	quest.65BC4AE036F9EFB7.title: "Buhar Motoru"
+	quest.65BC4AE036F9EFB7.quest_desc: [
 		"Büyük güç."
 	]
-	quest.BA41D3A51065A948.title: "Ham Çinko"
-	quest.84B0358C5359FA08.title: "Çinko"
+	quest.3A41D3A51065A948.title: "Ham Çinko"
+	quest.04B0358C5359FA08.title: "Çinko"
 	quest.2EB757EE066FBD4F.title: "Demir Levha"
-	quest.E8556670F188B75E.title: "Bakır Levha"
-	quest.9AE8C1BEDE21A5E3.title: "Altın Levha"
-	quest.B76CFE6FFA563AB5.title: "Pirinç Levha"
+	quest.68556670F188B75E.title: "Bakır Levha"
+	quest.1AE8C1BEDE21A5E3.title: "Altın Levha"
+	quest.376CFE6FFA563AB5.title: "Pirinç Levha"
 	quest.0D647C0BEFEFDFD5.title: "Gül Kuvarsı"
-	quest.DB89DB0D1C37D7EE.title: "Cilalı Gül Kuvarsı"
-	quest.EB583638AC60C68A.title: "Elektron Tüpü"
-	quest.CB664A7444DAB433.title: "İngiliz Anahtarı"
-	quest.A1901884BE1FC1BD.title: "Mühendis Gözlüğü"
-	quest.E35901825F2D62BD.title: "Değirmen Taşı"
-	quest.BB8FF314781E34F7.title: "Ezme Çarkları"
-	quest.C5670205849EE8D6.title: "Kasalı Fan"
+	quest.5B89DB0D1C37D7EE.title: "Cilalı Gül Kuvarsı"
+	quest.6B583638AC60C68A.title: "Elektron Tüpü"
+	quest.4B664A7444DAB433.title: "İngiliz Anahtarı"
+	quest.21901884BE1FC1BD.title: "Mühendis Gözlüğü"
+	quest.635901825F2D62BD.title: "Değirmen Taşı"
+	quest.3B8FF314781E34F7.title: "Ezme Çarkları"
+	quest.45670205849EE8D6.title: "Kasalı Fan"
 	quest.43D36B36CD799AFE.title: "Depo"
-	quest.F9B48911B4A360C2.title: "Kayış"
-	quest.B30345DE5C536FB2.title: "Mekanik Matkap"
+	quest.79B48911B4A360C2.title: "Kayış"
+	quest.330345DE5C536FB2.title: "Mekanik Matkap"
 	quest.3C4819A6172FCB82.title: "Mekanik Testere"
 	quest.6667A917084ED9A2.title: "Yerleştirici"
-	quest.AF7A91CFEB210277.title: "Mekanik Kol"
+	quest.2F7A91CFEB210277.title: "Mekanik Kol"
 	quest.010D0FFDBFF9572C.title: "Sıvı Borusu"
 	quest.3BEE95B61670A157.title: "Mekanik Pompa"
 	quest.20E2E4ABA85D4049.title: "Sıvı Tankı"
 	quest.4D88DC866D4F2572.title: "Ağızlık"
-	quest.C54B448F21E651E1.title: "Eşya Boşaltıcı"
-	quest.E3A9DCFAC817BE77.title: "Alaz Yakıcı"
-	quest.B78060CC55F3DFBB.title: "Alaz Keki"
+	quest.454B448F21E651E1.title: "Eşya Boşaltıcı"
+	quest.63A9DCFAC817BE77.title: "Alaz Yakıcı"
+	quest.378060CC55F3DFBB.title: "Alaz Keki"
 	quest.6A42F7A2698274E8.title: "Leğen"
 	quest.34C6583C3AA2A460.title: "Mekanik Rulman"
-	quest.8E28EF9EBB0E7146.title: "Yel Değirmeni Rulmanı"
+	quest.0E28EF9EBB0E7146.title: "Yel Değirmeni Rulmanı"
 	quest.36401B5ADE53AC7E.title: "Yelkenler"
 	quest.1377C8159113549E.title: "Sağlam Levha"
 	quest.4961A41819FA6EF4.title: "Demiryolu Kasası"
-	quest.B03466AEEE31F782.title: "Tren Rayı"
+	quest.303466AEEE31F782.title: "Tren Rayı"
 	quest.74061272AC51128B.title: "Tren Kontrolleri"
 	quest.74061272AC51128B.quest_desc: [
 		"Kendi trenini yap!"
 	]
-	quest.CF35D307E70863C1.title: "Eşya Kasası"
+	quest.4F35D307E70863C1.title: "Eşya Kasası"
 	quest.667B04F7C2428F3C.title: "Şema Topu"
-	quest.B346ED77C9AEAE92.title: "Patates Topu"
+	quest.3346ED77C9AEAE92.title: "Patates Topu"
 	quest.374EBB14887FB898.title: "Uzatma Kolu"
 	quest.02D024D0EA8D44DD.title: "Simetri Asası"
 	quest.44CBFBB3D21F633E.title: "Bakır Sırt Tankı"
-	quest.DADAEC0DF243BC95.title: "Netherit Sırt Tankı"
-	quest.ADD8CA2900F842C6.title: "Dönüş Hızı Kontrolcüsü"
-	quest.B4535FE67186D7DE.title: "Sıralı Vites"
-	quest.E56AB6E2EDAC2B8F.title: "Elektrik Motoru"
-	quest.E56AB6E2EDAC2B8F.quest_desc: [
-		"Create Crafts & Additions."
+	quest.5ADAEC0DF243BC95.title: "Netherit Sırt Tankı"
+	quest.2DD8CA2900F842C6.title: "Dönüş Hızı Kontrolcüsü"
+	quest.34535FE67186D7DE.title: "Sıralı Vites"
+	quest.656AB6E2EDAC2B8F.title: "Elektrik Motoru"
+	quest.656AB6E2EDAC2B8F.quest_desc: [
+		"Create Crafts \\& Additions."
 	]
-	quest.A022658EAA5B6AF5.title: "Alternatör"
-	quest.AEF59E7357C557B4.title: "Bakır Tel"
-	quest.CEA1224FA3860E29.title: "Bağlayıcı"
-	quest.B59F967829E721E2.title: "Akümülatör"
+	quest.2022658EAA5B6AF5.title: "Alternatör"
+	quest.2EF59E7357C557B4.title: "Bakır Tel"
+	quest.4EA1224FA3860E29.title: "Bağlayıcı"
+	quest.359F967829E721E2.title: "Akümülatör"
 	quest.2801C6E6FAE08C40.title: "Tesla Bobini"
-	chapter.90138904D2605D92.title: "&9Mekanism"
-	quest.BEA25E9920AFA7EA.title: "Ham Osmiyum"
-	quest.BEA25E9920AFA7EA.quest_desc: [
+	chapter.10138904D2605D92.title: "&9Mekanism"
+	quest.3EA25E9920AFA7EA.title: "Ham Osmiyum"
+	quest.3EA25E9920AFA7EA.quest_desc: [
 		"Mekanism'in temel metali."
 	]
 	quest.673548DA3833DACD.title: "Osmiyum"
-	quest.B9E13B6DC50D0ABD.title: "Metalurjik Aşılayıcı"
-	quest.B9E13B6DC50D0ABD.quest_desc: [
+	quest.39E13B6DC50D0ABD.title: "Metalurjik Aşılayıcı"
+	quest.39E13B6DC50D0ABD.quest_desc: [
 		"Mekanism'e giriş kapısı."
 	]
-	quest.9083C52D509EE2B9.title: "Çelik"
-	quest.ACCF79B70CC723F0.title: "Çelik Kasa"
-	quest.8B704D376C0CFDAB.title: "Temel Devre"
+	quest.1083C52D509EE2B9.title: "Çelik"
+	quest.2CCF79B70CC723F0.title: "Çelik Kasa"
+	quest.0B704D376C0CFDAB.title: "Temel Devre"
 	quest.4D8069E6292E06F8.title: "Gelişmiş Devre"
-	quest.FD33C8F255C8F285.title: "Seçkin Devre"
+	quest.7D33C8F255C8F285.title: "Seçkin Devre"
 	quest.5EA51DF60D92746B.title: "Nihai Devre"
 	quest.547FB3F62759848A.title: "Dijital Madenci"
 	quest.547FB3F62759848A.quest_desc: [
 		"Artık kazmaya gerek yok."
 	]
-	quest.878E475B574DDF2D.title: "Antimadde"
-	quest.878E475B574DDF2D.quest_desc: [
+	quest.078E475B574DDF2D.title: "Antimadde"
+	quest.078E475B574DDF2D.quest_desc: [
 		"Mekanism'in zirvesi."
 	]
-	quest.BBB7BC98841A20A4.title: "Zenginleştirme Odası"
-	quest.BBB7BC98841A20A4.quest_desc: [
+	quest.3BB7BC98841A20A4.title: "Zenginleştirme Odası"
+	quest.3BB7BC98841A20A4.quest_desc: [
 		"Cevher ikiye katlama."
 	]
 	quest.29F71F79E26FB072.title: "Kırıcı"
-	quest.FFA20E092C42C4E9.title: "Enerjili Fırın"
+	quest.7FA20E092C42C4E9.title: "Enerjili Fırın"
 	quest.3995328333C816B5.title: "Osmiyum Sıkıştırıcı"
 	quest.680AE758FFF980FD.title: "Birleştirici"
-	quest.CE8961ADD2D77B7D.title: "Arıtma Odası"
-	quest.CE8961ADD2D77B7D.quest_desc: [
+	quest.4E8961ADD2D77B7D.title: "Arıtma Odası"
+	quest.4E8961ADD2D77B7D.quest_desc: [
 		"Cevher üçe katlama."
 	]
-	quest.956B59458961F64D.title: "Kimyasal Enjeksiyon Odası"
-	quest.956B59458961F64D.quest_desc: [
+	quest.156B59458961F64D.title: "Kimyasal Enjeksiyon Odası"
+	quest.156B59458961F64D.quest_desc: [
 		"Cevher dörde katlama."
 	]
 	quest.54CE278C3A5A3792.title: "Kimyasal Yıkayıcı"
-	quest.848CC41C4F0E9621.title: "Kimyasal Çözünme Odası"
+	quest.048CC41C4F0E9621.title: "Kimyasal Çözünme Odası"
 	quest.16C7E9573FE8B834.title: "Kimyasal Kristalleştirici"
 	quest.16C7E9573FE8B834.quest_desc: [
 		"Cevher beşe katlama!"
 	]
 	quest.362145B805638EA7.title: "Aşılanmış Alaşım"
 	quest.3B79CB09F3D733FE.title: "Güçlendirilmiş Alaşım"
-	quest.BF1135C794218C61.title: "Atomik Alaşım"
+	quest.3F1135C794218C61.title: "Atomik Alaşım"
 	quest.4417BBA132A6EDA0.title: "Bronz"
 	quest.0495A355FD4E3D0B.title: "Arıtılmış Işıktaşı"
 	quest.4E2C03B7C37CEC37.title: "Arıtılmış Obsidiyen"
-	quest.8054F9E128765717.title: "Kalay"
+	quest.0054F9E128765717.title: "Kalay"
 	quest.410F24ABD070AF80.title: "Kurşun"
 	quest.23E17440339C77AD.title: "Uranyum"
 	quest.47B4FDA412633A73.title: "Temel Enerji Küpü"
 	quest.77CD180A2D006CF9.title: "Gelişmiş Enerji Küpü"
-	quest.99B5C4672D562E68.title: "Seçkin Enerji Küpü"
-	quest.D3AD32926CF51F36.title: "Nihai Enerji Küpü"
-	quest.CD242874B5579FC4.title: "Evrensel Kablo"
-	quest.BCE6F47277E5516F.title: "Lojistik Taşıyıcı"
-	quest.C113C7E27E5C6FC3.title: "Nihai Sıvı Tankı"
+	quest.19B5C4672D562E68.title: "Seçkin Enerji Küpü"
+	quest.53AD32926CF51F36.title: "Nihai Enerji Küpü"
+	quest.4D242874B5579FC4.title: "Evrensel Kablo"
+	quest.3CE6F47277E5516F.title: "Lojistik Taşıyıcı"
+	quest.4113C7E27E5C6FC3.title: "Nihai Sıvı Tankı"
 	quest.06D95A7879A989BD.title: "Nihai Kutu"
-	quest.B894722E4A6AD266.title: "Nihai Kimyasal Tank"
-	quest.FB017365A2BF88B6.title: "Yapılandırıcı"
+	quest.3894722E4A6AD266.title: "Nihai Kimyasal Tank"
+	quest.7B017365A2BF88B6.title: "Yapılandırıcı"
 	quest.3DD7A1E69E1B98CE.title: "Atomik Sökücü"
 	quest.3DD7A1E69E1B98CE.quest_desc: [
 		"Her şeyi kıran alet."
 	]
-	quest.CE82D92B6FA8E3E3.title: "Jetpack"
+	quest.4E82D92B6FA8E3E3.title: "Jetpack"
 	quest.5151ADCCA7666E3A.title: "Taşınabilir Işınlayıcı"
-	quest.8E78D9A262C28A5C.title: "Işınlayıcı"
+	quest.0E78D9A262C28A5C.title: "Işınlayıcı"
 	quest.3D2F574B80413ED7.title: "Kuantum Dolanıklık Taşıyıcısı"
 	quest.1A892DA3858E97A7.title: "QIO Sürücü Dizisi"
 	quest.7EB9AC2B3562C529.title: "QIO Paneli"
-	quest.E679C2780EA34203.title: "MekaSuit"
-	quest.E679C2780EA34203.quest_desc: [
+	quest.6679C2780EA34203.title: "MekaSuit"
+	quest.6679C2780EA34203.quest_desc: [
 		"Mekanism'in nihai zırhı."
 	]
 	quest.69613952C5AD7176.title: "Isı Jeneratörü"
 	quest.69613952C5AD7176.quest_desc: [
 		"Mekanism Generators."
 	]
-	quest.D75C937117F543C2.title: "Güneş Jeneratörü"
+	quest.575C937117F543C2.title: "Güneş Jeneratörü"
 	quest.71A57039477D3635.title: "Rüzgar Jeneratörü"
-	quest.8836ECFE642A745B.title: "Gaz Yakıcı Jeneratör"
+	quest.0836ECFE642A745B.title: "Gaz Yakıcı Jeneratör"
 	quest.1F58FC441D80FD18.title: "Türbin Kasası"
 	quest.2F606700164AD3A6.title: "Fisyon Reaktörü"
 	quest.2F606700164AD3A6.quest_desc: [
 		"Dikkatli ol!"
 	]
-	quest.F445BDEB6E2AC0F2.title: "SPS"
-	quest.F445BDEB6E2AC0F2.quest_desc: [
+	quest.7445BDEB6E2AC0F2.title: "SPS"
+	quest.7445BDEB6E2AC0F2.quest_desc: [
 		"Süper kritik faz değiştirici."
 	]
-	quest.973A4CDAD5543340.title: "Polonyum"
+	quest.173A4CDAD5543340.title: "Polonyum"
 	quest.5449AE9E3B4CBB39.title: "Plütonyum"
 	quest.423877A0BDB369C6.title: "Antiprotonik Nükleosentezleyici"
-	quest.D4C2069E6095B31E.title: "Osmiyum Kazma"
-	quest.D4C2069E6095B31E.quest_desc: [
+	quest.54C2069E6095B31E.title: "Osmiyum Kazma"
+	quest.54C2069E6095B31E.quest_desc: [
 		"Mekanism Tools."
 	]
 	quest.659C654B029300A7.title: "Bronz Kılıç"
 	quest.595C9606742D69B8.title: "Çelik Göğüslük"
-	quest.D678B573FEB3B187.title: "Işıktaşı Kazma"
+	quest.5678B573FEB3B187.title: "Işıktaşı Kazma"
 	quest.0559FBBBAA7C6F44.title: "Obsidiyen Kılıç"
-	quest.ECBB0F1AAA757C82.title: "Obsidiyen Göğüslük"
+	quest.6CBB0F1AAA757C82.title: "Obsidiyen Göğüslük"
 	chapter.32F4545024F13413.title: "&3Applied Energistics 2"
 	quest.29938ED01A516852.title: "Sertifikalı Kuvars"
 	quest.29938ED01A516852.quest_desc: [
@@ -801,14 +801,14 @@
 	quest.69CA04D9E1C3AC8C.title: "Yüklü Kuvars"
 	quest.1F58C0DE35B30AA8.title: "Fluix Kristali"
 	quest.4FBDAD27C1B15DD7.title: "Yazıcı"
-	quest.BD2DF2762C146C63.title: "Mantık İşlemcisi"
-	quest.FD0E12831D51C5EB.title: "Hesaplama İşlemcisi"
-	quest.BB57DBF41B3B4DA9.title: "Mühendislik İşlemcisi"
+	quest.3D2DF2762C146C63.title: "Mantık İşlemcisi"
+	quest.7D0E12831D51C5EB.title: "Hesaplama İşlemcisi"
+	quest.3B57DBF41B3B4DA9.title: "Mühendislik İşlemcisi"
 	quest.66F8667053B32BDE.title: "ME Kontrolcüsü"
 	quest.66F8667053B32BDE.quest_desc: [
 		"Dijital deponun kalbi."
 	]
-	quest.F7441A00316C35C5.title: "ME Sürücüsü"
+	quest.77441A00316C35C5.title: "ME Sürücüsü"
 	quest.1270E159B0D1BB27.title: "Moleküler Birleştirici"
 	quest.4CA76EB6EDD1E768.title: "Tekillik"
 	quest.16A29D977FF609DA.title: "Kuantum Bağlantısı"
@@ -816,32 +816,32 @@
 		"Boyutlar arası ağ."
 	]
 	quest.50B1AD18EB2CAD94.title: "Gök Taşı"
-	quest.D838E2A74EC21888.title: "Göktaşı Pusulası"
-	quest.9A18DB7B1B9BFC2A.title: "Kusursuz Tomurcuklanan Kuvars"
+	quest.5838E2A74EC21888.title: "Göktaşı Pusulası"
+	quest.1A18DB7B1B9BFC2A.title: "Kusursuz Tomurcuklanan Kuvars"
 	quest.404FF806DE3F8803.title: "Büyüme Hızlandırıcı"
-	quest.AF521456173C0A37.title: "Silikon"
-	quest.BD42284E5B2034E8.title: "Basılı Silikon"
+	quest.2F521456173C0A37.title: "Silikon"
+	quest.3D42284E5B2034E8.title: "Basılı Silikon"
 	quest.58490FF76D0E3D45.title: "Fluix Tozu"
-	quest.E51951C77AFD0CFB.title: "Kuvars Lifi"
-	quest.96C26794522DEF81.title: "Şarj Cihazı"
+	quest.651951C77AFD0CFB.title: "Kuvars Lifi"
+	quest.16C26794522DEF81.title: "Şarj Cihazı"
 	quest.1605F6817831A449.title: "Fluix Kablo"
-	quest.8FD4472054841B26.title: "Akıllı Kablo"
+	quest.0FD4472054841B26.title: "Akıllı Kablo"
 	quest.641F3C9DE5AF65B9.title: "Yoğun Kablo"
 	quest.240DBAEEBC8D146D.title: "Enerji Alıcı"
 	quest.3CA702A0A6F78546.title: "Enerji Hücresi"
-	quest.A6F39B72C7D81018.title: "Yoğun Enerji Hücresi"
-	quest.D42AC67766ED4D52.title: "ME Terminali"
-	quest.FF91EE683F43752A.title: "Üretim Terminali"
+	quest.26F39B72C7D81018.title: "Yoğun Enerji Hücresi"
+	quest.542AC67766ED4D52.title: "ME Terminali"
+	quest.7F91EE683F43752A.title: "Üretim Terminali"
 	quest.2F289E00A2EDB7FF.title: "Desen Terminali"
-	quest.D24395CB908FAF35.title: "Kablosuz Erişim Noktası"
+	quest.524395CB908FAF35.title: "Kablosuz Erişim Noktası"
 	quest.58ADAC640A7947BB.title: "Kablosuz Üretim Terminali"
 	quest.15D8733C983D4577.title: "1k Bileşen"
-	quest.EFFCE456F6BEC474.title: "1k Hücre"
-	quest.F9BB7AAE1386E6DA.title: "4k Hücre"
+	quest.6FFCE456F6BEC474.title: "1k Hücre"
+	quest.79BB7AAE1386E6DA.title: "4k Hücre"
 	quest.4F911D3B1DD40429.title: "16k Hücre"
 	quest.6A8127E2816DB652.title: "64k Hücre"
-	quest.8EC2BDA102B5E361.title: "256k Hücre"
-	quest.8EC2BDA102B5E361.quest_desc: [
+	quest.0EC2BDA102B5E361.title: "256k Hücre"
+	quest.0EC2BDA102B5E361.quest_desc: [
 		"Devasa depo."
 	]
 	quest.0D877ABD61318C8F.title: "ME Arayüzü"
@@ -849,61 +849,61 @@
 	quest.178CF320BA75F614.title: "Boş Desen"
 	quest.318FE2D4DFF65367.title: "Üretim Birimi"
 	quest.6AC76B0AE2828EEC.title: "Üretim Deposu"
-	quest.BA3AB9096C04AC6C.title: "Üretim Hızlandırıcı"
-	quest.F2CFD86C6E0F6003.title: "Uzamsal G/Ç Portu"
-	quest.A736AADFFCE39C07.title: "Kuantum Halkası"
-	chapter.F8E972A61CEB3CE6.title: "&eEnerji ve Mühendislik"
-	quest.E71C6075162C525A.title: "Uraninit"
-	quest.E71C6075162C525A.quest_desc: [
+	quest.3A3AB9096C04AC6C.title: "Üretim Hızlandırıcı"
+	quest.72CFD86C6E0F6003.title: "Uzamsal G/Ç Portu"
+	quest.2736AADFFCE39C07.title: "Kuantum Halkası"
+	chapter.78E972A61CEB3CE6.title: "&eEnerji ve Mühendislik"
+	quest.671C6075162C525A.title: "Uraninit"
+	quest.671C6075162C525A.quest_desc: [
 		"Powah'a başlangıç."
 	]
-	quest.8F7667EC754C6D60.title: "Dielektrik Macun"
-	quest.9C4D48087B83A0ED.title: "Enerji Küresi"
+	quest.0F7667EC754C6D60.title: "Dielektrik Macun"
+	quest.1C4D48087B83A0ED.title: "Enerji Küresi"
 	quest.4878DA4E6DAAB106.title: "Enerji Çubuğu"
-	quest.F59B4DD006E201BF.title: "Enerjili Çelik"
+	quest.759B4DD006E201BF.title: "Enerjili Çelik"
 	quest.00471F4A9367DB30.title: "Alevli Kristal"
-	quest.A601E0D83ED4D4E2.title: "Niotik Kristal"
-	quest.EFC6DD638C6F7901.title: "Ruhlu Kristal"
-	quest.9C3E8FCABF8B056E.title: "Nitro Kristal"
-	quest.9C3E8FCABF8B056E.quest_desc: [
+	quest.2601E0D83ED4D4E2.title: "Niotik Kristal"
+	quest.6FC6DD638C6F7901.title: "Ruhlu Kristal"
+	quest.1C3E8FCABF8B056E.title: "Nitro Kristal"
+	quest.1C3E8FCABF8B056E.quest_desc: [
 		"Powah'ın en üst seviyesi."
 	]
-	quest.C44C307700D2F3A8.title: "Nitro Enerji Hücresi"
+	quest.444C307700D2F3A8.title: "Nitro Enerji Hücresi"
 	quest.0201AFB7FAF6E3FA.title: "Güneş Paneli"
 	quest.04A5471DC1A126B7.title: "Termo Jeneratör"
-	quest.A2094DE1BD5575CB.title: "Reaktör"
-	quest.A2094DE1BD5575CB.quest_desc: [
+	quest.22094DE1BD5575CB.title: "Reaktör"
+	quest.22094DE1BD5575CB.quest_desc: [
 		"Powah reaktörünü kur."
 	]
 	quest.311D95AA0B93D377.title: "Enerji Hücresi"
 	quest.77CD77F62C2AE8F7.title: "Oyuncu Vericisi"
-	quest.F4D096B0509DA7E4.title: "Mühendis Çekici"
-	quest.F4D096B0509DA7E4.quest_desc: [
+	quest.74D096B0509DA7E4.title: "Mühendis Çekici"
+	quest.74D096B0509DA7E4.quest_desc: [
 		"Immersive Engineering."
 	]
 	quest.578B8F6F77D3CF5C.title: "Kok Kömürü"
 	quest.648FB8673E47F181.title: "Kok Fırını"
-	quest.DB6654224A6FA7D6.title: "Yüksek Fırın"
-	quest.C5D1CEE159610A16.title: "IE Çeliği"
+	quest.5B6654224A6FA7D6.title: "Yüksek Fırın"
+	quest.45D1CEE159610A16.title: "IE Çeliği"
 	quest.6CDFA731EE5F25D8.title: "Alüminyum"
-	quest.A0E2CD0966F7C50C.title: "İşlenmiş Odun"
-	quest.81B048984BEEDC35.title: "Demir Bileşen"
+	quest.20E2CD0966F7C50C.title: "İşlenmiş Odun"
+	quest.01B048984BEEDC35.title: "Demir Bileşen"
 	quest.6C678BB5C9EC4402.title: "Çelik Bileşen"
-	quest.E805A004AA8B642A.title: "Hafif Mühendislik Bloğu"
+	quest.6805A004AA8B642A.title: "Hafif Mühendislik Bloğu"
 	quest.638C67163E4227C7.title: "Ağır Mühendislik Bloğu"
 	quest.3E5A19EC0A1834DA.title: "Bakır Tel"
-	quest.EF0CF1377B873F2E.title: "Yel Değirmeni"
-	quest.CC5AF463FBB92D7E.title: "Düşük Voltaj Kapasitör"
-	quest.CCB4FD5C9B8F4DAA.title: "Orta Voltaj Kapasitör"
+	quest.6F0CF1377B873F2E.title: "Yel Değirmeni"
+	quest.4C5AF463FBB92D7E.title: "Düşük Voltaj Kapasitör"
+	quest.4CB4FD5C9B8F4DAA.title: "Orta Voltaj Kapasitör"
 	quest.44B3CEB333BEA862.title: "Yüksek Voltaj Kapasitör"
 	quest.3FBEBC6054DB7EEE.title: "Jeneratör Bloğu"
-	quest.9A8553176439C946.title: "Kızıltaş Mühendislik Bloğu"
-	quest.A4D1075C74B3944B.title: "Eşya Borusu"
-	quest.A4D1075C74B3944B.quest_desc: [
+	quest.1A8553176439C946.title: "Kızıltaş Mühendislik Bloğu"
+	quest.24D1075C74B3944B.title: "Eşya Borusu"
+	quest.24D1075C74B3944B.quest_desc: [
 		"Pipez ile basit taşıma."
 	]
-	quest.FA6E6F1F551E81A1.title: "Sıvı Borusu"
-	quest.B7D06EE3A89A7893.title: "Enerji Borusu"
+	quest.7A6E6F1F551E81A1.title: "Sıvı Borusu"
+	quest.37D06EE3A89A7893.title: "Enerji Borusu"
 	quest.60DD66E632A1128C.title: "Evrensel Boru"
 	quest.1927212D3B8B7EF9.title: "Demir Fırın"
 	quest.1927212D3B8B7EF9.quest_desc: [
@@ -911,25 +911,25 @@
 	]
 	quest.1E92D0BD6CF5DA8A.title: "Altın Fırın"
 	quest.6F0D39721CF9AFD3.title: "Elmas Fırın"
-	quest.EF1B73FEFE79FDBA.title: "Netherit Fırın"
+	quest.6F1B73FEFE79FDBA.title: "Netherit Fırın"
 	chapter.67F75235796BD9A5.title: "&fDepolama"
-	quest.E6E8FC92D4C191F0.title: "Çekmece"
-	quest.E6E8FC92D4C191F0.quest_desc: [
+	quest.66E8FC92D4C191F0.title: "Çekmece"
+	quest.66E8FC92D4C191F0.quest_desc: [
 		"Functional Storage."
 	]
-	quest.9D60308B4B0FBF51.title: "İkili Çekmece"
-	quest.8FDF9817DECDE40A.title: "Dörtlü Çekmece"
+	quest.1D60308B4B0FBF51.title: "İkili Çekmece"
+	quest.0FDF9817DECDE40A.title: "Dörtlü Çekmece"
 	quest.3212D2CDFF934DD4.title: "Depo Kontrolcüsü"
-	quest.E60FBDA7F3355D6D.title: "Bakır Yükseltme"
+	quest.660FBDA7F3355D6D.title: "Bakır Yükseltme"
 	quest.6611A7CB1BF1F289.title: "Altın Yükseltme"
 	quest.3A36B26ECA6AEAC7.title: "Elmas Yükseltme"
-	quest.DBD7B7564481A8C9.title: "Netherit Yükseltme"
+	quest.5BD7B7564481A8C9.title: "Netherit Yükseltme"
 	quest.768FD4450E043CE0.title: "Gelişmiş Sandık"
 	quest.768FD4450E043CE0.quest_desc: [
 		"Sophisticated Storage."
 	]
-	quest.EDB14DF6678C2E37.title: "Gelişmiş Fıçı"
-	quest.DAC522C302A256A6.title: "Demir Gelişmiş Sandık"
+	quest.6DB14DF6678C2E37.title: "Gelişmiş Fıçı"
+	quest.5AC522C302A256A6.title: "Demir Gelişmiş Sandık"
 	quest.1C483FFE696663EE.title: "Altın Gelişmiş Sandık"
 	quest.79AA27824373F740.title: "Elmas Gelişmiş Sandık"
 	quest.47B5A2943CEEDFEB.title: "Netherit Gelişmiş Sandık"
@@ -945,22 +945,22 @@
 	quest.747D8CFBF03F418D.title: "Huni Arabası"
 	quest.01E4136213D27651.title: "Bırakıcı"
 	quest.4D1E560B6A9B73CF.title: "Karşılaştırıcı"
-	chapter.0646FFEBE0BBC584.title: "&4Kan ve Ruh: EvilCraft & Malum"
-	quest.A9D00F94477C66BA.title: "Karanlık Mücevher"
-	quest.A9D00F94477C66BA.quest_desc: [
+	chapter.0646FFEBE0BBC584.title: "&4Kan ve Ruh: EvilCraft \\& Malum"
+	quest.29D00F94477C66BA.title: "Karanlık Mücevher"
+	quest.29D00F94477C66BA.quest_desc: [
 		"EvilCraft'a başlangıç. Derinlerde karanlık cevher ara."
 	]
 	quest.38DC6AA2523B3F13.title: "Karanlık Çubuk"
-	quest.B1584BA943D78561.title: "Kan Çıkarıcı"
-	quest.B1584BA943D78561.quest_desc: [
+	quest.31584BA943D78561.title: "Kan Çıkarıcı"
+	quest.31584BA943D78561.quest_desc: [
 		"Yaratıklardan kan topla."
 	]
 	quest.38630158BF890E08.title: "Kan Aşılayıcı"
-	quest.DCD85AE962930660.title: "Kan Aşılama Çekirdeği"
+	quest.5CD85AE962930660.title: "Kan Aşılama Çekirdeği"
 	quest.7B74235AE641D6F9.title: "Sertleşmiş Kan"
-	quest.8AC007D8FE9327F5.title: "Karanlık Güç Mücevheri"
-	quest.8E028C54DB016E9F.title: "Ruh Fırını"
-	quest.B3DFCBA2DF22877C.title: "Çevresel Biriktirici"
+	quest.0AC007D8FE9327F5.title: "Karanlık Güç Mücevheri"
+	quest.0E028C54DB016E9F.title: "Ruh Fırını"
+	quest.33DFCBA2DF22877C.title: "Çevresel Biriktirici"
 	quest.751ED168D69EAADF.title: "Kanlı Biriktirici"
 	quest.1090A2DC0CBD4AFA.title: "Yüce Üretici"
 	quest.371157C4A37D8B3E.title: "Karanlığın Kökeni"
@@ -975,137 +975,137 @@
 		"Eşyalarını kanla tamir eder."
 	]
 	quest.5612B1419B39E8E6.title: "Arıtıcı"
-	quest.D381AC1680DAC3B4.title: "İntikam Yüzüğü"
-	quest.E79250A25398CD89.title: "İntikam Özü"
-	quest.EA6E316326FD6FE5.title: "İntikam Kazması"
-	quest.D9F64187F26E23F3.title: "Çarpıtma Topuzu"
-	quest.BB4AC2730F0E6EDA.title: "Yıkım Topuzu"
-	quest.C30E50D8D93A2946.title: "Kurtadam Kemiği"
+	quest.5381AC1680DAC3B4.title: "İntikam Yüzüğü"
+	quest.679250A25398CD89.title: "İntikam Özü"
+	quest.6A6E316326FD6FE5.title: "İntikam Kazması"
+	quest.59F64187F26E23F3.title: "Çarpıtma Topuzu"
+	quest.3B4AC2730F0E6EDA.title: "Yıkım Topuzu"
+	quest.430E50D8D93A2946.title: "Kurtadam Kemiği"
 	quest.768CB401DB0F481A.title: "Kurtadam Kürkü"
-	quest.C7A5816F18FCC90C.title: "Zehir Kesesi"
-	quest.ED40B37434E84004.title: "Süpürge"
-	quest.ED40B37434E84004.quest_desc: [
+	quest.47A5816F18FCC90C.title: "Zehir Kesesi"
+	quest.6D40B37434E84004.title: "Süpürge"
+	quest.6D40B37434E84004.quest_desc: [
 		"Uçan süpürge!"
 	]
 	quest.1FE83469A79B9931.title: "Ölü Çağıran Asası"
-	quest.B93AC08FFF94F635.title: "Gök Gürültüsü Asası"
-	quest.BCBFC483FA757A97.title: "Hayalet Gözlüğü"
+	quest.393AC08FFF94F635.title: "Gök Gürültüsü Asası"
+	quest.3CBFC483FA757A97.title: "Hayalet Gözlüğü"
 	quest.24C63A863EC88AA4.title: "Ebedi Kapanış Kutusu"
 	quest.32E7A15C77CF16C6.title: "Arcana Ansiklopedisi"
 	quest.32E7A15C77CF16C6.quest_desc: [
 		"Malum ile ruh büyüsüne başla."
 	]
-	quest.9C5A342B7754A5E6.title: "Kaba Tırpan"
-	quest.9C5A342B7754A5E6.quest_desc: [
+	quest.1C5A342B7754A5E6.title: "Kaba Tırpan"
+	quest.1C5A342B7754A5E6.quest_desc: [
 		"Yaratıklardan ruh topla."
 	]
 	quest.609E15290D74C4AF.title: "Ruh Sunağı"
-	quest.97A276986B261B6F.title: "Ruh Lekeli Çelik"
-	quest.9907C82A9987E27E.title: "Kutsanmış Altın"
+	quest.17A276986B261B6F.title: "Ruh Lekeli Çelik"
+	quest.1907C82A9987E27E.title: "Kutsanmış Altın"
 	quest.62720B3503D46349.title: "Ruh Kavanozu"
-	quest.F2EDFF90CBE4E5EE.title: "Ruh Potası"
+	quest.72EDFF90CBE4E5EE.title: "Ruh Potası"
 	quest.3EBFB653FFA59359.title: "Rünik Tezgah"
-	quest.C98F7966DB886CC0.title: "Ruh Çeliği Tırpanı"
+	quest.498F7966DB886CC0.title: "Ruh Çeliği Tırpanı"
 	quest.6B1C854B82B68696.title: "Esoterica Ansiklopedisi"
 	quest.7D3F8123BE5C0A94.title: "Kötücül Kalay"
-	quest.D69677790147609D.title: "Kurtuluşun Kenarı"
-	quest.D69677790147609D.quest_desc: [
+	quest.569677790147609D.title: "Kurtuluşun Kenarı"
+	quest.569677790147609D.quest_desc: [
 		"Malum'un en güçlü silahlarından."
 	]
 	quest.45194084AD2E8DAC.title: "Kutsal Ruh"
-	quest.D947B38B8BC2977D.title: "Kötü Ruh"
-	quest.8C2BED16F097C93D.title: "Gizemli Ruh"
-	quest.89BD0D0405CFDA66.title: "Kadim Ruh"
-	quest.9D3457B027C225E6.title: "Hava Ruhu"
-	quest.C094D539BF4845E6.title: "Su Ruhu"
-	quest.C40CF52BB5B7E213.title: "Toprak Ruhu"
-	quest.F5E10ABAAD6B258A.title: "Cehennem Ruhu"
+	quest.5947B38B8BC2977D.title: "Kötü Ruh"
+	quest.0C2BED16F097C93D.title: "Gizemli Ruh"
+	quest.09BD0D0405CFDA66.title: "Kadim Ruh"
+	quest.1D3457B027C225E6.title: "Hava Ruhu"
+	quest.4094D539BF4845E6.title: "Su Ruhu"
+	quest.440CF52BB5B7E213.title: "Toprak Ruhu"
+	quest.75E10ABAAD6B258A.title: "Cehennem Ruhu"
 	quest.64E01DBF2BCA8014.title: "Gölge Ruhu"
-	quest.9BD5DED69D234F91.title: "Ham Ruhtaşı"
+	quest.1BD5DED69D234F91.title: "Ham Ruhtaşı"
 	quest.66F9E13ABC7A9AC5.title: "Alevli Kuvars"
 	quest.7056F0F060591CF3.title: "Gizemli Odun Kömürü"
-	quest.B7581AE83FBBE18E.title: "Büyü Külü"
-	quest.D2CFACD2CCB37C5A.title: "Canlı Et"
-	quest.C650F38EF9D3D24F.title: "Boşluk Tuzu"
-	quest.93AC9587713EFD6A.title: "Boş Arduvaz"
-	quest.97225C2BA59C8EE0.title: "Astral Örgü"
-	quest.97225C2BA59C8EE0.quest_desc: [
+	quest.37581AE83FBBE18E.title: "Büyü Külü"
+	quest.52CFACD2CCB37C5A.title: "Canlı Et"
+	quest.4650F38EF9D3D24F.title: "Boşluk Tuzu"
+	quest.13AC9587713EFD6A.title: "Boş Arduvaz"
+	quest.17225C2BA59C8EE0.title: "Astral Örgü"
+	quest.17225C2BA59C8EE0.quest_desc: [
 		"Yıldızlarla dokunmuş kumaş."
 	]
-	quest.EE31CF6A01A2CF03.title: "Yıldız Mekanizması"
-	chapter.8772A1F000AC15F1.title: "&5Ars Nouveau"
+	quest.6E31CF6A01A2CF03.title: "Yıldız Mekanizması"
+	chapter.0772A1F000AC15F1.title: "&5Ars Nouveau"
 	quest.68C4BB7B7D1EA0E0.title: "Acemi Büyü Kitabı"
 	quest.68C4BB7B7D1EA0E0.quest_desc: [
 		"Kendi büyülerini yaz."
 	]
-	quest.D102B60EA1289779.title: "Kaynak Mücevheri"
-	quest.874C6DE3414F087B.title: "Katip Masası"
-	quest.B5DF3F3FD4C2CBC3.title: "Aşılama Odası"
+	quest.5102B60EA1289779.title: "Kaynak Mücevheri"
+	quest.074C6DE3414F087B.title: "Katip Masası"
+	quest.35DF3F3FD4C2CBC3.title: "Aşılama Odası"
 	quest.62C78785898541B0.title: "Kaynak Kavanozu"
 	quest.16A10DA8722B4AE5.title: "Gizemli Çekirdek"
 	quest.7CED6CC5C92C3530.title: "Büyü Aparatı"
-	quest.F8471F2A142991E9.title: "Çırak Büyü Kitabı"
+	quest.78471F2A142991E9.title: "Çırak Büyü Kitabı"
 	quest.7E1B4B51C125840B.title: "Wilden Haracı"
 	quest.7E1B4B51C125840B.quest_desc: [
 		"Wilden Şefini yen."
 	]
-	quest.C0A20A8B6DB7CFDC.title: "Başbüyücü Kitabı"
-	quest.C0A20A8B6DB7CFDC.quest_desc: [
+	quest.40A20A8B6DB7CFDC.title: "Başbüyücü Kitabı"
+	quest.40A20A8B6DB7CFDC.quest_desc: [
 		"En güçlü büyü kitabı."
 	]
-	quest.EF69E7D8B35DC23B.title: "Tarımsal Kaynak Bağı"
+	quest.6F69E7D8B35DC23B.title: "Tarımsal Kaynak Bağı"
 	quest.4E5FCBD5B8377301.title: "Volkanik Kaynak Bağı"
-	quest.B5E6CBFDA9A719CE.title: "Gizemli Kaide"
+	quest.35E6CBFDA9A719CE.title: "Gizemli Kaide"
 	quest.061210983A538B39.title: "Kaynak Bloğu"
 	quest.746FBC5939492B4C.title: "Büyücü Çiçeği"
 	quest.241409C44D9E173B.title: "Büyücü Lifi"
 	quest.393946873B66B679.title: "Starbuncle Tılsımı"
 	quest.6CA8FB2BF5460722.title: "Ritüel Mangalı"
-	quest.FAE3FD7DB4E0534C.title: "Hava Özü"
+	quest.7AE3FD7DB4E0534C.title: "Hava Özü"
 	quest.4FCE10A3B720CD3E.title: "Toprak Özü"
 	quest.78C7B88943C4E9BE.title: "Ateş Özü"
-	quest.E68545ED91561435.title: "Su Özü"
+	quest.668545ED91561435.title: "Su Özü"
 	quest.40044D2CEDCE13BF.title: "Koruma Özü"
 	quest.6A1E38A1E3E7B7EE.title: "Çağırma Özü"
 	quest.234FD54E477DB4B0.title: "Manipülasyon Özü"
 	quest.629B0E44BFB17B6E.title: "Wilden Boynuzu"
 	quest.28F3923D32FE46B6.title: "Wilden Dikeni"
-	quest.FE8CC1A5016C30CA.title: "Wilden Kanadı"
-	quest.D8F7E94C249AC6D2.title: "Hakimiyet Asası"
-	chapter.FF389844624DA709.title: "&cIron's Spells"
+	quest.7E8CC1A5016C30CA.title: "Wilden Kanadı"
+	quest.58F7E94C249AC6D2.title: "Hakimiyet Asası"
+	chapter.7F389844624DA709.title: "&cIron's Spells"
 	quest.4E5E4EB7A3D14675.title: "Gizemli Öz"
 	quest.4E5E4EB7A3D14675.quest_desc: [
 		"Iron's Spells 'n Spellbooks'a başlangıç."
 	]
 	quest.53C17E56D24F31AC.title: "Yazıt Masası"
-	quest.E9944A3326D0D3AB.title: "Demir Büyü Kitabı"
+	quest.69944A3326D0D3AB.title: "Demir Büyü Kitabı"
 	quest.2EEAEE8E8FA4F298.title: "Parşömen Ocağı"
 	quest.753D08946440D885.title: "Altın Büyü Kitabı"
-	quest.9ACDF395188F48F2.title: "Gizemli Örs"
-	quest.9A8A4B41D53A98AD.title: "Mitril"
+	quest.1ACDF395188F48F2.title: "Gizemli Örs"
+	quest.1A8A4B41D53A98AD.title: "Mitril"
 	quest.48C3ED86CBB618CA.title: "Elmas Büyü Kitabı"
 	quest.1A21B5B4A0EED245.title: "Boş Rün"
 	quest.088FC22BBF8E3CE5.title: "Ateş Rünü"
-	quest.9A064D9A4DA3B7E5.title: "Buz Rünü"
+	quest.1A064D9A4DA3B7E5.title: "Buz Rünü"
 	quest.01263B91122CF3EC.title: "Yıldırım Rünü"
 	quest.7E773F0FC885DAEB.title: "Kutsal Rün"
-	quest.F655A904B4678D56.title: "Ender Rünü"
-	quest.F1D329FAEFC6CBF3.title: "Yükseltme Küresi"
+	quest.7655A904B4678D56.title: "Ender Rünü"
+	quest.71D329FAEFC6CBF3.title: "Yükseltme Küresi"
 	quest.5FE7550387CD6932.title: "Simyacı Kazanı"
-	quest.A715D95DDFDA59A7.title: "Sıradan Mürekkep"
-	quest.9A48E18D53AEEACE.title: "Nadir Mürekkep"
-	quest.8091C5C1785F72F3.title: "Efsanevi Mürekkep"
-	chapter.E9CB63B2C65D1EB8.title: "&dGizem: Occultism & Forbidden Arcanus"
-	quest.AFFEA1A4ACA78D22.title: "Şeytan Elması Tohumu"
-	quest.AFFEA1A4ACA78D22.quest_desc: [
+	quest.2715D95DDFDA59A7.title: "Sıradan Mürekkep"
+	quest.1A48E18D53AEEACE.title: "Nadir Mürekkep"
+	quest.0091C5C1785F72F3.title: "Efsanevi Mürekkep"
+	chapter.69CB63B2C65D1EB8.title: "&dGizem: Occultism \\& Forbidden Arcanus"
+	quest.2FFEA1A4ACA78D22.title: "Şeytan Elması Tohumu"
+	quest.2FFEA1A4ACA78D22.quest_desc: [
 		"Occultism'e başlangıç."
 	]
-	quest.C46FD8758F1A5BC3.title: "Şeytanın Rüyası Özü"
-	quest.A17016DF4D6140CC.title: "Gümüş"
+	quest.446FD8758F1A5BC3.title: "Şeytanın Rüyası Özü"
+	quest.217016DF4D6140CC.title: "Gümüş"
 	quest.6B64F9FDFBC12440.title: "Beyaz Tebeşir"
 	quest.16DEAFC8952EEEF4.title: "Kurban Kasesi"
-	quest.8651C23B39F2B826.title: "Altın Kurban Kasesi"
-	quest.D60D9BF533E9840E.title: "Ruha Uyumlu Mücevher"
+	quest.0651C23B39F2B826.title: "Altın Kurban Kasesi"
+	quest.560D9BF533E9840E.title: "Ruha Uyumlu Mücevher"
 	quest.7F1D7B8E12E46768.title: "İesniyum"
 	quest.58D81077DE352E27.title: "Boyutsal Depo"
 	quest.58D81077DE352E27.quest_desc: [
@@ -1113,11 +1113,11 @@
 	]
 	quest.47A8B96C870011B0.title: "Gizemli Kristal"
 	quest.47A8B96C870011B0.quest_desc: [
-		"Forbidden & Arcanus."
+		"Forbidden \\& Arcanus."
 	]
 	quest.1DAAE433D9BF22AC.title: "Rün"
 	quest.7F6F2E44C1510E0E.title: "Deorum"
-	quest.B0A7312B40D9C66E.title: "Hephaistos Ocağı"
+	quest.30A7312B40D9C66E.title: "Hephaistos Ocağı"
 	quest.27AC4599EEDC7C8F.title: "Stellarit Parçası"
 	quest.27AC4599EEDC7C8F.quest_desc: [
 		"Yıldızların bir parçası!"
@@ -1126,11 +1126,11 @@
 	quest.245463A5584BCD0B.quest_desc: [
 		"Nature's Aura."
 	]
-	quest.DEB647F9B6B08837.title: "Aşılanmış Demir"
-	quest.94D4F04C003E6BCB.title: "Doğa Sunağı"
+	quest.5EB647F9B6B08837.title: "Aşılanmış Demir"
+	quest.14D4F04C003E6BCB.title: "Doğa Sunağı"
 	quest.5173E126BFB9E05A.title: "Aura Algılayıcı"
-	quest.9C90A2DD5A327B7F.title: "Gök Külçesi"
-	chapter.B75AE59F12D2E91D.title: "&2Twilight Forest"
+	quest.1C90A2DD5A327B7F.title: "Gök Külçesi"
+	chapter.375AE59F12D2E91D.title: "&2Twilight Forest"
 	quest.24D81E9CEDE9D53B.title: "Naga Pulu"
 	quest.24D81E9CEDE9D53B.quest_desc: [
 		"İlk patron."
@@ -1140,12 +1140,12 @@
 	quest.7AE25B6FCF05A8F9.quest_desc: [
 		"Lich'i yen."
 	]
-	quest.D64EBDE38F8E418F.title: "Minoshroom"
-	quest.D64EBDE38F8E418F.quest_desc: [
+	quest.564EBDE38F8E418F.title: "Minoshroom"
+	quest.564EBDE38F8E418F.quest_desc: [
 		"Labirentin efendisi."
 	]
-	quest.85E52F318506729A.title: "Hydra"
-	quest.85E52F318506729A.quest_desc: [
+	quest.05E52F318506729A.title: "Hydra"
+	quest.05E52F318506729A.quest_desc: [
 		"Ateş bataklığının canavarı."
 	]
 	quest.77FB14BCE32F96EC.title: "Hayalet Şövalyeler"
@@ -1153,34 +1153,34 @@
 	quest.546B765D9DB6C28E.quest_desc: [
 		"Karanlık kulenin efendisi."
 	]
-	quest.812537EDF60EFF77.title: "Alfa Yeti"
-	quest.E528936A75CCEE22.title: "Kar Kraliçesi"
-	quest.E528936A75CCEE22.quest_desc: [
+	quest.012537EDF60EFF77.title: "Alfa Yeti"
+	quest.6528936A75CCEE22.title: "Kar Kraliçesi"
+	quest.6528936A75CCEE22.quest_desc: [
 		"Son patron."
 	]
 	quest.01278869C01030DD.title: "Alacakaranlık Meşesi"
-	quest.B90271293B031906.title: "Kuzgun Tüyü"
-	quest.E6CE7D7E231FD07A.title: "Canlı Kök"
+	quest.390271293B031906.title: "Kuzgun Tüyü"
+	quest.66CE7D7E231FD07A.title: "Canlı Kök"
 	quest.65F8A3615BB94439.title: "Demirodun"
-	quest.AF253FFF3F644650.title: "Meşale Meyvesi"
-	quest.9EAC1C46F7C2EB7C.title: "Çiğ Meef"
-	quest.E606142F1C9D8580.title: "Sihirli Harita Odağı"
-	quest.E4F301E9176CD640.title: "Ayrıştırma Masası"
-	quest.97BD4C3BB51DA93B.title: "Naga Göğüslüğü"
-	quest.C0C976DD918E46F0.title: "Çelik Yaprak"
+	quest.2F253FFF3F644650.title: "Meşale Meyvesi"
+	quest.1EAC1C46F7C2EB7C.title: "Çiğ Meef"
+	quest.6606142F1C9D8580.title: "Sihirli Harita Odağı"
+	quest.64F301E9176CD640.title: "Ayrıştırma Masası"
+	quest.17BD4C3BB51DA93B.title: "Naga Göğüslüğü"
+	quest.40C976DD918E46F0.title: "Çelik Yaprak"
 	quest.31833497B6D8769C.title: "Şövalye Metali"
-	quest.914442B6EF8912BD.title: "Karminit"
+	quest.114442B6EF8912BD.title: "Karminit"
 	quest.19CA1FF9D8B090B0.title: "Ateşli Külçe"
-	quest.96DED0B8C39458ED.title: "Kutup Kürkü"
-	quest.AF00D7F17546E1AA.title: "Alfa Yeti Kürkü"
+	quest.16DED0B8C39458ED.title: "Kutup Kürkü"
+	quest.2F00D7F17546E1AA.title: "Alfa Yeti Kürkü"
 	quest.670E8A0B1D3E32C6.title: "Buz Bombası"
 	quest.5C93C41844D72C2C.title: "Can Emici Asa"
 	quest.3A610A49F14D6FBB.title: "Sihirli Fasulye"
 	quest.10E950EE7342A66C.title: "Dev Kazma"
 	quest.38752D6D98953302.title: "Yaşam Tılsımı"
 	chapter.7F50F9F081929BDD.title: "&bDiğer Boyutlar"
-	quest.E6E01BD28A0BC567.title: "Cennete Hazırlık"
-	quest.E6E01BD28A0BC567.quest_desc: [
+	quest.66E01BD28A0BC567.title: "Cennete Hazırlık"
+	quest.66E01BD28A0BC567.quest_desc: [
 		"Aether geçidi için ışıktaşı çerçeve."
 	]
 	quest.1829782AD108FA11.title: "Gökkökü"
@@ -1190,7 +1190,7 @@
 	quest.7A7ABACE3AA85D28.title: "Kutsal Taş"
 	quest.50241093409A489A.title: "Ambrozya"
 	quest.6EA015D34E9413E5.title: "Zanit"
-	quest.AF8461D7ED88F56B.title: "Büyülü Gravitit"
+	quest.2F8461D7ED88F56B.title: "Büyülü Gravitit"
 	quest.20CB67F1A4E8AEAB.title: "Bronz Anahtar"
 	quest.20CB67F1A4E8AEAB.quest_desc: [
 		"Kabus'u yen."
@@ -1204,17 +1204,17 @@
 		"Güneş Ruhu'nu yen."
 	]
 	quest.25F3BAE53D087479.title: "Aether Sunağı"
-	quest.EC6D525CC3C7E366.title: "Dondurucu"
+	quest.6C6D525CC3C7E366.title: "Dondurucu"
 	quest.5E850B907080C118.title: "Kuluçka Makinesi"
 	quest.708BBC35302497F3.title: "Zanit Kazma"
-	quest.A4309F973806C349.title: "Paraşüt"
+	quest.24309F973806C349.title: "Paraşüt"
 	quest.148FB9BA51D8EEE6.title: "Katalizör"
 	quest.148FB9BA51D8EEE6.quest_desc: [
 		"Undergarden geçidi."
 	]
-	quest.E4031E28AE40EA6C.title: "Derinkaya"
-	quest.B7D4E8AE3FC9EE87.title: "Kloggrum"
-	quest.D40EC6F9D34994EA.title: "Ayazçelik"
+	quest.64031E28AE40EA6C.title: "Derinkaya"
+	quest.37D4E8AE3FC9EE87.title: "Kloggrum"
+	quest.540EC6F9D34994EA.title: "Ayazçelik"
 	quest.3E7E6F65C57A7647.title: "Utheryum"
 	quest.6A1C2CA873086034.title: "Regalyum Kristali"
 	quest.5358AAB6AC6F4280.title: "Unutulmuş Külçe"
@@ -1222,29 +1222,29 @@
 	quest.42D4C72BA3D7F23D.quest_desc: [
 		"Deeper and Darker."
 	]
-	quest.B36DD1F0A0FF9A4F.title: "Güçlendirilmiş Yankı"
-	quest.B46F7404AB840E30.title: "Derinliğin Kalbi"
-	quest.B46F7404AB840E30.quest_desc: [
+	quest.336DD1F0A0FF9A4F.title: "Güçlendirilmiş Yankı"
+	quest.346F7404AB840E30.title: "Derinliğin Kalbi"
+	quest.346F7404AB840E30.quest_desc: [
 		"Otherside boyutunun anahtarı."
 	]
-	quest.EEEA97DC19603CCD.title: "Warden Miğferi"
-	quest.C7A37FF43184EE13.title: "Bal Kristali"
-	quest.C7A37FF43184EE13.quest_desc: [
+	quest.6EEA97DC19603CCD.title: "Warden Miğferi"
+	quest.47A37FF43184EE13.title: "Bal Kristali"
+	quest.47A37FF43184EE13.quest_desc: [
 		"Bumblezone."
 	]
-	quest.8E8BB78A182A55BC.title: "Polen Pufu"
+	quest.0E8BB78A182A55BC.title: "Polen Pufu"
 	quest.483B4F1E7E0D405B.title: "Arıların Özü"
 	chapter.006DC7432C7FE379.title: "&4Boss Avı"
-	quest.C6B91A2F35A1EC72.title: "Savaşa Hazırlık"
-	quest.C6B91A2F35A1EC72.quest_desc: [
+	quest.46B91A2F35A1EC72.title: "Savaşa Hazırlık"
+	quest.46B91A2F35A1EC72.quest_desc: [
 		"Büyük boss'lar seni bekliyor."
 	]
-	quest.A169D8265D7E805C.title: "Buz Kristali"
-	quest.A169D8265D7E805C.quest_desc: [
+	quest.2169D8265D7E805C.title: "Buz Kristali"
+	quest.2169D8265D7E805C.quest_desc: [
 		"Frostmaw'u yen."
 	]
-	quest.E8570C7F02658944.title: "Yeryaran Eldiveni"
-	quest.8D9D1EF75BDCF470.title: "Güneş Maskesi"
+	quest.68570C7F02658944.title: "Yeryaran Eldiveni"
+	quest.0D9D1EF75BDCF470.title: "Güneş Maskesi"
 	quest.6316E51FC0E992B6.title: "İgnityum"
 	quest.6316E51FC0E992B6.quest_desc: [
 		"Ignis'i yen."
@@ -1253,94 +1253,94 @@
 	quest.4FDEA067F3F891CA.quest_desc: [
 		"Harbinger'ı yen."
 	]
-	quest.CC8E6F9E1945BF0E.title: "Antik Metal"
-	quest.CCD7168286F83158.title: "Alev Kolyesi"
-	quest.CCD7168286F83158.quest_desc: [
+	quest.4C8E6F9E1945BF0E.title: "Antik Metal"
+	quest.4CD7168286F83158.title: "Alev Kolyesi"
+	quest.4CD7168286F83158.quest_desc: [
 		"Artifacts: zindan sandıklarında."
 	]
 	quest.0C6D90623D41A190.title: "Şişede Bulut"
-	quest.A07F7ADF02A682B1.title: "Koşu Ayakkabısı"
+	quest.207F7ADF02A682B1.title: "Koşu Ayakkabısı"
 	quest.08786E52AE18E5AF.title: "Güç Eldiveni"
-	quest.B51282843614921E.title: "Kristal Kalp"
+	quest.351282843614921E.title: "Kristal Kalp"
 	chapter.205652DC83C29231.title: "&aMystical Agriculture"
 	quest.6568571F3199E6C8.title: "Inferyum Özü"
 	quest.6568571F3199E6C8.quest_desc: [
 		"Büyülü tarıma başlangıç."
 	]
-	quest.87A24D78381A812D.title: "Refah Parçası"
+	quest.07A24D78381A812D.title: "Refah Parçası"
 	quest.49ED3BBE921C5F7D.title: "Inferyum Tohumu"
 	quest.44AE981DE977A119.title: "Prudentyum Özü"
-	quest.CB38B529B450B6A6.title: "Tertiyum Özü"
+	quest.4B38B529B450B6A6.title: "Tertiyum Özü"
 	quest.595406196E409F25.title: "İmperyum Özü"
 	quest.23B0F62F0626B175.title: "Supremyum Özü"
-	quest.9F27C97B5B4901F4.title: "İnsanyum Özü"
-	quest.9F27C97B5B4901F4.quest_desc: [
+	quest.1F27C97B5B4901F4.title: "İnsanyum Özü"
+	quest.1F27C97B5B4901F4.quest_desc: [
 		"Mystical Agradditions."
 	]
-	quest.DDA8955EDA347C5B.title: "Aşılama Sunağı"
+	quest.5DA8955EDA347C5B.title: "Aşılama Sunağı"
 	quest.26A6E5466B3510D4.title: "Aşılama Kaidesi"
 	quest.0FD2C0EBE99664C4.title: "Demir Tohumu"
-	quest.AB7DDA7C9D07FB6A.title: "Elmas Tohumu"
-	quest.AC450F2FAA30712E.title: "Ruh Kavanozu"
+	quest.2B7DDA7C9D07FB6A.title: "Elmas Tohumu"
+	quest.2C450F2FAA30712E.title: "Ruh Kavanozu"
 	quest.5DEC5D70DB958579.title: "Ruhyum"
 	quest.5BD1ACA9F3E25F08.title: "Uyanış Sunağı"
 	quest.3CC6433EA47012EF.title: "Uyanmış Supremyum"
-	quest.C2259B25CB1411EC.title: "Gelişmiş Kovan"
-	quest.C2259B25CB1411EC.quest_desc: [
+	quest.42259B25CB1411EC.title: "Gelişmiş Kovan"
+	quest.42259B25CB1411EC.quest_desc: [
 		"Productive Bees."
 	]
 	quest.6BEF2F416AF70F0F.title: "Santrifüj"
 	quest.591AA61E76F451DD.title: "Bal Ödülü"
-	quest.D17ADDFB9B77C212.title: "Arı Kafesi"
-	quest.B12B184A40EA70C8.title: "Botanik Saksı"
-	quest.B12B184A40EA70C8.quest_desc: [
+	quest.517ADDFB9B77C212.title: "Arı Kafesi"
+	quest.312B184A40EA70C8.title: "Botanik Saksı"
+	quest.312B184A40EA70C8.quest_desc: [
 		"Botany Pots ile saksıda tarım."
 	]
 	chapter.7663AE4ADCEE8725.title: "&6Oyun Sonu: Çekirdekler ve Yaratıcı Eşyalar"
-	quest.D8AD526D7F5E4A93.title: "Yıldız Özü"
-	quest.D8AD526D7F5E4A93.quest_desc: [
+	quest.58AD526D7F5E4A93.title: "Yıldız Özü"
+	quest.58AD526D7F5E4A93.quest_desc: [
 		"Astral Sorcery malzemelerinden yapılır. Büyü Çekirdeği'nin kalbi."
 	]
 	quest.28F8286073ED7FFC.title: "Teknoloji Çekirdeği"
 	quest.28F8286073ED7FFC.quest_desc: [
 		"&eAdvanced Table (5x5)&r. 20 teknoloji modundan birer parça ister: Create, Mekanism, AE2, Powah, IE, Ender IO..."
 	]
-	quest.C7720FC84B3D88D8.title: "Dünya Çekirdeği"
-	quest.C7720FC84B3D88D8.quest_desc: [
+	quest.47720FC84B3D88D8.title: "Dünya Çekirdeği"
+	quest.47720FC84B3D88D8.quest_desc: [
 		"&eAdvanced Table (5x5)&r. Depolama, inşaat ve kolaylık modlarından parçalar: Sophisticated, Macaw's, Chipped, Waystones..."
 	]
-	quest.CC40F226F3F8E4FF.title: "Büyü Çekirdeği"
-	quest.CC40F226F3F8E4FF.quest_desc: [
+	quest.4C40F226F3F8E4FF.title: "Büyü Çekirdeği"
+	quest.4C40F226F3F8E4FF.quest_desc: [
 		"&eElite Table (7x7)&r. EvilCraft, Malum, Ars Nouveau, Iron's Spells, Occultism ve daha fazlası."
 	]
-	quest.85C8974C7CA30C38.title: "Doğa ve Macera Çekirdeği"
-	quest.85C8974C7CA30C38.quest_desc: [
+	quest.05C8974C7CA30C38.title: "Doğa ve Macera Çekirdeği"
+	quest.05C8974C7CA30C38.quest_desc: [
 		"&eElite Table (7x7)&r. Boyutlar, boss'lar, tarım ve mutfak modları."
 	]
 	quest.0806AF1DC111E0AE.title: "Kozmik Çekirdek"
 	quest.0806AF1DC111E0AE.quest_desc: [
 		"&eElite Table (7x7)&r. Dört çekirdeği yıldızlarla birleştir."
 	]
-	quest.A782EFC4B7F64508.title: "Yaratıcı Katalizör"
-	quest.A782EFC4B7F64508.quest_desc: [
+	quest.2782EFC4B7F64508.title: "Yaratıcı Katalizör"
+	quest.2782EFC4B7F64508.quest_desc: [
 		"&dUltimate Table (9x9)&r. Bir tarif 4 katalizör verir. Her yaratıcı eşya 1 katalizör ister."
 	]
-	quest.E1F2E6A331769777.title: "Kara Demir"
-	quest.E1F2E6A331769777.quest_desc: [
+	quest.61F2E6A331769777.title: "Kara Demir"
+	quest.61F2E6A331769777.quest_desc: [
 		"Extended Crafting'e başlangıç."
 	]
-	quest.97F6DC6DDF56F125.title: "Temel Masa (3x3)"
-	quest.CBBEC21E9B94D4E9.title: "Gelişmiş Masa (5x5)"
+	quest.17F6DC6DDF56F125.title: "Temel Masa (3x3)"
+	quest.4BBEC21E9B94D4E9.title: "Gelişmiş Masa (5x5)"
 	quest.0D49DC176AA27FB8.title: "Seçkin Masa (7x7)"
 	quest.464BBCD71730C008.title: "Nihai Masa (9x9)"
 	quest.464BBCD71730C008.quest_desc: [
 		"Paketin en büyük tarifleri burada yapılır."
 	]
-	quest.C17B60A14CB7D3CA.title: "Kristalin"
+	quest.417B60A14CB7D3CA.title: "Kristalin"
 	quest.602B2C58B4700681.title: "Seçkin Bileşen"
 	quest.5E2694D49431F542.title: "Nihai Bileşen"
-	quest.B978C209D833EE0D.title: "Göksel Uçuş Yüzüğü"
-	quest.B978C209D833EE0D.quest_desc: [
+	quest.3978C209D833EE0D.title: "Göksel Uçuş Yüzüğü"
+	quest.3978C209D833EE0D.quest_desc: [
 		"Envanterindeyken yaratıcı moddaki gibi uçarsın."
 	]
 	quest.18F596B2A8154FF2.title: "Yaratıcı Enerji Küpü"
@@ -1355,13 +1355,13 @@
 	quest.2A912791039C9B0D.quest_desc: [
 		"Sonsuz eşya kutusu."
 	]
-	quest.D11AE4DD778DFA6A.title: "Yaratıcı Kimyasal Tank"
+	quest.511AE4DD778DFA6A.title: "Yaratıcı Kimyasal Tank"
 	quest.389E6FF542D88D75.title: "Yaratıcı Enerji Hücresi"
 	quest.389E6FF542D88D75.quest_desc: [
 		"ME ağın için sonsuz enerji."
 	]
-	quest.AE5D2877DA415F62.title: "Yaratıcı Motor"
-	quest.AE5D2877DA415F62.quest_desc: [
+	quest.2E5D2877DA415F62.title: "Yaratıcı Motor"
+	quest.2E5D2877DA415F62.quest_desc: [
 		"Ayarlanabilir sonsuz dönme gücü."
 	]
 	quest.7A69F570E427A776.title: "Yaratıcı Kasa"
@@ -1369,8 +1369,8 @@
 		"Sonsuz eşya veren kasa."
 	]
 	quest.37B6D1BE6792D925.title: "Yaratıcı Create Tankı"
-	quest.EE8CAF1123A480C3.title: "Yaratıcı Alaz Keki"
-	quest.EE8CAF1123A480C3.quest_desc: [
+	quest.6E8CAF1123A480C3.title: "Yaratıcı Alaz Keki"
+	quest.6E8CAF1123A480C3.quest_desc: [
 		"Alaz yakıcın hiç sönmez."
 	]
 	quest.0689451492CFF6D2.title: "Yaratıcı Kan Damlası"
@@ -1381,24 +1381,24 @@
 	quest.360EF5170DAB4FC4.quest_desc: [
 		"Sonsuz kaynak."
 	]
-	quest.96C3D503127BF245.title: "Yaratıcı Büyü Kitabı"
-	quest.96C3D503127BF245.quest_desc: [
+	quest.16C3D503127BF245.title: "Yaratıcı Büyü Kitabı"
+	quest.16C3D503127BF245.quest_desc: [
 		"Kaynaksız büyü."
 	]
 	quest.4C44615F300780BD.title: "Yaratıcı Powah Hücresi"
-	quest.A8107A43DEBC7DE6.title: "Yaratıcı Kapasitör"
+	quest.28107A43DEBC7DE6.title: "Yaratıcı Kapasitör"
 	quest.05943E7CB058CF25.title: "Yaratıcı Çekmece Yükseltmesi"
 	quest.05943E7CB058CF25.quest_desc: [
 		"Sınırsız çekmece."
 	]
-	quest.FE5B08DDB48BE414.title: "Yaratıcı Satış Yükseltmesi"
-	quest.FE5B08DDB48BE414.quest_desc: [
+	quest.7E5B08DDB48BE414.title: "Yaratıcı Satış Yükseltmesi"
+	quest.7E5B08DDB48BE414.quest_desc: [
 		"Sonsuz eşya veren çekmece."
 	]
-	quest.FEABAD90ED5E8474.title: "Yaratıcı Öz"
+	quest.7EABAD90ED5E8474.title: "Yaratıcı Öz"
 	chapter.0918A69A6C47CB39.title: "&5&lFinal"
-	quest.AFAF435E6D2B1F5A.title: "Yıldızların Kalbi"
-	quest.AFAF435E6D2B1F5A.quest_desc: [
+	quest.2FAF435E6D2B1F5A.title: "Yıldızların Kalbi"
+	quest.2FAF435E6D2B1F5A.quest_desc: [
 		"&dUltimate Table (9x9)&r. 18 yaratıcı eşyayı, beş çekirdeği ve tüm bölümlerin en güçlü ganimetlerini tek bir kalpte birleştir."
 	]
 }

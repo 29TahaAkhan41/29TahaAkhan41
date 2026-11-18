@@ -11,7 +11,7 @@
 	quest_links: [ ]
 	quests: [
 		{
-			id: "C6B91A2F35A1EC72"
+			id: "46B91A2F35A1EC72"
 			shape: "hexagon"
 			size: 1.5d
 			rewards: [
@@ -35,20 +35,20 @@
 			y: 0.0d
 		}
 		{
-			id: "A169D8265D7E805C"
+			id: "2169D8265D7E805C"
 			dependencies: [
-				"C6B91A2F35A1EC72"
+				"46B91A2F35A1EC72"
 			]
 			rewards: [
 				{
-					id: "C2EBA589A20E2E0E"
+					id: "42EBA589A20E2E0E"
 					type: "xp"
 					xp: 40
 				}
 			]
 			tasks: [
 				{
-					id: "9E424A71B09BCDE8"
+					id: "1E424A71B09BCDE8"
 					item: {
 						count: 1
 						id: "mowziesmobs:ice_crystal"
@@ -60,20 +60,20 @@
 			y: 0.0d
 		}
 		{
-			id: "E8570C7F02658944"
+			id: "68570C7F02658944"
 			dependencies: [
-				"A169D8265D7E805C"
+				"2169D8265D7E805C"
 			]
 			rewards: [
 				{
-					id: "CD036E3C8CE5CD29"
+					id: "4D036E3C8CE5CD29"
 					type: "xp"
 					xp: 40
 				}
 			]
 			tasks: [
 				{
-					id: "B8A6C5B0BB3CD06F"
+					id: "38A6C5B0BB3CD06F"
 					item: {
 						count: 1
 						id: "mowziesmobs:earthrend_gauntlet"
@@ -85,20 +85,20 @@
 			y: 0.0d
 		}
 		{
-			id: "8D9D1EF75BDCF470"
+			id: "0D9D1EF75BDCF470"
 			dependencies: [
-				"E8570C7F02658944"
+				"68570C7F02658944"
 			]
 			rewards: [
 				{
-					id: "8FDD5446A6A7D072"
+					id: "0FDD5446A6A7D072"
 					type: "xp"
 					xp: 80
 				}
 			]
 			tasks: [
 				{
-					id: "8E89FFBA7516B2A0"
+					id: "0E89FFBA7516B2A0"
 					item: {
 						count: 1
 						id: "mowziesmobs:sol_visage"
@@ -112,11 +112,11 @@
 		{
 			id: "6316E51FC0E992B6"
 			dependencies: [
-				"8D9D1EF75BDCF470"
+				"0D9D1EF75BDCF470"
 			]
 			rewards: [
 				{
-					id: "F616D8D29210473F"
+					id: "7616D8D29210473F"
 					type: "xp"
 					xp: 80
 				}
@@ -142,7 +142,7 @@
 			]
 			rewards: [
 				{
-					id: "FAA581BD67E9E37D"
+					id: "7AA581BD67E9E37D"
 					type: "xp"
 					xp: 80
 				}
@@ -162,7 +162,7 @@
 			y: 0.0d
 		}
 		{
-			id: "CC8E6F9E1945BF0E"
+			id: "4C8E6F9E1945BF0E"
 			dependencies: [
 				"4FDEA067F3F891CA"
 			]
@@ -170,7 +170,7 @@
 			size: 1.5d
 			rewards: [
 				{
-					id: "F5501CD9F646788D"
+					id: "75501CD9F646788D"
 					type: "xp"
 					xp: 120
 				}
@@ -198,9 +198,9 @@
 			y: 0.0d
 		}
 		{
-			id: "CCD7168286F83158"
+			id: "4CD7168286F83158"
 			dependencies: [
-				"C6B91A2F35A1EC72"
+				"46B91A2F35A1EC72"
 			]
 			rewards: [
 				{
@@ -225,7 +225,7 @@
 		{
 			id: "0C6D90623D41A190"
 			dependencies: [
-				"CCD7168286F83158"
+				"4CD7168286F83158"
 			]
 			rewards: [
 				{
@@ -248,7 +248,7 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "A07F7ADF02A682B1"
+			id: "207F7ADF02A682B1"
 			dependencies: [
 				"0C6D90623D41A190"
 			]
@@ -275,7 +275,7 @@
 		{
 			id: "08786E52AE18E5AF"
 			dependencies: [
-				"A07F7ADF02A682B1"
+				"207F7ADF02A682B1"
 			]
 			rewards: [
 				{
@@ -298,7 +298,7 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "B51282843614921E"
+			id: "351282843614921E"
 			dependencies: [
 				"08786E52AE18E5AF"
 			]

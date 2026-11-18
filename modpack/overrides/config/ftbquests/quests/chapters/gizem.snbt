@@ -6,12 +6,12 @@
 	icon: {
 		id: "occultism:chalk_white"
 	}
-	id: "E9CB63B2C65D1EB8"
+	id: "69CB63B2C65D1EB8"
 	order_index: 15
 	quest_links: [ ]
 	quests: [
 		{
-			id: "AFFEA1A4ACA78D22"
+			id: "2FFEA1A4ACA78D22"
 			shape: "hexagon"
 			size: 1.5d
 			rewards: [
@@ -23,7 +23,7 @@
 			]
 			tasks: [
 				{
-					id: "E9C3B2AB8E52C4C5"
+					id: "69C3B2AB8E52C4C5"
 					item: {
 						count: 1
 						id: "occultism:datura_seeds"
@@ -36,20 +36,20 @@
 			y: 0.0d
 		}
 		{
-			id: "C46FD8758F1A5BC3"
+			id: "446FD8758F1A5BC3"
 			dependencies: [
-				"AFFEA1A4ACA78D22"
+				"2FFEA1A4ACA78D22"
 			]
 			rewards: [
 				{
-					id: "CA4BF33621AFDAF5"
+					id: "4A4BF33621AFDAF5"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "CAC621D5D2203557"
+					id: "4AC621D5D2203557"
 					item: {
 						count: 1
 						id: "occultism:demons_dream_essence"
@@ -62,20 +62,20 @@
 			y: 0.0d
 		}
 		{
-			id: "A17016DF4D6140CC"
+			id: "217016DF4D6140CC"
 			dependencies: [
-				"C46FD8758F1A5BC3"
+				"446FD8758F1A5BC3"
 			]
 			rewards: [
 				{
-					id: "B8B4687ECCEFCBE2"
+					id: "38B4687ECCEFCBE2"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "F70A1D763BE67E60"
+					id: "770A1D763BE67E60"
 					item: {
 						count: 1
 						id: "occultism:silver_ingot"
@@ -90,11 +90,11 @@
 		{
 			id: "6B64F9FDFBC12440"
 			dependencies: [
-				"A17016DF4D6140CC"
+				"217016DF4D6140CC"
 			]
 			rewards: [
 				{
-					id: "E60E9E2B63EC74A5"
+					id: "660E9E2B63EC74A5"
 					type: "xp"
 					xp: 60
 				}
@@ -126,7 +126,7 @@
 			]
 			tasks: [
 				{
-					id: "EB32D00A19A9908F"
+					id: "6B32D00A19A9908F"
 					item: {
 						count: 1
 						id: "occultism:sacrificial_bowl"
@@ -139,7 +139,7 @@
 			y: 0.0d
 		}
 		{
-			id: "8651C23B39F2B826"
+			id: "0651C23B39F2B826"
 			dependencies: [
 				"16DEAFC8952EEEF4"
 			]
@@ -152,7 +152,7 @@
 			]
 			tasks: [
 				{
-					id: "8D7128A022756CD1"
+					id: "0D7128A022756CD1"
 					item: {
 						count: 1
 						id: "occultism:golden_sacrificial_bowl"
@@ -164,9 +164,9 @@
 			y: 0.0d
 		}
 		{
-			id: "D60D9BF533E9840E"
+			id: "560D9BF533E9840E"
 			dependencies: [
-				"8651C23B39F2B826"
+				"0651C23B39F2B826"
 			]
 			rewards: [
 				{
@@ -177,7 +177,7 @@
 			]
 			tasks: [
 				{
-					id: "E2A24CB1E2161679"
+					id: "62A24CB1E2161679"
 					item: {
 						count: 1
 						id: "occultism:spirit_attuned_gem"
@@ -191,7 +191,7 @@
 		{
 			id: "7F1D7B8E12E46768"
 			dependencies: [
-				"D60D9BF533E9840E"
+				"560D9BF533E9840E"
 			]
 			rewards: [
 				{
@@ -202,7 +202,7 @@
 			]
 			tasks: [
 				{
-					id: "C7C52DF3B7A89BD9"
+					id: "47C52DF3B7A89BD9"
 					item: {
 						count: 1
 						id: "occultism:iesnium_ingot"
@@ -223,12 +223,12 @@
 			size: 1.5d
 			rewards: [
 				{
-					id: "C4A9A4026C0F71ED"
+					id: "44A9A4026C0F71ED"
 					type: "xp"
 					xp: 90
 				}
 				{
-					id: "EAB6E4A556022666"
+					id: "6AB6E4A556022666"
 					item: {
 						count: 1
 						id: "minecraft:experience_bottle"
@@ -253,7 +253,7 @@
 		{
 			id: "47A8B96C870011B0"
 			dependencies: [
-				"AFFEA1A4ACA78D22"
+				"2FFEA1A4ACA78D22"
 			]
 			rewards: [
 				{
@@ -283,7 +283,7 @@
 			]
 			rewards: [
 				{
-					id: "ABE747001A9A5B1E"
+					id: "2BE747001A9A5B1E"
 					type: "xp"
 					xp: 30
 				}
@@ -329,20 +329,20 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "B0A7312B40D9C66E"
+			id: "30A7312B40D9C66E"
 			dependencies: [
 				"7F6F2E44C1510E0E"
 			]
 			rewards: [
 				{
-					id: "96CB2F4879CA8BC3"
+					id: "16CB2F4879CA8BC3"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "8D089E47AA9A5A80"
+					id: "0D089E47AA9A5A80"
 					item: {
 						count: 1
 						id: "forbidden_arcanus:hephaestus_forge_tier_1"
@@ -356,16 +356,16 @@
 		{
 			id: "27AC4599EEDC7C8F"
 			dependencies: [
-				"B0A7312B40D9C66E"
+				"30A7312B40D9C66E"
 			]
 			rewards: [
 				{
-					id: "B89304F081077908"
+					id: "389304F081077908"
 					type: "xp"
 					xp: 60
 				}
 				{
-					id: "8DEDA6CFBF536F06"
+					id: "0DEDA6CFBF536F06"
 					item: {
 						count: 1
 						id: "minecraft:experience_bottle"
@@ -376,7 +376,7 @@
 			]
 			tasks: [
 				{
-					id: "CB5B0C805C5BCF7C"
+					id: "4B5B0C805C5BCF7C"
 					item: {
 						count: 1
 						id: "forbidden_arcanus:stellarite_piece"
@@ -390,11 +390,11 @@
 		{
 			id: "245463A5584BCD0B"
 			dependencies: [
-				"AFFEA1A4ACA78D22"
+				"2FFEA1A4ACA78D22"
 			]
 			rewards: [
 				{
-					id: "D21B997A46D92F11"
+					id: "521B997A46D92F11"
 					type: "xp"
 					xp: 30
 				}
@@ -414,20 +414,20 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "DEB647F9B6B08837"
+			id: "5EB647F9B6B08837"
 			dependencies: [
 				"245463A5584BCD0B"
 			]
 			rewards: [
 				{
-					id: "BF2CDC90FCD7B6E0"
+					id: "3F2CDC90FCD7B6E0"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "86300F872DCF14F1"
+					id: "06300F872DCF14F1"
 					item: {
 						count: 1
 						id: "naturesaura:infused_iron"
@@ -440,20 +440,20 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "94D4F04C003E6BCB"
+			id: "14D4F04C003E6BCB"
 			dependencies: [
-				"DEB647F9B6B08837"
+				"5EB647F9B6B08837"
 			]
 			rewards: [
 				{
-					id: "838F679021908C0A"
+					id: "038F679021908C0A"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "DC1EFEEB95E48473"
+					id: "5C1EFEEB95E48473"
 					item: {
 						count: 1
 						id: "naturesaura:nature_altar"
@@ -467,11 +467,11 @@
 		{
 			id: "5173E126BFB9E05A"
 			dependencies: [
-				"94D4F04C003E6BCB"
+				"14D4F04C003E6BCB"
 			]
 			rewards: [
 				{
-					id: "B94A5CED38EE4FEE"
+					id: "394A5CED38EE4FEE"
 					type: "xp"
 					xp: 60
 				}
@@ -490,13 +490,13 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "9C90A2DD5A327B7F"
+			id: "1C90A2DD5A327B7F"
 			dependencies: [
 				"5173E126BFB9E05A"
 			]
 			rewards: [
 				{
-					id: "D040E8E159E41A48"
+					id: "5040E8E159E41A48"
 					type: "xp"
 					xp: 60
 				}

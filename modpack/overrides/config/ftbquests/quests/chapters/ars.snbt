@@ -6,7 +6,7 @@
 	icon: {
 		id: "ars_nouveau:novice_spell_book"
 	}
-	id: "8772A1F000AC15F1"
+	id: "0772A1F000AC15F1"
 	order_index: 13
 	quest_links: [ ]
 	quests: [
@@ -35,7 +35,7 @@
 			y: 0.0d
 		}
 		{
-			id: "D102B60EA1289779"
+			id: "5102B60EA1289779"
 			dependencies: [
 				"68C4BB7B7D1EA0E0"
 			]
@@ -61,9 +61,9 @@
 			y: 0.0d
 		}
 		{
-			id: "874C6DE3414F087B"
+			id: "074C6DE3414F087B"
 			dependencies: [
-				"D102B60EA1289779"
+				"5102B60EA1289779"
 			]
 			rewards: [
 				{
@@ -74,7 +74,7 @@
 			]
 			tasks: [
 				{
-					id: "C01E35A637976771"
+					id: "401E35A637976771"
 					item: {
 						count: 1
 						id: "ars_nouveau:scribes_table"
@@ -86,9 +86,9 @@
 			y: 0.0d
 		}
 		{
-			id: "B5DF3F3FD4C2CBC3"
+			id: "35DF3F3FD4C2CBC3"
 			dependencies: [
-				"874C6DE3414F087B"
+				"074C6DE3414F087B"
 			]
 			rewards: [
 				{
@@ -99,7 +99,7 @@
 			]
 			tasks: [
 				{
-					id: "CBCC296D3A49FE86"
+					id: "4BCC296D3A49FE86"
 					item: {
 						count: 1
 						id: "ars_nouveau:imbuement_chamber"
@@ -113,7 +113,7 @@
 		{
 			id: "62C78785898541B0"
 			dependencies: [
-				"B5DF3F3FD4C2CBC3"
+				"35DF3F3FD4C2CBC3"
 			]
 			rewards: [
 				{
@@ -142,7 +142,7 @@
 			]
 			rewards: [
 				{
-					id: "D55448F18376A7D4"
+					id: "555448F18376A7D4"
 					type: "xp"
 					xp: 60
 				}
@@ -174,7 +174,7 @@
 			]
 			tasks: [
 				{
-					id: "A43031860B99EA60"
+					id: "243031860B99EA60"
 					item: {
 						count: 1
 						id: "ars_nouveau:enchanting_apparatus"
@@ -186,20 +186,20 @@
 			y: 0.0d
 		}
 		{
-			id: "F8471F2A142991E9"
+			id: "78471F2A142991E9"
 			dependencies: [
 				"7CED6CC5C92C3530"
 			]
 			rewards: [
 				{
-					id: "FDA34DABC96B2786"
+					id: "7DA34DABC96B2786"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "8A177F63C0A95EE4"
+					id: "0A177F63C0A95EE4"
 					item: {
 						count: 1
 						id: "ars_nouveau:apprentice_spell_book"
@@ -213,18 +213,18 @@
 		{
 			id: "7E1B4B51C125840B"
 			dependencies: [
-				"F8471F2A142991E9"
+				"78471F2A142991E9"
 			]
 			rewards: [
 				{
-					id: "F32F584A845A6F9A"
+					id: "732F584A845A6F9A"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "8FACEB2668732778"
+					id: "0FACEB2668732778"
 					item: {
 						count: 1
 						id: "ars_nouveau:wilden_tribute"
@@ -236,7 +236,7 @@
 			y: 0.0d
 		}
 		{
-			id: "C0A20A8B6DB7CFDC"
+			id: "40A20A8B6DB7CFDC"
 			dependencies: [
 				"7E1B4B51C125840B"
 			]
@@ -249,7 +249,7 @@
 					xp: 120
 				}
 				{
-					id: "A1B9099BBC7CB201"
+					id: "21B9099BBC7CB201"
 					item: {
 						count: 1
 						id: "ars_nouveau:source_gem"
@@ -272,7 +272,7 @@
 			y: 0.0d
 		}
 		{
-			id: "EF69E7D8B35DC23B"
+			id: "6F69E7D8B35DC23B"
 			dependencies: [
 				"68C4BB7B7D1EA0E0"
 			]
@@ -285,7 +285,7 @@
 			]
 			tasks: [
 				{
-					id: "B3082107E9D43521"
+					id: "33082107E9D43521"
 					item: {
 						count: 1
 						id: "ars_nouveau:agronomic_sourcelink"
@@ -299,11 +299,11 @@
 		{
 			id: "4E5FCBD5B8377301"
 			dependencies: [
-				"EF69E7D8B35DC23B"
+				"6F69E7D8B35DC23B"
 			]
 			rewards: [
 				{
-					id: "AB2A5759168B6E54"
+					id: "2B2A5759168B6E54"
 					type: "xp"
 					xp: 30
 				}
@@ -322,7 +322,7 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "B5E6CBFDA9A719CE"
+			id: "35E6CBFDA9A719CE"
 			dependencies: [
 				"4E5FCBD5B8377301"
 			]
@@ -350,18 +350,18 @@
 		{
 			id: "061210983A538B39"
 			dependencies: [
-				"B5E6CBFDA9A719CE"
+				"35E6CBFDA9A719CE"
 			]
 			rewards: [
 				{
-					id: "B1679F1780C71F80"
+					id: "31679F1780C71F80"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "C4AD8558AD9B330D"
+					id: "44AD8558AD9B330D"
 					item: {
 						count: 1
 						id: "ars_nouveau:source_gem_block"
@@ -380,14 +380,14 @@
 			]
 			rewards: [
 				{
-					id: "D4599CF2550BED1E"
+					id: "54599CF2550BED1E"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "F48E61B919ABCC48"
+					id: "748E61B919ABCC48"
 					item: {
 						count: 1
 						id: "ars_nouveau:magebloom"
@@ -406,14 +406,14 @@
 			]
 			rewards: [
 				{
-					id: "BA0D4EFFD4244A1E"
+					id: "3A0D4EFFD4244A1E"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "C79AB9BA22910E8D"
+					id: "479AB9BA22910E8D"
 					item: {
 						count: 1
 						id: "ars_nouveau:magebloom_fiber"
@@ -439,7 +439,7 @@
 			]
 			tasks: [
 				{
-					id: "D09F1290420FE9E0"
+					id: "509F1290420FE9E0"
 					item: {
 						count: 1
 						id: "ars_nouveau:starbuncle_charm"
@@ -457,12 +457,12 @@
 			]
 			rewards: [
 				{
-					id: "9C8E364F4B6CEC44"
+					id: "1C8E364F4B6CEC44"
 					type: "xp"
 					xp: 90
 				}
 				{
-					id: "F7611387D339171A"
+					id: "77611387D339171A"
 					item: {
 						count: 1
 						id: "ars_nouveau:source_gem"
@@ -485,13 +485,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "FAE3FD7DB4E0534C"
+			id: "7AE3FD7DB4E0534C"
 			dependencies: [
 				"68C4BB7B7D1EA0E0"
 			]
 			rewards: [
 				{
-					id: "89B2E767117DA47C"
+					id: "09B2E767117DA47C"
 					type: "xp"
 					xp: 30
 				}
@@ -513,11 +513,11 @@
 		{
 			id: "4FCE10A3B720CD3E"
 			dependencies: [
-				"FAE3FD7DB4E0534C"
+				"7AE3FD7DB4E0534C"
 			]
 			rewards: [
 				{
-					id: "B1C94FF73F8BB082"
+					id: "31C94FF73F8BB082"
 					type: "xp"
 					xp: 30
 				}
@@ -543,7 +543,7 @@
 			]
 			rewards: [
 				{
-					id: "E15A95B125ABE02E"
+					id: "615A95B125ABE02E"
 					type: "xp"
 					xp: 30
 				}
@@ -563,7 +563,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "E68545ED91561435"
+			id: "668545ED91561435"
 			dependencies: [
 				"78C7B88943C4E9BE"
 			]
@@ -591,18 +591,18 @@
 		{
 			id: "40044D2CEDCE13BF"
 			dependencies: [
-				"E68545ED91561435"
+				"668545ED91561435"
 			]
 			rewards: [
 				{
-					id: "8CCD28A2686F6BC5"
+					id: "0CCD28A2686F6BC5"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "DF4A6555B6399A51"
+					id: "5F4A6555B6399A51"
 					item: {
 						count: 1
 						id: "ars_nouveau:abjuration_essence"
@@ -628,7 +628,7 @@
 			]
 			tasks: [
 				{
-					id: "EF338BB31BB74A22"
+					id: "6F338BB31BB74A22"
 					item: {
 						count: 1
 						id: "ars_nouveau:conjuration_essence"
@@ -647,12 +647,12 @@
 			]
 			rewards: [
 				{
-					id: "DBFBE7F524B969F1"
+					id: "5BFBE7F524B969F1"
 					type: "xp"
 					xp: 90
 				}
 				{
-					id: "BF8C8D9F7C64AF27"
+					id: "3F8C8D9F7C64AF27"
 					item: {
 						count: 1
 						id: "ars_nouveau:source_gem"
@@ -663,7 +663,7 @@
 			]
 			tasks: [
 				{
-					id: "BBA9AEF029871B90"
+					id: "3BA9AEF029871B90"
 					item: {
 						count: 1
 						id: "ars_nouveau:manipulation_essence"
@@ -682,14 +682,14 @@
 			]
 			rewards: [
 				{
-					id: "CC0D9D57F95EB8D5"
+					id: "4C0D9D57F95EB8D5"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "D1C9A97369399A91"
+					id: "51C9A97369399A91"
 					item: {
 						count: 1
 						id: "ars_nouveau:wilden_horn"
@@ -708,14 +708,14 @@
 			]
 			rewards: [
 				{
-					id: "8CA1FAD3CDDD96B2"
+					id: "0CA1FAD3CDDD96B2"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "C9A54C2C8C0A329E"
+					id: "49A54C2C8C0A329E"
 					item: {
 						count: 1
 						id: "ars_nouveau:wilden_spike"
@@ -728,13 +728,13 @@
 			y: 6.3d
 		}
 		{
-			id: "FE8CC1A5016C30CA"
+			id: "7E8CC1A5016C30CA"
 			dependencies: [
 				"28F3923D32FE46B6"
 			]
 			rewards: [
 				{
-					id: "B701F1679ED58E39"
+					id: "3701F1679ED58E39"
 					type: "xp"
 					xp: 30
 				}
@@ -754,9 +754,9 @@
 			y: 6.3d
 		}
 		{
-			id: "D8F7E94C249AC6D2"
+			id: "58F7E94C249AC6D2"
 			dependencies: [
-				"FE8CC1A5016C30CA"
+				"7E8CC1A5016C30CA"
 			]
 			rewards: [
 				{
@@ -776,7 +776,7 @@
 			]
 			tasks: [
 				{
-					id: "DB63FFC84305010B"
+					id: "5B63FFC84305010B"
 					item: {
 						count: 1
 						id: "ars_nouveau:dominion_wand"

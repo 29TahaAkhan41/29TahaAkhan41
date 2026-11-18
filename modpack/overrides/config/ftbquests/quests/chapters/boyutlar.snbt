@@ -11,19 +11,19 @@
 	quest_links: [ ]
 	quests: [
 		{
-			id: "E6E01BD28A0BC567"
+			id: "66E01BD28A0BC567"
 			shape: "hexagon"
 			size: 1.5d
 			rewards: [
 				{
-					id: "8C14492B2D55A1F8"
+					id: "0C14492B2D55A1F8"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "B0DA47D96469D798"
+					id: "30DA47D96469D798"
 					item: {
 						count: 1
 						id: "minecraft:glowstone"
@@ -38,11 +38,11 @@
 		{
 			id: "1829782AD108FA11"
 			dependencies: [
-				"E6E01BD28A0BC567"
+				"66E01BD28A0BC567"
 			]
 			rewards: [
 				{
-					id: "B4E45C39471CEFC2"
+					id: "34E45C39471CEFC2"
 					type: "xp"
 					xp: 30
 				}
@@ -68,7 +68,7 @@
 			]
 			rewards: [
 				{
-					id: "988AF853B2F0CF4C"
+					id: "188AF853B2F0CF4C"
 					type: "xp"
 					xp: 30
 				}
@@ -94,14 +94,14 @@
 			]
 			rewards: [
 				{
-					id: "D16D29C58B0014BD"
+					id: "516D29C58B0014BD"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "83C6BAC2E231977E"
+					id: "03C6BAC2E231977E"
 					item: {
 						count: 1
 						id: "aether:ambrosium_shard"
@@ -120,14 +120,14 @@
 			]
 			rewards: [
 				{
-					id: "AD3243C308F050D7"
+					id: "2D3243C308F050D7"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "D792D211D8A04AFE"
+					id: "5792D211D8A04AFE"
 					item: {
 						count: 1
 						id: "aether:zanite_gemstone"
@@ -140,7 +140,7 @@
 			y: 0.0d
 		}
 		{
-			id: "AF8461D7ED88F56B"
+			id: "2F8461D7ED88F56B"
 			dependencies: [
 				"6EA015D34E9413E5"
 			]
@@ -153,7 +153,7 @@
 			]
 			tasks: [
 				{
-					id: "D4C0C1F78DF08546"
+					id: "54C0C1F78DF08546"
 					item: {
 						count: 1
 						id: "aether:enchanted_gravitite"
@@ -168,18 +168,18 @@
 		{
 			id: "20CB67F1A4E8AEAB"
 			dependencies: [
-				"AF8461D7ED88F56B"
+				"2F8461D7ED88F56B"
 			]
 			rewards: [
 				{
-					id: "F0D3D46D0BFAFC85"
+					id: "70D3D46D0BFAFC85"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "B92D2C404B1BC9BF"
+					id: "392D2C404B1BC9BF"
 					item: {
 						count: 1
 						id: "aether:bronze_dungeon_key"
@@ -197,7 +197,7 @@
 			]
 			rewards: [
 				{
-					id: "8F87C89AB9839808"
+					id: "0F87C89AB9839808"
 					type: "xp"
 					xp: 90
 				}
@@ -224,7 +224,7 @@
 			size: 1.5d
 			rewards: [
 				{
-					id: "C365CAFBB4864692"
+					id: "4365CAFBB4864692"
 					type: "xp"
 					xp: 90
 				}
@@ -240,7 +240,7 @@
 			]
 			tasks: [
 				{
-					id: "DD463C0C68596A36"
+					id: "5D463C0C68596A36"
 					item: {
 						count: 1
 						id: "aether:gold_dungeon_key"
@@ -254,11 +254,11 @@
 		{
 			id: "25F3BAE53D087479"
 			dependencies: [
-				"E6E01BD28A0BC567"
+				"66E01BD28A0BC567"
 			]
 			rewards: [
 				{
-					id: "8DE1802218AA804B"
+					id: "0DE1802218AA804B"
 					type: "xp"
 					xp: 30
 				}
@@ -277,20 +277,20 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "EC6D525CC3C7E366"
+			id: "6C6D525CC3C7E366"
 			dependencies: [
 				"25F3BAE53D087479"
 			]
 			rewards: [
 				{
-					id: "EA8DBA0E334FDCF1"
+					id: "6A8DBA0E334FDCF1"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "89E1FAC69A5BB5D2"
+					id: "09E1FAC69A5BB5D2"
 					item: {
 						count: 1
 						id: "aether:freezer"
@@ -304,7 +304,7 @@
 		{
 			id: "5E850B907080C118"
 			dependencies: [
-				"EC6D525CC3C7E366"
+				"6C6D525CC3C7E366"
 			]
 			rewards: [
 				{
@@ -333,14 +333,14 @@
 			]
 			rewards: [
 				{
-					id: "8C2601F9DEF14BC5"
+					id: "0C2601F9DEF14BC5"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "924EB02ABDCAF4D9"
+					id: "124EB02ABDCAF4D9"
 					item: {
 						count: 1
 						id: "aether:zanite_pickaxe"
@@ -352,7 +352,7 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "A4309F973806C349"
+			id: "24309F973806C349"
 			dependencies: [
 				"708BBC35302497F3"
 			]
@@ -363,7 +363,7 @@
 					xp: 60
 				}
 				{
-					id: "D22B128BDB0929B4"
+					id: "522B128BDB0929B4"
 					item: {
 						count: 1
 						id: "minecraft:ender_pearl"
@@ -374,7 +374,7 @@
 			]
 			tasks: [
 				{
-					id: "9E565F2FB4EA48B6"
+					id: "1E565F2FB4EA48B6"
 					item: {
 						count: 1
 						id: "aether:cold_parachute"
@@ -388,11 +388,11 @@
 		{
 			id: "148FB9BA51D8EEE6"
 			dependencies: [
-				"E6E01BD28A0BC567"
+				"66E01BD28A0BC567"
 			]
 			rewards: [
 				{
-					id: "E929DA43E56278D8"
+					id: "6929DA43E56278D8"
 					type: "xp"
 					xp: 30
 				}
@@ -411,13 +411,13 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "E4031E28AE40EA6C"
+			id: "64031E28AE40EA6C"
 			dependencies: [
 				"148FB9BA51D8EEE6"
 			]
 			rewards: [
 				{
-					id: "E5D999E50956D43C"
+					id: "65D999E50956D43C"
 					type: "xp"
 					xp: 30
 				}
@@ -437,13 +437,13 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "B7D4E8AE3FC9EE87"
+			id: "37D4E8AE3FC9EE87"
 			dependencies: [
-				"E4031E28AE40EA6C"
+				"64031E28AE40EA6C"
 			]
 			rewards: [
 				{
-					id: "A5B34FA4D414A742"
+					id: "25B34FA4D414A742"
 					type: "xp"
 					xp: 30
 				}
@@ -463,20 +463,20 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "D40EC6F9D34994EA"
+			id: "540EC6F9D34994EA"
 			dependencies: [
-				"B7D4E8AE3FC9EE87"
+				"37D4E8AE3FC9EE87"
 			]
 			rewards: [
 				{
-					id: "B0B63CD3EB6D0539"
+					id: "30B63CD3EB6D0539"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "D4B4549355754FF5"
+					id: "54B4549355754FF5"
 					item: {
 						count: 1
 						id: "undergarden:froststeel_ingot"
@@ -491,18 +491,18 @@
 		{
 			id: "3E7E6F65C57A7647"
 			dependencies: [
-				"D40EC6F9D34994EA"
+				"540EC6F9D34994EA"
 			]
 			rewards: [
 				{
-					id: "C935C0750F8214C0"
+					id: "4935C0750F8214C0"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "B2543DA4543901ED"
+					id: "32543DA4543901ED"
 					item: {
 						count: 1
 						id: "undergarden:utherium_crystal"
@@ -528,7 +528,7 @@
 			]
 			tasks: [
 				{
-					id: "E8275A58BD1D0412"
+					id: "68275A58BD1D0412"
 					item: {
 						count: 1
 						id: "undergarden:regalium_crystal"
@@ -563,7 +563,7 @@
 			]
 			tasks: [
 				{
-					id: "B18C4933E9E86671"
+					id: "318C4933E9E86671"
 					item: {
 						count: 1
 						id: "undergarden:forgotten_ingot"
@@ -578,18 +578,18 @@
 		{
 			id: "42D4C72BA3D7F23D"
 			dependencies: [
-				"E6E01BD28A0BC567"
+				"66E01BD28A0BC567"
 			]
 			rewards: [
 				{
-					id: "CFC302851C100702"
+					id: "4FC302851C100702"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "FB7949C33ECFA782"
+					id: "7B7949C33ECFA782"
 					item: {
 						count: 1
 						id: "deeperdarker:soul_crystal"
@@ -602,13 +602,13 @@
 			y: 6.3d
 		}
 		{
-			id: "B36DD1F0A0FF9A4F"
+			id: "336DD1F0A0FF9A4F"
 			dependencies: [
 				"42D4C72BA3D7F23D"
 			]
 			rewards: [
 				{
-					id: "B82E902B97597BA1"
+					id: "382E902B97597BA1"
 					type: "xp"
 					xp: 30
 				}
@@ -628,13 +628,13 @@
 			y: 6.3d
 		}
 		{
-			id: "B46F7404AB840E30"
+			id: "346F7404AB840E30"
 			dependencies: [
-				"B36DD1F0A0FF9A4F"
+				"336DD1F0A0FF9A4F"
 			]
 			rewards: [
 				{
-					id: "BE235772069D2018"
+					id: "3E235772069D2018"
 					type: "xp"
 					xp: 30
 				}
@@ -653,9 +653,9 @@
 			y: 6.3d
 		}
 		{
-			id: "EEEA97DC19603CCD"
+			id: "6EEA97DC19603CCD"
 			dependencies: [
-				"B46F7404AB840E30"
+				"346F7404AB840E30"
 			]
 			rewards: [
 				{
@@ -675,7 +675,7 @@
 			]
 			tasks: [
 				{
-					id: "A004846BA008D531"
+					id: "2004846BA008D531"
 					item: {
 						count: 1
 						id: "deeperdarker:warden_helmet"
@@ -687,20 +687,20 @@
 			y: 6.3d
 		}
 		{
-			id: "C7A37FF43184EE13"
+			id: "47A37FF43184EE13"
 			dependencies: [
-				"E6E01BD28A0BC567"
+				"66E01BD28A0BC567"
 			]
 			rewards: [
 				{
-					id: "F664C0D4BD4897D4"
+					id: "7664C0D4BD4897D4"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "F9CE9C814BC3CC0F"
+					id: "79CE9C814BC3CC0F"
 					item: {
 						count: 1
 						id: "the_bumblezone:honey_crystal_shards"
@@ -713,9 +713,9 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "8E8BB78A182A55BC"
+			id: "0E8BB78A182A55BC"
 			dependencies: [
-				"C7A37FF43184EE13"
+				"47A37FF43184EE13"
 			]
 			rewards: [
 				{
@@ -726,7 +726,7 @@
 			]
 			tasks: [
 				{
-					id: "F0741ED384CA269B"
+					id: "70741ED384CA269B"
 					item: {
 						count: 1
 						id: "the_bumblezone:pollen_puff"
@@ -741,7 +741,7 @@
 		{
 			id: "483B4F1E7E0D405B"
 			dependencies: [
-				"8E8BB78A182A55BC"
+				"0E8BB78A182A55BC"
 			]
 			rewards: [
 				{

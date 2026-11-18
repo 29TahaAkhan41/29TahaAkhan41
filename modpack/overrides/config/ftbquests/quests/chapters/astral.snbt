@@ -6,7 +6,7 @@
 	icon: {
 		id: "astralsorcery:tome"
 	}
-	id: "B9221EA068E7BFB6"
+	id: "39221EA068E7BFB6"
 	order_index: 6
 	quest_links: [ ]
 	quests: [
@@ -23,7 +23,7 @@
 			]
 			tasks: [
 				{
-					id: "8403059FCB9561D3"
+					id: "0403059FCB9561D3"
 					item: {
 						count: 1
 						id: "astralsorcery:rock_crystal"
@@ -35,20 +35,20 @@
 			y: 0.0d
 		}
 		{
-			id: "8D9FC45C723ED539"
+			id: "0D9FC45C723ED539"
 			dependencies: [
 				"1D36A80AC9796A61"
 			]
 			rewards: [
 				{
-					id: "8D1FDC806C8DB290"
+					id: "0D1FDC806C8DB290"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "978AA3FC02D4EE44"
+					id: "178AA3FC02D4EE44"
 					item: {
 						count: 1
 						id: "astralsorcery:tome"
@@ -62,11 +62,11 @@
 		{
 			id: "38157F12CBB14070"
 			dependencies: [
-				"8D9FC45C723ED539"
+				"0D9FC45C723ED539"
 			]
 			rewards: [
 				{
-					id: "CC731D7A3CD280B5"
+					id: "4C731D7A3CD280B5"
 					type: "xp"
 					xp: 30
 				}
@@ -85,20 +85,20 @@
 			y: 0.0d
 		}
 		{
-			id: "CB81B10AABB6440C"
+			id: "4B81B10AABB6440C"
 			dependencies: [
 				"38157F12CBB14070"
 			]
 			rewards: [
 				{
-					id: "FCA3797CEBBEA40A"
+					id: "7CA3797CEBBEA40A"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "E902B10B8FDBEEAE"
+					id: "6902B10B8FDBEEAE"
 					item: {
 						count: 1
 						id: "astralsorcery:altar_luminance"
@@ -112,18 +112,18 @@
 		{
 			id: "4708D7FB443AD783"
 			dependencies: [
-				"CB81B10AABB6440C"
+				"4B81B10AABB6440C"
 			]
 			rewards: [
 				{
-					id: "D602B292E67AE068"
+					id: "5602B292E67AE068"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "E2CC83893703F236"
+					id: "62CC83893703F236"
 					item: {
 						count: 1
 						id: "astralsorcery:constellation_paper"
@@ -148,7 +148,7 @@
 			]
 			tasks: [
 				{
-					id: "C5B28AE07FA60C91"
+					id: "45B28AE07FA60C91"
 					item: {
 						count: 1
 						id: "astralsorcery:altar_illumination"
@@ -173,7 +173,7 @@
 			]
 			tasks: [
 				{
-					id: "F35496FA4AA2C845"
+					id: "735496FA4AA2C845"
 					item: {
 						count: 1
 						id: "astralsorcery:celestial_crystal"
@@ -210,20 +210,20 @@
 			y: 0.0d
 		}
 		{
-			id: "A4ABFD359CE4DF03"
+			id: "24ABFD359CE4DF03"
 			dependencies: [
 				"5EF6D15564691775"
 			]
 			rewards: [
 				{
-					id: "E5E466AB24A9CD5E"
+					id: "65E466AB24A9CD5E"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "ACD98416B219D25D"
+					id: "2CD98416B219D25D"
 					item: {
 						count: 1
 						id: "astralsorcery:altar_resonance"
@@ -235,20 +235,20 @@
 			y: 0.0d
 		}
 		{
-			id: "FC9045ABEA891948"
+			id: "7C9045ABEA891948"
 			dependencies: [
-				"A4ABFD359CE4DF03"
+				"24ABFD359CE4DF03"
 			]
 			rewards: [
 				{
-					id: "A0464E63B8C9E98D"
+					id: "20464E63B8C9E98D"
 					type: "xp"
 					xp: 120
 				}
 			]
 			tasks: [
 				{
-					id: "F03FDCA69FAC4EA3"
+					id: "703FDCA69FAC4EA3"
 					item: {
 						count: 1
 						id: "astralsorcery:altar_radiance"
@@ -262,11 +262,11 @@
 		{
 			id: "6ED2C95636753E37"
 			dependencies: [
-				"FC9045ABEA891948"
+				"7C9045ABEA891948"
 			]
 			rewards: [
 				{
-					id: "E8A054F491D33F76"
+					id: "68A054F491D33F76"
 					type: "xp"
 					xp: 120
 				}
@@ -298,7 +298,7 @@
 			]
 			tasks: [
 				{
-					id: "9AB3DB20F39DD204"
+					id: "1AB3DB20F39DD204"
 					item: {
 						count: 1
 						id: "astralsorcery:akashic_singularity"
@@ -310,7 +310,7 @@
 			y: 0.0d
 		}
 		{
-			id: "BC4D41C020AB11F9"
+			id: "3C4D41C020AB11F9"
 			dependencies: [
 				"14CFCC49AD03EB4E"
 			]
@@ -323,7 +323,7 @@
 					xp: 150
 				}
 				{
-					id: "D0CFC2F940F7ACD6"
+					id: "50CFC2F940F7ACD6"
 					item: {
 						count: 1
 						id: "astralsorcery:stardust"
@@ -334,7 +334,7 @@
 			]
 			tasks: [
 				{
-					id: "CFF2C8CD1B8AAE82"
+					id: "4FF2C8CD1B8AAE82"
 					item: {
 						count: 1
 						id: "astralsorcery:artifact"
@@ -346,7 +346,7 @@
 			y: 0.0d
 		}
 		{
-			id: "AAFFCBC7631426C3"
+			id: "2AFFCBC7631426C3"
 			dependencies: [
 				"1D36A80AC9796A61"
 			]
@@ -359,7 +359,7 @@
 			]
 			tasks: [
 				{
-					id: "C87B0AB68126A6B1"
+					id: "487B0AB68126A6B1"
 					item: {
 						count: 1
 						id: "astralsorcery:marble_raw"
@@ -374,18 +374,18 @@
 		{
 			id: "6F87808210F28005"
 			dependencies: [
-				"AAFFCBC7631426C3"
+				"2AFFCBC7631426C3"
 			]
 			rewards: [
 				{
-					id: "9445CA58819628BC"
+					id: "1445CA58819628BC"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "D35DFC17E5C2530A"
+					id: "535DFC17E5C2530A"
 					item: {
 						count: 1
 						id: "astralsorcery:marble_bricks"
@@ -398,13 +398,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "E20B2EA58CB0C3C5"
+			id: "620B2EA58CB0C3C5"
 			dependencies: [
 				"6F87808210F28005"
 			]
 			rewards: [
 				{
-					id: "8A6201AAB45F1785"
+					id: "0A6201AAB45F1785"
 					type: "xp"
 					xp: 30
 				}
@@ -426,11 +426,11 @@
 		{
 			id: "253FEBD8DD4FEA3E"
 			dependencies: [
-				"E20B2EA58CB0C3C5"
+				"620B2EA58CB0C3C5"
 			]
 			rewards: [
 				{
-					id: "DBCFEA406084920B"
+					id: "5BCFEA406084920B"
 					type: "xp"
 					xp: 60
 				}
@@ -463,7 +463,7 @@
 			]
 			tasks: [
 				{
-					id: "A39C34A84CEBD5E5"
+					id: "239C34A84CEBD5E5"
 					item: {
 						count: 1
 						id: "astralsorcery:marble_engraved"
@@ -482,7 +482,7 @@
 			]
 			rewards: [
 				{
-					id: "844225EF23157FD5"
+					id: "044225EF23157FD5"
 					type: "xp"
 					xp: 60
 				}
@@ -502,7 +502,7 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "BF7E7B5432FA606A"
+			id: "3F7E7B5432FA606A"
 			dependencies: [
 				"4883EF21666CE7E8"
 			]
@@ -528,13 +528,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "AAA9B349851BCCB5"
+			id: "2AA9B349851BCCB5"
 			dependencies: [
-				"BF7E7B5432FA606A"
+				"3F7E7B5432FA606A"
 			]
 			rewards: [
 				{
-					id: "EB89BA90FB378322"
+					id: "6B89BA90FB378322"
 					type: "xp"
 					xp: 90
 				}
@@ -556,7 +556,7 @@
 		{
 			id: "141B69F804751AC9"
 			dependencies: [
-				"AAA9B349851BCCB5"
+				"2AA9B349851BCCB5"
 			]
 			rewards: [
 				{
@@ -565,7 +565,7 @@
 					xp: 90
 				}
 				{
-					id: "945E632BEB07D019"
+					id: "145E632BEB07D019"
 					item: {
 						count: 1
 						id: "astralsorcery:stardust"
@@ -576,7 +576,7 @@
 			]
 			tasks: [
 				{
-					id: "DE9731A00EAD71C1"
+					id: "5E9731A00EAD71C1"
 					item: {
 						count: 1
 						id: "astralsorcery:sooty_marble_bricks"
@@ -602,7 +602,7 @@
 			]
 			tasks: [
 				{
-					id: "EF8AE03D11F867BE"
+					id: "6F8AE03D11F867BE"
 					item: {
 						count: 1
 						id: "astralsorcery:aquamarine"
@@ -615,7 +615,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "ACDBF174CB8A413D"
+			id: "2CDBF174CB8A413D"
 			dependencies: [
 				"489263185115F71A"
 			]
@@ -641,9 +641,9 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "B2FC15EC4CC2D239"
+			id: "32FC15EC4CC2D239"
 			dependencies: [
-				"ACDBF174CB8A413D"
+				"2CDBF174CB8A413D"
 			]
 			rewards: [
 				{
@@ -654,7 +654,7 @@
 			]
 			tasks: [
 				{
-					id: "D27A6534733E9B5B"
+					id: "527A6534733E9B5B"
 					item: {
 						count: 1
 						id: "astralsorcery:raw_starmetal"
@@ -667,13 +667,13 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "A0216FFAA0ADD8FE"
+			id: "20216FFAA0ADD8FE"
 			dependencies: [
-				"B2FC15EC4CC2D239"
+				"32FC15EC4CC2D239"
 			]
 			rewards: [
 				{
-					id: "FF59D58BBE6D5006"
+					id: "7F59D58BBE6D5006"
 					type: "xp"
 					xp: 60
 				}
@@ -695,18 +695,18 @@
 		{
 			id: "6221E037CCBFAACE"
 			dependencies: [
-				"A0216FFAA0ADD8FE"
+				"20216FFAA0ADD8FE"
 			]
 			rewards: [
 				{
-					id: "D577E9FEC264D9D6"
+					id: "5577E9FEC264D9D6"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "F6F48AA93A7F5899"
+					id: "76F48AA93A7F5899"
 					item: {
 						count: 1
 						id: "astralsorcery:raw_starmetal_block"
@@ -731,7 +731,7 @@
 			]
 			tasks: [
 				{
-					id: "869D0F9F44BBEE1F"
+					id: "069D0F9F44BBEE1F"
 					item: {
 						count: 1
 						id: "astralsorcery:illumination_powder"
@@ -744,7 +744,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "C68BE2E4437CE401"
+			id: "468BE2E4437CE401"
 			dependencies: [
 				"5C0946C06D3876D1"
 			]
@@ -757,7 +757,7 @@
 			]
 			tasks: [
 				{
-					id: "921AACA0E1A1E61B"
+					id: "121AACA0E1A1E61B"
 					item: {
 						count: 1
 						id: "astralsorcery:nocturnal_powder"
@@ -772,7 +772,7 @@
 		{
 			id: "5D5AD2AA397BB08D"
 			dependencies: [
-				"C68BE2E4437CE401"
+				"468BE2E4437CE401"
 			]
 			rewards: [
 				{
@@ -783,7 +783,7 @@
 			]
 			tasks: [
 				{
-					id: "F4462806585ECAAF"
+					id: "74462806585ECAAF"
 					item: {
 						count: 1
 						id: "astralsorcery:vivid_powder"
@@ -796,7 +796,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "8097830C10941662"
+			id: "0097830C10941662"
 			dependencies: [
 				"5D5AD2AA397BB08D"
 			]
@@ -807,7 +807,7 @@
 					xp: 90
 				}
 				{
-					id: "E803B402BFF3DC49"
+					id: "6803B402BFF3DC49"
 					item: {
 						count: 1
 						id: "astralsorcery:stardust"
@@ -844,7 +844,7 @@
 			]
 			tasks: [
 				{
-					id: "8EB289E5F6AEA7D2"
+					id: "0EB289E5F6AEA7D2"
 					item: {
 						count: 1
 						id: "astralsorcery:infused_wood"
@@ -863,7 +863,7 @@
 			]
 			rewards: [
 				{
-					id: "CBC0E834BD0689EE"
+					id: "4BC0E834BD0689EE"
 					type: "xp"
 					xp: 30
 				}
@@ -915,7 +915,7 @@
 			]
 			rewards: [
 				{
-					id: "B48A466433E53EED"
+					id: "348A466433E53EED"
 					type: "xp"
 					xp: 60
 				}
@@ -935,7 +935,7 @@
 			y: 6.3d
 		}
 		{
-			id: "B9C8C161364951E8"
+			id: "39C8C161364951E8"
 			dependencies: [
 				"398FCA76DE64814D"
 			]
@@ -948,7 +948,7 @@
 			]
 			tasks: [
 				{
-					id: "9AA0C77A1DEF801F"
+					id: "1AA0C77A1DEF801F"
 					item: {
 						count: 1
 						id: "astralsorcery:infused_wood_engraved"
@@ -961,20 +961,20 @@
 			y: 6.3d
 		}
 		{
-			id: "C2A6AE955A0615B0"
+			id: "42A6AE955A0615B0"
 			dependencies: [
-				"B9C8C161364951E8"
+				"39C8C161364951E8"
 			]
 			rewards: [
 				{
-					id: "EC9A328E2A998539"
+					id: "6C9A328E2A998539"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "EEE02E03F81208AA"
+					id: "6EE02E03F81208AA"
 					item: {
 						count: 1
 						id: "astralsorcery:infused_wood_enriched"
@@ -989,7 +989,7 @@
 		{
 			id: "69CF4AFE4658EC4D"
 			dependencies: [
-				"C2A6AE955A0615B0"
+				"42A6AE955A0615B0"
 			]
 			rewards: [
 				{
@@ -1009,7 +1009,7 @@
 			]
 			tasks: [
 				{
-					id: "D59144DC946AFA5B"
+					id: "559144DC946AFA5B"
 					item: {
 						count: 1
 						id: "astralsorcery:infused_wood_infused"
@@ -1054,7 +1054,7 @@
 			]
 			rewards: [
 				{
-					id: "865C2CDAFB2FCA7D"
+					id: "065C2CDAFB2FCA7D"
 					type: "xp"
 					xp: 30
 				}
@@ -1073,13 +1073,13 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "AF10D8AF391FB0DD"
+			id: "2F10D8AF391FB0DD"
 			dependencies: [
 				"0B2B15D5AA5712DC"
 			]
 			rewards: [
 				{
-					id: "B69E11FBDE7E085F"
+					id: "369E11FBDE7E085F"
 					type: "xp"
 					xp: 30
 				}
@@ -1098,13 +1098,13 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "9FAA514FC1678E38"
+			id: "1FAA514FC1678E38"
 			dependencies: [
-				"AF10D8AF391FB0DD"
+				"2F10D8AF391FB0DD"
 			]
 			rewards: [
 				{
-					id: "BA2EDD6C7F2E2E0F"
+					id: "3A2EDD6C7F2E2E0F"
 					type: "xp"
 					xp: 60
 				}
@@ -1123,9 +1123,9 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "83C8B755AC42DE89"
+			id: "03C8B755AC42DE89"
 			dependencies: [
-				"9FAA514FC1678E38"
+				"1FAA514FC1678E38"
 			]
 			rewards: [
 				{
@@ -1150,7 +1150,7 @@
 		{
 			id: "5361B18A2460AF4F"
 			dependencies: [
-				"83C8B755AC42DE89"
+				"03C8B755AC42DE89"
 			]
 			rewards: [
 				{
@@ -1173,13 +1173,13 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "85F4BF901BF68508"
+			id: "05F4BF901BF68508"
 			dependencies: [
 				"5361B18A2460AF4F"
 			]
 			rewards: [
 				{
-					id: "A95D7EDCBD89B1B9"
+					id: "295D7EDCBD89B1B9"
 					type: "xp"
 					xp: 90
 				}
@@ -1198,20 +1198,20 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "CB6F99817DF98A2D"
+			id: "4B6F99817DF98A2D"
 			dependencies: [
-				"85F4BF901BF68508"
+				"05F4BF901BF68508"
 			]
 			rewards: [
 				{
-					id: "863512DB4D8CBCB9"
+					id: "063512DB4D8CBCB9"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "AA67B778E070C25D"
+					id: "2A67B778E070C25D"
 					item: {
 						count: 1
 						id: "astralsorcery:chalice"
@@ -1225,7 +1225,7 @@
 		{
 			id: "12EFD1F665ECF28E"
 			dependencies: [
-				"CB6F99817DF98A2D"
+				"4B6F99817DF98A2D"
 			]
 			rewards: [
 				{
@@ -1236,7 +1236,7 @@
 			]
 			tasks: [
 				{
-					id: "A2A5710C3AD099D5"
+					id: "22A5710C3AD099D5"
 					item: {
 						count: 1
 						id: "astralsorcery:infuser"
@@ -1282,20 +1282,20 @@
 			y: 8.399999999999999d
 		}
 		{
-			id: "8E2F24E2AEB92DBC"
+			id: "0E2F24E2AEB92DBC"
 			dependencies: [
 				"1D36A80AC9796A61"
 			]
 			rewards: [
 				{
-					id: "E9C1F29397A0C57C"
+					id: "69C1F29397A0C57C"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "E2C4FBFC9B481B06"
+					id: "62C4FBFC9B481B06"
 					item: {
 						count: 1
 						id: "astralsorcery:crystal_pickaxe"
@@ -1309,11 +1309,11 @@
 		{
 			id: "7EE4553F9ADD1C2D"
 			dependencies: [
-				"8E2F24E2AEB92DBC"
+				"0E2F24E2AEB92DBC"
 			]
 			rewards: [
 				{
-					id: "E43086B8664CFE06"
+					id: "643086B8664CFE06"
 					type: "xp"
 					xp: 30
 				}
@@ -1332,7 +1332,7 @@
 			y: 10.5d
 		}
 		{
-			id: "BEA81CF7B8FC8A8A"
+			id: "3EA81CF7B8FC8A8A"
 			dependencies: [
 				"7EE4553F9ADD1C2D"
 			]
@@ -1345,7 +1345,7 @@
 			]
 			tasks: [
 				{
-					id: "9EA5279D22CC7880"
+					id: "1EA5279D22CC7880"
 					item: {
 						count: 1
 						id: "astralsorcery:crystal_axe"
@@ -1359,7 +1359,7 @@
 		{
 			id: "210B81EFA2B0149B"
 			dependencies: [
-				"BEA81CF7B8FC8A8A"
+				"3EA81CF7B8FC8A8A"
 			]
 			rewards: [
 				{
@@ -1370,7 +1370,7 @@
 			]
 			tasks: [
 				{
-					id: "BD942DCDCF60A4F8"
+					id: "3D942DCDCF60A4F8"
 					item: {
 						count: 1
 						id: "astralsorcery:crystal_shovel"
@@ -1388,7 +1388,7 @@
 			]
 			rewards: [
 				{
-					id: "B409999E55E2EFCD"
+					id: "3409999E55E2EFCD"
 					type: "xp"
 					xp: 60
 				}
@@ -1407,20 +1407,20 @@
 			y: 10.5d
 		}
 		{
-			id: "C9E32EEAAA9DFAF1"
+			id: "49E32EEAAA9DFAF1"
 			dependencies: [
 				"368BFC8D86801158"
 			]
 			rewards: [
 				{
-					id: "EA4C6403D1928982"
+					id: "6A4C6403D1928982"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "DD1C99C4BC15F5F9"
+					id: "5D1C99C4BC15F5F9"
 					item: {
 						count: 1
 						id: "astralsorcery:iridescent_crystal_sword"
@@ -1434,7 +1434,7 @@
 		{
 			id: "3FDA337A8643CD79"
 			dependencies: [
-				"C9E32EEAAA9DFAF1"
+				"49E32EEAAA9DFAF1"
 			]
 			rewards: [
 				{
@@ -1445,7 +1445,7 @@
 			]
 			tasks: [
 				{
-					id: "AA092A657377FB11"
+					id: "2A092A657377FB11"
 					item: {
 						count: 1
 						id: "astralsorcery:iridescent_crystal_axe"
@@ -1457,7 +1457,7 @@
 			y: 10.5d
 		}
 		{
-			id: "AF090C362F6146F2"
+			id: "2F090C362F6146F2"
 			dependencies: [
 				"3FDA337A8643CD79"
 			]
@@ -1484,11 +1484,11 @@
 		{
 			id: "5BDB5D91E169DCE3"
 			dependencies: [
-				"AF090C362F6146F2"
+				"2F090C362F6146F2"
 			]
 			rewards: [
 				{
-					id: "AB2593D2D0195444"
+					id: "2B2593D2D0195444"
 					type: "xp"
 					xp: 90
 				}
@@ -1504,7 +1504,7 @@
 			]
 			tasks: [
 				{
-					id: "B3335DEAB67E37EF"
+					id: "33335DEAB67E37EF"
 					item: {
 						count: 1
 						id: "astralsorcery:chisel"
@@ -1516,7 +1516,7 @@
 			y: 10.5d
 		}
 		{
-			id: "C519ABF7FF9D233C"
+			id: "4519ABF7FF9D233C"
 			dependencies: [
 				"1D36A80AC9796A61"
 			]
@@ -1529,7 +1529,7 @@
 			]
 			tasks: [
 				{
-					id: "C2D5DED0B2F4E5E4"
+					id: "42D5DED0B2F4E5E4"
 					item: {
 						count: 1
 						id: "astralsorcery:illumination_wand"
@@ -1543,11 +1543,11 @@
 		{
 			id: "256622EB5F7F7A34"
 			dependencies: [
-				"C519ABF7FF9D233C"
+				"4519ABF7FF9D233C"
 			]
 			rewards: [
 				{
-					id: "D9ABB9FC44125185"
+					id: "59ABB9FC44125185"
 					type: "xp"
 					xp: 30
 				}
@@ -1566,20 +1566,20 @@
 			y: 12.6d
 		}
 		{
-			id: "D62DC7500B1443D6"
+			id: "562DC7500B1443D6"
 			dependencies: [
 				"256622EB5F7F7A34"
 			]
 			rewards: [
 				{
-					id: "C33F24BA97496AE9"
+					id: "433F24BA97496AE9"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "F9BE69D5E524484B"
+					id: "79BE69D5E524484B"
 					item: {
 						count: 1
 						id: "astralsorcery:exchange_wand"
@@ -1591,13 +1591,13 @@
 			y: 12.6d
 		}
 		{
-			id: "F704A3D7641B378A"
+			id: "7704A3D7641B378A"
 			dependencies: [
-				"D62DC7500B1443D6"
+				"562DC7500B1443D6"
 			]
 			rewards: [
 				{
-					id: "FBF48A3F494A2E4B"
+					id: "7BF48A3F494A2E4B"
 					type: "xp"
 					xp: 60
 				}
@@ -1616,13 +1616,13 @@
 			y: 12.6d
 		}
 		{
-			id: "DC01FEDA116A5C0F"
+			id: "5C01FEDA116A5C0F"
 			dependencies: [
-				"F704A3D7641B378A"
+				"7704A3D7641B378A"
 			]
 			rewards: [
 				{
-					id: "A34E315D93BC1257"
+					id: "234E315D93BC1257"
 					type: "xp"
 					xp: 60
 				}
@@ -1641,20 +1641,20 @@
 			y: 12.6d
 		}
 		{
-			id: "BBD1FFEC4E87680D"
+			id: "3BD1FFEC4E87680D"
 			dependencies: [
-				"DC01FEDA116A5C0F"
+				"5C01FEDA116A5C0F"
 			]
 			rewards: [
 				{
-					id: "99222021FDFAF8AD"
+					id: "19222021FDFAF8AD"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "9EB483F0AE034D7E"
+					id: "1EB483F0AE034D7E"
 					item: {
 						count: 1
 						id: "astralsorcery:astrolabe"
@@ -1668,7 +1668,7 @@
 		{
 			id: "7D6C24FA292D4F49"
 			dependencies: [
-				"BBD1FFEC4E87680D"
+				"3BD1FFEC4E87680D"
 			]
 			rewards: [
 				{
@@ -1691,13 +1691,13 @@
 			y: 12.6d
 		}
 		{
-			id: "BE7589741011B128"
+			id: "3E7589741011B128"
 			dependencies: [
 				"7D6C24FA292D4F49"
 			]
 			rewards: [
 				{
-					id: "C64B9DA15359C2E6"
+					id: "464B9DA15359C2E6"
 					type: "xp"
 					xp: 90
 				}
@@ -1731,7 +1731,7 @@
 			]
 			rewards: [
 				{
-					id: "E79C00D8AFE40C8C"
+					id: "679C00D8AFE40C8C"
 					type: "xp"
 					xp: 30
 				}
@@ -1775,13 +1775,13 @@
 			y: 14.7d
 		}
 		{
-			id: "FB1449BDB4EE86BF"
+			id: "7B1449BDB4EE86BF"
 			dependencies: [
 				"4243A940F96CAE7F"
 			]
 			rewards: [
 				{
-					id: "C0A97C43196407D8"
+					id: "40A97C43196407D8"
 					type: "xp"
 					xp: 30
 				}
@@ -1801,20 +1801,20 @@
 			y: 14.7d
 		}
 		{
-			id: "D504BB9BB5EBC8EF"
+			id: "5504BB9BB5EBC8EF"
 			dependencies: [
-				"FB1449BDB4EE86BF"
+				"7B1449BDB4EE86BF"
 			]
 			rewards: [
 				{
-					id: "86B83CD48257D10D"
+					id: "06B83CD48257D10D"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "866A05E381651F7A"
+					id: "066A05E381651F7A"
 					item: {
 						count: 1
 						id: "astralsorcery:lumen_crystallizer"
@@ -1826,9 +1826,9 @@
 			y: 14.7d
 		}
 		{
-			id: "D936D9002F072748"
+			id: "5936D9002F072748"
 			dependencies: [
-				"D504BB9BB5EBC8EF"
+				"5504BB9BB5EBC8EF"
 			]
 			rewards: [
 				{
@@ -1839,7 +1839,7 @@
 			]
 			tasks: [
 				{
-					id: "F4781C01D5F524EF"
+					id: "74781C01D5F524EF"
 					item: {
 						count: 1
 						id: "astralsorcery:lumen_array"
@@ -1851,9 +1851,9 @@
 			y: 14.7d
 		}
 		{
-			id: "FA5EBF694963DA7C"
+			id: "7A5EBF694963DA7C"
 			dependencies: [
-				"D936D9002F072748"
+				"5936D9002F072748"
 			]
 			rewards: [
 				{
@@ -1864,7 +1864,7 @@
 			]
 			tasks: [
 				{
-					id: "DA4C291E0A2C6172"
+					id: "5A4C291E0A2C6172"
 					item: {
 						count: 1
 						id: "astralsorcery:lumen_alchemy_array"
@@ -1876,20 +1876,20 @@
 			y: 14.7d
 		}
 		{
-			id: "E82FA014FA35F11F"
+			id: "682FA014FA35F11F"
 			dependencies: [
-				"FA5EBF694963DA7C"
+				"7A5EBF694963DA7C"
 			]
 			rewards: [
 				{
-					id: "F42719E8B31ABFAE"
+					id: "742719E8B31ABFAE"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "E5EB23A331767EB3"
+					id: "65EB23A331767EB3"
 					item: {
 						count: 1
 						id: "astralsorcery:lumen_filament"
@@ -1904,11 +1904,11 @@
 		{
 			id: "6DEE4E4EDD8BE905"
 			dependencies: [
-				"E82FA014FA35F11F"
+				"682FA014FA35F11F"
 			]
 			rewards: [
 				{
-					id: "A4F6E1C9AE80EAE7"
+					id: "24F6E1C9AE80EAE7"
 					type: "xp"
 					xp: 90
 				}
@@ -1928,13 +1928,13 @@
 			y: 14.7d
 		}
 		{
-			id: "C86E5476640B6488"
+			id: "486E5476640B6488"
 			dependencies: [
 				"6DEE4E4EDD8BE905"
 			]
 			rewards: [
 				{
-					id: "D4FC3DA2F92A450D"
+					id: "54FC3DA2F92A450D"
 					type: "xp"
 					xp: 90
 				}
@@ -1962,7 +1962,7 @@
 			y: 14.7d
 		}
 		{
-			id: "BF5D95E1ED2D2FDD"
+			id: "3F5D95E1ED2D2FDD"
 			dependencies: [
 				"1D36A80AC9796A61"
 			]
@@ -1975,7 +1975,7 @@
 			]
 			tasks: [
 				{
-					id: "E84D358227C40767"
+					id: "684D358227C40767"
 					item: {
 						count: 1
 						id: "astralsorcery:dynamism_gem_day"
@@ -1987,13 +1987,13 @@
 			y: 16.799999999999997d
 		}
 		{
-			id: "C880898AFECD6775"
+			id: "4880898AFECD6775"
 			dependencies: [
-				"BF5D95E1ED2D2FDD"
+				"3F5D95E1ED2D2FDD"
 			]
 			rewards: [
 				{
-					id: "BB7AD3D40ECD5106"
+					id: "3B7AD3D40ECD5106"
 					type: "xp"
 					xp: 30
 				}
@@ -2012,9 +2012,9 @@
 			y: 16.799999999999997d
 		}
 		{
-			id: "9146999137B7AD62"
+			id: "1146999137B7AD62"
 			dependencies: [
-				"C880898AFECD6775"
+				"4880898AFECD6775"
 			]
 			rewards: [
 				{
@@ -2039,7 +2039,7 @@
 		{
 			id: "3C8D809C448630CA"
 			dependencies: [
-				"9146999137B7AD62"
+				"1146999137B7AD62"
 			]
 			rewards: [
 				{
@@ -2068,7 +2068,7 @@
 			]
 			rewards: [
 				{
-					id: "E81A09E9EA9C8B11"
+					id: "681A09E9EA9C8B11"
 					type: "xp"
 					xp: 60
 				}
@@ -2094,7 +2094,7 @@
 			]
 			rewards: [
 				{
-					id: "8BBD4D49E9ABCBEF"
+					id: "0BBD4D49E9ABCBEF"
 					type: "xp"
 					xp: 60
 				}
@@ -2119,14 +2119,14 @@
 			]
 			rewards: [
 				{
-					id: "C35CF5F3F0195BCF"
+					id: "435CF5F3F0195BCF"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "8988C2973724BC4A"
+					id: "0988C2973724BC4A"
 					item: {
 						count: 1
 						id: "astralsorcery:cave_illuminator"
@@ -2138,13 +2138,13 @@
 			y: 16.799999999999997d
 		}
 		{
-			id: "FA43F3D85336EAA7"
+			id: "7A43F3D85336EAA7"
 			dependencies: [
 				"4AD466EFB14334B2"
 			]
 			rewards: [
 				{
-					id: "C5E3099A71109ABF"
+					id: "45E3099A71109ABF"
 					type: "xp"
 					xp: 90
 				}
@@ -2163,9 +2163,9 @@
 			y: 16.799999999999997d
 		}
 		{
-			id: "D5833F6835D5562C"
+			id: "55833F6835D5562C"
 			dependencies: [
-				"FA43F3D85336EAA7"
+				"7A43F3D85336EAA7"
 			]
 			rewards: [
 				{
@@ -2174,7 +2174,7 @@
 					xp: 90
 				}
 				{
-					id: "B3E38877AB909914"
+					id: "33E38877AB909914"
 					item: {
 						count: 1
 						id: "astralsorcery:stardust"
@@ -2204,14 +2204,14 @@
 			]
 			rewards: [
 				{
-					id: "AD47CA9D0D0AA035"
+					id: "2D47CA9D0D0AA035"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "C38ECF16CC77B2E5"
+					id: "438ECF16CC77B2E5"
 					item: {
 						count: 1
 						id: "astralsorcery:glimmer_amaranth"
@@ -2224,7 +2224,7 @@
 			y: 18.9d
 		}
 		{
-			id: "B2DDED4E4C52D0D1"
+			id: "32DDED4E4C52D0D1"
 			dependencies: [
 				"0B870414B4401D4A"
 			]
@@ -2237,7 +2237,7 @@
 			]
 			tasks: [
 				{
-					id: "F6DEC4B19169700E"
+					id: "76DEC4B19169700E"
 					item: {
 						count: 1
 						id: "astralsorcery:hyacinth"
@@ -2250,9 +2250,9 @@
 			y: 18.9d
 		}
 		{
-			id: "D96AFE76D301B5B5"
+			id: "596AFE76D301B5B5"
 			dependencies: [
-				"B2DDED4E4C52D0D1"
+				"32DDED4E4C52D0D1"
 			]
 			rewards: [
 				{
@@ -2276,9 +2276,9 @@
 			y: 18.9d
 		}
 		{
-			id: "C9E8FAEF01598584"
+			id: "49E8FAEF01598584"
 			dependencies: [
-				"D96AFE76D301B5B5"
+				"596AFE76D301B5B5"
 			]
 			rewards: [
 				{
@@ -2289,7 +2289,7 @@
 			]
 			tasks: [
 				{
-					id: "D338B44C3A93577A"
+					id: "5338B44C3A93577A"
 					item: {
 						count: 1
 						id: "astralsorcery:orchid"
@@ -2304,7 +2304,7 @@
 		{
 			id: "7FB394961FB732F2"
 			dependencies: [
-				"C9E8FAEF01598584"
+				"49E8FAEF01598584"
 			]
 			rewards: [
 				{
@@ -2334,7 +2334,7 @@
 			]
 			rewards: [
 				{
-					id: "96D82B527B54C99D"
+					id: "16D82B527B54C99D"
 					type: "xp"
 					xp: 60
 				}
@@ -2350,7 +2350,7 @@
 			]
 			tasks: [
 				{
-					id: "B5F0C036DFF3089F"
+					id: "35F0C036DFF3089F"
 					item: {
 						count: 1
 						id: "astralsorcery:thistle"
@@ -2363,13 +2363,13 @@
 			y: 18.9d
 		}
 		{
-			id: "9FE8E72386701287"
+			id: "1FE8E72386701287"
 			dependencies: [
 				"1D36A80AC9796A61"
 			]
 			rewards: [
 				{
-					id: "BABBE51D9E1A078D"
+					id: "3ABBE51D9E1A078D"
 					type: "xp"
 					xp: 30
 				}
@@ -2391,18 +2391,18 @@
 		{
 			id: "31C6C961EA41F6A3"
 			dependencies: [
-				"9FE8E72386701287"
+				"1FE8E72386701287"
 			]
 			rewards: [
 				{
-					id: "9C3111311162708C"
+					id: "1C3111311162708C"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "F9EF3DF0183AEA52"
+					id: "79EF3DF0183AEA52"
 					item: {
 						count: 1
 						id: "appliedas:astral_processor_press"
@@ -2414,13 +2414,13 @@
 			y: 21.0d
 		}
 		{
-			id: "85D6B9144839142A"
+			id: "05D6B9144839142A"
 			dependencies: [
 				"31C6C961EA41F6A3"
 			]
 			rewards: [
 				{
-					id: "A5FB34DA0CBBAE8E"
+					id: "25FB34DA0CBBAE8E"
 					type: "xp"
 					xp: 30
 				}
@@ -2442,18 +2442,18 @@
 		{
 			id: "3110358AE60EBD9D"
 			dependencies: [
-				"85D6B9144839142A"
+				"05D6B9144839142A"
 			]
 			rewards: [
 				{
-					id: "A4DEE9081942CC3A"
+					id: "24DEE9081942CC3A"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "F91902FBE771574F"
+					id: "791902FBE771574F"
 					item: {
 						count: 1
 						id: "appliedas:astral_processor"
@@ -2472,14 +2472,14 @@
 			]
 			rewards: [
 				{
-					id: "BF1743EE40E5F87F"
+					id: "3F1743EE40E5F87F"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "C15D99DDE14648F2"
+					id: "415D99DDE14648F2"
 					item: {
 						count: 1
 						id: "appliedas:lumen_processor"
@@ -2498,14 +2498,14 @@
 			]
 			rewards: [
 				{
-					id: "F119FFB993E4EEAD"
+					id: "7119FFB993E4EEAD"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "BF7D1B9C3AECD2C7"
+					id: "3F7D1B9C3AECD2C7"
 					item: {
 						count: 1
 						id: "appliedas:lumen_cell_housing"
@@ -2548,14 +2548,14 @@
 			]
 			rewards: [
 				{
-					id: "D673A65290186F1C"
+					id: "5673A65290186F1C"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "8CC5C7EE7828B839"
+					id: "0CC5C7EE7828B839"
 					item: {
 						count: 1
 						id: "appliedas:lumen_storage_cell_64k"
@@ -2573,14 +2573,14 @@
 			]
 			rewards: [
 				{
-					id: "9BC1A52E61B6C16E"
+					id: "1BC1A52E61B6C16E"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "871622178882D5C6"
+					id: "071622178882D5C6"
 					item: {
 						count: 1
 						id: "appliedas:me_lumen_crystallizer"
@@ -2598,14 +2598,14 @@
 			]
 			rewards: [
 				{
-					id: "A8037A8670E51DF3"
+					id: "28037A8670E51DF3"
 					type: "xp"
 					xp: 120
 				}
 			]
 			tasks: [
 				{
-					id: "A93079F8DBF5D32D"
+					id: "293079F8DBF5D32D"
 					item: {
 						count: 1
 						id: "appliedas:me_starlight_infuser"
@@ -2617,20 +2617,20 @@
 			y: 21.0d
 		}
 		{
-			id: "BB3D759610054C72"
+			id: "3B3D759610054C72"
 			dependencies: [
 				"0DB12022EA314612"
 			]
 			rewards: [
 				{
-					id: "E2BE8CE1803700ED"
+					id: "62BE8CE1803700ED"
 					type: "xp"
 					xp: 120
 				}
 			]
 			tasks: [
 				{
-					id: "CD5F9997E0945098"
+					id: "4D5F9997E0945098"
 					item: {
 						count: 1
 						id: "appliedas:iridescent_attunement_altar"
@@ -2644,7 +2644,7 @@
 		{
 			id: "77B67650A5CDCC8E"
 			dependencies: [
-				"BB3D759610054C72"
+				"3B3D759610054C72"
 			]
 			rewards: [
 				{
@@ -2676,20 +2676,20 @@
 			y: 21.0d
 		}
 		{
-			id: "C4C35B688117E6DA"
+			id: "44C35B688117E6DA"
 			dependencies: [
 				"1D36A80AC9796A61"
 			]
 			rewards: [
 				{
-					id: "CE48A2B83AC31051"
+					id: "4E48A2B83AC31051"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "A2DBA9E2EAED9983"
+					id: "22DBA9E2EAED9983"
 					item: {
 						count: 1
 						id: "create_astral:crushed_raw_starmetal"
@@ -2702,9 +2702,9 @@
 			y: 23.099999999999998d
 		}
 		{
-			id: "888000DFA41BF6C9"
+			id: "088000DFA41BF6C9"
 			dependencies: [
-				"C4C35B688117E6DA"
+				"44C35B688117E6DA"
 			]
 			rewards: [
 				{
@@ -2728,20 +2728,20 @@
 			y: 23.099999999999998d
 		}
 		{
-			id: "D1D1A06FF0AF5F32"
+			id: "51D1A06FF0AF5F32"
 			dependencies: [
-				"888000DFA41BF6C9"
+				"088000DFA41BF6C9"
 			]
 			rewards: [
 				{
-					id: "CFC113A9D66224BF"
+					id: "4FC113A9D66224BF"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "99B785EC44C6AA27"
+					id: "19B785EC44C6AA27"
 					item: {
 						count: 1
 						id: "create_astral:starmetal_casing"
@@ -2754,9 +2754,9 @@
 			y: 23.099999999999998d
 		}
 		{
-			id: "F10A74BF20B776F1"
+			id: "710A74BF20B776F1"
 			dependencies: [
-				"D1D1A06FF0AF5F32"
+				"51D1A06FF0AF5F32"
 			]
 			rewards: [
 				{
@@ -2767,7 +2767,7 @@
 			]
 			tasks: [
 				{
-					id: "B97B1D654A31B2C7"
+					id: "397B1D654A31B2C7"
 					item: {
 						count: 1
 						id: "create_astral:starmetal_encased_shaft"
@@ -2780,9 +2780,9 @@
 			y: 23.099999999999998d
 		}
 		{
-			id: "D7FAA85A24C84151"
+			id: "57FAA85A24C84151"
 			dependencies: [
-				"F10A74BF20B776F1"
+				"710A74BF20B776F1"
 			]
 			rewards: [
 				{
@@ -2806,9 +2806,9 @@
 			y: 23.099999999999998d
 		}
 		{
-			id: "9815DA19A5ED79C9"
+			id: "1815DA19A5ED79C9"
 			dependencies: [
-				"D7FAA85A24C84151"
+				"57FAA85A24C84151"
 			]
 			rewards: [
 				{
@@ -2817,7 +2817,7 @@
 					xp: 60
 				}
 				{
-					id: "BB5B1F26AB407157"
+					id: "3B5B1F26AB407157"
 					item: {
 						count: 1
 						id: "astralsorcery:stardust"

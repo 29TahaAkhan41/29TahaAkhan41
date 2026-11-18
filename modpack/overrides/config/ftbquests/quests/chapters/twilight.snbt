@@ -6,7 +6,7 @@
 	icon: {
 		id: "twilightforest:naga_trophy"
 	}
-	id: "B75AE59F12D2E91D"
+	id: "375AE59F12D2E91D"
 	order_index: 16
 	quest_links: [ ]
 	quests: [
@@ -16,14 +16,14 @@
 			size: 1.5d
 			rewards: [
 				{
-					id: "FC44ACA52F6DDFDC"
+					id: "7C44ACA52F6DDFDC"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "C559136E76327A11"
+					id: "4559136E76327A11"
 					item: {
 						count: 1
 						id: "twilightforest:naga_scale"
@@ -42,14 +42,14 @@
 			]
 			rewards: [
 				{
-					id: "AFD7A2F4B5C7055D"
+					id: "2FD7A2F4B5C7055D"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "BAEBAEDA7D642085"
+					id: "3AEBAEDA7D642085"
 					item: {
 						count: 1
 						id: "twilightforest:naga_trophy"
@@ -67,14 +67,14 @@
 			]
 			rewards: [
 				{
-					id: "FFD3D52235E96FD5"
+					id: "7FD3D52235E96FD5"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "ADE8211E2501D814"
+					id: "2DE8211E2501D814"
 					item: {
 						count: 1
 						id: "twilightforest:lich_trophy"
@@ -86,7 +86,7 @@
 			y: 0.0d
 		}
 		{
-			id: "D64EBDE38F8E418F"
+			id: "564EBDE38F8E418F"
 			dependencies: [
 				"7AE25B6FCF05A8F9"
 			]
@@ -111,9 +111,9 @@
 			y: 0.0d
 		}
 		{
-			id: "85E52F318506729A"
+			id: "05E52F318506729A"
 			dependencies: [
-				"D64EBDE38F8E418F"
+				"564EBDE38F8E418F"
 			]
 			rewards: [
 				{
@@ -138,7 +138,7 @@
 		{
 			id: "77FB14BCE32F96EC"
 			dependencies: [
-				"85E52F318506729A"
+				"05E52F318506729A"
 			]
 			rewards: [
 				{
@@ -186,7 +186,7 @@
 			y: 0.0d
 		}
 		{
-			id: "812537EDF60EFF77"
+			id: "012537EDF60EFF77"
 			dependencies: [
 				"546B765D9DB6C28E"
 			]
@@ -199,7 +199,7 @@
 			]
 			tasks: [
 				{
-					id: "EF459EF510E4A1AF"
+					id: "6F459EF510E4A1AF"
 					item: {
 						count: 1
 						id: "twilightforest:alpha_yeti_trophy"
@@ -211,9 +211,9 @@
 			y: 0.0d
 		}
 		{
-			id: "E528936A75CCEE22"
+			id: "6528936A75CCEE22"
 			dependencies: [
-				"812537EDF60EFF77"
+				"012537EDF60EFF77"
 			]
 			shape: "hexagon"
 			size: 1.5d
@@ -253,14 +253,14 @@
 			]
 			rewards: [
 				{
-					id: "807430F003D1186D"
+					id: "007430F003D1186D"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "B0EB7598B0954C6B"
+					id: "30EB7598B0954C6B"
 					item: {
 						count: 1
 						id: "twilightforest:twilight_oak_log"
@@ -273,13 +273,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "B90271293B031906"
+			id: "390271293B031906"
 			dependencies: [
 				"01278869C01030DD"
 			]
 			rewards: [
 				{
-					id: "F88D51757406689B"
+					id: "788D51757406689B"
 					type: "xp"
 					xp: 30
 				}
@@ -299,9 +299,9 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "E6CE7D7E231FD07A"
+			id: "66CE7D7E231FD07A"
 			dependencies: [
-				"B90271293B031906"
+				"390271293B031906"
 			]
 			rewards: [
 				{
@@ -327,11 +327,11 @@
 		{
 			id: "65F8A3615BB94439"
 			dependencies: [
-				"E6CE7D7E231FD07A"
+				"66CE7D7E231FD07A"
 			]
 			rewards: [
 				{
-					id: "AAB0A086829DAED2"
+					id: "2AB0A086829DAED2"
 					type: "xp"
 					xp: 60
 				}
@@ -351,13 +351,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "AF253FFF3F644650"
+			id: "2F253FFF3F644650"
 			dependencies: [
 				"65F8A3615BB94439"
 			]
 			rewards: [
 				{
-					id: "B90E408DC4F5CAD2"
+					id: "390E408DC4F5CAD2"
 					type: "xp"
 					xp: 60
 				}
@@ -377,13 +377,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "9EAC1C46F7C2EB7C"
+			id: "1EAC1C46F7C2EB7C"
 			dependencies: [
-				"AF253FFF3F644650"
+				"2F253FFF3F644650"
 			]
 			rewards: [
 				{
-					id: "987D5A13AC5AC341"
+					id: "187D5A13AC5AC341"
 					type: "xp"
 					xp: 60
 				}
@@ -403,9 +403,9 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "E606142F1C9D8580"
+			id: "6606142F1C9D8580"
 			dependencies: [
-				"9EAC1C46F7C2EB7C"
+				"1EAC1C46F7C2EB7C"
 			]
 			rewards: [
 				{
@@ -416,7 +416,7 @@
 			]
 			tasks: [
 				{
-					id: "87E067442A5031F8"
+					id: "07E067442A5031F8"
 					item: {
 						count: 1
 						id: "twilightforest:magic_map_focus"
@@ -428,9 +428,9 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "E4F301E9176CD640"
+			id: "64F301E9176CD640"
 			dependencies: [
-				"E606142F1C9D8580"
+				"6606142F1C9D8580"
 			]
 			rewards: [
 				{
@@ -462,7 +462,7 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "97BD4C3BB51DA93B"
+			id: "17BD4C3BB51DA93B"
 			dependencies: [
 				"24D81E9CEDE9D53B"
 			]
@@ -475,7 +475,7 @@
 			]
 			tasks: [
 				{
-					id: "9B40745F4F5C2D86"
+					id: "1B40745F4F5C2D86"
 					item: {
 						count: 1
 						id: "twilightforest:naga_chestplate"
@@ -487,20 +487,20 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "C0C976DD918E46F0"
+			id: "40C976DD918E46F0"
 			dependencies: [
-				"97BD4C3BB51DA93B"
+				"17BD4C3BB51DA93B"
 			]
 			rewards: [
 				{
-					id: "84EC99B617CDDD02"
+					id: "04EC99B617CDDD02"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "B55DA47F9453B34C"
+					id: "355DA47F9453B34C"
 					item: {
 						count: 1
 						id: "twilightforest:steeleaf_ingot"
@@ -515,7 +515,7 @@
 		{
 			id: "31833497B6D8769C"
 			dependencies: [
-				"C0C976DD918E46F0"
+				"40C976DD918E46F0"
 			]
 			rewards: [
 				{
@@ -539,7 +539,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "914442B6EF8912BD"
+			id: "114442B6EF8912BD"
 			dependencies: [
 				"31833497B6D8769C"
 			]
@@ -567,7 +567,7 @@
 		{
 			id: "19CA1FF9D8B090B0"
 			dependencies: [
-				"914442B6EF8912BD"
+				"114442B6EF8912BD"
 			]
 			rewards: [
 				{
@@ -591,13 +591,13 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "96DED0B8C39458ED"
+			id: "16DED0B8C39458ED"
 			dependencies: [
 				"19CA1FF9D8B090B0"
 			]
 			rewards: [
 				{
-					id: "C529CC7610D2E349"
+					id: "4529CC7610D2E349"
 					type: "xp"
 					xp: 60
 				}
@@ -617,9 +617,9 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "AF00D7F17546E1AA"
+			id: "2F00D7F17546E1AA"
 			dependencies: [
-				"96DED0B8C39458ED"
+				"16DED0B8C39458ED"
 			]
 			rewards: [
 				{
@@ -630,7 +630,7 @@
 			]
 			tasks: [
 				{
-					id: "9A1329CA4B218F63"
+					id: "1A1329CA4B218F63"
 					item: {
 						count: 1
 						id: "twilightforest:alpha_yeti_fur"
@@ -645,7 +645,7 @@
 		{
 			id: "670E8A0B1D3E32C6"
 			dependencies: [
-				"AF00D7F17546E1AA"
+				"2F00D7F17546E1AA"
 			]
 			rewards: [
 				{
@@ -665,7 +665,7 @@
 			]
 			tasks: [
 				{
-					id: "C60AB0093A8A04EA"
+					id: "460AB0093A8A04EA"
 					item: {
 						count: 1
 						id: "twilightforest:ice_bomb"
@@ -691,7 +691,7 @@
 			]
 			tasks: [
 				{
-					id: "E66674446A146062"
+					id: "666674446A146062"
 					item: {
 						count: 1
 						id: "twilightforest:lifedrain_scepter"
@@ -734,14 +734,14 @@
 			]
 			rewards: [
 				{
-					id: "A44B7C4473122E45"
+					id: "244B7C4473122E45"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "A90DAB8D15195E8B"
+					id: "290DAB8D15195E8B"
 					item: {
 						count: 1
 						id: "twilightforest:giant_pickaxe"
@@ -764,7 +764,7 @@
 					xp: 60
 				}
 				{
-					id: "D8492671815C5EFF"
+					id: "58492671815C5EFF"
 					item: {
 						count: 1
 						id: "minecraft:golden_apple"

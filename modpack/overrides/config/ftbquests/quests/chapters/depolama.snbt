@@ -11,7 +11,7 @@
 	quest_links: [ ]
 	quests: [
 		{
-			id: "E6E8FC92D4C191F0"
+			id: "66E8FC92D4C191F0"
 			shape: "hexagon"
 			size: 1.5d
 			rewards: [
@@ -36,13 +36,13 @@
 			y: 0.0d
 		}
 		{
-			id: "9D60308B4B0FBF51"
+			id: "1D60308B4B0FBF51"
 			dependencies: [
-				"E6E8FC92D4C191F0"
+				"66E8FC92D4C191F0"
 			]
 			rewards: [
 				{
-					id: "9A45D6797B4CE38A"
+					id: "1A45D6797B4CE38A"
 					type: "xp"
 					xp: 20
 				}
@@ -62,9 +62,9 @@
 			y: 0.0d
 		}
 		{
-			id: "8FDF9817DECDE40A"
+			id: "0FDF9817DECDE40A"
 			dependencies: [
-				"9D60308B4B0FBF51"
+				"1D60308B4B0FBF51"
 			]
 			rewards: [
 				{
@@ -90,11 +90,11 @@
 		{
 			id: "3212D2CDFF934DD4"
 			dependencies: [
-				"8FDF9817DECDE40A"
+				"0FDF9817DECDE40A"
 			]
 			rewards: [
 				{
-					id: "E3B95640B5F1046C"
+					id: "63B95640B5F1046C"
 					type: "xp"
 					xp: 40
 				}
@@ -113,13 +113,13 @@
 			y: 0.0d
 		}
 		{
-			id: "E60FBDA7F3355D6D"
+			id: "660FBDA7F3355D6D"
 			dependencies: [
 				"3212D2CDFF934DD4"
 			]
 			rewards: [
 				{
-					id: "807F66361F335E35"
+					id: "007F66361F335E35"
 					type: "xp"
 					xp: 40
 				}
@@ -141,11 +141,11 @@
 		{
 			id: "6611A7CB1BF1F289"
 			dependencies: [
-				"E60FBDA7F3355D6D"
+				"660FBDA7F3355D6D"
 			]
 			rewards: [
 				{
-					id: "9AFBEDF4CE3D77F7"
+					id: "1AFBEDF4CE3D77F7"
 					type: "xp"
 					xp: 40
 				}
@@ -171,14 +171,14 @@
 			]
 			rewards: [
 				{
-					id: "FB63A74F72D045AC"
+					id: "7B63A74F72D045AC"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "CFE25610E4A58C97"
+					id: "4FE25610E4A58C97"
 					item: {
 						count: 1
 						id: "functionalstorage:diamond_upgrade"
@@ -191,7 +191,7 @@
 			y: 0.0d
 		}
 		{
-			id: "DBD7B7564481A8C9"
+			id: "5BD7B7564481A8C9"
 			dependencies: [
 				"3A36B26ECA6AEAC7"
 			]
@@ -199,7 +199,7 @@
 			size: 1.5d
 			rewards: [
 				{
-					id: "E9D5602E04592DA8"
+					id: "69D5602E04592DA8"
 					type: "xp"
 					xp: 60
 				}
@@ -229,11 +229,11 @@
 		{
 			id: "768FD4450E043CE0"
 			dependencies: [
-				"E6E8FC92D4C191F0"
+				"66E8FC92D4C191F0"
 			]
 			rewards: [
 				{
-					id: "F8913986AEB841DB"
+					id: "78913986AEB841DB"
 					type: "xp"
 					xp: 20
 				}
@@ -252,13 +252,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "EDB14DF6678C2E37"
+			id: "6DB14DF6678C2E37"
 			dependencies: [
 				"768FD4450E043CE0"
 			]
 			rewards: [
 				{
-					id: "942DBB024DAFFC6D"
+					id: "142DBB024DAFFC6D"
 					type: "xp"
 					xp: 20
 				}
@@ -277,9 +277,9 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "DAC522C302A256A6"
+			id: "5AC522C302A256A6"
 			dependencies: [
-				"EDB14DF6678C2E37"
+				"6DB14DF6678C2E37"
 			]
 			rewards: [
 				{
@@ -304,11 +304,11 @@
 		{
 			id: "1C483FFE696663EE"
 			dependencies: [
-				"DAC522C302A256A6"
+				"5AC522C302A256A6"
 			]
 			rewards: [
 				{
-					id: "B35C8C0DF93BAD08"
+					id: "335C8C0DF93BAD08"
 					type: "xp"
 					xp: 40
 				}
@@ -340,7 +340,7 @@
 			]
 			tasks: [
 				{
-					id: "809FA49BE83827C8"
+					id: "009FA49BE83827C8"
 					item: {
 						count: 1
 						id: "sophisticatedstorage:diamond_chest"
@@ -358,7 +358,7 @@
 			]
 			rewards: [
 				{
-					id: "A7A29DEDAC95BF01"
+					id: "27A29DEDAC95BF01"
 					type: "xp"
 					xp: 40
 				}
@@ -388,7 +388,7 @@
 		{
 			id: "1E7B136F08535C75"
 			dependencies: [
-				"E6E8FC92D4C191F0"
+				"66E8FC92D4C191F0"
 			]
 			rewards: [
 				{
@@ -417,7 +417,7 @@
 			]
 			rewards: [
 				{
-					id: "927E4DF8104E516F"
+					id: "127E4DF8104E516F"
 					type: "xp"
 					xp: 20
 				}
@@ -449,7 +449,7 @@
 			]
 			tasks: [
 				{
-					id: "FA0B01AE46457D7D"
+					id: "7A0B01AE46457D7D"
 					item: {
 						count: 1
 						id: "toms_storage:crafting_terminal"
@@ -483,7 +483,7 @@
 			]
 			tasks: [
 				{
-					id: "F6476C6779C3EFA2"
+					id: "76476C6779C3EFA2"
 					item: {
 						count: 1
 						id: "toms_storage:inventory_cable"
@@ -498,7 +498,7 @@
 		{
 			id: "20DAD49A19E70158"
 			dependencies: [
-				"E6E8FC92D4C191F0"
+				"66E8FC92D4C191F0"
 			]
 			rewards: [
 				{
@@ -509,7 +509,7 @@
 			]
 			tasks: [
 				{
-					id: "D2B0B03DC0449528"
+					id: "52B0B03DC0449528"
 					item: {
 						count: 1
 						id: "minecraft:barrel"
@@ -578,14 +578,14 @@
 			]
 			rewards: [
 				{
-					id: "ACC3F8DDD412176F"
+					id: "2CC3F8DDD412176F"
 					type: "xp"
 					xp: 40
 				}
 			]
 			tasks: [
 				{
-					id: "D2CADD6454D42FBC"
+					id: "52CADD6454D42FBC"
 					item: {
 						count: 1
 						id: "minecraft:dropper"
@@ -609,7 +609,7 @@
 					xp: 40
 				}
 				{
-					id: "B8A41FB99FC92DEC"
+					id: "38A41FB99FC92DEC"
 					item: {
 						count: 1
 						id: "minecraft:chest"

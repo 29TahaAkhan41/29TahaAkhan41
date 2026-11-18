@@ -4,6 +4,7 @@ Kullanım:  python3 modpack/tools/generate.py
 Çıktı:     modpack/overrides/config/ftbquests/quests/
 """
 import hashlib
+import re
 import os
 import shutil
 import sys
@@ -20,8 +21,23 @@ SPACING = 1.5
 
 
 def qid(*parts):
-    """Yeniden üretimde değişmeyen 16 haneli hex kimlik."""
-    return hashlib.sha1("/".join(parts).encode()).hexdigest()[:16].upper()
+    """Yeniden üretimde değişmeyen 16 haneli hex kimlik.
+
+    FTB Quests kimlikleri işaretli 64-bit sayı olarak okur; en üst bit 1 olursa
+    (ilk hane 8-F) dil dosyasındaki anahtarlar eşleşmez. Bu yüzden üst bit sıfırlanır.
+    """
+    n = int(hashlib.sha1("/".join(parts).encode()).hexdigest()[:16], 16) & 0x7FFFFFFFFFFFFFFF
+    return f"{n or 1:016X}"
+
+
+FORMAT_CODE = re.compile(r"&(?![0-9a-fk-orA-FK-OR])")
+
+
+def ftb_text(v):
+    """Renk kodu olmayan '&' karakterlerini FTB Quests için '\\&' ile kaçırır."""
+    if isinstance(v, list):
+        return [ftb_text(x) for x in v]
+    return FORMAT_CODE.sub(r"\\&", v) if isinstance(v, str) else v
 
 
 class Raw:
@@ -227,8 +243,8 @@ def main():
     })
 
     # tr_tr: Türkçe, en_us: İngilizce (diğer diller en_us'a düşer).
-    write(os.path.join(OUT, "lang", "tr_tr.snbt"), lang)
-    write(os.path.join(OUT, "lang", "en_us.snbt"), en)
+    write(os.path.join(OUT, "lang", "tr_tr.snbt"), {k: ftb_text(v) for k, v in lang.items()})
+    write(os.path.join(OUT, "lang", "en_us.snbt"), {k: ftb_text(v) for k, v in en.items()})
     for kind, text in sorted(missing_en):
         print(f"  ! İngilizcesi yok ({kind}): {text}")
 

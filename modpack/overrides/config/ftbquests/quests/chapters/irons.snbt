@@ -6,7 +6,7 @@
 	icon: {
 		id: "irons_spellbooks:iron_spell_book"
 	}
-	id: "FF389844624DA709"
+	id: "7F389844624DA709"
 	order_index: 14
 	quest_links: [ ]
 	quests: [
@@ -16,14 +16,14 @@
 			size: 1.5d
 			rewards: [
 				{
-					id: "A8027EB0E0E35B3D"
+					id: "28027EB0E0E35B3D"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "D56ABE528A136FC3"
+					id: "556ABE528A136FC3"
 					item: {
 						count: 1
 						id: "irons_spellbooks:arcane_essence"
@@ -42,7 +42,7 @@
 			]
 			rewards: [
 				{
-					id: "FF5D5F5682C7A0B5"
+					id: "7F5D5F5682C7A0B5"
 					type: "xp"
 					xp: 30
 				}
@@ -61,7 +61,7 @@
 			y: 0.0d
 		}
 		{
-			id: "E9944A3326D0D3AB"
+			id: "69944A3326D0D3AB"
 			dependencies: [
 				"53C17E56D24F31AC"
 			]
@@ -88,11 +88,11 @@
 		{
 			id: "2EEAEE8E8FA4F298"
 			dependencies: [
-				"E9944A3326D0D3AB"
+				"69944A3326D0D3AB"
 			]
 			rewards: [
 				{
-					id: "D3BF0B481DC59CAD"
+					id: "53BF0B481DC59CAD"
 					type: "xp"
 					xp: 60
 				}
@@ -136,20 +136,20 @@
 			y: 0.0d
 		}
 		{
-			id: "9ACDF395188F48F2"
+			id: "1ACDF395188F48F2"
 			dependencies: [
 				"753D08946440D885"
 			]
 			rewards: [
 				{
-					id: "954A2F32EA764AE6"
+					id: "154A2F32EA764AE6"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "B85899545B9628EE"
+					id: "385899545B9628EE"
 					item: {
 						count: 1
 						id: "irons_spellbooks:arcane_anvil"
@@ -161,20 +161,20 @@
 			y: 0.0d
 		}
 		{
-			id: "9A8A4B41D53A98AD"
+			id: "1A8A4B41D53A98AD"
 			dependencies: [
-				"9ACDF395188F48F2"
+				"1ACDF395188F48F2"
 			]
 			rewards: [
 				{
-					id: "D4BC340C429803BA"
+					id: "54BC340C429803BA"
 					type: "xp"
 					xp: 90
 				}
 			]
 			tasks: [
 				{
-					id: "AA9B5803E31FBCAE"
+					id: "2A9B5803E31FBCAE"
 					item: {
 						count: 1
 						id: "irons_spellbooks:mithril_ingot"
@@ -189,7 +189,7 @@
 		{
 			id: "48C3ED86CBB618CA"
 			dependencies: [
-				"9A8A4B41D53A98AD"
+				"1A8A4B41D53A98AD"
 			]
 			shape: "hexagon"
 			size: 1.5d
@@ -211,7 +211,7 @@
 			]
 			tasks: [
 				{
-					id: "A63C566AE9582953"
+					id: "263C566AE9582953"
 					item: {
 						count: 1
 						id: "irons_spellbooks:diamond_spell_book"
@@ -229,14 +229,14 @@
 			]
 			rewards: [
 				{
-					id: "91EF851350F58848"
+					id: "11EF851350F58848"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "9052ED81EAAD0246"
+					id: "1052ED81EAAD0246"
 					item: {
 						count: 1
 						id: "irons_spellbooks:blank_rune"
@@ -274,13 +274,13 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "9A064D9A4DA3B7E5"
+			id: "1A064D9A4DA3B7E5"
 			dependencies: [
 				"088FC22BBF8E3CE5"
 			]
 			rewards: [
 				{
-					id: "BC94A67B0F8A816D"
+					id: "3C94A67B0F8A816D"
 					type: "xp"
 					xp: 30
 				}
@@ -301,7 +301,7 @@
 		{
 			id: "01263B91122CF3EC"
 			dependencies: [
-				"9A064D9A4DA3B7E5"
+				"1A064D9A4DA3B7E5"
 			]
 			rewards: [
 				{
@@ -330,14 +330,14 @@
 			]
 			rewards: [
 				{
-					id: "847B5E172372082F"
+					id: "047B5E172372082F"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "E8DFA1E260020E32"
+					id: "68DFA1E260020E32"
 					item: {
 						count: 1
 						id: "irons_spellbooks:holy_rune"
@@ -349,20 +349,20 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "F655A904B4678D56"
+			id: "7655A904B4678D56"
 			dependencies: [
 				"7E773F0FC885DAEB"
 			]
 			rewards: [
 				{
-					id: "917456E05147CE58"
+					id: "117456E05147CE58"
 					type: "xp"
 					xp: 60
 				}
 			]
 			tasks: [
 				{
-					id: "B4672EE61BC2386B"
+					id: "34672EE61BC2386B"
 					item: {
 						count: 1
 						id: "irons_spellbooks:ender_rune"
@@ -374,9 +374,9 @@
 			y: 2.0999999999999996d
 		}
 		{
-			id: "F1D329FAEFC6CBF3"
+			id: "71D329FAEFC6CBF3"
 			dependencies: [
-				"F655A904B4678D56"
+				"7655A904B4678D56"
 			]
 			rewards: [
 				{
@@ -385,7 +385,7 @@
 					xp: 90
 				}
 				{
-					id: "8DAC265E9A761770"
+					id: "0DAC265E9A761770"
 					item: {
 						count: 1
 						id: "irons_spellbooks:arcane_essence"
@@ -396,7 +396,7 @@
 			]
 			tasks: [
 				{
-					id: "B12ADE12C8930B2B"
+					id: "312ADE12C8930B2B"
 					item: {
 						count: 1
 						id: "irons_spellbooks:upgrade_orb"
@@ -433,7 +433,7 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "A715D95DDFDA59A7"
+			id: "2715D95DDFDA59A7"
 			dependencies: [
 				"5FE7550387CD6932"
 			]
@@ -459,20 +459,20 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "9A48E18D53AEEACE"
+			id: "1A48E18D53AEEACE"
 			dependencies: [
-				"A715D95DDFDA59A7"
+				"2715D95DDFDA59A7"
 			]
 			rewards: [
 				{
-					id: "B29F36CB53D324C9"
+					id: "329F36CB53D324C9"
 					type: "xp"
 					xp: 30
 				}
 			]
 			tasks: [
 				{
-					id: "C52793F0E57AADFB"
+					id: "452793F0E57AADFB"
 					item: {
 						count: 1
 						id: "irons_spellbooks:rare_ink"
@@ -485,13 +485,13 @@
 			y: 4.199999999999999d
 		}
 		{
-			id: "8091C5C1785F72F3"
+			id: "0091C5C1785F72F3"
 			dependencies: [
-				"9A48E18D53AEEACE"
+				"1A48E18D53AEEACE"
 			]
 			rewards: [
 				{
-					id: "898EC22F5CE01B98"
+					id: "098EC22F5CE01B98"
 					type: "xp"
 					xp: 60
 				}
@@ -507,7 +507,7 @@
 			]
 			tasks: [
 				{
-					id: "E4C7213454E78910"
+					id: "64C7213454E78910"
 					item: {
 						count: 1
 						id: "irons_spellbooks:legendary_ink"
