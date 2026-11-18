@@ -5,7 +5,7 @@ Görev başlıkları varsayılan olarak eşyanın resmi İngilizce adından geli
 TITLES sözlüğünde elle çevrilmiştir. Anahtar: Türkçe metin.
 """
 
-FILE_TITLE = "Yıldız Yolu (Star Path)"
+FILE_TITLE = "Star Path"
 
 CHAPTERS = {
     "&eBaşlangıç": "&eGetting Started",

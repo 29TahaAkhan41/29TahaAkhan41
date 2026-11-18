@@ -1,7 +1,7 @@
 """CurseForge'a içe aktarılabilir modpack zip'i üretir.
 
 Kullanım:  CF_API_KEY=... python3 modpack/tools/build_pack.py
-Çıktı:     modpack/dist/YildizYolu-<sürüm>.zip  (CurseForge → Import)
+Çıktı:     modpack/dist/StarPath-<sürüm>.zip  (CurseForge → Import)
            modpack/dist/resolved.json            (bulunan dosyalar)
 """
 import json
@@ -22,7 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
 API = "https://api.curseforge.com/v1"
 GAME, MC, NEOFORGE = 432, "1.21.1", 6
-PACK_NAME, PACK_VERSION = "Yıldız Yolu", "1.0.0"
+PACK_NAME, PACK_VERSION = "Star Path", "1.0.0"
 REQUIRED_DEP = 3
 # İstemci tarafı modları: sunucu paketinde gereksiz ama CurseForge istemci zip'inde kalır.
 
@@ -125,7 +125,7 @@ def main():
         json.dump({"neoforge": neo, "mods": list(resolved.values()), "missing": missing},
                   fp, ensure_ascii=False, indent=2)
 
-    out = os.path.join(DIST, f"YildizYolu-{PACK_VERSION}.zip")
+    out = os.path.join(DIST, f"StarPath-{PACK_VERSION}.zip")
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
         z.writestr("modlist.html", "<ul>\n" + "\n".join(

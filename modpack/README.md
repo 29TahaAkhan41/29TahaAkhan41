@@ -1,4 +1,4 @@
-# ✦ Yıldız Yolu – Minecraft 1.21.1 Modpack
+# ✦ Star Path (Yıldız Yolu) – Minecraft 1.21.1 Modpack
 
 **Minecraft 1.21.1 · NeoForge** için hazır modlardan oluşan, **Astral Sorcery** merkezli büyük bir modpack.
 
@@ -100,7 +100,7 @@ Curios · Patchouli · GeckoLib · Balm · Sophisticated Core · Architectury ·
 ## Kurulum (CurseForge uygulaması)
 
 **Kolay yol: hazır zip**
-1. `YildizYolu-1.0.0.zip` dosyasını indir.
+1. `StarPath-1.0.0.zip` dosyasını indir.
 2. CurseForge → Minecraft → **Create Custom Profile** yanındaki **Import** → zip'i seç.
 3. CurseForge bütün modları, NeoForge'u ve görev kitabını kendisi kurar. **Play**'e bas.
 

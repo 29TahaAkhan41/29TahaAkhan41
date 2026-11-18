@@ -10,7 +10,7 @@ import uuid
 import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ZIP = os.path.join(ROOT, "YildizYolu-1.0.0.zip")
+ZIP = os.path.join(ROOT, "StarPath-1.0.0.zip")
 CHANGELOG = os.path.join(ROOT, "yayin", "degisiklikler.md")
 MC_1_21_1 = 11779  # "Minecraft 1.21" türündeki 1.21.1
 
@@ -20,7 +20,7 @@ release_type = sys.argv[2] if len(sys.argv) > 2 else "beta"
 metadata = {
     "changelog": open(CHANGELOG, encoding="utf-8").read(),
     "changelogType": "markdown",
-    "displayName": "Yıldız Yolu 1.0.0",
+    "displayName": "Star Path 1.0.0",
     "gameVersions": [MC_1_21_1],
     "releaseType": release_type,
 }
