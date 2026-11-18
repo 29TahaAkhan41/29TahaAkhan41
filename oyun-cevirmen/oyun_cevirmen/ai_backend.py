@@ -94,6 +94,13 @@ class AiBackend(Backend):
 
             session = requests.Session()
         self.session = session
+        self.local = "localhost" in self.service.url
+        # Büyük yerel modeller yavaştır: daha küçük parçalar, daha uzun bekleme
+        self.max_chars = 1500 if self.local else self.MAX_CHARS
+        self.timeout = 600 if self.local else 120
+        # Düşünen (thinking) modellerde düşünmeyi kapat: çeviri için gereksiz ve yavaş.
+        # Ollama bunu "reasoning_effort": "none" ile yapar; desteklemeyen modelde kapatılır.
+        self.disable_thinking = self.local
 
     # -- genel API --
     def translate_batch(self, texts, source, target):
@@ -101,7 +108,7 @@ class AiBackend(Backend):
         chunk: list[str] = []
         size = 0
         for t in texts:
-            if chunk and size + len(t) > self.MAX_CHARS:
+            if chunk and size + len(t) > self.max_chars:
                 results += self._translate_chunk(chunk, source)
                 chunk, size = [], 0
             chunk.append(t)
@@ -128,6 +135,8 @@ class AiBackend(Backend):
             ],
             "temperature": 0.2,
         }
+        if self.disable_thinking:
+            body["reasoning_effort"] = "none"
         reply = self._post(body)
         return _parse_array(reply, len(chunk))
 
@@ -137,13 +146,19 @@ class AiBackend(Backend):
             headers["Authorization"] = f"Bearer {self.api_key}"
         for attempt in range(4):
             try:
-                r = self.session.post(self.service.url, json=body, headers=headers, timeout=120)
+                r = self.session.post(self.service.url, json=body, headers=headers,
+                                      timeout=self.timeout)
             except Exception as e:
                 if "localhost" in self.service.url:
                     raise ConnectionError(
                         "Ollama'ya bağlanılamadı. Ollama'nın kurulu ve açık olduğundan emin olun."
                     ) from e
                 raise
+            if r.status_code == 400 and "reasoning_effort" in body and "think" in r.text.lower():
+                # Model düşünme ayarını desteklemiyor: ayarsız tekrar dene
+                self.disable_thinking = False
+                body = {k: v for k, v in body.items() if k != "reasoning_effort"}
+                continue
             if r.status_code == 429 or r.status_code >= 500:
                 # Ücretsiz katmanda dakikalık sınır aşıldı veya sunucu meşgul: bekle, tekrar dene
                 wait = _retry_after(r) or 2 ** attempt * 3
@@ -176,7 +191,8 @@ def _retry_after(response) -> float | None:
 
 def _parse_array(reply: str, expected: int) -> list[str] | None:
     """Model cevabındaki JSON dizisini çıkarır; uzunluk tutmazsa None."""
-    text = reply.strip()
+    # Düşünen modellerin <think>...</think> bölümünü at
+    text = re.sub(r"<think>.*?</think>", "", reply, flags=re.DOTALL).strip()
     text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text)  # kod bloğu çitlerini at
     start, end = text.find("["), text.rfind("]")
     if start == -1 or end <= start:

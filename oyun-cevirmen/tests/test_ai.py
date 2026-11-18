@@ -90,3 +90,26 @@ def test_parse_array():
     assert _parse_array('Tabii: ["a", "b"]', 2) == ["a", "b"]
     assert _parse_array("çeviri yok", 1) is None
     assert _parse_array('["a"]', 2) is None
+
+
+def test_thinking_disabled_only_for_ollama():
+    s = FakeSession()
+    AiBackend("ollama", model="qwen3.8:27b", session=s).translate_batch(["Quit"], "en", "tr")
+    assert s.requests[0]["body"]["reasoning_effort"] == "none"
+    s2 = FakeSession()
+    AiBackend("gemini", "k", session=s2).translate_batch(["Quit"], "en", "tr")
+    assert "reasoning_effort" not in s2.requests[0]["body"]
+
+
+def test_model_without_thinking_support_retries_without_setting():
+    s = FakeSession(script=[Resp(400, '{"error":"model does not support thinking"}')])
+    b = AiBackend("ollama", session=s)
+    assert b.translate_batch(["Quit"], "en", "tr") == ["Çıkış"]
+    assert "reasoning_effort" not in s.requests[1]["body"]
+    b.translate_batch(["Quit"], "en", "tr")
+    assert "reasoning_effort" not in s.requests[2]["body"]  # bir kez öğrenince bir daha göndermez
+
+
+def test_think_block_is_ignored():
+    reply = '<think>Kullanıcı ["x", "y"] istiyor...</think>\n["Yeni Oyun"]'
+    assert _parse_array(reply, 1) == ["Yeni Oyun"]
