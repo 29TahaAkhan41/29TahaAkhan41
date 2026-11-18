@@ -20,10 +20,11 @@ def cli(argv: list[str]) -> int:
     p.add_argument("-o", "--cikti", type=Path, help="Çıktı dosyası/klasörü")
     p.add_argument("--kaynak", default="auto", choices=list(SOURCE_LANGUAGES))
     p.add_argument("--motor", default="google", choices=list(BACKENDS))
-    p.add_argument("--deepl-anahtar", default="")
+    p.add_argument("--anahtar", default="", help="Gemini/Groq/DeepL API anahtarı")
+    p.add_argument("--model", default="", help="Yapay zekâ modeli (boşsa varsayılan)")
     a = p.parse_args(argv)
 
-    tr = Translator(make_backend(a.motor, a.deepl_anahtar), source=a.kaynak, target="tr")
+    tr = Translator(make_backend(a.motor, a.anahtar, a.model), source=a.kaynak, target="tr")
     if a.girdi.is_dir():
         out = a.cikti or Path(str(a.girdi).rstrip("/\\") + "_tr")
         for path, res in ft.translate_folder(a.girdi, out, tr,

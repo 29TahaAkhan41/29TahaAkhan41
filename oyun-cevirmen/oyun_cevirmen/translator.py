@@ -119,12 +119,27 @@ class ArgosBackend(Backend):
 
 BACKENDS: dict[str, str] = {
     "google": "Google Çeviri (ücretsiz, çevrimiçi)",
+    "gemini": "Yapay zekâ: Google Gemini (ücretsiz anahtar)",
+    "groq": "Yapay zekâ: Groq (ücretsiz anahtar, çok hızlı)",
+    "ollama": "Yapay zekâ: Ollama (yerel, internetsiz)",
     "deepl": "DeepL (API anahtarı ile)",
     "argos": "Argos (çevrimdışı)",
 }
 
+# API anahtarı isteyen motorlar ve anahtarın nereden alınacağı
+KEY_HELP: dict[str, str] = {
+    "gemini": "Ücretsiz anahtar: aistudio.google.com/apikey",
+    "groq": "Ücretsiz anahtar: console.groq.com/keys",
+    "deepl": "Ücretsiz anahtar: deepl.com/pro-api",
+}
+AI_BACKENDS = ("gemini", "groq", "ollama")
 
-def make_backend(name: str, api_key: str = "") -> Backend:
+
+def make_backend(name: str, api_key: str = "", model: str = "") -> Backend:
+    if name in AI_BACKENDS:
+        from .ai_backend import AiBackend
+
+        return AiBackend(name, api_key, model)
     if name == "google":
         return GoogleBackend()
     if name == "deepl":

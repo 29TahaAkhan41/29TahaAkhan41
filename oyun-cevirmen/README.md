@@ -70,6 +70,9 @@ python -m oyun_cevirmen dosya en_us.json
 ```bash
 python -m oyun_cevirmen dosya Localization/ -o Localization_tr --kaynak en --motor google
 ```
+```bash
+python -m oyun_cevirmen dosya en_us.json --motor gemini --anahtar ANAHTARINIZ
+```
 
 ---
 
@@ -78,8 +81,44 @@ python -m oyun_cevirmen dosya Localization/ -o Localization_tr --kaynak en --mot
 | Motor | Artı | Eksi |
 |---|---|---|
 | **Google Çeviri** (varsayılan) | Ücretsiz, anahtar gerekmez | İnternet gerekir; çok hızlı isteklerde kısa süre engelleyebilir |
-| **DeepL** | En doğal Türkçe | Ücretsiz API anahtarı gerekir: <https://www.deepl.com/pro-api> (ayda 500.000 karakter ücretsiz) |
-| **Argos** | Tamamen çevrimdışı | Kalitesi daha düşük |
+| **🤖 Yapay zekâ: Google Gemini** | Bağlamı anlar, oyun terimlerini doğru çevirir. Ücretsiz katmanı var. | Ücretsiz API anahtarı gerekir; dakikalık istek sınırı var |
+| **🤖 Yapay zekâ: Groq** | Ücretsiz katmanı var, çok hızlı | Ücretsiz API anahtarı gerekir; günlük/dakikalık sınır var |
+| **🤖 Yapay zekâ: Ollama** | Tamamen ücretsiz, **internetsiz**, sınırsız; yazılar bilgisayardan çıkmaz | İyi bir bilgisayar ister (8 GB+ RAM, tercihen ekran kartı); ilk kurulum birkaç GB |
+| **DeepL** | Çok doğal Türkçe | Ücretsiz API anahtarı gerekir: <https://www.deepl.com/pro-api> (ayda 500.000 karakter ücretsiz) |
+| **Argos** | Tamamen çevrimdışı, hafif | Kalitesi daha düşük |
+
+### 🤖 Yapay zekâ motorlarını kurma
+
+Yapay zekâ, klasik çeviriden farklı olarak yazının **oyun yazısı olduğunu bilerek** çevirir.
+Kısa menü yazılarını doğru yorumlar ("Load" → "Yükle"), terimleri oyuncuların kullandığı
+biçimde çevirir ve karakter/yer adlarını olduğu gibi bırakır.
+
+**Google Gemini (önerilen)**
+1. <https://aistudio.google.com/apikey> adresine Google hesabınızla girin.
+2. **Create API key** ile anahtar oluşturun ve kopyalayın.
+3. Oyun Çevirmeni'nde motoru *Yapay zekâ: Google Gemini* yapıp anahtarı **API anahtarı** kutusuna yapıştırın.
+
+**Groq**
+1. <https://console.groq.com/keys> adresinde ücretsiz hesap açın, **Create API Key** ile anahtar alın.
+2. Motoru *Yapay zekâ: Groq* yapıp anahtarı yapıştırın.
+
+**Ollama (internetsiz)**
+1. <https://ollama.com/download> adresinden Ollama'yı kurun ve açın.
+2. Komut istemine (cmd) şunu yazıp modeli indirin (yaklaşık 4,7 GB):
+   ```bash
+   ollama pull qwen2.5:7b
+   ```
+3. Motoru *Yapay zekâ: Ollama* yapın. Anahtar gerekmez.
+   Bilgisayarınız zayıfsa daha küçük bir model indirip **Model** kutusuna adını yazın (ör. `qwen2.5:3b`).
+
+**Model** kutusu boş bırakılırsa varsayılan model kullanılır (Gemini: `gemini-2.5-flash`,
+Groq: `llama-3.3-70b-versatile`, Ollama: `qwen2.5:7b`). Servisler modellerini zamanla
+değiştirebilir. "Model bulunamadı" hatası alırsanız servisin sitesindeki güncel model adını
+bu kutuya yazın.
+
+> Ücretsiz katmanların sınırlarını ve koşullarını servisler belirler ve zamanla değiştirebilir.
+> Gemini'nin ücretsiz katmanında gönderilen yazılar Google tarafından ürün geliştirmek için
+> kullanılabilir. Bunu istemiyorsanız Ollama'yı seçin.
 
 Ayarlar ve önbellek `%USERPROFILE%\.oyun_cevirmen\` klasöründe tutulur.
 
@@ -93,7 +132,9 @@ Ayarlar ve önbellek `%USERPROFILE%\.oyun_cevirmen\` klasöründe tutulur.
 | Çeviri oyunun üstünde görünmüyor | Oyunu kenarlıksız pencere moduna alın |
 | Kutular yazıdan kayık | Windows ekran ölçeklendirmesini değiştirdiyseniz uygulamayı yeniden başlatın |
 | Bazı yazılar okunmuyor | *Alan seç* ile bölgeyi daraltın veya EasyOCR'a geçin |
-| "Çok fazla istek" hatası | Otomatik yenileme süresini 3-5 sn yapın veya DeepL kullanın |
+| "Çok fazla istek" / "kullanım sınırı" hatası | Otomatik yenileme süresini 3-5 sn yapın, biraz bekleyin veya başka motor seçin |
+| "Ollama'ya bağlanılamadı" | Ollama uygulamasının açık olduğundan emin olun |
+| "Model bulunamadı" | Model adını kontrol edin; Ollama'da `ollama pull <model>` ile indirin |
 | Kısayollar oyunda çalışmıyor | Oyun yönetici olarak çalışıyorsa Oyun Çevirmeni'ni de **yönetici olarak** açın |
 
 > Not: Bu uygulama oyun dosyalarına veya belleğine müdahale etmez; yalnızca ekran görüntüsünü okur. Bu yüzden hile koruması olan oyunlarda genellikle sorun çıkarmaz, ama bunun garantisi yoktur.

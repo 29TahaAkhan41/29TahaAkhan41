@@ -18,7 +18,8 @@ from . import file_translator as ft
 from .overlay import Overlay, RegionSelector, enable_dpi_awareness
 from .screen import OCR_ENGINES, Region, apply_colors, capture, image_signature, make_ocr, \
     monitors, signature_changed
-from .translator import BACKENDS, CONFIG_DIR, SOURCE_LANGUAGES, Translator, make_backend
+from .translator import AI_BACKENDS, BACKENDS, CONFIG_DIR, KEY_HELP, SOURCE_LANGUAGES, Translator, \
+    make_backend
 
 SETTINGS_FILE = CONFIG_DIR / "ayarlar.json"
 
@@ -27,7 +28,9 @@ SETTINGS_FILE = CONFIG_DIR / "ayarlar.json"
 class Settings:
     source_lang: str = "en"
     backend: str = "google"
-    deepl_key: str = ""
+    deepl_key: str = ""  # eski sürümlerden kalan ayar; api_keys["deepl"]'e taşınır
+    api_keys: dict = None  # motor -> API anahtarı
+    ai_models: dict = None  # yapay zekâ motoru -> model adı (boşsa varsayılan)
     ocr_engine: str = "tesseract"
     tesseract_path: str = ""
     monitor: int = 0
@@ -38,6 +41,13 @@ class Settings:
     auto_interval: float = 2.0
     opacity: float = 0.95
     match_colors: bool = True
+
+    def __post_init__(self):
+        self.api_keys = dict(self.api_keys or {})
+        self.ai_models = dict(self.ai_models or {})
+        if self.deepl_key and "deepl" not in self.api_keys:
+            self.api_keys["deepl"] = self.deepl_key
+        self.deepl_key = ""
 
     @classmethod
     def load(cls) -> "Settings":
@@ -146,15 +156,54 @@ class App:
         ttk.Combobox(box, textvariable=self.var_backend, values=list(BACKENDS.values()),
                      state="readonly", width=34).grid(row=1, column=1, columnspan=2,
                                                       sticky="w", padx=6, pady=(6, 0))
-        ttk.Label(box, text="DeepL anahtarı:").grid(row=2, column=0, sticky="w", pady=(6, 0))
-        self.var_deepl = tk.StringVar(value=self.s.deepl_key)
-        ttk.Entry(box, textvariable=self.var_deepl, width=40, show="•").grid(
-            row=2, column=1, columnspan=2, sticky="w", padx=6, pady=(6, 0))
+        ttk.Label(box, text="API anahtarı:").grid(row=2, column=0, sticky="w", pady=(6, 0))
+        self.var_key = tk.StringVar()
+        self.ent_key = ttk.Entry(box, textvariable=self.var_key, width=40, show="•")
+        self.ent_key.grid(row=2, column=1, columnspan=2, sticky="w", padx=6, pady=(6, 0))
+        ttk.Label(box, text="Model:").grid(row=3, column=0, sticky="w", pady=(6, 0))
+        self.var_model = tk.StringVar()
+        self.ent_model = ttk.Entry(box, textvariable=self.var_model, width=26)
+        self.ent_model.grid(row=3, column=1, sticky="w", padx=6, pady=(6, 0))
+        self.lbl_key_help = ttk.Label(box, text="", foreground="#777")
+        self.lbl_key_help.grid(row=4, column=0, columnspan=3, sticky="w", pady=(4, 0))
+        self._shown_backend = self.s.backend
+        self._load_backend_fields()
+        self.var_backend.trace_add("write", lambda *_: self._on_backend_change())
+
+    def _load_backend_fields(self) -> None:
+        """Seçili motorun anahtarını/modelini alanlara yükler, gereksiz alanları kapatır."""
+        from .ai_backend import AI_SERVICES
+
+        b = self._shown_backend
+        self.var_key.set(self.s.api_keys.get(b, ""))
+        self.var_model.set(self.s.ai_models.get(b, ""))
+        needs_key = b in KEY_HELP
+        self.ent_key.config(state="normal" if needs_key else "disabled")
+        self.ent_model.config(state="normal" if b in AI_BACKENDS else "disabled")
+        help_text = KEY_HELP.get(b, "Anahtar gerekmez.")
+        if b in AI_SERVICES:
+            help_text += f"   Varsayılan model: {AI_SERVICES[b].default_model}"
+            if b == "ollama":
+                help_text = AI_SERVICES[b].key_help
+        self.lbl_key_help.config(text=help_text)
+
+    def _store_backend_fields(self) -> None:
+        b = self._shown_backend
+        key, model = self.var_key.get().strip(), self.var_model.get().strip()
+        if b in KEY_HELP:
+            self.s.api_keys[b] = key
+        if b in AI_BACKENDS:
+            self.s.ai_models[b] = model
+
+    def _on_backend_change(self) -> None:
+        self._store_backend_fields()
+        self._shown_backend = _key_by_label(BACKENDS, self.var_backend.get())
+        self._load_backend_fields()
 
     def _collect(self) -> None:
         self.s.source_lang = _key_by_label(SOURCE_LANGUAGES, self.var_src.get())
+        self._store_backend_fields()
         self.s.backend = _key_by_label(BACKENDS, self.var_backend.get())
-        self.s.deepl_key = self.var_deepl.get().strip()
         self.s.ocr_engine = _key_by_label(OCR_ENGINES, self.var_ocr.get())
         self.s.tesseract_path = self.var_tess.get().strip()
         self.s.monitor = max(0, self.cmb_mon.current())
@@ -169,9 +218,11 @@ class App:
         self.s.save()
 
     def translator(self) -> Translator:
-        key = (self.s.backend, self.s.deepl_key, self.s.source_lang)
+        api_key = self.s.api_keys.get(self.s.backend, "")
+        model = self.s.ai_models.get(self.s.backend, "")
+        key = (self.s.backend, api_key, model, self.s.source_lang)
         if self._translator is None or self._translator_key != key:
-            self._translator = Translator(make_backend(self.s.backend, self.s.deepl_key),
+            self._translator = Translator(make_backend(self.s.backend, api_key, model),
                                           source=self.s.source_lang, target="tr")
             self._translator_key = key
         return self._translator
@@ -572,6 +623,9 @@ def _friendly_error(e: Exception) -> str:
     if "TooManyRequests" in name:
         return ("Google Çeviri çok fazla istek nedeniyle geçici olarak yanıt vermiyor. "
                 "Biraz bekleyin, yenileme süresini artırın veya başka bir çeviri motoru seçin.")
+    if isinstance(e, (ValueError, RuntimeError, ConnectionError)) and \
+            any(w in text for w in ("API anahtarı", "Ollama", "Yapay zekâ", "Model bulunamadı")):
+        return text
     if "Connection" in name or "Timeout" in name or "RequestError" in name:
         return "Çeviri sunucusuna ulaşılamadı. İnternet bağlantınızı kontrol edin."
     return f"{name}: {text}"
