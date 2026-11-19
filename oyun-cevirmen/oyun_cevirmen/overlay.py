@@ -229,3 +229,63 @@ class RegionSelector:
     def _finish(self, region):
         self.win.destroy()
         self.on_done(region)
+
+
+class Toast:
+    """Oyunun üstünde, ekranın üst ortasında kısa bildirim (ilerleme, hata, sonuç).
+
+    Oyundayken uygulama penceresi görünmediği için hatalar burada gösterilir.
+    Tıklamaları engellemez ve çeviri sırasında ekran görüntüsüne girmez.
+    """
+
+    COLORS = {"info": ("#1d2733", "#ffffff"), "ok": ("#14532d", "#ffffff"),
+              "error": ("#7f1d1d", "#ffffff")}
+
+    def __init__(self, root: tk.Tk):
+        self.root = root
+        self.win: tk.Toplevel | None = None
+        self._job = None
+
+    def show(self, text: str, kind: str = "info", seconds: float = 3.0,
+             bounds: Region | None = None) -> None:
+        self.hide()
+        bg, fg = self.COLORS.get(kind, self.COLORS["info"])
+        win = tk.Toplevel(self.root)
+        win.overrideredirect(True)
+        win.attributes("-topmost", True)
+        try:
+            win.attributes("-alpha", 0.93)
+        except tk.TclError:
+            pass
+        win.configure(bg=bg)
+        tk.Label(win, text=text, bg=bg, fg=fg, padx=16, pady=8, wraplength=700, justify="left",
+                 font=("Segoe UI" if IS_WINDOWS else "DejaVu Sans", 11)).pack()
+        win.update_idletasks()
+        if bounds is None:
+            bounds = Region(0, 0, self.root.winfo_screenwidth(), self.root.winfo_screenheight())
+        x = bounds.left + (bounds.width - win.winfo_width()) // 2
+        win.geometry(f"+{x}+{bounds.top + 24}")
+        win.update_idletasks()
+        if IS_WINDOWS:
+            try:
+                make_click_through(win)
+                exclude_from_capture(win)
+            except Exception:
+                pass
+        self.win = win
+        if seconds:
+            self._job = self.root.after(int(seconds * 1000), self.hide)
+
+    def hide(self) -> None:
+        if self._job:
+            try:
+                self.root.after_cancel(self._job)
+            except tk.TclError:
+                pass
+            self._job = None
+        if self.win is not None:
+            try:
+                self.win.destroy()
+            except tk.TclError:
+                pass
+            self.win = None

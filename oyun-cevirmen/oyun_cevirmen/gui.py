@@ -15,7 +15,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from . import file_translator as ft
-from .overlay import Overlay, RegionSelector, enable_dpi_awareness
+from .overlay import Overlay, RegionSelector, Toast, enable_dpi_awareness
 from . import render
 from .glossary import Glossary
 from .render import FONT_STYLES, render_all
@@ -45,7 +45,7 @@ class Settings:
     opacity: float = 1.0
     match_colors: bool = True
     font_style: str = "sans-bold"
-    version: int = 2  # ayar dosyası sürümü (eski ayarları yükseltmek için)
+    version: int = 3  # ayar dosyası sürümü (eski ayarları yükseltmek için)
 
     def __post_init__(self):
         self.api_keys = dict(self.api_keys or {})
@@ -65,6 +65,13 @@ class Settings:
                 data["opacity"] = 1.0
                 data["match_colors"] = True
                 data["version"] = 2
+            if data.get("version", 1) < 3:
+                # v3: servislerin kapattığı modeller (gemini-2.5-flash, llama-3.3-70b...) silinir
+                from .ai_backend import RETIRED_MODELS
+
+                data["ai_models"] = {k: v for k, v in (data.get("ai_models") or {}).items()
+                                     if v not in RETIRED_MODELS}
+                data["version"] = 3
             names = {f.name for f in fields(cls)}
             return cls(**{k: v for k, v in data.items() if k in names})
         except (OSError, ValueError, TypeError):
@@ -136,6 +143,7 @@ class App:
         self.overlay = Overlay(self.root)
         self.overlay.opacity = self.s.opacity
         self.overlay.match_colors = self.s.match_colors
+        self.toast = Toast(self.root)
         self.busy = False
         self.auto_on = False
         self.last_sig: bytes | None = None
@@ -188,9 +196,11 @@ class App:
         self.lbl_key_help.grid(row=4, column=0, columnspan=3, sticky="w", pady=(4, 0))
         sf = ttk.Frame(box)
         sf.grid(row=5, column=0, columnspan=3, sticky="w", pady=(6, 0))
-        ttk.Button(sf, text="Sözlüğü düzenle…", command=self.edit_glossary).pack(side="left")
+        ttk.Button(sf, text="Çeviri motorunu test et", command=self.test_backend).pack(side="left")
+        ttk.Button(sf, text="Sözlüğü düzenle…", command=self.edit_glossary).pack(side="left",
+                                                                                  padx=(6, 0))
         ttk.Label(sf, foreground="#777",
-                  text="  Yanlış çevrilen bir yazının doğrusunu buraya yazın; hep o kullanılır."
+                  text="  Sözlük: yanlış çevrilen yazının doğrusunu yazın."
                   ).pack(side="left")
         self._shown_backend = self.s.backend
         self._load_backend_fields()
@@ -244,6 +254,35 @@ class App:
         self.overlay.opacity = self.s.opacity
         self.overlay.match_colors = self.s.match_colors
         self.s.save()
+
+    def test_backend(self) -> None:
+        """Seçili çeviri motorunu örnek bir cümleyle dener (önbellek ve sözlük olmadan)."""
+        self._collect()
+        sample = "Press E to open the inventory and equip your new sword."
+        self.status("Çeviri motoru deneniyor…")
+
+        def work():
+            t0 = time.time()
+            try:
+                api_key = self.s.api_keys.get(self.s.backend, "")
+                model = self.s.ai_models.get(self.s.backend, "")
+                backend = make_backend(self.s.backend, api_key, model)
+                out = backend.translate_batch([sample], "en", "tr")[0]
+                name = BACKENDS.get(self.s.backend, self.s.backend)
+                if getattr(backend, "model", None):
+                    name += f" · model: {backend.model}"
+                msg = (f"Çalışıyor ✔  ({time.time() - t0:.1f} sn)\n\n{name}\n\n"
+                       f"{sample}\n→ {out}")
+                self.post(self._test_done, msg, False)
+            except Exception as e:
+                traceback.print_exc()
+                self.post(self._test_done, f"Çalışmıyor ✖\n\n{_friendly_error(e)}", True)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _test_done(self, msg: str, error: bool) -> None:
+        self.status(msg.splitlines()[0], error)
+        (messagebox.showerror if error else messagebox.showinfo)("Oyun Çevirmeni", msg)
 
     def glossary(self) -> Glossary:
         # Hazır sözlük İngilizce; diğer dillerde yalnızca kullanıcının girdileri kullanılır
@@ -433,15 +472,39 @@ class App:
             self.busy = False
             return
         self.last_sig = sig
+        if not auto:
+            # Oyundayken uygulama penceresi görünmez: ilerleme oyunun üstünde gösterilir
+            self.toast.show("Ekran okunuyor…", "info", 0, region)
         threading.Thread(target=self._work, args=(img, region, auto), daemon=True).start()
 
     def _window_rect(self):
-        """Uygulamanın kendi penceresi (simge durumundaysa None)."""
-        if self.root.state() != "normal":
+        """Uygulamanın kendi penceresi, yalnızca ÖNDE ise (yoksa None).
+
+        Eskiden pencere oyunun arkasında kalsa bile kapladığı alandaki tüm yazılar
+        atlanıyordu: oyundayken F9'a basınca, arkadaki pencerenin denk geldiği yerdeki
+        (ör. ekranın ortasındaki menü) yazılar hiç çevrilmiyordu.
+        """
+        if self.root.state() != "normal" or not self._is_foreground():
             return None
         r = self.root
         return (r.winfo_rootx(), r.winfo_rooty(),
                 r.winfo_rootx() + r.winfo_width(), r.winfo_rooty() + r.winfo_height())
+
+    def _is_foreground(self) -> bool:
+        """Kullanıcı şu an Oyun Çevirmeni penceresinde mi (oyunda değil)?"""
+        if sys.platform == "win32":
+            try:
+                import ctypes
+
+                user32 = ctypes.windll.user32
+                root_hwnd = user32.GetAncestor(self.root.winfo_id(), 2)  # GA_ROOT
+                return user32.GetForegroundWindow() == root_hwnd
+            except Exception:
+                return False
+        try:
+            return self.root.focus_displayof() is not None
+        except (tk.TclError, KeyError):
+            return False
 
     def _get_ocr(self):
         key = (self.s.ocr_engine, self.s.source_lang, self.s.tesseract_path)
@@ -454,6 +517,7 @@ class App:
                 # Windows OCR bu dil için yoksa Tesseract ile devam et, kullanıcıya bildir
                 self._ocr = make_ocr("tesseract", self.s.source_lang, self.s.tesseract_path)
                 self.post(self.status, f"{e}  Şimdilik Tesseract kullanılıyor.", True)
+                self.post(self.toast.show, f"{e}  Şimdilik Tesseract kullanılıyor.", "error", 8)
             self._ocr_key = key
         return self._ocr
 
@@ -470,6 +534,9 @@ class App:
             if not blocks:
                 self.post(self._done, [], auto, "Ekranda okunabilir yazı bulunamadı.", (t_ocr, 0))
                 return
+            if not auto:
+                self.post(self.toast.show, f"{len(blocks)} yazı bulundu, çevriliyor…  "
+                          f"({BACKENDS.get(self.s.backend, '')})", "info", 0, region)
             t1 = time.time()
             translated = self.translator().translate_many([b.text for b in blocks])
             t_tr = time.time() - t1
@@ -491,10 +558,14 @@ class App:
         if note:
             if not auto:
                 self.status(note)
+                self.toast.show(note + "  (Alan seç ile bölgeyi daraltmayı deneyin.)", "info", 4)
             return
         t_ocr, t_tr = times
-        self.status(f"{len(blocks)} metin çevrildi · yazı tanıma {t_ocr:.1f} sn · "
-                    f"çeviri {t_tr:.1f} sn")
+        summary = (f"{len(blocks)} metin çevrildi · yazı tanıma {t_ocr:.1f} sn · "
+                   f"çeviri {t_tr:.1f} sn")
+        self.status(summary)
+        if not auto:
+            self.toast.show("✔ " + summary, "ok", 2)
         self.log.delete("1.0", "end")
         for b in blocks:
             self.log.insert("end", f"{b.text}\n   → {b.translated}\n")
@@ -502,6 +573,7 @@ class App:
     def _fail(self, msg) -> None:
         self.busy = False
         self.status(msg, True)
+        self.toast.show("✖ Çeviri yapılamadı: " + msg, "error", 10)
         if self.auto_on:
             self.toggle_auto()
 
@@ -699,7 +771,10 @@ def _friendly_error(e: Exception) -> str:
     if isinstance(e, (ValueError, RuntimeError, ConnectionError)) and \
             any(w in text for w in ("API anahtarı", "Ollama", "Yapay zekâ", "Model bulunamadı")):
         return text
-    if "Connection" in name or "Timeout" in name or "RequestError" in name:
+    if "Timeout" in name:
+        return ("Çeviri motoru zamanında yanıt vermedi. Ollama kullanıyorsanız model bu bilgisayar "
+                "için büyük olabilir: daha küçük bir model (ör. qwen3.5:4b) ya da Gemini deneyin.")
+    if "Connection" in name or "RequestError" in name:
         return "Çeviri sunucusuna ulaşılamadı. İnternet bağlantınızı kontrol edin."
     return f"{name}: {text}"
 

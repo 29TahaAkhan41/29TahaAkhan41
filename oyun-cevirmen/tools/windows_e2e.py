@@ -26,8 +26,12 @@ SOZ = {"New Game": "Yeni Oyun", "Load Game": "Oyun Yükle", "Settings": "Ayarlar
 
 class Fake(Backend):
     name = "fake"
+    fail = False
 
     def translate_batch(self, texts, s, t):
+        if Fake.fail:
+            raise ConnectionError("Ollama'ya bağlanılamadı. Ollama'nın kurulu ve açık olduğundan "
+                                  "emin olun.")
         return [SOZ.get(x, "Yaşlı demirci sana bakıp şöyle der: Bana üç demir külçe getir, "
                            "sana bir kahramana yaraşır bir kılıç döveyim."
                 if "blacksmith" in x.lower() else "[TR] " + x) for x in texts]
@@ -104,6 +108,9 @@ overlay.exclude_from_capture = lambda win: False
 results = {"ekran_goruntusunden_gizleme_calisiyor": CAPTURE_EXCLUSION_WORKS}
 for spec in sys.argv[2:] or ["windows", "tesseract"]:
     # "windows@2" = Windows OCR, görüntü 2 kat büyütülerek; "windows:menu" = menü sahnesi
+    # "...!hata" = çeviri motoru hata verir (oyunun üstündeki bildirimi görmek için)
+    spec, _, fail = spec.partition("!")
+    Fake.fail = fail == "hata"
     spec_core, _, scene = spec.partition(":")
     scene = scene or "rpg"
     engine, _, sc = spec_core.partition("@")
@@ -114,15 +121,21 @@ for spec in sys.argv[2:] or ["windows", "tesseract"]:
     if scene == "menu":
         app.var_font.set(render.FONT_STYLES["serif"])
     app.var_ocr.set(screen.OCR_ENGINES[engine])
+    # Gerçek kullanım: Oyun Çevirmeni penceresi oyunun ARKASINDA, ekranın ortasında durur,
+    # oyun öndedir. (Eski sürüm bu durumda pencerenin arkasındaki yazıları atlıyordu.)
+    app.root.geometry("+150+60")
     game = tk.Toplevel(app.root)
     game.overrideredirect(True)
     game.geometry("1000x600+0+0")
     photo = ImageTk.PhotoImage(SCENES[scene]())
     tk.Label(game, image=photo, bd=0).pack()
 
-    def finish(spec=spec, app=app):
-        grab(OUT / f"sonuc-{spec.replace('@', '-x').replace(':', '-')}.png", (0, 0, 1000, 600))
-        results[spec] = {
+    def finish(spec=spec, app=app, fail=fail):
+        key = spec + ("!" + fail if fail else "")
+        grab(OUT / f"sonuc-{key.replace('@', '-x').replace(':', '-').replace('!', '-')}.png",
+             (0, 0, 1000, 600))
+        results[key] = {
+            "oyun_onde_mi": not app._is_foreground(),
             "durum": app.lbl_status.cget("text"),
             "katman": len(app.overlay.windows),
             "metinler": app.log.get("1.0", "end").strip().splitlines(),
@@ -130,9 +143,15 @@ for spec in sys.argv[2:] or ["windows", "tesseract"]:
         }
         app.quit()
 
-    app.root.after(800, app.root.iconify)  # uygulama penceresi oyunu kapatmasın
+    def bring_game_front(game=game):
+        game.lift()
+        game.attributes("-topmost", True)
+        game.focus_force()
+        game.after(300, lambda: game.attributes("-topmost", False))
+
+    app.root.after(800, bring_game_front)
     app.root.after(2000, app.translate_screen)
-    app.root.after(9000, finish)
+    app.root.after(4500 if fail else 9000, finish)
     app.run()
     SCENES[scene]().save(OUT / f"oyun-{scene}.png")
 

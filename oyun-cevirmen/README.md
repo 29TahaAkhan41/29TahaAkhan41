@@ -158,8 +158,8 @@ biçimde çevirir ve karakter/yer adlarını olduğu gibi bırakır.
    (yaklaşık 18 GB; rahat çalışması için 24 GB ekran kartı belleği önerilir).
    Düşünen (thinking) modellerde düşünme çeviri sırasında otomatik kapatılır, böylece daha hızlı cevap verirler.
 
-**Model** kutusu boş bırakılırsa varsayılan model kullanılır (Gemini: `gemini-2.5-flash`,
-Groq: `llama-3.3-70b-versatile`, Ollama: `qwen3.5:9b`). Servisler modellerini zamanla
+**Model** kutusu boş bırakılırsa varsayılan model kullanılır (Gemini: `gemini-3.5-flash-lite`,
+Groq: `qwen/qwen3.8-27b`, Ollama: `qwen3.5:9b`). Servisler modellerini zamanla
 değiştirebilir. "Model bulunamadı" hatası alırsanız servisin sitesindeki güncel model adını
 bu kutuya yazın.
 

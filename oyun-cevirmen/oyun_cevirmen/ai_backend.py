@@ -26,22 +26,26 @@ class AiService:
     default_model: str
     needs_key: bool
     key_help: str
+    no_think: bool = False  # "reasoning_effort": "none" ile düşünmeyi kapatmayı destekler
 
 
 AI_SERVICES: dict[str, AiService] = {
     "gemini": AiService(
         "Google Gemini (ücretsiz anahtar)",
         "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        "gemini-2.5-flash",
+        # gemini-2.5-flash kullanımdan kaldırıldı (Kasım 2026); Google'ın önerdiği yenisi:
+        "gemini-3.5-flash-lite",
         True,
         "Ücretsiz anahtar: https://aistudio.google.com/apikey",
     ),
     "groq": AiService(
         "Groq (ücretsiz anahtar, çok hızlı)",
         "https://api.groq.com/openai/v1/chat/completions",
-        "llama-3.3-70b-versatile",
+        # llama-3.3-70b-versatile 16 Ağustos 2026'da kapatıldı
+        "qwen/qwen3.8-27b",
         True,
         "Ücretsiz anahtar: https://console.groq.com/keys",
+        no_think=True,
     ),
     "ollama": AiService(
         "Ollama (yerel yapay zekâ, internetsiz)",
@@ -49,6 +53,7 @@ AI_SERVICES: dict[str, AiService] = {
         "qwen3.5:9b",
         False,
         "Kurulum: https://ollama.com  ardından:  ollama pull qwen3.5:9b",
+        no_think=True,
     ),
 }
 
@@ -57,6 +62,9 @@ LANG_NAMES = {
     "zh-CN": "Simplified Chinese", "ko": "Korean", "ru": "Russian", "de": "German",
     "fr": "French", "es": "Spanish", "it": "Italian", "pt": "Portuguese", "pl": "Polish",
 }
+
+# Servislerin kapattığı eski varsayılan modeller: kayıtlı ayarlarda varsa yenisi kullanılır
+RETIRED_MODELS = {"gemini-2.5-flash", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"}
 
 SYSTEM_PROMPT = """You are a professional video game localizer translating {src} into Turkish.
 
@@ -88,7 +96,8 @@ class AiBackend(Backend):
                              f"{self.service.key_help}")
         self.name = f"ai-{service}"
         self.api_key = api_key
-        self.model = model.strip() or self.service.default_model
+        model = model.strip()
+        self.model = model if model and model not in RETIRED_MODELS else self.service.default_model
         if session is None:
             import requests
 
@@ -99,8 +108,9 @@ class AiBackend(Backend):
         self.max_chars = 1500 if self.local else self.MAX_CHARS
         self.timeout = 600 if self.local else 120
         # Düşünen (thinking) modellerde düşünmeyi kapat: çeviri için gereksiz ve yavaş.
-        # Ollama bunu "reasoning_effort": "none" ile yapar; desteklemeyen modelde kapatılır.
-        self.disable_thinking = self.local
+        # Ollama ve Groq bunu "reasoning_effort": "none" ile yapar; desteklemeyen modelde
+        # bir kez hata alınca bu ayar bir daha gönderilmez.
+        self.disable_thinking = self.service.no_think
 
     # -- genel API --
     def translate_batch(self, texts, source, target):
@@ -154,7 +164,8 @@ class AiBackend(Backend):
                         "Ollama'ya bağlanılamadı. Ollama'nın kurulu ve açık olduğundan emin olun."
                     ) from e
                 raise
-            if r.status_code == 400 and "reasoning_effort" in body and "think" in r.text.lower():
+            if r.status_code == 400 and "reasoning_effort" in body and \
+                    any(w in r.text.lower() for w in ("think", "reasoning")):
                 # Model düşünme ayarını desteklemiyor: ayarsız tekrar dene
                 self.disable_thinking = False
                 body = {k: v for k, v in body.items() if k != "reasoning_effort"}

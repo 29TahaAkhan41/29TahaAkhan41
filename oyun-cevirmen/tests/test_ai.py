@@ -45,7 +45,7 @@ def test_translates_batch_and_keeps_placeholders():
     req = s.requests[0]
     assert req["url"].startswith("https://generativelanguage.googleapis.com")
     assert req["headers"]["Authorization"] == "Bearer anahtar"
-    assert req["body"]["model"] == "gemini-2.5-flash"
+    assert req["body"]["model"] == "gemini-3.5-flash-lite"
     assert "English" in req["body"]["messages"][0]["content"]
 
 
@@ -113,3 +113,11 @@ def test_model_without_thinking_support_retries_without_setting():
 def test_think_block_is_ignored():
     reply = '<think>Kullanıcı ["x", "y"] istiyor...</think>\n["Yeni Oyun"]'
     assert _parse_array(reply, 1) == ["Yeni Oyun"]
+
+
+def test_retired_model_names_are_replaced():
+    s = FakeSession()
+    AiBackend("groq", "k", model="llama-3.3-70b-versatile", session=s).translate_batch(
+        ["Quit"], "en", "tr")
+    assert s.requests[0]["body"]["model"] == "qwen/qwen3.8-27b"
+    assert s.requests[0]["body"]["reasoning_effort"] == "none"  # Groq'ta düşünme kapalı
