@@ -103,6 +103,39 @@ def _dilate(mask: np.ndarray, r: int) -> np.ndarray:
     return np.asarray(m) > 0
 
 
+def _local_background(rgb: np.ndarray, line_height: int) -> np.ndarray:
+    """Her pikselin arkasındaki arka plan rengi tahmini.
+
+    Ortanca (median) filtresi kullanılır: ince yazı çizgilerini yok eder ama buton/kutu
+    kenarlarını korur. (Ortalama alınca butonun kenarında dışarıdaki renk karışıyor,
+    kenara yakın koyu harfler arka plandan ayırt edilemiyor ve iz bırakıyordu.)
+    """
+    size = min(31, max(5, (line_height // 2) * 2 + 1))
+    h, w = rgb.shape[:2]
+    if h < 3 or w < 3:
+        return _smooth(rgb, max(3, line_height))
+    img = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8))
+    # Hız için küçültüp filtrele, sonra geri büyüt
+    f = max(1, size // 9)
+    small = img.resize((max(3, w // f), max(3, h // f)), Image.BILINEAR) if f > 1 else img
+    k = max(3, (size // f) | 1)
+    med = small.filter(ImageFilter.MedianFilter(k))
+    if f > 1:
+        med = med.resize((w, h), Image.BILINEAR)
+    return np.asarray(med, dtype=np.float64)
+
+
+def _edge_lines(m: np.ndarray) -> np.ndarray:
+    """Bölgeyi baştan sona kesintisiz kesen yatay/dikey çizgiler (buton, kutu kenarı)."""
+    h, w = m.shape
+    edges = np.zeros_like(m)
+    if w > 8:
+        edges[_longest_run(m) > 0.9 * w, :] = True
+    if h > 8:
+        edges[:, _longest_run(m.T) > 0.9 * h] = True
+    return edges & m
+
+
 def _longest_run(m: np.ndarray) -> np.ndarray:
     """Her satırdaki en uzun kesintisiz True dizisinin uzunluğu."""
     out = np.zeros(m.shape[0], int)
@@ -120,24 +153,21 @@ def text_mask(rgb: np.ndarray, line_height: int, return_strong: bool = False):
     pikseller (parlama/glow, gölge, kenar yumuşatma). Böylece silinen yazının etrafında
     hale kalmaz.
     """
-    r = max(3, line_height)
-    local = _smooth(rgb, r)
+    local = _local_background(rgb, line_height)
     dist = np.sqrt(((rgb - local) ** 2).sum(axis=2))
     # Eşik, bölgenin kontrastına göre uyarlanır (soluk yazılar da bulunsun)
     thr = max(28.0, float(np.percentile(dist, 70)) * 1.2)
     strong = dist > thr
     # Bölgeyi baştan sona kesen düz çizgiler yazı değil, buton/kutu kenarıdır: silinirse
     # yerine kenarın öbür yanındaki renk taşar.
-    # Kenar KESİNTİSİZDİR; kalın yazının satırlarında ise harf araları boştur.
-    h, w = strong.shape
-    if w > 8:
-        strong[_longest_run(strong) > 0.9 * w, :] = False
-    if h > 8:
-        strong[:, _longest_run(strong.T) > 0.9 * h] = False
     weak = dist > max(10.0, thr * 0.3)
+    # Kenar KESİNTİSİZDİR; kalın yazının satırlarında ise harf araları boştur.
+    edges = _edge_lines(weak)
+    strong &= ~edges
     mask = strong | (weak & _dilate(strong, max(2, line_height // 2)))
-    # Kenar yumuşatma piksellerini de kapsamak için maskeyi biraz genişlet
-    mask = _dilate(mask, max(1, line_height // 7))
+    # Kenar yumuşatma piksellerini de kapsamak için maskeyi biraz genişlet; kenar
+    # çizgileri yine dışarıda kalsın (silinirse buton/kutu kenarı taşar)
+    mask = _dilate(mask, max(1, line_height // 7)) & ~_dilate(edges, 1)
     return (mask, strong) if return_strong else mask
 
 
