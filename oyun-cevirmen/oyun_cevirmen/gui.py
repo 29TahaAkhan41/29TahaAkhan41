@@ -467,6 +467,18 @@ class App:
             if restore:
                 self.overlay.restore()
         self._own_rect = self._window_rect()
+        if sys.platform == "win32":
+            try:
+                import ctypes
+
+                from ctypes import wintypes
+
+                user32 = ctypes.windll.user32
+                user32.GetAncestor.argtypes = [wintypes.HWND, wintypes.UINT]
+                user32.GetAncestor.restype = wintypes.HWND
+                self._root_hwnd = user32.GetAncestor(self.root.winfo_id(), 2)
+            except Exception:
+                self._root_hwnd = None
         sig = image_signature(img)
         if auto and not signature_changed(self.last_sig, sig):
             self.busy = False
@@ -489,6 +501,25 @@ class App:
         r = self.root
         return (r.winfo_rootx(), r.winfo_rooty(),
                 r.winfo_rootx() + r.winfo_width(), r.winfo_rooty() + r.winfo_height())
+
+    def _on_own_window(self, b) -> bool:
+        """Bu yazı, ekranda gerçekten görünen Oyun Çevirmeni penceresinin üstünde mi?"""
+        cx, cy = int(b.x + b.w / 2), int(b.y + b.h / 2)
+        if sys.platform == "win32" and getattr(self, "_root_hwnd", None):
+            import ctypes
+            from ctypes import wintypes
+
+            # O noktada en üstte hangi pencere var? (oyun öndeyse oyun; tıklamayı geçiren
+            # çeviri katmanları sayılmaz)
+            user32 = ctypes.windll.user32
+            user32.WindowFromPoint.argtypes = [wintypes.POINT]
+            user32.WindowFromPoint.restype = wintypes.HWND
+            user32.GetAncestor.argtypes = [wintypes.HWND, wintypes.UINT]
+            user32.GetAncestor.restype = wintypes.HWND
+            hwnd = user32.WindowFromPoint(wintypes.POINT(cx, cy))
+            return bool(hwnd) and user32.GetAncestor(hwnd, 2) == self._root_hwnd
+        own = getattr(self, "_own_rect", None)
+        return bool(own) and own[0] <= cx <= own[2] and own[1] <= cy <= own[3]
 
     def _is_foreground(self) -> bool:
         """Kullanıcı şu an Oyun Çevirmeni penceresinde mi (oyunda değil)?"""
@@ -526,10 +557,7 @@ class App:
             t0 = time.time()
             offset = (region.left, region.top)
             blocks = self._get_ocr().read(img, offset)
-            own = getattr(self, "_own_rect", None)
-            if own:
-                blocks = [b for b in blocks if not (own[0] <= b.x + b.w / 2 <= own[2]
-                                                    and own[1] <= b.y + b.h / 2 <= own[3])]
+            blocks = [b for b in blocks if not self._on_own_window(b)]
             t_ocr = time.time() - t0
             if not blocks:
                 self.post(self._done, [], auto, "Ekranda okunabilir yazı bulunamadı.", (t_ocr, 0))

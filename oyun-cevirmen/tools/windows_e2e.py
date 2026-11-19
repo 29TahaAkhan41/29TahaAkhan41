@@ -111,6 +111,8 @@ for spec in sys.argv[2:] or ["windows", "tesseract"]:
     # "...!hata" = çeviri motoru hata verir (oyunun üstündeki bildirimi görmek için)
     spec, _, fail = spec.partition("!")
     Fake.fail = fail == "hata"
+    if Fake.fail:  # önbellekteki çeviriler hatayı gizlemesin
+        (gui.CONFIG_DIR / "onbellek.json").unlink(missing_ok=True)
     spec_core, _, scene = spec.partition(":")
     scene = scene or "rpg"
     engine, _, sc = spec_core.partition("@")
@@ -118,8 +120,7 @@ for spec in sys.argv[2:] or ["windows", "tesseract"]:
     app = gui.App()
     app.s.region = None
     app.s.ocr_engine = engine
-    if scene == "menu":
-        app.var_font.set(render.FONT_STYLES["serif"])
+    app.var_font.set(render.FONT_STYLES["serif" if scene == "menu" else "sans-bold"])
     app.var_ocr.set(screen.OCR_ENGINES[engine])
     # Gerçek kullanım: Oyun Çevirmeni penceresi oyunun ARKASINDA, ekranın ortasında durur,
     # oyun öndedir. (Eski sürüm bu durumda pencerenin arkasındaki yazıları atlıyordu.)

@@ -103,6 +103,16 @@ def _dilate(mask: np.ndarray, r: int) -> np.ndarray:
     return np.asarray(m) > 0
 
 
+def _longest_run(m: np.ndarray) -> np.ndarray:
+    """Her satırdaki en uzun kesintisiz True dizisinin uzunluğu."""
+    out = np.zeros(m.shape[0], int)
+    run = np.zeros(m.shape[0], int)
+    for col in m.T:
+        run = np.where(col, run + 1, 0)
+        out = np.maximum(out, run)
+    return out
+
+
 def text_mask(rgb: np.ndarray, line_height: int, return_strong: bool = False):
     """Yazı piksellerini bulur: çevresindeki ortalama renkten belirgin farklı olanlar.
 
@@ -118,11 +128,12 @@ def text_mask(rgb: np.ndarray, line_height: int, return_strong: bool = False):
     strong = dist > thr
     # Bölgeyi baştan sona kesen düz çizgiler yazı değil, buton/kutu kenarıdır: silinirse
     # yerine kenarın öbür yanındaki renk taşar.
+    # Kenar KESİNTİSİZDİR; kalın yazının satırlarında ise harf araları boştur.
     h, w = strong.shape
     if w > 8:
-        strong[strong.mean(axis=1) > 0.8, :] = False
+        strong[_longest_run(strong) > 0.9 * w, :] = False
     if h > 8:
-        strong[:, strong.mean(axis=0) > 0.8] = False
+        strong[:, _longest_run(strong.T) > 0.9 * h] = False
     weak = dist > max(10.0, thr * 0.3)
     mask = strong | (weak & _dilate(strong, max(2, line_height // 2)))
     # Kenar yumuşatma piksellerini de kapsamak için maskeyi biraz genişlet
